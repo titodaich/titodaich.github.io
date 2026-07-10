@@ -568,8 +568,8 @@ body.editor-active #screen-editor{ display:block; }
 <div class="wrap">
   <div class="hero-copy">
     <div class="hero-eyebrow">Fútbol sala · cuerpo técnico</div>
-    <h1>Preparación<br>y video, en <em>un mismo panel</em></h1>
-    <p>Marcá jugadas, armá la secuencia y sacá los clips reales del partido. Ingresá para seguir donde dejaste tu último análisis.</p>
+    <h1>Gestiona<br>tu equipo</h1>
+    <p>Editá, llevá estadísticas, planificación semanal y el control de tu equipo en un solo lugar.</p>
   </div>
 
   <div class="card">
@@ -883,8 +883,19 @@ async function ensureMembership(userId, fallbackClubName){
   try{
     const { data: { session } } = await sb.auth.getSession();
     if(session){
+      // Verificar suspensión
+      try{
+        const { data: prof } = await sb.from('profiles').select('is_blocked').eq('id', session.user.id).single();
+        if(prof && prof.is_blocked){
+          await sb.auth.signOut();
+          return;
+        }
+      }catch(e){}
       await ensureMembership(session.user.id, 'Mi club');
       window.__currentUserEmail = session.user.email;
+      try{ await sb.rpc('touch_last_seen'); }catch(e){}
+      // Latido periódico para reflejar "conectado" en el panel admin.
+      setInterval(() => { try{ sb.rpc('touch_last_seen'); }catch(e){} }, 120000);
       showEditor();
     }
   }catch(err){ console.error(err); }
@@ -931,7 +942,17 @@ form.addEventListener('submit', async (e) => {
     submitBtn.disabled = false;
     submitBtn.textContent = 'Entrar';
     if(error){ showError(traducirError(error)); return; }
+    // Verificar si la cuenta está suspendida por un administrador.
+    try{
+      const { data: prof } = await sb.from('profiles').select('is_blocked').eq('id', data.user.id).single();
+      if(prof && prof.is_blocked){
+        await sb.auth.signOut();
+        showError('Tu cuenta fue suspendida. Contactá al administrador.');
+        return;
+      }
+    }catch(e){ /* si falla la consulta, seguimos: no bloqueamos por un error de red */ }
     await ensureMembership(data.user.id, 'Club de ' + email);
+    try{ await sb.rpc('touch_last_seen'); }catch(e){}
     window.__currentUserEmail = email;
     showEditor();
   }
