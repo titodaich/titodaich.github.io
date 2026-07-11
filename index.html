@@ -455,6 +455,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .goal-row-v{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;}
 .goal-row-top{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
 .goal-row-top .g-player{flex:1;min-width:0;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-size:13px;padding:7px 9px;cursor:pointer;}
+.goal-row-top .g-min{width:90px;flex-shrink:0;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-size:12px;padding:7px 8px;}
+.goal-row-top .g-keeper{flex:1;min-width:0;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-size:13px;padding:7px 9px;cursor:pointer;}
 .origin-tags{display:flex;flex-wrap:wrap;gap:5px;}
 .origin-tag{background:var(--panel-2);border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:5px 10px;font-size:12px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .12s ease;}
 .origin-tag:hover{color:var(--chalk);border-color:var(--muted);}
@@ -486,22 +488,23 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .goal-row .g-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);flex-shrink:0;width:20px;text-align:center;}
 
 .match-list-rows{display:block;overflow-x:auto;}
-.match-table{width:100%;border-collapse:collapse;min-width:640px;}
-.match-table thead th{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);text-align:left;padding:10px 10px;border-bottom:1px solid var(--line);font-weight:500;}
-.match-table th.mt-num{width:110px;}
-.match-table th.mt-gf,.match-table th.mt-gc{width:44px;text-align:center;}
-.match-table th.mt-fecha{width:150px;}
-.match-table th.mt-open{width:80px;}
-.match-table td{padding:8px 10px;border-bottom:1px solid rgba(51,73,94,0.4);vertical-align:middle;}
-.match-table td.mt-gf,.match-table td.mt-gc{text-align:center;font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;}
+.match-table{width:100%;max-width:720px;border-collapse:collapse;min-width:560px;}
+.match-table thead th{font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);font-weight:500;}
+.match-table th.mt-num{width:92px;}
+.match-table th.mt-gf,.match-table th.mt-gc{width:36px;text-align:center;}
+.match-table th.mt-fecha{width:124px;}
+.match-table th.mt-open{width:64px;}
+.match-table td{padding:4px 8px;border-bottom:1px solid rgba(51,73,94,0.4);vertical-align:middle;}
+.match-table td.mt-gf,.match-table td.mt-gc{text-align:center;font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;}
 .match-table td.mt-gf .win{color:var(--success);}
 .match-table td.mt-gc .loss{color:var(--danger);}
-.mt-fecha-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:3px 10px;white-space:nowrap;}
-.mt-rival-in{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:7px;color:var(--chalk);font-family:'Oswald',sans-serif;font-size:15px;text-transform:uppercase;letter-spacing:0.3px;padding:8px 10px;}
+.mt-fecha-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:2px 8px;white-space:nowrap;}
+.mt-rival-in{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-family:'Oswald',sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:0.3px;padding:5px 8px;}
 .mt-rival-in:focus{outline:none;border-color:var(--accent);}
-.mt-rival-in::placeholder{color:var(--muted);font-size:13px;text-transform:none;}
-.mt-date-in{background:var(--bg);border:1px solid var(--line);border-radius:7px;color:var(--chalk);padding:7px 9px;font-size:12px;font-family:'Inter',sans-serif;}
+.mt-rival-in::placeholder{color:var(--muted);font-size:12px;text-transform:none;}
+.mt-date-in{background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--chalk);padding:5px 7px;font-size:11px;font-family:'Inter',sans-serif;}
 .mt-date-in:focus{outline:none;border-color:var(--accent-2);}
+.match-table .mt-open-btn{padding:5px 10px;font-size:11px;}
 .mt-open-btn{white-space:nowrap;}
 .match-empty{text-align:center;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:13px;padding:40px;border:1px dashed var(--line);border-radius:12px;}
 
@@ -528,6 +531,26 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .origin-bar .ob-fill{height:100%;background:var(--accent-2);border-radius:4px;}
 .origin-bar.against .ob-fill{background:var(--danger);}
 .annual-empty{text-align:center;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:13px;padding:40px;}
+
+/* Convocatorias */
+.calls-wrap{overflow-x:auto;}
+.calls-table{border-collapse:collapse;min-width:100%;}
+.calls-table th,.calls-table td{border:1px solid var(--line);padding:0;text-align:center;}
+.calls-table thead th{background:var(--panel-2);font-family:'Oswald',sans-serif;padding:8px 10px;white-space:nowrap;color:var(--chalk);}
+.calls-table thead th.match-col{font-size:11px;min-width:80px;}
+.calls-table thead th.match-col .mc-rival{font-size:12px;}
+.calls-table thead th.match-col .mc-sub{font-family:'Inter',sans-serif;font-weight:400;font-size:11px;color:var(--accent-2);}
+.calls-table thead th.match-col .mc-date{font-family:'JetBrains Mono',monospace;font-weight:400;font-size:9px;color:var(--muted);}
+.calls-table .player-name-cell{text-align:left;padding:8px 12px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;white-space:nowrap;background:var(--panel);position:sticky;left:0;z-index:1;min-width:150px;}
+.calls-table .player-name-cell .pn-num{display:inline-block;min-width:22px;color:var(--accent-2);font-family:'JetBrains Mono',monospace;font-size:11px;}
+.calls-table thead th.player-name-cell{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);}
+.calls-table thead th.total-col, .calls-table td.total-col{background:var(--panel-2);font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;color:var(--accent-2);min-width:50px;}
+.calls-table thead th.total-col{font-size:10px;text-transform:uppercase;color:var(--muted);}
+.calls-cell{width:60px;height:40px;cursor:pointer;font-size:16px;user-select:none;transition:background .1s ease;}
+.calls-cell:hover{background:var(--panel-2);}
+.calls-cell.yes{background:rgba(76,175,109,0.18);color:var(--success);}
+.calls-cell.no{background:rgba(240,85,63,0.15);color:var(--danger);}
+.calls-empty{text-align:center;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:13px;padding:40px;border:1px dashed var(--line);border-radius:12px;}
 .annual-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 @media (max-width:820px){.annual-grid{grid-template-columns:1fr;}}
 
@@ -965,6 +988,7 @@ body.editor-active #screen-editor{ display:block; }
     <div class="stats-subnav">
       <button class="stats-subtab active" data-sub="matches">Partidos</button>
       <button class="stats-subtab" data-sub="squad">Plantel</button>
+      <button class="stats-subtab" data-sub="calls">Convocatorias</button>
       <button class="stats-subtab" data-sub="annual">Estadísticas anuales</button>
     </div>
 
@@ -1043,6 +1067,17 @@ body.editor-active #screen-editor{ display:block; }
         <button class="btn primary" id="addPlayerToSquadBtn">+ Agregar jugador</button>
       </div>
       <div class="squad-list" id="squadList"></div>
+    </div>
+
+    <!-- ===== SUB: CONVOCATORIAS ===== -->
+    <div class="stats-sub" id="stats-calls">
+      <div class="scout-head">
+        <div>
+          <h2 class="scout-title">Convocatorias</h2>
+          <p class="scout-sub">Marcá quién estuvo convocado en cada partido. Tocá una vez para ✓ convocado, otra para ✕ no disponible, otra para vaciar.</p>
+        </div>
+      </div>
+      <div class="calls-wrap" id="callsWrap"></div>
     </div>
 
     <!-- ===== SUB: ANUALES ===== -->
@@ -2183,6 +2218,7 @@ window.__initEditor = function(){
       if(sub === 'annual') renderAnnual();
       if(sub === 'squad') renderSquad();
       if(sub === 'matches') renderMatchList();
+      if(sub === 'calls') renderCalls();
     });
   });
 
@@ -2219,15 +2255,38 @@ window.__initEditor = function(){
       // Partidos
       let mq = sb.from('stat_matches').select('*').eq('club_id', clubId);
       mq = cat ? mq.eq('categoria', cat) : mq.is('categoria', null);
-      const mRes = await mq.order('created_at', { ascending:true });
+      const mRes = await mq;
       matches = (mRes.data||[]).map(m => ({
-        id:m.id, rival:m.rival||'', date:m.match_date||'',
+        id:m.id, rival:m.rival||'', date:m.match_date||'', createdAt:m.created_at||'',
         goalsFor:m.goals_for||[], goalsAgainst:m.goals_against||[],
-        assists:m.assists||[], cards:m.cards||[]
+        assists:m.assists||[], cards:m.cards||[], calls:m.calls||{}
       }));
+      sortMatches();
 
       renderMatchList(); renderSquad();
+      refreshActiveSub();
     }catch(e){ console.error('stats load', e); }
+  }
+
+  // Ordena los partidos cronológicamente por fecha del partido (más viejo arriba).
+  // Los que no tienen fecha van al final, ordenados por cuándo se crearon.
+  function sortMatches(){
+    matches.sort((a,b) => {
+      if(a.date && b.date) return a.date.localeCompare(b.date);
+      if(a.date && !b.date) return -1;
+      if(!a.date && b.date) return 1;
+      return (a.createdAt||'').localeCompare(b.createdAt||'');
+    });
+  }
+
+  // Refresca la sub-pestaña que esté visible en ese momento
+  function refreshActiveSub(){
+    const active = document.querySelector('.stats-subtab.active');
+    const sub = active ? active.dataset.sub : 'matches';
+    if(sub === 'annual') renderAnnual();
+    else if(sub === 'squad') renderSquad();
+    else if(sub === 'calls') renderCalls();
+    else renderMatchList();
   }
 
   // ========== PLANTEL ==========
@@ -2311,6 +2370,7 @@ window.__initEditor = function(){
       const rivalIn = tr.querySelector('.mt-rival-in');
       const dateIn = tr.querySelector('.mt-date-in');
       rivalIn.addEventListener('input', e => { m.rival = e.target.value; saveMatchRow(m); });
+      dateIn.addEventListener('change', e => { m.date = e.target.value; saveMatchRow(m); sortMatches(); renderMatchList(); });
       dateIn.addEventListener('input', e => { m.date = e.target.value; saveMatchRow(m); });
       tr.querySelector('.mt-open-btn').addEventListener('click', () => openMatch(m.id));
       body.appendChild(tr);
@@ -2446,10 +2506,11 @@ window.__initEditor = function(){
       row.className = 'goal-row-v';
       const top = document.createElement('div');
       top.className = 'goal-row-top';
-      top.innerHTML = `<span class="g-num">${idx+1}</span><select class="g-player">${playerOptions(g.player_id)}</select><button class="g-remove">✕</button>`;
+      top.innerHTML = `<span class="g-num">${idx+1}</span><select class="g-player">${playerOptions(g.player_id)}</select><input class="g-min" value="${escapeHtml(g.min||'')}" placeholder="min (ej 6' PT)"><button class="g-remove">✕</button>`;
       top.querySelector('.g-player').addEventListener('change', e => {
         const p = squad.find(x=>x.id===e.target.value); g.player_id=e.target.value; g.player_name=p?p.name:''; flashMatchSaved();
       });
+      top.querySelector('.g-min').addEventListener('input', e => { g.min = e.target.value; flashMatchSaved(); });
       top.querySelector('.g-remove').addEventListener('click', () => { m.goalsFor.splice(idx,1); renderGoals(); flashMatchSaved(); });
       row.appendChild(top);
       row.appendChild(buildOriginButtons(g, () => { renderGoals(); flashMatchSaved(); }));
@@ -2463,7 +2524,11 @@ window.__initEditor = function(){
       row.className = 'goal-row-v';
       const top = document.createElement('div');
       top.className = 'goal-row-top';
-      top.innerHTML = `<span class="g-num">${idx+1}</span><span style="flex:1;color:var(--muted);font-size:12px;">Gol en contra</span><button class="g-remove">✕</button>`;
+      top.innerHTML = `<span class="g-num">${idx+1}</span><input class="g-min" value="${escapeHtml(g.min||'')}" placeholder="min"><select class="g-keeper">${playerOptions(g.keeper_id)}</select><button class="g-remove">✕</button>`;
+      top.querySelector('.g-min').addEventListener('input', e => { g.min = e.target.value; flashMatchSaved(); });
+      top.querySelector('.g-keeper').addEventListener('change', e => {
+        const p = squad.find(x=>x.id===e.target.value); g.keeper_id=e.target.value; g.keeper_name=p?p.name:''; flashMatchSaved();
+      });
       top.querySelector('.g-remove').addEventListener('click', () => { m.goalsAgainst.splice(idx,1); renderGoals(); flashMatchSaved(); });
       row.appendChild(top);
       row.appendChild(buildOriginButtons(g, () => { renderGoals(); flashMatchSaved(); }));
@@ -2520,6 +2585,71 @@ window.__initEditor = function(){
     document.getElementById('matchList').style.display = 'block';
     renderMatchList();
   });
+
+  // ========== CONVOCATORIAS ==========
+  function saveCalls(m){
+    const sb = window.__sb;
+    if(!sb) return;
+    clearTimeout(saveTimers['calls_'+m.id]);
+    saveTimers['calls_'+m.id] = setTimeout(async () => {
+      try{ await sb.from('stat_matches').update({ calls:m.calls||{}, updated_at:new Date().toISOString() }).eq('id', m.id); }catch(e){ console.error(e); }
+    }, 600);
+  }
+
+  function renderCalls(){
+    const wrap = document.getElementById('callsWrap');
+    if(squad.length === 0){
+      wrap.innerHTML = '<div class="calls-empty">Primero cargá jugadores en el Plantel.</div>';
+      return;
+    }
+    if(matches.length === 0){
+      wrap.innerHTML = '<div class="calls-empty">Primero cargá algún partido.</div>';
+      return;
+    }
+    // Partidos ordenados del más viejo al más nuevo (para numerar 1,2,3...)
+    const ordered = matches.slice().reverse();
+    const table = document.createElement('table');
+    table.className = 'calls-table';
+    // Cabecera: primera celda (Jugador) + un partido por columna
+    let thead = '<thead><tr><th class="player-name-cell">Jugador</th>';
+    ordered.forEach((m, i) => {
+      const when = m.date ? new Date(m.date+'T00:00:00').toLocaleDateString('es-AR') : '';
+      thead += `<th class="match-col"><div class="mc-rival">Partido ${i+1}</div><div class="mc-sub">${m.rival?escapeHtml(m.rival):''}</div><div class="mc-date">${when}</div></th>`;
+    });
+    thead += '<th class="total-col">Total</th></tr></thead>';
+    // Cuerpo: una fila por jugador
+    let tbody = '<tbody>';
+    squad.forEach(p => {
+      tbody += `<tr><td class="player-name-cell"><span class="pn-num">${escapeHtml(p.number||'')}</span> ${escapeHtml(p.name)}</td>`;
+      ordered.forEach(m => {
+        const st = (m.calls && m.calls[p.id]) || '';
+        const cls = st==='yes'?'yes':(st==='no'?'no':'');
+        const icon = st==='yes'?'✓':(st==='no'?'✕':'');
+        tbody += `<td class="calls-cell ${cls}" data-match="${m.id}" data-player="${p.id}">${icon}</td>`;
+      });
+      const total = matches.reduce((acc,m) => acc + ((m.calls && m.calls[p.id]==='yes')?1:0), 0);
+      tbody += `<td class="total-col">${total}</td></tr>`;
+    });
+    tbody += '</tbody>';
+    table.innerHTML = thead + tbody;
+    wrap.innerHTML = '';
+    wrap.appendChild(table);
+
+    // Click en cada celda: cicla vacío → sí → no → vacío
+    wrap.querySelectorAll('.calls-cell').forEach(cell => {
+      cell.addEventListener('click', () => {
+        const m = matches.find(x => x.id === cell.dataset.match);
+        if(!m) return;
+        if(!m.calls) m.calls = {};
+        const pid = cell.dataset.player;
+        const cur = m.calls[pid] || '';
+        const next = cur==='' ? 'yes' : (cur==='yes' ? 'no' : '');
+        if(next==='') delete m.calls[pid]; else m.calls[pid] = next;
+        saveCalls(m);
+        renderCalls();
+      });
+    });
+  }
 
   // ========== ANUALES ==========
   function renderAnnual(){
@@ -2649,9 +2779,10 @@ window.__initEditor = function(){
   if(window.__onCategorySubscribe){
     window.__onCategorySubscribe(() => {
       if(loadedOnce){
-        // volver a la lista y recargar
+        // si estabas dentro de la ficha de un partido, volvé a la lista
         document.getElementById('matchDetail').style.display = 'none';
         document.getElementById('matchList').style.display = 'block';
+        // recargar todo; loadAll refresca la sub-pestaña activa al terminar
         loadAll();
       }
     });
