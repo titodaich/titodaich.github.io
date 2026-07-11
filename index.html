@@ -327,6 +327,20 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .brand .dot{color:var(--accent);}
 .brand-sub{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
 
+/* ===== Barra de categorías ===== */
+.category-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-top:16px;}
+.cat-label{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
+.cat-chips{display:flex;gap:6px;flex-wrap:wrap;}
+.cat-chip{display:inline-flex;align-items:center;gap:6px;background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:6px 14px;font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;cursor:pointer;transition:all .15s ease;}
+.cat-chip:hover{border-color:var(--muted);color:var(--chalk);}
+.cat-chip.active{background:var(--accent-2);border-color:var(--accent-2);color:#10161C;}
+.cat-chip .cat-edit{opacity:0;font-size:10px;transition:opacity .12s ease;}
+.cat-chip:hover .cat-edit{opacity:0.7;}
+.cat-chip.active .cat-edit{opacity:0.7;}
+.cat-add{background:transparent;border:1px dashed var(--line);color:var(--muted);border-radius:999px;padding:6px 14px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;transition:all .15s ease;}
+.cat-add:hover{border-color:var(--accent);color:var(--accent);}
+.cat-name-input{background:var(--bg);border:1px solid var(--accent-2);border-radius:999px;color:var(--chalk);font-family:'Oswald',sans-serif;font-size:13px;padding:6px 12px;width:110px;text-transform:uppercase;}
+
 /* ===== Menú de navegación (pestañas) ===== */
 .main-nav{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:24px;padding-top:14px;}
 .nav-tab{background:transparent;border:none;color:var(--muted);font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;padding:11px 20px;border-radius:8px 8px 0 0;position:relative;transition:color .15s ease, background .15s ease;}
@@ -772,6 +786,12 @@ body.editor-active #screen-editor{ display:block; }
       </div>
       <button class="btn small ghost" id="logoutBtn">Cerrar sesión</button>
     </div>
+  </div>
+
+  <!-- ===== BARRA DE CATEGORÍAS ===== -->
+  <div class="category-bar">
+    <span class="cat-label">Categoría:</span>
+    <div class="cat-chips" id="catChips"></div>
   </div>
 
   <!-- ===== MENÚ DE NAVEGACIÓN ===== -->
@@ -1318,6 +1338,45 @@ window.__initEditor = function(){
       window.scrollTo(0, 0);
     });
   });
+})();
+
+// ---------------- CATEGORÍAS ----------------
+(function initCategories(){
+  // Categorías fijas de la institución.
+  const FIXED_CATEGORIES = ['1era', '3era', '4ta', '5ta', '6ta', '7ma', '8va', 'Promo'];
+  let activeCategory = FIXED_CATEGORIES[0];
+
+  const chipsEl = document.getElementById('catChips');
+
+  // La categoría activa se expone globalmente para que las secciones la usen.
+  window.__getActiveCategory = () => activeCategory;
+  window.__onCategoryChange = null;   // las secciones pueden engancharse acá
+
+  function renderChips(){
+    chipsEl.innerHTML = '';
+    FIXED_CATEGORIES.forEach(cat => {
+      const chip = document.createElement('div');
+      chip.className = 'cat-chip' + (cat === activeCategory ? ' active' : '');
+      chip.textContent = cat;
+      chip.addEventListener('click', () => selectCategory(cat));
+      chipsEl.appendChild(chip);
+    });
+  }
+
+  function selectCategory(cat){
+    if(activeCategory === cat) return;
+    activeCategory = cat;
+    renderChips();
+    if(typeof window.__onCategoryChange === 'function') window.__onCategoryChange(cat);
+  }
+
+  renderChips();
+
+  window.__loadCategoriesOnce = function(){
+    // Con categorías fijas no hay que cargar nada de la nube;
+    // solo avisamos cuál es la categoría inicial.
+    if(typeof window.__onCategoryChange === 'function') window.__onCategoryChange(activeCategory);
+  };
 })();
 
 // ---------------- SCOUTING DE RIVALES ----------------
@@ -1886,6 +1945,9 @@ try{
       return window.__clubIdCache;
     }catch(e){ return null; }
   };
+
+  // Cargar las categorías del club apenas hay conexión.
+  if(window.__loadCategoriesOnce) window.__loadCategoriesOnce();
 }catch(err){
   console.error('Supabase no se pudo inicializar en el editor:', err);
   const badge = document.getElementById('userBadge');
