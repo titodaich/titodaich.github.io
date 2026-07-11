@@ -452,6 +452,31 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .score-sep{color:var(--muted);font-size:20px;}
 
 .goal-list{display:flex;flex-direction:column;gap:8px;}
+.goal-row-v{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;}
+.goal-row-top{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
+.goal-row-top .g-player{flex:1;min-width:0;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-size:13px;padding:7px 9px;cursor:pointer;}
+.origin-tags{display:flex;flex-wrap:wrap;gap:5px;}
+.origin-tag{background:var(--panel-2);border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:5px 10px;font-size:12px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .12s ease;}
+.origin-tag:hover{color:var(--chalk);border-color:var(--muted);}
+.origin-tag.active{background:var(--accent-2);border-color:var(--accent-2);color:#10161C;font-weight:600;}
+.origin-subs{width:100%;display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;padding-top:6px;border-top:1px dashed var(--line);}
+.origin-sub{background:transparent;border:1px solid var(--accent-2);color:var(--accent-2);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;transition:all .12s ease;}
+.origin-sub:hover{background:rgba(47,143,203,0.12);}
+.origin-sub.active{background:var(--accent-2);color:#10161C;font-weight:600;}
+.sub-breakdown{margin-top:6px;padding-left:12px;display:flex;flex-direction:column;gap:3px;}
+.sub-item{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+.tag-edit-item{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:10px;}
+.tag-edit-main{display:flex;gap:8px;align-items:center;}
+.tag-edit-name{flex:1;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-family:'Oswald',sans-serif;font-size:14px;padding:7px 10px;font-weight:600;}
+.tag-edit-del{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:6px;width:32px;height:32px;cursor:pointer;}
+.tag-edit-del:hover{color:var(--danger);border-color:var(--danger);}
+.tag-edit-subs{margin:8px 0 6px;padding-left:14px;display:flex;flex-direction:column;gap:6px;}
+.tag-sub-row{display:flex;gap:6px;align-items:center;}
+.tag-sub-name{flex:1;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-size:12px;padding:5px 8px;}
+.tag-sub-del{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:12px;}
+.tag-sub-del:hover{color:var(--danger);}
+.tag-add-sub{background:transparent;border:1px dashed var(--line);color:var(--muted);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;}
+.tag-add-sub:hover{border-color:var(--accent-2);color:var(--accent-2);}
 .goal-row{display:flex;gap:8px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;}
 .goal-row select,.goal-row input{background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-family:'Inter',sans-serif;font-size:13px;padding:7px 9px;}
 .goal-row select{flex:1;min-width:0;cursor:pointer;}
@@ -460,14 +485,24 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .goal-row .g-remove:hover{color:var(--danger);}
 .goal-row .g-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);flex-shrink:0;width:20px;text-align:center;}
 
-.match-list-rows{display:flex;flex-direction:column;gap:10px;}
-.match-row{display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;cursor:pointer;transition:border-color .15s ease;}
-.match-row:hover{border-color:var(--accent-2);}
-.match-row .m-rival{font-family:'Oswald',sans-serif;font-size:16px;text-transform:uppercase;flex:1;}
-.match-row .m-score{font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;}
-.match-row .m-score .win{color:var(--success);}
-.match-row .m-score .loss{color:var(--danger);}
-.match-row .m-date{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.match-list-rows{display:block;overflow-x:auto;}
+.match-table{width:100%;border-collapse:collapse;min-width:640px;}
+.match-table thead th{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);text-align:left;padding:10px 10px;border-bottom:1px solid var(--line);font-weight:500;}
+.match-table th.mt-num{width:110px;}
+.match-table th.mt-gf,.match-table th.mt-gc{width:44px;text-align:center;}
+.match-table th.mt-fecha{width:150px;}
+.match-table th.mt-open{width:80px;}
+.match-table td{padding:8px 10px;border-bottom:1px solid rgba(51,73,94,0.4);vertical-align:middle;}
+.match-table td.mt-gf,.match-table td.mt-gc{text-align:center;font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;}
+.match-table td.mt-gf .win{color:var(--success);}
+.match-table td.mt-gc .loss{color:var(--danger);}
+.mt-fecha-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:3px 10px;white-space:nowrap;}
+.mt-rival-in{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:7px;color:var(--chalk);font-family:'Oswald',sans-serif;font-size:15px;text-transform:uppercase;letter-spacing:0.3px;padding:8px 10px;}
+.mt-rival-in:focus{outline:none;border-color:var(--accent);}
+.mt-rival-in::placeholder{color:var(--muted);font-size:13px;text-transform:none;}
+.mt-date-in{background:var(--bg);border:1px solid var(--line);border-radius:7px;color:var(--chalk);padding:7px 9px;font-size:12px;font-family:'Inter',sans-serif;}
+.mt-date-in:focus{outline:none;border-color:var(--accent-2);}
+.mt-open-btn{white-space:nowrap;}
 .match-empty{text-align:center;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:13px;padding:40px;border:1px dashed var(--line);border-radius:12px;}
 
 .squad-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;}
@@ -990,7 +1025,10 @@ body.editor-active #screen-editor{ display:block; }
 
         <div class="rd-footer">
           <button class="btn danger-outline" id="deleteMatchBtn">Eliminar partido</button>
-          <span class="rd-saved" id="mtSaved">Los cambios se guardan solos</span>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <button class="btn small ghost" id="editTagsBtn">⚙ Editar tags de gol</button>
+            <span class="rd-saved" id="mtSaved">Los cambios se guardan solos</span>
+          </div>
         </div>
       </div>
     </div>
@@ -1167,6 +1205,19 @@ body.editor-active #screen-editor{ display:block; }
   </div>
 
 <div class="toast" id="toast"></div>
+
+<div class="cloud-modal-overlay" id="tagsModal" style="display:none;">
+  <div class="cloud-modal">
+    <div class="cloud-modal-head">
+      <h3>Tags de "cómo fue el gol"</h3>
+      <button class="cloud-close" id="tagsModalClose">✕</button>
+    </div>
+    <div class="cloud-list" id="tagsEditList"></div>
+    <div style="padding:0 22px 22px;">
+      <button class="btn small" id="addTagBtn">+ Agregar tag</button>
+    </div>
+  </div>
+</div>
 
 <div class="cloud-modal-overlay" id="cloudModal" style="display:none;">
   <div class="cloud-modal">
@@ -1345,11 +1396,16 @@ toggleModeBtn.addEventListener('click', () => setMode(mode === 'signin' ? 'signu
 // Si el club de este usuario no existe todavía (primer ingreso), lo crea.
 async function ensureMembership(userId, fallbackClubName){
   const { data: memberships, error } = await sb.from('memberships').select('club_id').eq('user_id', userId).limit(1);
-  if(error){ console.error(error); return; }
+  // Si hubo un ERROR al leer (permisos, red), NO creamos un club nuevo:
+  // podría ser que el club ya existe pero no lo pudimos leer. Crear uno duplicaría.
+  if(error){ console.error('No se pudo leer membership (no se crea club):', error); return; }
   if(!memberships || memberships.length === 0){
     const { data: club, error: clubErr } = await sb.from('clubs').insert({ name: fallbackClubName || 'Mi club' }).select().single();
     if(clubErr){ console.error(clubErr); return; }
     await sb.from('memberships').insert({ club_id: club.id, user_id: userId, role: 'owner' });
+    window.__clubIdCache = club.id;
+  } else {
+    window.__clubIdCache = memberships[0].club_id;
   }
 }
 
@@ -2085,13 +2141,36 @@ window.__initEditor = function(){
 
 // ---------------- ESTADÍSTICAS ----------------
 (function initStats(){
-  const DEFAULT_ORIGINS = ['Jugada elaborada','Contraataque','ABP (pelota parada)','Individual','5 vs 4','4 vs 5','Autogol','Penal'];
+  // Tags de "cómo fue el gol". Estrategia tiene sub-opciones.
+  // Estructura: {name, subs:[...]}  — subs vacío = tag simple.
+  const DEFAULT_ORIGINS = [
+    { name:'Ataque posicional', subs:[] },
+    { name:'Transición', subs:[] },
+    { name:'Robo alto', subs:[] },
+    { name:'Estrategia', subs:['Tiro libre','Lateral','Córner'] },
+    { name:'5 vs 4', subs:[] },
+    { name:'4 vs 5', subs:[] }
+  ];
   let clubId = null;
   let squad = [];        // jugadores de la categoría
-  let origins = [];      // formas de origen de gol
+  let origins = [];      // formas de origen de gol (con subs)
+  let originsRowId = null;
   let matches = [];      // partidos de la categoría
   let currentMatch = null;
   const saveTimers = {};
+
+  async function saveOrigins(){
+    const sb = window.__sb;
+    if(!sb || !clubId) return;
+    try{
+      if(originsRowId){
+        await sb.from('goal_origins').update({ name: JSON.stringify(origins) }).eq('id', originsRowId);
+      } else {
+        const ins = await sb.from('goal_origins').insert({ club_id:clubId, categoria:catActual(), name:JSON.stringify(origins), sort_order:0 }).select().single();
+        if(ins.data) originsRowId = ins.data.id;
+      }
+    }catch(e){ console.error('origins save', e); }
+  }
 
   function catActual(){ return (window.__getActiveCategory && window.__getActiveCategory()) || null; }
 
@@ -2121,24 +2200,26 @@ window.__initEditor = function(){
       const pRes = await pq;
       squad = (pRes.data||[]).map(p => ({ id:p.id, name:p.name, number:p.number||'', position:p.position||'' }));
 
-      // Orígenes de gol (si no hay, crear los default)
+      // Orígenes de gol (guardados como una fila JSON por categoría)
       let oq = sb.from('goal_origins').select('*').eq('club_id', clubId);
       oq = cat ? oq.eq('categoria', cat) : oq.is('categoria', null);
       const oRes = await oq;
-      if(oRes.data && oRes.data.length){
-        origins = oRes.data.sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)).map(o => ({ id:o.id, name:o.name }));
+      if(oRes.data && oRes.data.length && oRes.data[0].name){
+        try{
+          const parsed = JSON.parse(oRes.data[0].name);
+          origins = Array.isArray(parsed) ? parsed : DEFAULT_ORIGINS.slice();
+        }catch(e){ origins = DEFAULT_ORIGINS.slice(); }
+        originsRowId = oRes.data[0].id;
       } else {
-        origins = DEFAULT_ORIGINS.map(n => ({ id:'tmp_'+n, name:n }));
-        // guardar los defaults
-        const rows = DEFAULT_ORIGINS.map((n,i) => ({ club_id:clubId, categoria:cat, name:n, sort_order:i }));
-        const ins = await sb.from('goal_origins').insert(rows).select();
-        if(ins.data) origins = ins.data.map(o => ({ id:o.id, name:o.name }));
+        origins = DEFAULT_ORIGINS.slice();
+        const ins = await sb.from('goal_origins').insert({ club_id:clubId, categoria:cat, name:JSON.stringify(origins), sort_order:0 }).select().single();
+        if(ins.data) originsRowId = ins.data.id;
       }
 
       // Partidos
       let mq = sb.from('stat_matches').select('*').eq('club_id', clubId);
       mq = cat ? mq.eq('categoria', cat) : mq.is('categoria', null);
-      const mRes = await mq.order('match_date', { ascending:false });
+      const mRes = await mq.order('created_at', { ascending:true });
       matches = (mRes.data||[]).map(m => ({
         id:m.id, rival:m.rival||'', date:m.match_date||'',
         goalsFor:m.goals_for||[], goalsAgainst:m.goals_against||[],
@@ -2199,21 +2280,53 @@ window.__initEditor = function(){
       el.innerHTML = '<div class="match-empty">Todavía no cargaste partidos. Tocá "+ Nuevo partido".</div>';
       return;
     }
-    el.innerHTML = '';
-    matches.forEach(m => {
+    el.innerHTML = `
+      <table class="match-table">
+        <thead>
+          <tr>
+            <th class="mt-num">Fecha</th>
+            <th class="mt-rival-h">Rival</th>
+            <th class="mt-gf">GF</th>
+            <th class="mt-gc">GC</th>
+            <th class="mt-fecha">Fecha del partido</th>
+            <th class="mt-open"></th>
+          </tr>
+        </thead>
+        <tbody id="matchTableBody"></tbody>
+      </table>
+    `;
+    const body = el.querySelector('#matchTableBody');
+    matches.forEach((m, idx) => {
       const s = matchScore(m);
       const cls = s.f > s.a ? 'win' : (s.f < s.a ? 'loss' : '');
-      const when = m.date ? new Date(m.date+'T00:00:00').toLocaleDateString('es-AR') : 'Sin fecha';
-      const row = document.createElement('div');
-      row.className = 'match-row';
-      row.innerHTML = `
-        <div class="m-rival">${escapeHtml(m.rival||'Sin rival')}</div>
-        <div class="m-score"><span class="${cls}">${s.f} - ${s.a}</span></div>
-        <div class="m-date">${when}</div>
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="mt-num"><span class="mt-fecha-badge">Partido ${idx+1}</span></td>
+        <td><input class="mt-rival-in" value="${escapeHtml(m.rival||'')}" placeholder="Escribí el rival"></td>
+        <td class="mt-gf"><span class="${cls==='win'?'win':''}">${s.f}</span></td>
+        <td class="mt-gc"><span class="${cls==='loss'?'loss':''}">${s.a}</span></td>
+        <td><input type="date" class="mt-date-in" value="${escapeHtml(m.date||'')}"></td>
+        <td class="mt-open"><button class="btn small mt-open-btn">Abrir →</button></td>
       `;
-      row.addEventListener('click', () => openMatch(m.id));
-      el.appendChild(row);
+      const rivalIn = tr.querySelector('.mt-rival-in');
+      const dateIn = tr.querySelector('.mt-date-in');
+      rivalIn.addEventListener('input', e => { m.rival = e.target.value; saveMatchRow(m); });
+      dateIn.addEventListener('input', e => { m.date = e.target.value; saveMatchRow(m); });
+      tr.querySelector('.mt-open-btn').addEventListener('click', () => openMatch(m.id));
+      body.appendChild(tr);
     });
+  }
+
+  // Guardado directo de una fila de la planilla (rival/fecha), con debounce por id
+  function saveMatchRow(m){
+    const sb = window.__sb;
+    if(!sb) return;
+    clearTimeout(saveTimers['row_'+m.id]);
+    saveTimers['row_'+m.id] = setTimeout(async () => {
+      try{
+        await sb.from('stat_matches').update({ rival:m.rival||'', match_date:m.date||null, updated_at:new Date().toISOString() }).eq('id', m.id);
+      }catch(e){ console.error(e); }
+    }, 700);
   }
 
   document.getElementById('newMatchBtn').addEventListener('click', async () => {
@@ -2227,8 +2340,11 @@ window.__initEditor = function(){
       }).select().single();
       if(error){ toast('No se pudo crear el partido.'); return; }
       const m = { id:data.id, rival:'', date:'', goalsFor:[], goalsAgainst:[], assists:[], cards:[] };
-      matches.unshift(m);
-      openMatch(m.id);
+      matches.push(m);
+      renderMatchList();
+      // enfocar el input de rival del partido recién creado (último)
+      const inputs = document.querySelectorAll('#matchTableBody .mt-rival-in');
+      if(inputs.length) inputs[inputs.length-1].focus();
     }catch(e){ console.error(e); }
   });
 
@@ -2280,10 +2396,37 @@ window.__initEditor = function(){
     });
     return opts;
   }
-  function originOptions(selected){
-    let opts = '<option value="">— Cómo se originó —</option>';
-    origins.forEach(o => { opts += `<option value="${escapeHtml(o.name)}" ${o.name===selected?'selected':''}>${escapeHtml(o.name)}</option>`; });
-    return opts;
+
+  // Construye los botones de origen para un gol. g.origin = nombre del tag; g.sub = sub-opción (si aplica)
+  function buildOriginButtons(g, onChange){
+    const wrap = document.createElement('div');
+    wrap.className = 'origin-tags';
+    origins.forEach(o => {
+      const btn = document.createElement('button');
+      btn.className = 'origin-tag' + (g.origin === o.name ? ' active' : '');
+      btn.textContent = o.name;
+      btn.addEventListener('click', () => {
+        g.origin = o.name;
+        if(!o.subs || !o.subs.length) g.sub = '';
+        onChange();
+      });
+      wrap.appendChild(btn);
+    });
+    // Si el tag activo tiene sub-opciones, mostrarlas
+    const activeTag = origins.find(o => o.name === g.origin);
+    if(activeTag && activeTag.subs && activeTag.subs.length){
+      const subWrap = document.createElement('div');
+      subWrap.className = 'origin-subs';
+      activeTag.subs.forEach(sub => {
+        const sb2 = document.createElement('button');
+        sb2.className = 'origin-sub' + (g.sub === sub ? ' active' : '');
+        sb2.textContent = sub;
+        sb2.addEventListener('click', () => { g.sub = sub; onChange(); });
+        subWrap.appendChild(sb2);
+      });
+      wrap.appendChild(subWrap);
+    }
+    return wrap;
   }
 
   function updateScore(){
@@ -2300,30 +2443,30 @@ window.__initEditor = function(){
     gf.innerHTML = '';
     (m.goalsFor||[]).forEach((g, idx) => {
       const row = document.createElement('div');
-      row.className = 'goal-row';
-      row.innerHTML = `<span class="g-num">${idx+1}</span>
-        <select class="g-player">${playerOptions(g.player_id)}</select>
-        <select class="g-origin">${originOptions(g.origin)}</select>
-        <button class="g-remove">✕</button>`;
-      row.querySelector('.g-player').addEventListener('change', e => {
-        const p = squad.find(x=>x.id===e.target.value);
-        g.player_id = e.target.value; g.player_name = p?p.name:''; flashMatchSaved();
+      row.className = 'goal-row-v';
+      const top = document.createElement('div');
+      top.className = 'goal-row-top';
+      top.innerHTML = `<span class="g-num">${idx+1}</span><select class="g-player">${playerOptions(g.player_id)}</select><button class="g-remove">✕</button>`;
+      top.querySelector('.g-player').addEventListener('change', e => {
+        const p = squad.find(x=>x.id===e.target.value); g.player_id=e.target.value; g.player_name=p?p.name:''; flashMatchSaved();
       });
-      row.querySelector('.g-origin').addEventListener('change', e => { g.origin = e.target.value; flashMatchSaved(); });
-      row.querySelector('.g-remove').addEventListener('click', () => { m.goalsFor.splice(idx,1); renderGoals(); flashMatchSaved(); });
+      top.querySelector('.g-remove').addEventListener('click', () => { m.goalsFor.splice(idx,1); renderGoals(); flashMatchSaved(); });
+      row.appendChild(top);
+      row.appendChild(buildOriginButtons(g, () => { renderGoals(); flashMatchSaved(); }));
       gf.appendChild(row);
     });
-    // Goles en contra
+    // Goles en contra (sin jugador)
     const ga = document.getElementById('goalsAgainstList');
     ga.innerHTML = '';
     (m.goalsAgainst||[]).forEach((g, idx) => {
       const row = document.createElement('div');
-      row.className = 'goal-row';
-      row.innerHTML = `<span class="g-num">${idx+1}</span>
-        <select class="g-origin">${originOptions(g.origin)}</select>
-        <button class="g-remove">✕</button>`;
-      row.querySelector('.g-origin').addEventListener('change', e => { g.origin = e.target.value; flashMatchSaved(); });
-      row.querySelector('.g-remove').addEventListener('click', () => { m.goalsAgainst.splice(idx,1); renderGoals(); flashMatchSaved(); });
+      row.className = 'goal-row-v';
+      const top = document.createElement('div');
+      top.className = 'goal-row-top';
+      top.innerHTML = `<span class="g-num">${idx+1}</span><span style="flex:1;color:var(--muted);font-size:12px;">Gol en contra</span><button class="g-remove">✕</button>`;
+      top.querySelector('.g-remove').addEventListener('click', () => { m.goalsAgainst.splice(idx,1); renderGoals(); flashMatchSaved(); });
+      row.appendChild(top);
+      row.appendChild(buildOriginButtons(g, () => { renderGoals(); flashMatchSaved(); }));
       ga.appendChild(row);
     });
     // Asistencias
@@ -2332,9 +2475,7 @@ window.__initEditor = function(){
     (m.assists||[]).forEach((a, idx) => {
       const row = document.createElement('div');
       row.className = 'goal-row';
-      row.innerHTML = `<span class="g-num">${idx+1}</span>
-        <select class="g-player">${playerOptions(a.player_id)}</select>
-        <button class="g-remove">✕</button>`;
+      row.innerHTML = `<span class="g-num">${idx+1}</span><select class="g-player">${playerOptions(a.player_id)}</select><button class="g-remove">✕</button>`;
       row.querySelector('.g-player').addEventListener('change', e => {
         const p = squad.find(x=>x.id===e.target.value); a.player_id=e.target.value; a.player_name=p?p.name:''; flashMatchSaved();
       });
@@ -2347,10 +2488,7 @@ window.__initEditor = function(){
     (m.cards||[]).forEach((c, idx) => {
       const row = document.createElement('div');
       row.className = 'goal-row';
-      row.innerHTML = `<span class="g-num">${idx+1}</span>
-        <select class="g-player">${playerOptions(c.player_id)}</select>
-        <select class="g-origin"><option value="amarilla" ${c.type==='amarilla'?'selected':''}>🟨 Amarilla</option><option value="roja" ${c.type==='roja'?'selected':''}>🟥 Roja</option></select>
-        <button class="g-remove">✕</button>`;
+      row.innerHTML = `<span class="g-num">${idx+1}</span><select class="g-player">${playerOptions(c.player_id)}</select><select class="g-origin"><option value="amarilla" ${c.type==='amarilla'?'selected':''}>🟨 Amarilla</option><option value="roja" ${c.type==='roja'?'selected':''}>🟥 Roja</option></select><button class="g-remove">✕</button>`;
       row.querySelector('.g-player').addEventListener('change', e => {
         const p = squad.find(x=>x.id===e.target.value); c.player_id=e.target.value; c.player_name=p?p.name:''; flashMatchSaved();
       });
@@ -2393,31 +2531,47 @@ window.__initEditor = function(){
     // Acumular
     const goleadores = {}, asistidores = {}, tarjetas = {};
     const origenFavor = {}, origenContra = {};
+    const subFavor = {}, subContra = {};   // desglose de Estrategia
     let totalGF = 0, totalGA = 0;
     matches.forEach(m => {
       (m.goalsFor||[]).forEach(g => {
         totalGF++;
         if(g.player_name) goleadores[g.player_name] = (goleadores[g.player_name]||0)+1;
-        if(g.origin) origenFavor[g.origin] = (origenFavor[g.origin]||0)+1;
+        if(g.origin){
+          origenFavor[g.origin] = (origenFavor[g.origin]||0)+1;
+          if(g.sub) subFavor[g.sub] = (subFavor[g.sub]||0)+1;
+        }
       });
       (m.goalsAgainst||[]).forEach(g => {
         totalGA++;
-        if(g.origin) origenContra[g.origin] = (origenContra[g.origin]||0)+1;
+        if(g.origin){
+          origenContra[g.origin] = (origenContra[g.origin]||0)+1;
+          if(g.sub) subContra[g.sub] = (subContra[g.sub]||0)+1;
+        }
       });
       (m.assists||[]).forEach(a => { if(a.player_name) asistidores[a.player_name]=(asistidores[a.player_name]||0)+1; });
       (m.cards||[]).forEach(c => { if(c.player_name) tarjetas[c.player_name]=(tarjetas[c.player_name]||0)+1; });
     });
-    const rankHTML = (obj, unit) => {
+    const rankHTML = (obj) => {
       const arr = Object.entries(obj).sort((a,b)=>b[1]-a[1]);
       if(!arr.length) return '<div class="annual-empty" style="padding:16px;">Sin datos.</div>';
       return arr.map(([name,val],i) => `<div class="rank-row"><span class="rk-pos">${i+1}º</span><span class="rk-name">${escapeHtml(name)}</span><span class="rk-val">${val}</span></div>`).join('');
     };
-    const barsHTML = (obj, total, against) => {
+    const barsHTML = (obj, total, against, subs) => {
       const arr = Object.entries(obj).sort((a,b)=>b[1]-a[1]);
       if(!arr.length) return '<div class="annual-empty" style="padding:16px;">Sin datos.</div>';
       return arr.map(([name,val]) => {
         const pct = total ? Math.round(val/total*100) : 0;
-        return `<div class="origin-bar-row"><div class="ob-label"><span>${escapeHtml(name)}</span><span class="ob-count">${val} (${pct}%)</span></div><div class="origin-bar ${against?'against':''}"><div class="ob-fill" style="width:${pct}%"></div></div></div>`;
+        let html = `<div class="origin-bar-row"><div class="ob-label"><span>${escapeHtml(name)}</span><span class="ob-count">${val} (${pct}%)</span></div><div class="origin-bar ${against?'against':''}"><div class="ob-fill" style="width:${pct}%"></div></div>`;
+        // desglose de Estrategia
+        if(name === 'Estrategia' && subs){
+          const subArr = Object.entries(subs).sort((a,b)=>b[1]-a[1]);
+          if(subArr.length){
+            html += '<div class="sub-breakdown">' + subArr.map(([sn,sv]) => `<div class="sub-item"><span>↳ ${escapeHtml(sn)}</span><span class="ob-count">${sv}</span></div>`).join('') + '</div>';
+          }
+        }
+        html += '</div>';
+        return html;
       }).join('');
     };
 
@@ -2434,12 +2588,56 @@ window.__initEditor = function(){
         <div class="annual-card"><h3>🅰 Asistencias</h3>${rankHTML(asistidores)}</div>
       </div>
       <div class="annual-grid">
-        <div class="annual-card"><h3>Cómo convertimos</h3>${barsHTML(origenFavor, totalGF, false)}</div>
-        <div class="annual-card"><h3>Cómo nos convierten</h3>${barsHTML(origenContra, totalGA, true)}</div>
+        <div class="annual-card"><h3>Cómo convertimos</h3>${barsHTML(origenFavor, totalGF, false, subFavor)}</div>
+        <div class="annual-card"><h3>Cómo nos convierten</h3>${barsHTML(origenContra, totalGA, true, subContra)}</div>
       </div>
       <div class="annual-card"><h3>🟨 Tarjetas</h3>${rankHTML(tarjetas)}</div>
     `;
   }
+
+  // ========== EDITOR DE TAGS ==========
+  const tagsModal = document.getElementById('tagsModal');
+  document.getElementById('editTagsBtn').addEventListener('click', () => { renderTagsEditor(); tagsModal.style.display = 'flex'; });
+  document.getElementById('tagsModalClose').addEventListener('click', () => { tagsModal.style.display = 'none'; renderGoals(); });
+  tagsModal.addEventListener('click', e => { if(e.target.id==='tagsModal'){ tagsModal.style.display='none'; renderGoals(); } });
+
+  function renderTagsEditor(){
+    const el = document.getElementById('tagsEditList');
+    el.innerHTML = '';
+    origins.forEach((o, idx) => {
+      const item = document.createElement('div');
+      item.className = 'tag-edit-item';
+      item.innerHTML = `
+        <div class="tag-edit-main">
+          <input class="tag-edit-name" value="${escapeHtml(o.name)}">
+          <button class="tag-edit-del" title="Eliminar">✕</button>
+        </div>
+        <div class="tag-edit-subs"></div>
+        <button class="tag-add-sub">+ sub-opción</button>
+      `;
+      item.querySelector('.tag-edit-name').addEventListener('input', e => { o.name = e.target.value; saveOrigins(); });
+      item.querySelector('.tag-edit-del').addEventListener('click', () => {
+        if(!confirm('¿Eliminar el tag "'+o.name+'"?')) return;
+        origins.splice(idx,1); saveOrigins(); renderTagsEditor();
+      });
+      const subsWrap = item.querySelector('.tag-edit-subs');
+      if(!o.subs) o.subs = [];
+      o.subs.forEach((sub, si) => {
+        const subRow = document.createElement('div');
+        subRow.className = 'tag-sub-row';
+        subRow.innerHTML = `<input class="tag-sub-name" value="${escapeHtml(sub)}"><button class="tag-sub-del">✕</button>`;
+        subRow.querySelector('.tag-sub-name').addEventListener('input', e => { o.subs[si] = e.target.value; saveOrigins(); });
+        subRow.querySelector('.tag-sub-del').addEventListener('click', () => { o.subs.splice(si,1); saveOrigins(); renderTagsEditor(); });
+        subsWrap.appendChild(subRow);
+      });
+      item.querySelector('.tag-add-sub').addEventListener('click', () => { o.subs.push('Nueva sub-opción'); saveOrigins(); renderTagsEditor(); });
+      el.appendChild(item);
+    });
+  }
+  document.getElementById('addTagBtn').addEventListener('click', () => {
+    origins.push({ name:'Nuevo tag', subs:[] });
+    saveOrigins(); renderTagsEditor();
+  });
 
   // ----- Carga y cambios de categoría -----
   let loadedOnce = false;
