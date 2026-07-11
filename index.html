@@ -427,6 +427,25 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .btn.danger-outline:hover{background:var(--danger);color:#fff;}
 .rd-saved{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
 
+/* Planificación: checkboxes tácticos */
+.tac-checks{display:flex;flex-wrap:wrap;gap:16px;}
+.tac-checks label{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--chalk);cursor:pointer;font-family:'Inter',sans-serif;}
+.tac-checks input{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;}
+
+/* Planificación: grilla de ejercicios */
+.week-grid-wrap{overflow-x:auto;}
+.week-grid{width:100%;border-collapse:collapse;min-width:1040px;}
+.week-grid th{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);font-weight:500;}
+.week-grid th.ex-col{width:150px;}
+.week-grid th.del-col{width:34px;}
+.week-grid td{padding:5px 4px;border-bottom:1px solid rgba(51,73,94,0.4);vertical-align:top;}
+.week-grid .ex-name{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-family:'Oswald',sans-serif;font-size:13px;padding:8px 8px;font-weight:600;}
+.week-grid .ex-name:focus{outline:none;border-color:var(--accent);}
+.week-grid .day-cell{width:100%;min-width:120px;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-family:'Inter',sans-serif;font-size:12px;padding:8px 8px;resize:vertical;min-height:52px;line-height:1.45;}
+.week-grid .day-cell:focus{outline:none;border-color:var(--accent-2);}
+.week-grid .ex-del{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:14px;padding:6px;}
+.week-grid .ex-del:hover{color:var(--danger);}
+
 /* Modal partidos en la nube */
 .cloud-modal-overlay{position:fixed;inset:0;background:rgba(10,15,20,0.82);display:flex;align-items:center;justify-content:center;z-index:60;padding:20px;}
 .cloud-modal{background:var(--panel);border:1px solid var(--line);border-radius:14px;width:100%;max-width:540px;max-height:80vh;display:flex;flex-direction:column;}
@@ -842,11 +861,69 @@ body.editor-active #screen-editor{ display:block; }
 
   <!-- ===== SECCIÓN: PLANIFICACIÓN ===== -->
   <div class="section-content" id="section-training">
-    <div class="coming-soon">
-      <div class="cs-icon">📋</div>
-      <h2>Planificación de entrenamientos</h2>
-      <p>Acá vas a poder armar la planificación semanal: ejercicios, cargas, objetivos por día y el calendario del equipo.</p>
-      <span class="cs-tag">Próximamente — en construcción</span>
+    <!-- Vista LISTA de semanas -->
+    <div id="trainList">
+      <div class="scout-head">
+        <div>
+          <h2 class="scout-title">Planificación de entrenamientos</h2>
+          <p class="scout-sub">Una ficha por semana. Editá el nombre y las fechas desde cada recuadro, o abrí la semana para planificar en detalle.</p>
+        </div>
+        <button class="btn primary" id="addWeekBtn">+ Agregar semana</button>
+      </div>
+      <div class="rival-grid" id="weekGrid"></div>
+    </div>
+
+    <!-- Vista FICHA de una semana -->
+    <div id="trainDetail" style="display:none;">
+      <button class="back-to-list-btn" id="backToWeeksBtn">← Volver a todas las semanas</button>
+
+      <div class="rival-detail-head">
+        <div class="rd-fecha-badge" id="wkBadge">Semana</div>
+        <input class="rd-name" id="wkName" placeholder="Próximo rival">
+        <div class="rd-meta-row">
+          <label>Desde <input type="date" id="wkFrom"></label>
+          <label>Hasta <input type="date" id="wkTo"></label>
+        </div>
+      </div>
+
+      <div class="rd-card">
+        <label class="rd-field"><span>Objetivo de la semana</span><textarea id="wkObjetivo" rows="2" placeholder="Qué buscás trabajar esta semana..."></textarea></label>
+        <label class="rd-field"><span>Puntos fuertes del próximo rival</span><textarea id="wkPuntos" rows="2" placeholder="Lo que hay que tener en cuenta del rival..."></textarea></label>
+        <div class="rd-field">
+          <span>Aspectos tácticos trabajados</span>
+          <div class="tac-checks">
+            <label><input type="checkbox" data-tac="ataque"> Ataque</label>
+            <label><input type="checkbox" data-tac="defensa"> Defensa</label>
+            <label><input type="checkbox" data-tac="abp"> ABP</label>
+            <label><input type="checkbox" data-tac="5v4"> 5 vs 4</label>
+            <label><input type="checkbox" data-tac="4v5"> 4 vs 5</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="rd-card">
+        <div class="rd-card-head">
+          <h3>Ejercicios de la semana</h3>
+          <button class="btn small" id="addExerciseBtn">+ Agregar ejercicio</button>
+        </div>
+        <div class="week-grid-wrap">
+          <table class="week-grid" id="weekTable">
+            <thead>
+              <tr>
+                <th class="ex-col">Ejercicio</th>
+                <th>Lunes</th><th>Martes</th><th>Miércoles</th><th>Jueves</th><th>Viernes</th><th>Sábado</th><th>Domingo</th>
+                <th class="del-col"></th>
+              </tr>
+            </thead>
+            <tbody id="weekTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="rd-footer">
+        <button class="btn danger-outline" id="deleteWeekBtn">Vaciar semana</button>
+        <span class="rd-saved" id="wkSaved">Los cambios se guardan solos</span>
+      </div>
     </div>
   </div>
 
@@ -857,8 +934,9 @@ body.editor-active #screen-editor{ display:block; }
       <div class="scout-head">
         <div>
           <h2 class="scout-title">Scouting de rivales</h2>
-          <p class="scout-sub">Una ficha por fecha del torneo. Editá el rival y la fecha del partido desde cada recuadro, o abrí la ficha para el análisis completo.</p>
+          <p class="scout-sub">Editá el rival y la fecha del partido desde cada recuadro, o abrí la ficha para el análisis completo.</p>
         </div>
+        <button class="btn primary" id="addFechaBtn">+ Agregar partido</button>
       </div>
       <div class="rival-grid" id="rivalGrid"></div>
     </div>
@@ -1236,6 +1314,7 @@ window.__initEditor = function(){
       if(videoActions) videoActions.style.display = (target === 'video') ? '' : 'none';
       // Al entrar a Scouting, cargar desde la nube (una vez)
       if(target === 'scouting' && window.__loadScoutingOnce){ window.__loadScoutingOnce(); }
+      if(target === 'training' && window.__loadTrainingOnce){ window.__loadTrainingOnce(); }
       window.scrollTo(0, 0);
     });
   });
@@ -1243,13 +1322,14 @@ window.__initEditor = function(){
 
 // ---------------- SCOUTING DE RIVALES ----------------
 (function initScouting(){
-  // 18 fechas creadas por defecto. Datos en memoria (después se conecta a Supabase).
+  // Arranca con la Fecha 1. Se agregan más con el botón, hasta MAX_FECHAS.
+  const MAX_FECHAS = 38;
   function makeFixture(n){
     return { id:'r'+n, fecha:n, name:'', date:'', tournament:'',
       attack:'', defense:'', setpieces:'', data:'', players:[], materials:[] };
   }
   let rivals = [];
-  for(let i=1;i<=18;i++) rivals.push(makeFixture(i));
+  rivals.push(makeFixture(1));
 
   // Valores por defecto SOLO para mostrar la primera vez (si la nube está vacía).
   const DEFAULTS = {
@@ -1282,7 +1362,10 @@ window.__initEditor = function(){
       const { data, error } = await sb.from('scouting').select('*').eq('club_id', clubId);
       if(error){ console.error('scouting load', error); return; }
       if(data && data.length){
-        // Volcar lo de la nube sobre las 18 fechas
+        // Reconstruir todas las fechas que existan en la nube (puede haber más de 1)
+        const maxFecha = Math.max(...data.map(r => r.fecha), 1);
+        rivals = [];
+        for(let i=1;i<=maxFecha;i++) rivals.push(makeFixture(i));
         data.forEach(row => {
           const r = rivals.find(x => x.fecha === row.fecha);
           if(!r) return;
@@ -1297,7 +1380,7 @@ window.__initEditor = function(){
           r.materials = Array.isArray(row.materials) ? row.materials : [];
         });
       } else {
-        // Nube vacía: aplicar defaults y guardarlos
+        // Nube vacía: aplicar defaults a la Fecha 1 y guardarla
         Object.keys(DEFAULTS).forEach(fk => {
           const r = rivals.find(x => x.fecha === parseInt(fk));
           if(r) Object.assign(r, DEFAULTS[fk]);
@@ -1501,9 +1584,259 @@ window.__initEditor = function(){
     renderList();
   });
 
+  // Agregar una nueva fecha (hasta MAX_FECHAS)
+  document.getElementById('addFechaBtn').addEventListener('click', () => {
+    if(rivals.length >= MAX_FECHAS){
+      toast('Llegaste al máximo de ' + MAX_FECHAS + ' fechas.');
+      return;
+    }
+    const nextFecha = rivals.length + 1;
+    const nuevo = makeFixture(nextFecha);
+    rivals.push(nuevo);
+    saveToCloud(nuevo, true);   // guardar la nueva fecha en la nube
+    renderList();
+    // hacer scroll a la nueva tarjeta
+    const cards = grid.querySelectorAll('.rival-card');
+    if(cards.length) cards[cards.length-1].scrollIntoView({ behavior:'smooth', block:'center' });
+  });
+
   // Exponer la carga desde la nube para que se dispare al abrir la pestaña (una sola vez).
   let loadedOnce = false;
   window.__loadScoutingOnce = function(){
+    if(loadedOnce) return;
+    loadedOnce = true;
+    loadFromCloud();
+  };
+
+  renderList();
+})();
+
+
+// ---------------- PLANIFICACIÓN SEMANAL ----------------
+(function initTraining(){
+  const MAX_SEMANAS = 50;
+  const DIAS = ['lunes','martes','miercoles','jueves','viernes','sabado','domingo'];
+  function makeWeek(n){
+    return {
+      id:'w'+n, semana:n, name:'', from:'', to:'',
+      content:{
+        objetivo:'', puntos:'',
+        tacticos:{ ataque:false, defensa:false, abp:false, '5v4':false, '4v5':false },
+        ejercicios:[
+          { nombre:'Ejercicio 1', dias:{} },
+          { nombre:'Ejercicio 2', dias:{} },
+          { nombre:'Ejercicio 3', dias:{} },
+          { nombre:'Ejercicio 4', dias:{} }
+        ]
+      }
+    };
+  }
+  let weeks = [ makeWeek(1) ];
+  let currentWeekId = null;
+  let clubId = null;
+  const saveTimers = {};
+
+  const listView = document.getElementById('trainList');
+  const detailView = document.getElementById('trainDetail');
+  const grid = document.getElementById('weekGrid');
+
+  function fmtDateShort(d){
+    if(!d) return 'Sin fecha';
+    try{ return new Date(d+'T00:00:00').toLocaleDateString('es-AR',{day:'numeric',month:'short'}); }catch(e){ return d; }
+  }
+
+  async function loadFromCloud(){
+    const sb = window.__sb;
+    if(!sb || !window.__getClubId) return;
+    clubId = await window.__getClubId();
+    if(!clubId) return;
+    try{
+      const { data, error } = await sb.from('training_weeks').select('*').eq('club_id', clubId);
+      if(error){ console.error('training load', error); return; }
+      if(data && data.length){
+        const maxSem = Math.max(...data.map(r => r.semana), 1);
+        weeks = [];
+        for(let i=1;i<=maxSem;i++) weeks.push(makeWeek(i));
+        data.forEach(row => {
+          const w = weeks.find(x => x.semana === row.semana);
+          if(!w) return;
+          w.name = row.name || '';
+          w.from = row.date_from || '';
+          w.to = row.date_to || '';
+          w.content = row.content || {};
+        });
+      }
+      renderList();
+    }catch(e){ console.error(e); }
+  }
+
+  async function saveToCloud(w, immediate){
+    const sb = window.__sb;
+    if(!sb || !clubId) return;
+    const doSave = async () => {
+      const payload = {
+        club_id: clubId, semana: w.semana,
+        name: w.name||'', date_from: w.from||null, date_to: w.to||null,
+        content: w.content||{}, updated_at: new Date().toISOString()
+      };
+      const { error } = await sb.from('training_weeks').upsert(payload, { onConflict: 'club_id,semana' });
+      if(error) console.error('training save', error);
+    };
+    if(immediate){ doSave(); return; }
+    clearTimeout(saveTimers[w.semana]);
+    saveTimers[w.semana] = setTimeout(doSave, 800);
+  }
+
+  function renderList(){
+    grid.innerHTML = '';
+    weeks.forEach(w => {
+      const card = document.createElement('div');
+      card.className = 'rival-card';
+      card.dataset.id = w.id;
+      card.innerHTML = `
+        <div class="rc-fecha">Semana ${w.semana}</div>
+        <input class="rc-name-in" placeholder="Próximo rival" value="${escapeHtml(w.name||'')}">
+        <label class="rc-date-label">Desde
+          <input type="date" class="rc-from-in" value="${escapeHtml(w.from||'')}">
+        </label>
+        <label class="rc-date-label">Hasta
+          <input type="date" class="rc-to-in" value="${escapeHtml(w.to||'')}">
+        </label>
+        <button class="btn small rc-open">Abrir semana →</button>
+      `;
+      const nameIn = card.querySelector('.rc-name-in');
+      const fromIn = card.querySelector('.rc-from-in');
+      const toIn = card.querySelector('.rc-to-in');
+      [nameIn, fromIn, toIn].forEach(el => el.addEventListener('click', e => e.stopPropagation()));
+      nameIn.addEventListener('input', e => { w.name = e.target.value; saveToCloud(w); });
+      fromIn.addEventListener('input', e => { w.from = e.target.value; saveToCloud(w); });
+      toIn.addEventListener('input', e => { w.to = e.target.value; saveToCloud(w); });
+      card.querySelector('.rc-open').addEventListener('click', (e) => { e.stopPropagation(); openWeek(w.id); });
+      grid.appendChild(card);
+    });
+  }
+
+  function currentWeek(){ return weeks.find(x => x.id === currentWeekId); }
+
+  function openWeek(id){
+    const w = weeks.find(x => x.id === id);
+    if(!w) return;
+    currentWeekId = id;
+    // asegurar estructura (por si viene de la nube incompleta)
+    if(!w.content) w.content = {};
+    if(!w.content.tacticos) w.content.tacticos = { ataque:false, defensa:false, abp:false, '5v4':false, '4v5':false };
+    if(!Array.isArray(w.content.ejercicios)) w.content.ejercicios = [];
+    document.getElementById('wkName').value = w.name || '';
+    document.getElementById('wkFrom').value = w.from || '';
+    document.getElementById('wkTo').value = w.to || '';
+    document.getElementById('wkBadge').textContent = 'Semana ' + w.semana;
+    document.getElementById('wkObjetivo').value = w.content.objetivo || '';
+    document.getElementById('wkPuntos').value = w.content.puntos || '';
+    // checkboxes tácticos
+    document.querySelectorAll('#trainDetail [data-tac]').forEach(cb => {
+      cb.checked = !!w.content.tacticos[cb.dataset.tac];
+    });
+    renderExercises();
+    listView.style.display = 'none';
+    detailView.style.display = 'block';
+    window.scrollTo(0,0);
+  }
+
+  function renderExercises(){
+    const w = currentWeek(); if(!w) return;
+    const body = document.getElementById('weekTableBody');
+    body.innerHTML = '';
+    w.content.ejercicios.forEach((ex, idx) => {
+      if(!ex.dias) ex.dias = {};
+      const tr = document.createElement('tr');
+      let cells = `<td><input class="ex-name" value="${escapeHtml(ex.nombre||'')}" placeholder="Ejercicio ${idx+1}"></td>`;
+      DIAS.forEach(dia => {
+        cells += `<td><textarea class="day-cell" data-dia="${dia}" rows="1" placeholder="—">${escapeHtml(ex.dias[dia]||'')}</textarea></td>`;
+      });
+      cells += `<td><button class="ex-del" title="Quitar">✕</button></td>`;
+      tr.innerHTML = cells;
+      tr.querySelector('.ex-name').addEventListener('input', e => { ex.nombre = e.target.value; flashSaved(); });
+      tr.querySelectorAll('.day-cell').forEach(cell => {
+        cell.addEventListener('input', e => { ex.dias[cell.dataset.dia] = e.target.value; flashSaved(); });
+      });
+      tr.querySelector('.ex-del').addEventListener('click', () => { w.content.ejercicios.splice(idx,1); renderExercises(); flashSaved(); });
+      body.appendChild(tr);
+    });
+  }
+
+  let savedTimer = null;
+  function flashSaved(){
+    const el = document.getElementById('wkSaved');
+    el.textContent = 'Guardado ✓';
+    clearTimeout(savedTimer);
+    savedTimer = setTimeout(() => { el.textContent = 'Los cambios se guardan solos'; }, 1500);
+    const w = currentWeek(); if(w) saveToCloud(w);
+  }
+
+  const fieldMap = { wkName:'name', wkFrom:'from', wkTo:'to' };
+  Object.keys(fieldMap).forEach(inputId => {
+    document.getElementById(inputId).addEventListener('input', (e) => {
+      const w = currentWeek(); if(!w) return;
+      w[fieldMap[inputId]] = e.target.value;
+      flashSaved();
+    });
+  });
+
+  // Objetivo y puntos fuertes (van dentro de content)
+  document.getElementById('wkObjetivo').addEventListener('input', e => {
+    const w = currentWeek(); if(!w) return; w.content.objetivo = e.target.value; flashSaved();
+  });
+  document.getElementById('wkPuntos').addEventListener('input', e => {
+    const w = currentWeek(); if(!w) return; w.content.puntos = e.target.value; flashSaved();
+  });
+  // Checkboxes tácticos
+  document.querySelectorAll('#trainDetail [data-tac]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const w = currentWeek(); if(!w) return;
+      w.content.tacticos[cb.dataset.tac] = cb.checked;
+      flashSaved();
+    });
+  });
+  // Agregar ejercicio
+  document.getElementById('addExerciseBtn').addEventListener('click', () => {
+    const w = currentWeek(); if(!w) return;
+    w.content.ejercicios.push({ nombre:'Ejercicio ' + (w.content.ejercicios.length+1), dias:{} });
+    renderExercises();
+    flashSaved();
+  });
+
+  document.getElementById('addWeekBtn').addEventListener('click', () => {
+    if(weeks.length >= MAX_SEMANAS){ toast('Llegaste al máximo de ' + MAX_SEMANAS + ' semanas.'); return; }
+    const nextSem = weeks.length + 1;
+    const nueva = makeWeek(nextSem);
+    weeks.push(nueva);
+    saveToCloud(nueva, true);
+    renderList();
+    const cards = grid.querySelectorAll('.rival-card');
+    if(cards.length) cards[cards.length-1].scrollIntoView({ behavior:'smooth', block:'center' });
+  });
+
+  document.getElementById('backToWeeksBtn').addEventListener('click', () => {
+    detailView.style.display = 'none';
+    listView.style.display = 'block';
+    renderList();
+    window.scrollTo(0,0);
+  });
+
+  document.getElementById('deleteWeekBtn').addEventListener('click', () => {
+    const w = currentWeek(); if(!w) return;
+    if(!confirm(`¿Vaciar la Semana ${w.semana}?`)) return;
+    const semana = w.semana;
+    const idx = weeks.findIndex(x => x.id === currentWeekId);
+    weeks[idx] = makeWeek(semana);
+    saveToCloud(weeks[idx], true);
+    detailView.style.display = 'none';
+    listView.style.display = 'block';
+    renderList();
+  });
+
+  let loadedOnce = false;
+  window.__loadTrainingOnce = function(){
     if(loadedOnce) return;
     loadedOnce = true;
     loadFromCloud();
