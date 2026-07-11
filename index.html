@@ -427,6 +427,24 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .btn.danger-outline:hover{background:var(--danger);color:#fff;}
 .rd-saved{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
 
+/* Modal partidos en la nube */
+.cloud-modal-overlay{position:fixed;inset:0;background:rgba(10,15,20,0.82);display:flex;align-items:center;justify-content:center;z-index:60;padding:20px;}
+.cloud-modal{background:var(--panel);border:1px solid var(--line);border-radius:14px;width:100%;max-width:540px;max-height:80vh;display:flex;flex-direction:column;}
+.cloud-modal-head{display:flex;justify-content:space-between;align-items:center;padding:20px 22px;border-bottom:1px solid var(--line);}
+.cloud-modal-head h3{font-family:'Oswald',sans-serif;font-size:18px;text-transform:uppercase;letter-spacing:0.5px;margin:0;}
+.cloud-close{border:none;background:transparent;color:var(--muted);font-size:20px;cursor:pointer;}
+.cloud-close:hover{color:var(--chalk);}
+.cloud-list{padding:14px 22px 22px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;}
+.cloud-item{display:flex;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:12px 14px;}
+.cloud-item .ci-info{flex:1;min-width:0;}
+.cloud-item .ci-name{font-weight:600;font-size:14px;margin-bottom:3px;}
+.cloud-item .ci-meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.cloud-item .ci-load{border:1px solid var(--accent-2);background:transparent;color:var(--accent-2);border-radius:7px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;}
+.cloud-item .ci-load:hover{background:rgba(47,143,203,0.12);}
+.cloud-item .ci-del{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:7px;width:32px;height:32px;cursor:pointer;}
+.cloud-item .ci-del:hover{color:var(--danger);border-color:var(--danger);}
+.cloud-empty{color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:12px;text-align:center;padding:24px;}
+
 .tab-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent-2);letter-spacing:1.5px;text-transform:uppercase;border:1px solid var(--accent-2);border-radius:999px;padding:4px 12px;}
 .topbar-right{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
 .project-actions{display:flex;gap:8px;}
@@ -727,8 +745,10 @@ body.editor-active #screen-editor{ display:block; }
     <div class="topbar-right">
       <span class="user-badge" id="userBadge"></span>
       <div class="project-actions" id="videoProjectActions">
-        <button class="btn small ghost" id="loadProjectBtn">Cargar proyecto</button>
-        <button class="btn small ghost" id="saveProjectBtn">Guardar proyecto</button>
+        <button class="btn small primary" id="saveCloudBtn">☁ Guardar en la nube</button>
+        <button class="btn small ghost" id="loadCloudBtn">☁ Mis partidos</button>
+        <button class="btn small ghost" id="loadProjectBtn">Cargar archivo</button>
+        <button class="btn small ghost" id="saveProjectBtn">Guardar archivo</button>
         <input type="file" id="projectFileInput" class="file-input" accept="application/json">
       </div>
       <button class="btn small ghost" id="logoutBtn">Cerrar sesión</button>
@@ -909,6 +929,16 @@ body.editor-active #screen-editor{ display:block; }
   </div>
 
 <div class="toast" id="toast"></div>
+
+<div class="cloud-modal-overlay" id="cloudModal" style="display:none;">
+  <div class="cloud-modal">
+    <div class="cloud-modal-head">
+      <h3>Mis partidos guardados</h3>
+      <button class="cloud-close" id="cloudModalClose">✕</button>
+    </div>
+    <div class="cloud-list" id="cloudList"></div>
+  </div>
+</div>
 
 <div class="export-overlay" id="exportOverlay">
   <div class="export-box">
@@ -1825,6 +1855,131 @@ document.getElementById('saveProjectBtn').addEventListener('click', () => {
 });
 
 document.getElementById('loadProjectBtn').addEventListener('click', () => document.getElementById('projectFileInput').click());
+
+// ---------------- GUARDAR / CARGAR PARTIDOS EN LA NUBE ----------------
+let currentCloudProjectId = null;   // si estás editando uno ya guardado
+let currentCloudProjectName = null;
+
+function buildProjectPayload(){
+  return {
+    videos: videos.map(v => ({ id:v.id, name:v.name })),
+    tags: tags,
+    items: items.map(it => {
+      if(it.type === 'clip'){
+        return { type:'clip', id:it.id, tagId:it.tagId, videoId:it.videoId, start:it.start, end:it.end, note:it.note||'', thumbnail: (it.thumbnail && it.thumbnail !== 'pending') ? it.thumbnail : null };
+      }
+      return { type:'separator', id:it.id, title:it.title, note:it.note||'', image:it.image||null, duration:it.duration||3 };
+    })
+  };
+}
+
+document.getElementById('saveCloudBtn').addEventListener('click', async () => {
+  const sb = window.__sb;
+  if(!sb){ toast('Sin conexión con el servidor.'); return; }
+  const clubId = await window.__getClubId();
+  if(!clubId){ toast('No se pudo identificar tu club.'); return; }
+  if(items.length === 0 && videos.length === 0){ toast('No hay nada para guardar todavía.'); return; }
+
+  const defaultName = videos[0]?.name || ('Partido ' + new Date().toLocaleDateString('es-AR'));
+  const name = prompt('Nombre del partido:', currentCloudProjectName || defaultName);
+  if(name === null) return;
+
+  const payload = buildProjectPayload();
+  const row = {
+    club_id: clubId,
+    name: name || defaultName,
+    videos: payload.videos,
+    tags: payload.tags,
+    items: payload.items,
+    updated_at: new Date().toISOString()
+  };
+
+  try{
+    let result;
+    if(currentCloudProjectId){
+      result = await sb.from('video_projects').update(row).eq('id', currentCloudProjectId).select().single();
+    }else{
+      const { data:{ session } } = await sb.auth.getSession();
+      row.created_by = session ? session.user.id : null;
+      result = await sb.from('video_projects').insert(row).select().single();
+    }
+    if(result.error){ console.error(result.error); toast('No se pudo guardar: ' + result.error.message); return; }
+    currentCloudProjectId = result.data.id;
+    currentCloudProjectName = result.data.name;
+    toast('Partido guardado en la nube ✓');
+  }catch(err){ console.error(err); toast('Error al guardar en la nube.'); }
+});
+
+// Abrir el modal con la lista de partidos guardados
+document.getElementById('loadCloudBtn').addEventListener('click', async () => {
+  const sb = window.__sb;
+  if(!sb){ toast('Sin conexión con el servidor.'); return; }
+  const clubId = await window.__getClubId();
+  if(!clubId){ toast('No se pudo identificar tu club.'); return; }
+  const listEl = document.getElementById('cloudList');
+  listEl.innerHTML = '<div class="cloud-empty">Cargando…</div>';
+  document.getElementById('cloudModal').style.display = 'flex';
+  try{
+    const { data, error } = await sb.from('video_projects').select('id, name, updated_at, items').eq('club_id', clubId).order('updated_at', { ascending:false });
+    if(error){ listEl.innerHTML = '<div class="cloud-empty">Error: '+error.message+'</div>'; return; }
+    if(!data || !data.length){ listEl.innerHTML = '<div class="cloud-empty">Todavía no guardaste ningún partido en la nube.</div>'; return; }
+    listEl.innerHTML = '';
+    data.forEach(p => {
+      const clipCount = Array.isArray(p.items) ? p.items.filter(x=>x.type==='clip').length : 0;
+      const when = p.updated_at ? new Date(p.updated_at).toLocaleDateString('es-AR') : '';
+      const item = document.createElement('div');
+      item.className = 'cloud-item';
+      item.innerHTML = `
+        <div class="ci-info">
+          <div class="ci-name">${escapeHtml(p.name||'Sin nombre')}</div>
+          <div class="ci-meta">${clipCount} recorte${clipCount===1?'':'s'} · ${when}</div>
+        </div>
+        <button class="ci-load">Cargar</button>
+        <button class="ci-del" title="Eliminar">🗑</button>
+      `;
+      item.querySelector('.ci-load').addEventListener('click', () => loadCloudProject(p.id));
+      item.querySelector('.ci-del').addEventListener('click', async () => {
+        if(!confirm('¿Eliminar "'+(p.name||'este partido')+'" de la nube?')) return;
+        const { error:delErr } = await sb.from('video_projects').delete().eq('id', p.id);
+        if(delErr){ toast('No se pudo eliminar.'); return; }
+        item.remove();
+        toast('Partido eliminado.');
+      });
+      listEl.appendChild(item);
+    });
+  }catch(err){ console.error(err); listEl.innerHTML = '<div class="cloud-empty">Error al cargar.</div>'; }
+});
+document.getElementById('cloudModalClose').addEventListener('click', () => { document.getElementById('cloudModal').style.display = 'none'; });
+document.getElementById('cloudModal').addEventListener('click', (e) => { if(e.target.id === 'cloudModal') e.currentTarget.style.display = 'none'; });
+
+async function loadCloudProject(id){
+  const sb = window.__sb;
+  if(!sb) return;
+  try{
+    const { data, error } = await sb.from('video_projects').select('*').eq('id', id).single();
+    if(error){ toast('No se pudo cargar el partido.'); return; }
+    tags = data.tags || tags;
+    activeTagId = tags[0]?.id || activeTagId;
+    videos = (data.videos || []).map(v => ({ id:v.id, name:v.name, file:null, url:null, duration:null, missing:true }));
+    activeVideoId = null;
+    videoEl.removeAttribute('src');
+    videoEl.style.display = 'none';
+    document.getElementById('videoPlaceholder').style.display = 'flex';
+    document.getElementById('activeVideoLabel').textContent = 'sin video';
+    items = (data.items || []).map(it => {
+      if(it.type === 'clip') return { ...it };
+      const sepItem = { ...it, imgEl:null };
+      if(sepItem.image){ const img = new Image(); img.onload = () => { sepItem.imgEl = img; }; img.src = sepItem.image; }
+      return sepItem;
+    });
+    currentCloudProjectId = data.id;
+    currentCloudProjectName = data.name;
+    renderTags(); renderItems(); renderVideoList();
+    document.getElementById('cloudModal').style.display = 'none';
+    toast('Partido cargado. Volvé a subir los videos (mismo archivo) para reproducir los recortes.');
+  }catch(err){ console.error(err); toast('Error al cargar.'); }
+}
+
 document.getElementById('projectFileInput').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if(!file) return;
