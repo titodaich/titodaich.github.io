@@ -433,6 +433,33 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .btn.danger-outline:hover{background:var(--danger);color:#fff;}
 .rd-saved{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
 
+/* ===== PIZARRA TÁCTICA ===== */
+.board-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px;}
+.board-tool-sep{width:1px;height:24px;background:var(--line);margin:0 4px;}
+.board-rec{border-color:var(--accent)!important;color:var(--accent)!important;font-weight:600;}
+.board-rec.recording{background:var(--accent)!important;color:#fff!important;animation:recpulse 1s infinite;}
+@keyframes recpulse{0%,100%{opacity:1;}50%{opacity:0.6;}}
+.board-layout{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;}
+.board-wrap{flex:1;min-width:320px;max-width:760px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;}
+#futsalBoard{width:100%;height:auto;display:block;touch-action:none;border-radius:8px;}
+.board-token{cursor:grab;}
+.board-token:active{cursor:grabbing;}
+.board-token .tk-circle{stroke:#0c1116;stroke-width:2;}
+.board-token .tk-label{font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;fill:#fff;text-anchor:middle;dominant-baseline:central;pointer-events:none;user-select:none;}
+.board-ball{cursor:grab;}
+.board-ball:active{cursor:grabbing;}
+.board-plays{width:230px;flex-shrink:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;}
+.board-plays-title{font-family:'Oswald',sans-serif;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 12px;color:var(--muted);}
+.board-plays-list{display:flex;flex-direction:column;gap:8px;}
+.board-play{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;}
+.board-play-name{font-weight:600;font-size:13px;margin-bottom:6px;word-break:break-word;}
+.board-play-actions{display:flex;gap:5px;flex-wrap:wrap;}
+.board-play-actions button{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;transition:all .12s ease;}
+.board-play-actions .bp-play:hover{border-color:var(--accent-2);color:var(--accent-2);}
+.board-play-actions .bp-export:hover{border-color:var(--success);color:var(--success);}
+.board-play-actions .bp-del:hover{border-color:var(--danger);color:var(--danger);}
+.board-plays-empty{color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.5;}
+
 /* ===== ESTADÍSTICAS ===== */
 .stats-subnav{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap;}
 .stats-subtab{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:9px 18px;font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;cursor:pointer;transition:all .15s ease;}
@@ -907,6 +934,7 @@ body.editor-active #screen-editor{ display:block; }
     <button class="nav-tab" data-section="stats">📊 Estadísticas</button>
     <button class="nav-tab" data-section="training">📋 Planificación</button>
     <button class="nav-tab" data-section="scouting">🔍 Scouting</button>
+    <button class="nav-tab" data-section="board">✏️ Pizarra</button>
   </nav>
 
   <!-- ===== SECCIÓN: VIDEO ===== -->
@@ -1229,6 +1257,36 @@ body.editor-active #screen-editor{ display:block; }
       <div class="rd-footer">
         <button class="btn danger-outline" id="deleteRivalBtn">Eliminar ficha</button>
         <span class="rd-saved" id="rdSaved">Los cambios se guardan solos</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SECCIÓN: PIZARRA TÁCTICA ===== -->
+  <div class="section-content" id="section-board">
+    <div class="scout-head">
+      <div>
+        <h2 class="scout-title">Pizarra táctica</h2>
+        <p class="scout-sub">Arrastrá las fichas para armar tus jugadas. Grabá el movimiento y reproducilo.</p>
+      </div>
+    </div>
+
+    <div class="board-toolbar">
+      <button class="btn small" id="boardResetBtn">↺ Posición inicial</button>
+      <button class="btn small" id="boardClearBtn">Limpiar cancha</button>
+      <div class="board-tool-sep"></div>
+      <button class="btn small" id="boardAddHome">+ Jugador (local)</button>
+      <button class="btn small" id="boardAddAway">+ Rival</button>
+      <div class="board-tool-sep"></div>
+      <button class="btn small board-rec" id="boardRecBtn">● Grabar</button>
+    </div>
+
+    <div class="board-layout">
+      <div class="board-wrap">
+        <svg id="futsalBoard" viewBox="0 0 680 400" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+      <div class="board-plays">
+        <h3 class="board-plays-title">Jugadas grabadas</h3>
+        <div class="board-plays-list" id="boardPlaysList"></div>
       </div>
     </div>
   </div>
@@ -1561,6 +1619,7 @@ window.__initEditor = function(){
       if(target === 'scouting' && window.__loadScoutingOnce){ window.__loadScoutingOnce(); }
       if(target === 'training' && window.__loadTrainingOnce){ window.__loadTrainingOnce(); }
       if(target === 'stats' && window.__loadStatsOnce){ window.__loadStatsOnce(); }
+      if(target === 'board' && window.__initBoardOnce){ window.__initBoardOnce(); }
       window.scrollTo(0, 0);
     });
   });
@@ -1916,6 +1975,330 @@ window.__initEditor = function(){
   renderList();
 })();
 
+
+// ---------------- PIZARRA TÁCTICA ----------------
+(function initBoard(){
+  const svg = document.getElementById('futsalBoard');
+  if(!svg) return;
+  const W = 680, H = 400;
+  const SVGNS = 'http://www.w3.org/2000/svg';
+
+  // Estado de las fichas: {id, team:'home'|'away'|'ball', x, y, label}
+  let tokens = [];
+
+  function defaultTokens(){
+    // 5 locales (azul) a la izquierda, 5 rivales (rojo) a la derecha, pelota al medio
+    const home = [
+      {x:70,y:200,label:'1'},   // arquero
+      {x:180,y:110,label:'2'},
+      {x:180,y:290,label:'3'},
+      {x:290,y:160,label:'4'},
+      {x:290,y:240,label:'5'}
+    ];
+    const away = [
+      {x:610,y:200,label:'1'},
+      {x:500,y:110,label:'2'},
+      {x:500,y:290,label:'3'},
+      {x:390,y:160,label:'4'},
+      {x:390,y:240,label:'5'}
+    ];
+    let t = [];
+    home.forEach((p,i) => t.push({ id:'h'+i, team:'home', x:p.x, y:p.y, label:p.label }));
+    away.forEach((p,i) => t.push({ id:'a'+i, team:'away', x:p.x, y:p.y, label:p.label }));
+    t.push({ id:'ball', team:'ball', x:340, y:200, label:'' });
+    return t;
+  }
+
+  // ----- Dibujar la cancha -----
+  function drawPitch(){
+    const g = document.createElementNS(SVGNS, 'g');
+    g.setAttribute('id', 'pitch');
+    // Fondo parquet (tablas de madera)
+    const bg = document.createElementNS(SVGNS,'rect');
+    bg.setAttribute('x',0); bg.setAttribute('y',0); bg.setAttribute('width',W); bg.setAttribute('height',H);
+    bg.setAttribute('fill','#c8925a');
+    g.appendChild(bg);
+    // Tablas verticales alternas (parquet)
+    const plankW = W/17;
+    for(let i=0;i<17;i++){
+      const r = document.createElementNS(SVGNS,'rect');
+      r.setAttribute('x', i*plankW); r.setAttribute('y',0); r.setAttribute('width',plankW); r.setAttribute('height',H);
+      r.setAttribute('fill', i%2===0 ? '#cd9860' : '#c28a52');
+      g.appendChild(r);
+      // línea sutil entre tablas
+      const l = document.createElementNS(SVGNS,'line');
+      l.setAttribute('x1', i*plankW); l.setAttribute('y1',0); l.setAttribute('x2', i*plankW); l.setAttribute('y2',H);
+      l.setAttribute('stroke','rgba(120,80,40,0.25)'); l.setAttribute('stroke-width','1');
+      g.appendChild(l);
+    }
+    const line = (x1,y1,x2,y2) => {
+      const l = document.createElementNS(SVGNS,'line');
+      l.setAttribute('x1',x1); l.setAttribute('y1',y1); l.setAttribute('x2',x2); l.setAttribute('y2',y2);
+      l.setAttribute('stroke','rgba(255,255,255,0.9)'); l.setAttribute('stroke-width','2');
+      g.appendChild(l);
+    };
+    const M = 16; // margen
+    // Perímetro
+    const rect = document.createElementNS(SVGNS,'rect');
+    rect.setAttribute('x',M); rect.setAttribute('y',M); rect.setAttribute('width',W-2*M); rect.setAttribute('height',H-2*M);
+    rect.setAttribute('fill','none'); rect.setAttribute('stroke','rgba(255,255,255,0.9)'); rect.setAttribute('stroke-width','2');
+    g.appendChild(rect);
+    // Línea de medio campo
+    line(W/2, M, W/2, H-M);
+    // Círculo central
+    const circ = document.createElementNS(SVGNS,'circle');
+    circ.setAttribute('cx',W/2); circ.setAttribute('cy',H/2); circ.setAttribute('r',50);
+    circ.setAttribute('fill','none'); circ.setAttribute('stroke','rgba(255,255,255,0.9)'); circ.setAttribute('stroke-width','2');
+    g.appendChild(circ);
+    const dot = document.createElementNS(SVGNS,'circle');
+    dot.setAttribute('cx',W/2); dot.setAttribute('cy',H/2); dot.setAttribute('r',3); dot.setAttribute('fill','rgba(255,255,255,0.9)');
+    g.appendChild(dot);
+
+    // Áreas de futsal: la línea de área se forma con dos cuartos de círculo (radio 6m)
+    // trazados desde cada poste, unidos por un tramo recto. Postes en y=160 y y=240.
+    const R = 58;            // radio del cuarto de círculo (escalado)
+    const postTop = 160, postBottom = 240;
+    // Área izquierda
+    const areaL = document.createElementNS(SVGNS,'path');
+    areaL.setAttribute('d',
+      `M ${M} ${postTop} `+                            // arranca en el poste de arriba
+      `A ${R} ${R} 0 0 1 ${M+R} ${postTop} `+          // cuarto de círculo hacia el campo
+      `L ${M+R} ${postBottom} `+                        // tramo recto vertical
+      `A ${R} ${R} 0 0 1 ${M} ${postBottom}`            // cuarto de círculo de vuelta al poste de abajo
+    );
+    areaL.setAttribute('fill','none'); areaL.setAttribute('stroke','rgba(255,255,255,0.9)'); areaL.setAttribute('stroke-width','2');
+    g.appendChild(areaL);
+    // Punto penal izquierdo
+    const penL = document.createElementNS(SVGNS,'circle');
+    penL.setAttribute('cx',M+52); penL.setAttribute('cy',H/2); penL.setAttribute('r',2.5); penL.setAttribute('fill','rgba(255,255,255,0.9)');
+    g.appendChild(penL);
+    // Área derecha (espejada)
+    const areaR = document.createElementNS(SVGNS,'path');
+    areaR.setAttribute('d',
+      `M ${W-M} ${postTop} `+
+      `A ${R} ${R} 0 0 0 ${W-M-R} ${postTop} `+
+      `L ${W-M-R} ${postBottom} `+
+      `A ${R} ${R} 0 0 0 ${W-M} ${postBottom}`
+    );
+    areaR.setAttribute('fill','none'); areaR.setAttribute('stroke','rgba(255,255,255,0.9)'); areaR.setAttribute('stroke-width','2');
+    g.appendChild(areaR);
+    const penR = document.createElementNS(SVGNS,'circle');
+    penR.setAttribute('cx',W-M-52); penR.setAttribute('cy',H/2); penR.setAttribute('r',2.5); penR.setAttribute('fill','rgba(255,255,255,0.9)');
+    g.appendChild(penR);
+
+    // Arcos
+    const goalL = document.createElementNS(SVGNS,'rect');
+    goalL.setAttribute('x',M-6); goalL.setAttribute('y',postTop); goalL.setAttribute('width',6); goalL.setAttribute('height',postBottom-postTop);
+    goalL.setAttribute('fill','rgba(255,255,255,0.95)');
+    g.appendChild(goalL);
+    const goalR = document.createElementNS(SVGNS,'rect');
+    goalR.setAttribute('x',W-M); goalR.setAttribute('y',postTop); goalR.setAttribute('width',6); goalR.setAttribute('height',postBottom-postTop);
+    goalR.setAttribute('fill','rgba(255,255,255,0.95)');
+    g.appendChild(goalR);
+    return g;
+  }
+
+  // ----- Dibujar una ficha -----
+  function drawToken(t){
+    if(t.team === 'ball'){
+      const g = document.createElementNS(SVGNS,'g');
+      g.setAttribute('class','board-ball'); g.setAttribute('data-id',t.id);
+      g.setAttribute('transform',`translate(${t.x},${t.y})`);
+      const c = document.createElementNS(SVGNS,'circle');
+      c.setAttribute('r',9); c.setAttribute('fill','#fff'); c.setAttribute('stroke','#111'); c.setAttribute('stroke-width','1.5');
+      g.appendChild(c);
+      const p = document.createElementNS(SVGNS,'circle');
+      p.setAttribute('r',3); p.setAttribute('fill','#111');
+      g.appendChild(p);
+      return g;
+    }
+    const g = document.createElementNS(SVGNS,'g');
+    g.setAttribute('class','board-token'); g.setAttribute('data-id',t.id);
+    g.setAttribute('transform',`translate(${t.x},${t.y})`);
+    const c = document.createElementNS(SVGNS,'circle');
+    c.setAttribute('class','tk-circle'); c.setAttribute('r',15);
+    c.setAttribute('fill', t.team==='home' ? '#2F8FCB' : '#E5342A');
+    g.appendChild(c);
+    const label = document.createElementNS(SVGNS,'text');
+    label.setAttribute('class','tk-label'); label.textContent = t.label || '';
+    g.appendChild(label);
+    return g;
+  }
+
+  function render(){
+    svg.innerHTML = '';
+    svg.appendChild(drawPitch());
+    tokens.forEach(t => {
+      const el = drawToken(t);
+      svg.appendChild(el);
+      makeDraggable(el, t);
+    });
+  }
+
+  // ----- Arrastre (mouse y touch) -----
+  function makeDraggable(el, t){
+    let dragging = false;
+    function toSvg(evt){
+      const pt = svg.createSVGPoint();
+      const src = evt.touches ? evt.touches[0] : evt;
+      pt.x = src.clientX; pt.y = src.clientY;
+      const ctm = svg.getScreenCTM().inverse();
+      return pt.matrixTransform(ctm);
+    }
+    function start(evt){ evt.preventDefault(); dragging = true; el.style.opacity='0.85'; }
+    function move(evt){
+      if(!dragging) return;
+      evt.preventDefault();
+      const p = toSvg(evt);
+      t.x = Math.max(8, Math.min(W-8, p.x));
+      t.y = Math.max(8, Math.min(H-8, p.y));
+      el.setAttribute('transform',`translate(${t.x},${t.y})`);
+    }
+    function end(){ dragging = false; el.style.opacity='1'; }
+    el.addEventListener('mousedown', start);
+    el.addEventListener('touchstart', start, {passive:false});
+    window.addEventListener('mousemove', move);
+    window.addEventListener('touchmove', move, {passive:false});
+    window.addEventListener('mouseup', end);
+    window.addEventListener('touchend', end);
+  }
+
+  // ----- Botones -----
+  document.getElementById('boardResetBtn').addEventListener('click', () => { tokens = defaultTokens(); render(); });
+  document.getElementById('boardClearBtn').addEventListener('click', () => { tokens = [{ id:'ball', team:'ball', x:340, y:200, label:'' }]; render(); });
+  document.getElementById('boardAddHome').addEventListener('click', () => {
+    const n = tokens.filter(t=>t.team==='home').length + 1;
+    tokens.push({ id:'h'+Date.now(), team:'home', x:120, y:200, label:String(n) }); render();
+  });
+  document.getElementById('boardAddAway').addEventListener('click', () => {
+    const n = tokens.filter(t=>t.team==='away').length + 1;
+    tokens.push({ id:'a'+Date.now(), team:'away', x:560, y:200, label:String(n) }); render();
+  });
+
+  // ----- GRABACIÓN DE JUGADAS -----
+  let recording = false;
+  let recFrames = [];      // [{t, positions:{id:{x,y}}}]
+  let recStart = 0;
+  let recTimer = null;
+  let plays = [];          // jugadas guardadas [{id, name, frames, tokensSnapshot}]
+
+  function snapshotPositions(){
+    const pos = {};
+    tokens.forEach(t => { pos[t.id] = { x:t.x, y:t.y }; });
+    return pos;
+  }
+
+  const recBtn = document.getElementById('boardRecBtn');
+  recBtn.addEventListener('click', () => {
+    if(!recording) startRecording(); else stopRecording();
+  });
+
+  function startRecording(){
+    recording = true;
+    recFrames = [];
+    recStart = Date.now();
+    recBtn.classList.add('recording');
+    recBtn.textContent = '■ Detener';
+    // capturar posiciones ~20 veces por segundo
+    recTimer = setInterval(() => {
+      recFrames.push({ t: Date.now()-recStart, positions: snapshotPositions() });
+    }, 50);
+    // primer frame ya
+    recFrames.push({ t:0, positions: snapshotPositions() });
+  }
+
+  function stopRecording(){
+    recording = false;
+    clearInterval(recTimer);
+    recBtn.classList.remove('recording');
+    recBtn.textContent = '● Grabar';
+    if(recFrames.length < 2){ toast('La jugada fue muy corta.'); return; }
+    const name = prompt('Nombre de la jugada:', 'Jugada ' + (plays.length+1));
+    if(name === null) return;
+    plays.push({
+      id: 'play'+Date.now(),
+      name: name || ('Jugada '+(plays.length+1)),
+      frames: recFrames,
+      tokensSnapshot: JSON.parse(JSON.stringify(tokens))
+    });
+    renderPlays();
+    toast('Jugada guardada ✓');
+  }
+
+  // Reproducir una jugada
+  let playingTimer = null;
+  function playPlay(play){
+    if(playingTimer) return;
+    // restaurar las fichas al estado inicial de la jugada
+    tokens = JSON.parse(JSON.stringify(play.tokensSnapshot));
+    render();
+    const frames = play.frames;
+    const startAt = Date.now();
+    playingTimer = setInterval(() => {
+      const elapsed = Date.now() - startAt;
+      // buscar el frame correspondiente
+      let frame = frames[0];
+      for(let i=0;i<frames.length;i++){ if(frames[i].t <= elapsed) frame = frames[i]; else break; }
+      // aplicar posiciones
+      tokens.forEach(t => {
+        const p = frame.positions[t.id];
+        if(p){
+          t.x = p.x; t.y = p.y;
+          const el = svg.querySelector(`[data-id="${t.id}"]`);
+          if(el) el.setAttribute('transform',`translate(${t.x},${t.y})`);
+        }
+      });
+      if(elapsed >= frames[frames.length-1].t){
+        clearInterval(playingTimer); playingTimer = null;
+      }
+    }, 30);
+  }
+
+  function renderPlays(){
+    const list = document.getElementById('boardPlaysList');
+    if(plays.length === 0){
+      list.innerHTML = '<div class="board-plays-empty">Todavía no grabaste jugadas. Tocá "● Grabar", movés las fichas, y "■ Detener".</div>';
+      return;
+    }
+    list.innerHTML = '';
+    plays.forEach((play, idx) => {
+      const item = document.createElement('div');
+      item.className = 'board-play';
+      const dur = (play.frames[play.frames.length-1].t/1000).toFixed(1);
+      item.innerHTML = `
+        <div class="board-play-name">${escapeHtml(play.name)} <span style="color:var(--muted);font-weight:400;font-size:11px;">${dur}s</span></div>
+        <div class="board-play-actions">
+          <button class="bp-play">▶ Ver</button>
+          <button class="bp-export">⬇ Exportar</button>
+          <button class="bp-del">🗑</button>
+        </div>
+      `;
+      item.querySelector('.bp-play').addEventListener('click', () => playPlay(play));
+      item.querySelector('.bp-export').addEventListener('click', () => exportPlay(play));
+      item.querySelector('.bp-del').addEventListener('click', () => {
+        if(!confirm('¿Eliminar la jugada "'+play.name+'"?')) return;
+        plays.splice(idx,1); renderPlays();
+      });
+      list.appendChild(item);
+    });
+  }
+
+  // Exportar la jugada como archivo .json (para guardar/compartir)
+  function exportPlay(play){
+    const data = JSON.stringify(play, null, 2);
+    const blob = new Blob([data], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = play.name.replace(/[^a-z0-9]/gi,'_') + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Inicializar
+  tokens = defaultTokens();
+  let started = false;
+  window.__initBoardOnce = function(){ if(started) return; started = true; render(); renderPlays(); };
+})();
 
 // ---------------- PLANIFICACIÓN SEMANAL ----------------
 (function initTraining(){
