@@ -840,8 +840,18 @@ body.editor-active #screen-login{ display:none !important; }
 body.editor-active #screen-editor{ display:block; }
 /* ============ RESPONSIVE / CELULAR ============ */
 @media (max-width: 720px){
-  /* Contenedor general: menos padding, todo más al borde */
-  .app{padding:12px 12px 40px;}
+  /* REGLA CLAVE: que nada sea más ancho que la pantalla */
+  html, body{overflow-x:hidden;max-width:100%;}
+  .app{padding:12px 12px 40px;max-width:100%;overflow-x:hidden;}
+  .app *{max-width:100%;}
+
+  /* Los elementos anchos van en un contenedor con scroll propio, no empujan la página */
+  .board-wrap{min-width:0 !important;max-width:100% !important;}
+  #futsalBoard{min-width:0 !important;}
+  .match-list-rows, .calls-wrap, .week-grid-wrap, .board-plays-list{
+    overflow-x:auto !important;-webkit-overflow-scrolling:touch;max-width:100%;
+  }
+  .match-table{max-width:none;}
 
   /* Topbar: apilar y centrar */
   .topbar{flex-direction:column;align-items:flex-start;gap:10px;padding:8px 0 14px;}
