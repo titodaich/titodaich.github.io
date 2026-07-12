@@ -838,6 +838,68 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 #screen-editor{ display:none; }
 body.editor-active #screen-login{ display:none !important; }
 body.editor-active #screen-editor{ display:block; }
+/* ============ RESPONSIVE / CELULAR ============ */
+@media (max-width: 720px){
+  /* Contenedor general: menos padding, todo más al borde */
+  .app{padding:12px 12px 40px;}
+
+  /* Topbar: apilar y centrar */
+  .topbar{flex-direction:column;align-items:flex-start;gap:10px;padding:8px 0 14px;}
+  .brand{font-size:17px;}
+  .brand-sub{font-size:9px;}
+  .topbar-right{width:100%;justify-content:space-between;gap:8px;}
+
+  /* Barra de categorías: scroll horizontal en vez de amontonarse */
+  .category-bar{padding:10px 10px;gap:8px;}
+  .cat-chips{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;}
+  .cat-chip{flex-shrink:0;padding:6px 12px;font-size:12px;}
+
+  /* Menú de navegación: scroll horizontal, no romper línea */
+  .main-nav{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:2px;margin-bottom:18px;}
+  .nav-tab{flex-shrink:0;font-size:13px;padding:10px 12px;white-space:nowrap;}
+
+  /* Editor de video: una sola columna */
+  .layout{grid-template-columns:1fr !important;gap:20px;}
+
+  /* Títulos de sección más chicos */
+  .scout-title{font-size:18px;}
+  .scout-sub{font-size:12px;}
+
+  /* Encabezados de sección: apilar el botón debajo */
+  .scout-head{flex-direction:column;align-items:stretch;gap:12px;}
+  .scout-head .btn{width:100%;justify-content:center;}
+
+  /* Fichas de scouting / planificación: una columna */
+  .rival-grid{grid-template-columns:1fr;}
+  .rd-grid{grid-template-columns:1fr;}
+
+  /* Sub-pestañas de estadísticas: scroll horizontal */
+  .stats-subnav{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:6px;}
+  .stats-subtab{flex-shrink:0;font-size:12px;padding:8px 12px;}
+
+  /* Tablas: permitir scroll lateral sin romper el layout */
+  .match-list-rows, .calls-wrap, .week-grid-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .match-table{min-width:520px;}
+
+  /* Pizarra: cancha arriba, panel de jugadas abajo (full width) */
+  .board-layout{flex-direction:column;}
+  .board-plays{width:100%;}
+  .board-toolbar{gap:6px;}
+  .board-toolbar .btn{font-size:12px;padding:7px 10px;}
+
+  /* Modales: ocupar casi toda la pantalla */
+  .cloud-modal{max-width:100%;max-height:88vh;}
+
+  /* Anuales: una columna */
+  .annual-grid{grid-template-columns:1fr;}
+}
+
+/* Pantallas muy chicas (celulares angostos) */
+@media (max-width: 400px){
+  .brand{font-size:15px;}
+  .cat-chip{font-size:11px;padding:5px 10px;}
+  .nav-tab{font-size:12px;padding:9px 10px;}
+}
 </style>
 </head>
 <body>
