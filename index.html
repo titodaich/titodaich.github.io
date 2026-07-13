@@ -2772,6 +2772,7 @@ window.__initEditor = function(){
   let originsRowId = null;
   let matches = [];      // partidos de la categoría
   let adjustment = { scorers:[], scored:[], conceded:[] };   // resumen primer semestre
+  let adjRowId = null;   // id de la fila de ajuste en la nube
   let currentMatch = null;
   const saveTimers = {};
 
@@ -2853,10 +2854,12 @@ window.__initEditor = function(){
         const aRes = await aq;
         if(aRes.data && aRes.data.length){
           adjustment = { scorers: aRes.data[0].scorers||[], scored: aRes.data[0].scored||[], conceded: aRes.data[0].conceded||[] };
+          adjRowId = aRes.data[0].id;
         } else {
           adjustment = { scorers:[], scored:[], conceded:[] };
+          adjRowId = null;
         }
-      }catch(e){ adjustment = { scorers:[], scored:[], conceded:[] }; }
+      }catch(e){ adjustment = { scorers:[], scored:[], conceded:[] }; adjRowId = null; }
       refreshActiveSub();
     }catch(e){ console.error('stats load', e); }
   }
@@ -3308,25 +3311,50 @@ window.__initEditor = function(){
   document.getElementById('adjAddConceded').addEventListener('click', () => { adjustment.conceded.push({origin:'',count:''}); renderAdjEditor(); });
 
   document.getElementById('adjSaveBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('adjSaveBtn');
     const sb = window.__sb;
     if(!sb){ toast('Sin conexión.'); return; }
-    const clubId = await window.__getClubId();
-    if(!clubId){ toast('No se pudo identificar tu club.'); return; }
-    // limpiar filas vacías
-    adjustment.scorers = (adjustment.scorers||[]).filter(s => s.name && s.goals);
-    adjustment.scored = (adjustment.scored||[]).filter(c => c.origin && c.count);
-    adjustment.conceded = (adjustment.conceded||[]).filter(c => c.origin && c.count);
+    btn.disabled = true; btn.textContent = 'Guardando…';
     try{
-      const { error } = await sb.from('stat_adjustments').upsert({
-        club_id: clubId, categoria: catActual(),
+      const clubId = await window.__getClubId();
+      if(!clubId){ toast('No se pudo identificar tu club.'); btn.disabled=false; btn.textContent='Guardar ajuste'; return; }
+      // limpiar filas vacías
+      adjustment.scorers = (adjustment.scorers||[]).filter(s => s.name && s.goals);
+      adjustment.scored = (adjustment.scored||[]).filter(c => c.origin && c.count);
+      adjustment.conceded = (adjustment.conceded||[]).filter(c => c.origin && c.count);
+      const cat = catActual();
+      const payload = {
+        club_id: clubId, categoria: cat,
         scorers: adjustment.scorers, scored: adjustment.scored, conceded: adjustment.conceded,
         updated_at: new Date().toISOString()
-      }, { onConflict: 'club_id,categoria' });
-      if(error){ console.error(error); toast('No se pudo guardar: ' + error.message); return; }
+      };
+      // Buscar si ya existe una fila de ajuste para este club+categoría
+      let existing = adjRowId;
+      if(!existing){
+        let q = sb.from('stat_adjustments').select('id').eq('club_id', clubId);
+        q = cat ? q.eq('categoria', cat) : q.is('categoria', null);
+        const found = await q.limit(1);
+        if(found.data && found.data.length) existing = found.data[0].id;
+      }
+      let error;
+      if(existing){
+        const res = await sb.from('stat_adjustments').update(payload).eq('id', existing);
+        error = res.error;
+      } else {
+        const res = await sb.from('stat_adjustments').insert(payload).select('id').single();
+        error = res.error;
+        if(res.data) adjRowId = res.data.id;
+      }
+      if(error){ console.error(error); toast('No se pudo guardar: ' + error.message); btn.disabled=false; btn.textContent='Guardar ajuste'; return; }
+      // Éxito: cerrar y refrescar
       adjModal.style.display = 'none';
       renderAnnual();
       toast('Ajuste guardado ✓');
-    }catch(e){ console.error(e); toast('Error al guardar.'); }
+    }catch(e){
+      console.error(e); toast('Error al guardar.');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Guardar ajuste';
+    }
   });
 
   // ========== ANUALES ==========
