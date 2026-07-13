@@ -552,6 +552,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .origin-bar .ob-fill{height:100%;background:var(--accent-2);border-radius:4px;}
 .origin-bar.against .ob-fill{background:var(--danger);}
 .annual-empty{text-align:center;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:13px;padding:40px;}
+/* Ajuste primer semestre */
+.adj-row{display:flex;gap:8px;align-items:center;margin-bottom:7px;}
+.adj-row input,.adj-row select{background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-family:'Inter',sans-serif;font-size:13px;padding:7px 9px;}
+.adj-row .adj-name{flex:1;min-width:0;}
+.adj-row .adj-num{width:70px;text-align:center;}
+.adj-row .adj-origin{flex:1;min-width:0;}
+.adj-row .adj-del{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 4px;}
+.adj-row .adj-del:hover{color:var(--danger);}
 
 /* Convocatorias */
 .calls-wrap{overflow-x:auto;}
@@ -1179,10 +1187,39 @@ body.editor-active #screen-editor{ display:block; }
       <div class="scout-head">
         <div>
           <h2 class="scout-title">Estadísticas anuales</h2>
-          <p class="scout-sub">Acumulado de todos los partidos cargados en esta categoría.</p>
+          <p class="scout-sub">Acumulado de todos los partidos, más el ajuste del primer semestre.</p>
         </div>
+        <button class="btn small" id="openAdjBtn">＋ Ajuste primer semestre</button>
       </div>
       <div id="annualContent"></div>
+    </div>
+  </div>
+
+  <!-- Modal ajuste primer semestre -->
+  <div class="cloud-modal-overlay" id="adjModal" style="display:none;">
+    <div class="cloud-modal">
+      <div class="cloud-modal-head">
+        <h3>Ajuste primer semestre</h3>
+        <button class="cloud-close" id="adjModalClose">✕</button>
+      </div>
+      <div class="cloud-list">
+        <p class="rd-empty" style="margin-bottom:8px;">Cargá los totales del primer semestre. Se suman a la estadística anual de esta categoría.</p>
+        <div class="adj-section">
+          <div class="rd-card-head"><h3>⚽ Goleadores</h3><button class="btn small" id="adjAddScorer">+ Goleador</button></div>
+          <div id="adjScorers"></div>
+        </div>
+        <div class="adj-section" style="margin-top:14px;">
+          <div class="rd-card-head"><h3>🎯 Cómo hacemos los goles</h3><button class="btn small" id="adjAddScored">+ Origen</button></div>
+          <div id="adjScored"></div>
+        </div>
+        <div class="adj-section" style="margin-top:14px;">
+          <div class="rd-card-head"><h3>🥅 Cómo nos hicieron los goles</h3><button class="btn small" id="adjAddConceded">+ Origen</button></div>
+          <div id="adjConceded"></div>
+        </div>
+      </div>
+      <div style="padding:0 22px 22px;display:flex;justify-content:flex-end;">
+        <button class="btn small primary" id="adjSaveBtn">Guardar ajuste</button>
+      </div>
     </div>
   </div>
 
@@ -2734,6 +2771,7 @@ window.__initEditor = function(){
   let origins = [];      // formas de origen de gol (con subs)
   let originsRowId = null;
   let matches = [];      // partidos de la categoría
+  let adjustment = { scorers:[], scored:[], conceded:[] };   // resumen primer semestre
   let currentMatch = null;
   const saveTimers = {};
 
@@ -2807,6 +2845,18 @@ window.__initEditor = function(){
       sortMatches();
 
       renderMatchList(); renderSquad();
+
+      // Cargar ajuste del primer semestre
+      try{
+        let aq = sb.from('stat_adjustments').select('*').eq('club_id', clubId);
+        aq = cat ? aq.eq('categoria', cat) : aq.is('categoria', null);
+        const aRes = await aq;
+        if(aRes.data && aRes.data.length){
+          adjustment = { scorers: aRes.data[0].scorers||[], scored: aRes.data[0].scored||[], conceded: aRes.data[0].conceded||[] };
+        } else {
+          adjustment = { scorers:[], scored:[], conceded:[] };
+        }
+      }catch(e){ adjustment = { scorers:[], scored:[], conceded:[] }; }
       refreshActiveSub();
     }catch(e){ console.error('stats load', e); }
   }
@@ -3194,11 +3244,97 @@ window.__initEditor = function(){
     });
   }
 
+  // ========== AJUSTE PRIMER SEMESTRE ==========
+  const adjModal = document.getElementById('adjModal');
+  document.getElementById('openAdjBtn').addEventListener('click', () => { renderAdjEditor(); adjModal.style.display='flex'; });
+  document.getElementById('adjModalClose').addEventListener('click', () => { adjModal.style.display='none'; });
+  adjModal.addEventListener('click', e => { if(e.target.id==='adjModal') adjModal.style.display='none'; });
+
+  function renderAdjEditor(){
+    // Opciones de jugadores del plantel
+    const playerOpts = (selected) => {
+      let o = '<option value="">— Jugador —</option>';
+      squad.forEach(p => { const label=(p.number?('#'+p.number+' '):'')+p.name; o += `<option value="${escapeHtml(p.name)}" ${p.name===selected?'selected':''}>${escapeHtml(label)}</option>`; });
+      return o;
+    };
+    const originOpts = (selected) => {
+      let o = '<option value="">— Origen —</option>';
+      origins.forEach(or => { o += `<option value="${escapeHtml(or.name)}" ${or.name===selected?'selected':''}>${escapeHtml(or.name)}</option>`; });
+      return o;
+    };
+    // Goleadores (desplegable del plantel)
+    const sc = document.getElementById('adjScorers');
+    sc.innerHTML = '';
+    if(!adjustment.scorers) adjustment.scorers = [];
+    if(squad.length === 0){ sc.innerHTML = '<p class="rd-empty">Cargá jugadores en el Plantel para elegir goleadores.</p>'; }
+    adjustment.scorers.forEach((s, i) => {
+      const row = document.createElement('div');
+      row.className = 'adj-row';
+      row.innerHTML = `<select class="adj-name">${playerOpts(s.name)}</select><input class="adj-num" type="number" min="0" placeholder="goles" value="${s.goals||''}"><button class="adj-del">✕</button>`;
+      row.querySelector('.adj-name').addEventListener('change', e => s.name = e.target.value);
+      row.querySelector('.adj-num').addEventListener('input', e => s.goals = e.target.value);
+      row.querySelector('.adj-del').addEventListener('click', () => { adjustment.scorers.splice(i,1); renderAdjEditor(); });
+      sc.appendChild(row);
+    });
+    // Cómo hacemos los goles (a favor por origen)
+    const sd = document.getElementById('adjScored');
+    sd.innerHTML = '';
+    if(!adjustment.scored) adjustment.scored = [];
+    adjustment.scored.forEach((c, i) => {
+      const row = document.createElement('div');
+      row.className = 'adj-row';
+      row.innerHTML = `<select class="adj-origin">${originOpts(c.origin)}</select><input class="adj-num" type="number" min="0" placeholder="cant" value="${c.count||''}"><button class="adj-del">✕</button>`;
+      row.querySelector('.adj-origin').addEventListener('change', e => c.origin = e.target.value);
+      row.querySelector('.adj-num').addEventListener('input', e => c.count = e.target.value);
+      row.querySelector('.adj-del').addEventListener('click', () => { adjustment.scored.splice(i,1); renderAdjEditor(); });
+      sd.appendChild(row);
+    });
+    // Cómo nos hicieron los goles
+    const cc = document.getElementById('adjConceded');
+    cc.innerHTML = '';
+    if(!adjustment.conceded) adjustment.conceded = [];
+    adjustment.conceded.forEach((c, i) => {
+      const row = document.createElement('div');
+      row.className = 'adj-row';
+      row.innerHTML = `<select class="adj-origin">${originOpts(c.origin)}</select><input class="adj-num" type="number" min="0" placeholder="cant" value="${c.count||''}"><button class="adj-del">✕</button>`;
+      row.querySelector('.adj-origin').addEventListener('change', e => c.origin = e.target.value);
+      row.querySelector('.adj-num').addEventListener('input', e => c.count = e.target.value);
+      row.querySelector('.adj-del').addEventListener('click', () => { adjustment.conceded.splice(i,1); renderAdjEditor(); });
+      cc.appendChild(row);
+    });
+  }
+  document.getElementById('adjAddScorer').addEventListener('click', () => { adjustment.scorers.push({name:'',goals:''}); renderAdjEditor(); });
+  document.getElementById('adjAddScored').addEventListener('click', () => { adjustment.scored.push({origin:'',count:''}); renderAdjEditor(); });
+  document.getElementById('adjAddConceded').addEventListener('click', () => { adjustment.conceded.push({origin:'',count:''}); renderAdjEditor(); });
+
+  document.getElementById('adjSaveBtn').addEventListener('click', async () => {
+    const sb = window.__sb;
+    if(!sb){ toast('Sin conexión.'); return; }
+    const clubId = await window.__getClubId();
+    if(!clubId){ toast('No se pudo identificar tu club.'); return; }
+    // limpiar filas vacías
+    adjustment.scorers = (adjustment.scorers||[]).filter(s => s.name && s.goals);
+    adjustment.scored = (adjustment.scored||[]).filter(c => c.origin && c.count);
+    adjustment.conceded = (adjustment.conceded||[]).filter(c => c.origin && c.count);
+    try{
+      const { error } = await sb.from('stat_adjustments').upsert({
+        club_id: clubId, categoria: catActual(),
+        scorers: adjustment.scorers, scored: adjustment.scored, conceded: adjustment.conceded,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'club_id,categoria' });
+      if(error){ console.error(error); toast('No se pudo guardar: ' + error.message); return; }
+      adjModal.style.display = 'none';
+      renderAnnual();
+      toast('Ajuste guardado ✓');
+    }catch(e){ console.error(e); toast('Error al guardar.'); }
+  });
+
   // ========== ANUALES ==========
   function renderAnnual(){
     const el = document.getElementById('annualContent');
-    if(matches.length === 0){
-      el.innerHTML = '<div class="annual-empty">Cargá partidos para ver las estadísticas anuales.</div>';
+    const hayAjuste = (adjustment.scorers||[]).length > 0 || (adjustment.scored||[]).length > 0 || (adjustment.conceded||[]).length > 0;
+    if(matches.length === 0 && !hayAjuste){
+      el.innerHTML = '<div class="annual-empty">Cargá partidos (o el ajuste del primer semestre) para ver las estadísticas anuales.</div>';
       return;
     }
     // Acumular
@@ -3224,6 +3360,17 @@ window.__initEditor = function(){
       });
       (m.assists||[]).forEach(a => { if(a.player_name) asistidores[a.player_name]=(asistidores[a.player_name]||0)+1; });
       (m.cards||[]).forEach(c => { if(c.player_name) tarjetas[c.player_name]=(tarjetas[c.player_name]||0)+1; });
+    });
+
+    // Sumar el AJUSTE del primer semestre (totales cargados a mano)
+    (adjustment.scorers||[]).forEach(s => {
+      if(s.name && s.goals){ goleadores[s.name] = (goleadores[s.name]||0) + Number(s.goals); totalGF += Number(s.goals); }
+    });
+    (adjustment.scored||[]).forEach(c => {
+      if(c.origin && c.count){ origenFavor[c.origin] = (origenFavor[c.origin]||0) + Number(c.count); }
+    });
+    (adjustment.conceded||[]).forEach(c => {
+      if(c.origin && c.count){ origenContra[c.origin] = (origenContra[c.origin]||0) + Number(c.count); totalGA += Number(c.count); }
     });
     const rankHTML = (obj) => {
       const arr = Object.entries(obj).sort((a,b)=>b[1]-a[1]);
