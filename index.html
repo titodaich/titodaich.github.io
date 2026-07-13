@@ -478,6 +478,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .goal-row-top .g-player{flex:1;min-width:0;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-size:13px;padding:7px 9px;cursor:pointer;}
 .goal-row-top .g-min{width:90px;flex-shrink:0;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-size:12px;padding:7px 8px;}
 .goal-row-top .g-keeper{flex:1;min-width:0;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-size:13px;padding:7px 9px;cursor:pointer;}
+.g-detail{width:100%;margin-top:8px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-family:'Inter',sans-serif;font-size:12px;padding:7px 9px;}
+.g-detail:focus{outline:none;border-color:var(--accent-2);}
+.g-detail::placeholder{color:var(--muted);}
 .origin-tags{display:flex;flex-wrap:wrap;gap:5px;}
 .origin-tag{background:var(--panel-2);border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:5px 10px;font-size:12px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .12s ease;}
 .origin-tag:hover{color:var(--chalk);border-color:var(--muted);}
@@ -535,6 +538,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .squad-card .sq-info{flex:1;min-width:0;}
 .squad-card .sq-name{font-weight:600;font-size:14px;}
 .squad-card .sq-pos{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;}
+.squad-card .sq-edit{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:14px;}
+.squad-card .sq-edit:hover{color:var(--accent-2);}
 .squad-card .sq-del{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:14px;}
 .squad-card .sq-del:hover{color:var(--danger);}
 
@@ -2899,8 +2904,30 @@ window.__initEditor = function(){
       card.innerHTML = `
         <div class="sq-num">${escapeHtml(p.number||'—')}</div>
         <div class="sq-info"><div class="sq-name">${escapeHtml(p.name)}</div><div class="sq-pos">${escapeHtml(p.position||'')}</div></div>
+        <button class="sq-edit" title="Editar">✎</button>
         <button class="sq-del" title="Quitar">✕</button>
       `;
+      card.querySelector('.sq-edit').addEventListener('click', async () => {
+        const name = prompt('Nombre del jugador:', p.name || '');
+        if(name === null) return;                       // canceló
+        if(!name.trim()){ toast('El nombre no puede quedar vacío.'); return; }
+        const number = prompt('Número (opcional):', p.number || '');
+        if(number === null) return;
+        const position = prompt('Posición (opcional): arquero, cierre, ala, pívot...', p.position || '');
+        if(position === null) return;
+        const sb = window.__sb;
+        // actualizar en la nube
+        if(sb && !String(p.id).startsWith('tmp')){
+          try{
+            const { error } = await sb.from('players').update({ name:name.trim(), number, position }).eq('id', p.id);
+            if(error){ toast('No se pudo guardar el cambio.'); return; }
+          }catch(e){ console.error(e); toast('Error al guardar.'); return; }
+        }
+        // actualizar en memoria
+        p.name = name.trim(); p.number = number; p.position = position;
+        renderSquad();
+        toast('Jugador actualizado ✓');
+      });
       card.querySelector('.sq-del').addEventListener('click', async () => {
         if(!confirm('¿Quitar a '+p.name+' del plantel?')) return;
         const sb = window.__sb;
@@ -3110,6 +3137,12 @@ window.__initEditor = function(){
       top.querySelector('.g-remove').addEventListener('click', () => { m.goalsFor.splice(idx,1); renderGoals(); flashMatchSaved(); });
       row.appendChild(top);
       row.appendChild(buildOriginButtons(g, () => { renderGoals(); flashMatchSaved(); }));
+      const det = document.createElement('input');
+      det.className = 'g-detail';
+      det.placeholder = 'Detalle del gol (opcional)';
+      det.value = g.detail || '';
+      det.addEventListener('input', e => { g.detail = e.target.value; flashMatchSaved(); });
+      row.appendChild(det);
       gf.appendChild(row);
     });
     // Goles en contra (sin jugador)
@@ -3128,6 +3161,12 @@ window.__initEditor = function(){
       top.querySelector('.g-remove').addEventListener('click', () => { m.goalsAgainst.splice(idx,1); renderGoals(); flashMatchSaved(); });
       row.appendChild(top);
       row.appendChild(buildOriginButtons(g, () => { renderGoals(); flashMatchSaved(); }));
+      const det = document.createElement('input');
+      det.className = 'g-detail';
+      det.placeholder = 'Detalle del gol (opcional)';
+      det.value = g.detail || '';
+      det.addEventListener('input', e => { g.detail = e.target.value; flashMatchSaved(); });
+      row.appendChild(det);
       ga.appendChild(row);
     });
     // Asistencias
@@ -3202,8 +3241,9 @@ window.__initEditor = function(){
       wrap.innerHTML = '<div class="calls-empty">Primero cargá algún partido.</div>';
       return;
     }
-    // Partidos ordenados del más viejo al más nuevo (para numerar 1,2,3...)
-    const ordered = matches.slice().reverse();
+    // Partidos en orden cronológico (más viejo a la izquierda, más nuevo a la derecha).
+    // 'matches' ya viene ordenado cronológicamente ascendente.
+    const ordered = matches.slice();
     const table = document.createElement('table');
     table.className = 'calls-table';
     // Cabecera: primera celda (Jugador) + un partido por columna
