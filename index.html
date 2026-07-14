@@ -501,6 +501,39 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .board-play-actions .bp-del:hover{border-color:var(--danger);color:var(--danger);}
 .board-plays-empty{color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.5;}
 
+/* ===== EN VIVO ===== */
+.live-clock-bar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:16px;}
+.live-clock{font-family:'JetBrains Mono',monospace;font-size:38px;font-weight:700;color:var(--chalk);letter-spacing:1px;min-width:130px;}
+.live-clock.running{color:var(--success);}
+.live-clock-btns{display:flex;gap:8px;}
+.live-oncourt{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;color:var(--accent-2);text-transform:uppercase;letter-spacing:0.5px;}
+.live-mode{margin-left:auto;display:flex;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:3px;}
+.live-mode-btn{border:none;background:transparent;color:var(--muted);border-radius:999px;padding:7px 16px;font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;cursor:pointer;transition:all .15s ease;}
+.live-mode-btn.active{background:var(--accent);color:#fff;}
+.live-swap-hint{background:var(--panel-2);border:1px solid var(--accent);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--chalk);}
+.live-swap-hint b{color:var(--accent);}
+.live-swap-hint #liveSwapStep{display:block;margin-top:4px;color:var(--accent-2);font-family:'JetBrains Mono',monospace;font-size:12px;}
+.live-players{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:20px;}
+.live-player{background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;transition:all .12s ease;text-align:center;user-select:none;}
+.live-player:hover{border-color:var(--muted);}
+.live-player.on{border-color:var(--success);background:rgba(76,175,109,0.12);}
+.live-player.swap-out{border-color:var(--danger);background:rgba(240,85,63,0.15);}
+.live-player .lp-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.live-player .lp-name{font-family:'Oswald',sans-serif;font-size:16px;font-weight:600;margin:2px 0 6px;}
+.live-player .lp-time{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:var(--chalk);}
+.live-player.on .lp-time{color:var(--success);}
+.live-player .lp-status{font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-top:4px;}
+.live-player.on .lp-status{color:var(--success);}
+.live-log-wrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;}
+.live-log{margin-top:10px;max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;}
+.live-log-row{display:flex;gap:10px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 11px;font-size:13px;}
+.live-log-row .llr-time{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent-2);min-width:48px;font-weight:600;}
+.live-log-row .llr-type{font-family:'Oswald',sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:0.4px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);}
+.live-log-row .llr-type.in{color:var(--success);border-color:var(--success);}
+.live-log-row .llr-type.out{color:var(--danger);border-color:var(--danger);}
+.live-log-row .llr-type.swap{color:var(--accent-2);border-color:var(--accent-2);}
+.live-log-row .llr-desc{flex:1;}
+
 /* ===== ESTADÍSTICAS ===== */
 .stats-subnav{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap;}
 .stats-subtab{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:9px 18px;font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;cursor:pointer;transition:all .15s ease;}
@@ -1089,6 +1122,7 @@ body.editor-active #screen-editor{ display:block; }
     <button class="nav-tab" data-section="training">📋 Planificación</button>
     <button class="nav-tab" data-section="scouting">🔍 Scouting</button>
     <button class="nav-tab" data-section="board">✏️ Pizarra</button>
+    <button class="nav-tab" data-section="live">🔴 En vivo</button>
   </nav>
 
   <!-- ===== SECCIÓN: VIDEO ===== -->
@@ -1544,6 +1578,44 @@ body.editor-active #screen-editor{ display:block; }
     </div>
   </div>
 
+  <!-- ===== SECCIÓN: EN VIVO (control de minutos) ===== -->
+  <div class="section-content" id="section-live">
+    <div class="scout-head">
+      <div>
+        <h2 class="scout-title">En vivo — control de minutos</h2>
+        <p class="scout-sub">Controlá los minutos de cada jugador en tiempo real. Máximo 5 en cancha.</p>
+      </div>
+    </div>
+
+    <div class="live-clock-bar">
+      <div class="live-clock" id="liveClock">00:00</div>
+      <div class="live-clock-btns">
+        <button class="btn small primary" id="liveClockToggle">▶ Iniciar</button>
+        <button class="btn small" id="liveClockReset">↺ Reiniciar</button>
+      </div>
+      <div class="live-oncourt" id="liveOnCourt">0 / 5 en cancha</div>
+      <div class="live-mode">
+        <button class="live-mode-btn active" data-mode="manual">Modo Manual</button>
+        <button class="live-mode-btn" data-mode="swap">Modo Cambio</button>
+      </div>
+    </div>
+
+    <div class="live-swap-hint" id="liveSwapHint" style="display:none;">
+      Modo Cambio: tocá el jugador que <b>SALE</b>, después el que <b>ENTRA</b>.
+      <span id="liveSwapStep"></span>
+    </div>
+
+    <div class="live-players" id="livePlayers"></div>
+
+    <div class="live-log-wrap">
+      <div class="rd-card-head">
+        <h3>Registro de eventos</h3>
+        <button class="btn small" id="liveSaveBtn">☁ Guardar registro</button>
+      </div>
+      <div class="live-log" id="liveLog"><p class="rd-empty">Todavía no hay eventos. Iniciá el reloj y tocá los jugadores.</p></div>
+    </div>
+  </div>
+
 <div class="toast" id="toast"></div>
 
 <div class="cloud-modal-overlay" id="tagsModal" style="display:none;">
@@ -1873,6 +1945,7 @@ window.__initEditor = function(){
       if(target === 'training' && window.__loadTrainingOnce){ window.__loadTrainingOnce(); }
       if(target === 'stats' && window.__loadStatsOnce){ window.__loadStatsOnce(); }
       if(target === 'board' && window.__initBoardOnce){ window.__initBoardOnce(); }
+      if(target === 'live' && window.__initLiveOnce){ window.__initLiveOnce(); }
       if(target === 'videoai' && window.__refreshAIVideoSelect){ window.__refreshAIVideoSelect(); }
       window.scrollTo(0, 0);
     });
@@ -2735,6 +2808,246 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   };
   if(window.__onCategorySubscribe){
     window.__onCategorySubscribe(() => { if(started) loadPlaysFromCloud(); });
+  }
+})();
+
+// ---------------- EN VIVO (control de minutos) ----------------
+(function initLive(){
+  let clockSeconds = 0;
+  let clockRunning = false;
+  let clockTimer = null;
+  let mode = 'manual';           // 'manual' | 'swap'
+  let swapOutId = null;          // jugador seleccionado para salir (modo cambio)
+  let squad = [];                // jugadores del plantel
+  // estado por jugador: { onCourt:bool, accumulated:seconds, lastInAt:seconds|null }
+  let state = {};
+  let events = [];               // {t, type:'in'|'out'|'swap', inId, outId, inName, outName, totals}
+  let liveRowId = null;
+
+  const fmtClock = (s) => {
+    const m = Math.floor(s/60), x = s%60;
+    return String(m).padStart(2,'0') + ':' + String(x).padStart(2,'0');
+  };
+
+  function playerTime(pid){
+    const st = state[pid];
+    if(!st) return 0;
+    let total = st.accumulated;
+    if(st.onCourt && st.lastInAt !== null) total += (clockSeconds - st.lastInAt);
+    return total;
+  }
+  function countOnCourt(){ return Object.values(state).filter(s => s.onCourt).length; }
+
+  // ----- Reloj -----
+  const clockEl = () => document.getElementById('liveClock');
+  function tickClock(){
+    clockSeconds++;
+    updateClockUI();
+    updatePlayersTime();
+  }
+  function updateClockUI(){
+    const el = clockEl(); if(!el) return;
+    el.textContent = fmtClock(clockSeconds);
+    el.classList.toggle('running', clockRunning);
+    const t = document.getElementById('liveClockToggle');
+    if(t) t.textContent = clockRunning ? '⏸ Pausar' : '▶ Iniciar';
+  }
+  function startClock(){
+    if(clockRunning){ clockRunning = false; clearInterval(clockTimer); updateClockUI(); return; }
+    clockRunning = true;
+    clockTimer = setInterval(tickClock, 1000);
+    updateClockUI();
+  }
+  function resetClock(){
+    if(!confirm('¿Reiniciar el reloj y borrar los tiempos y eventos de esta sesión?')) return;
+    clockRunning = false; clearInterval(clockTimer);
+    clockSeconds = 0;
+    state = {}; events = []; swapOutId = null; liveRowId = null;
+    squad.forEach(p => { state[p.id] = { onCourt:false, accumulated:0, lastInAt:null }; });
+    updateClockUI(); renderPlayers(); renderLog(); updateOnCourt();
+  }
+
+  // ----- Registrar eventos -----
+  function totalsSnapshot(){
+    const o = {};
+    squad.forEach(p => { o[p.name] = playerTime(p.id); });
+    return o;
+  }
+  function logEvent(type, inId, outId){
+    const inP = squad.find(p=>p.id===inId), outP = squad.find(p=>p.id===outId);
+    events.unshift({
+      t: clockSeconds, type,
+      inId, outId,
+      inName: inP?inP.name:'', outName: outP?outP.name:'',
+      totals: totalsSnapshot()
+    });
+    renderLog();
+  }
+
+  // ----- Acciones sobre jugadores -----
+  function playerIn(pid){
+    if(countOnCourt() >= 5){ toast('Ya hay 5 jugadores en cancha. Sacá a uno primero.'); return false; }
+    state[pid].onCourt = true;
+    state[pid].lastInAt = clockSeconds;
+    return true;
+  }
+  function playerOut(pid){
+    const st = state[pid];
+    if(st.onCourt && st.lastInAt !== null){ st.accumulated += (clockSeconds - st.lastInAt); }
+    st.onCourt = false; st.lastInAt = null;
+  }
+
+  function handleManual(pid){
+    if(state[pid].onCourt){
+      playerOut(pid);
+      logEvent('out', null, pid);
+    } else {
+      if(playerIn(pid)) logEvent('in', pid, null);
+    }
+    renderPlayers(); updateOnCourt();
+  }
+
+  function handleSwap(pid){
+    if(swapOutId === null){
+      // primer toque: debe ser alguien en cancha
+      if(!state[pid].onCourt){ toast('En Modo Cambio, primero tocá un jugador que ESTÉ en cancha (el que sale).'); return; }
+      swapOutId = pid;
+      renderPlayers();
+      document.getElementById('liveSwapStep').textContent = 'Sale: ' + (squad.find(p=>p.id===pid)||{}).name + ' → ahora tocá quién ENTRA.';
+    } else {
+      // segundo toque: el que entra (debe estar fuera)
+      if(pid === swapOutId){ swapOutId = null; renderPlayers(); document.getElementById('liveSwapStep').textContent=''; return; }
+      if(state[pid].onCourt){ toast('Ese jugador ya está en cancha. Tocá uno que esté afuera.'); return; }
+      const outId = swapOutId;
+      playerOut(outId);
+      playerIn(pid);
+      logEvent('swap', pid, outId);
+      swapOutId = null;
+      document.getElementById('liveSwapStep').textContent = '';
+      renderPlayers(); updateOnCourt();
+    }
+  }
+
+  function onPlayerTap(pid){
+    if(!state[pid]) state[pid] = { onCourt:false, accumulated:0, lastInAt:null };
+    if(mode === 'manual') handleManual(pid);
+    else handleSwap(pid);
+  }
+
+  // ----- Render -----
+  function renderPlayers(){
+    const cont = document.getElementById('livePlayers');
+    if(!cont) return;
+    if(squad.length === 0){
+      cont.innerHTML = '<p class="rd-empty">No hay jugadores en el plantel de esta categoría. Cargalos en Estadísticas → Plantel.</p>';
+      return;
+    }
+    cont.innerHTML = '';
+    squad.forEach(p => {
+      if(!state[p.id]) state[p.id] = { onCourt:false, accumulated:0, lastInAt:null };
+      const st = state[p.id];
+      const card = document.createElement('div');
+      card.className = 'live-player' + (st.onCourt ? ' on' : '') + (swapOutId===p.id ? ' swap-out' : '');
+      card.innerHTML = `
+        <div class="lp-num">${escapeHtml(p.number ? '#'+p.number : '')}</div>
+        <div class="lp-name">${escapeHtml(p.name)}</div>
+        <div class="lp-time" data-time="${p.id}">${fmtClock(playerTime(p.id))}</div>
+        <div class="lp-status">${swapOutId===p.id ? 'SALE…' : (st.onCourt ? '● En cancha' : 'Afuera')}</div>`;
+      card.addEventListener('click', () => onPlayerTap(p.id));
+      cont.appendChild(card);
+    });
+  }
+  function updatePlayersTime(){
+    squad.forEach(p => {
+      const el = document.querySelector(`.lp-time[data-time="${p.id}"]`);
+      if(el) el.textContent = fmtClock(playerTime(p.id));
+    });
+  }
+  function updateOnCourt(){
+    const el = document.getElementById('liveOnCourt');
+    if(el) el.textContent = countOnCourt() + ' / 5 en cancha';
+  }
+  function renderLog(){
+    const el = document.getElementById('liveLog');
+    if(!el) return;
+    if(events.length === 0){ el.innerHTML = '<p class="rd-empty">Todavía no hay eventos. Iniciá el reloj y tocá los jugadores.</p>'; return; }
+    el.innerHTML = '';
+    events.forEach(ev => {
+      const row = document.createElement('div');
+      row.className = 'live-log-row';
+      let desc = '', cls = '';
+      if(ev.type === 'in'){ desc = 'Entra ' + escapeHtml(ev.inName); cls='in'; }
+      else if(ev.type === 'out'){ desc = 'Sale ' + escapeHtml(ev.outName); cls='out'; }
+      else { desc = 'Cambio: sale ' + escapeHtml(ev.outName) + ', entra ' + escapeHtml(ev.inName); cls='swap'; }
+      const label = ev.type==='in'?'Ingreso':(ev.type==='out'?'Salida':'Cambio');
+      row.innerHTML = `<span class="llr-time">${fmtClock(ev.t)}</span><span class="llr-type ${cls}">${label}</span><span class="llr-desc">${desc}</span>`;
+      el.appendChild(row);
+    });
+  }
+
+  // ----- Modo -----
+  document.querySelectorAll('.live-mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.live-mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      mode = btn.dataset.mode;
+      swapOutId = null;
+      document.getElementById('liveSwapHint').style.display = mode==='swap' ? 'block' : 'none';
+      const step = document.getElementById('liveSwapStep'); if(step) step.textContent='';
+      renderPlayers();
+    });
+  });
+
+  document.getElementById('liveClockToggle').addEventListener('click', startClock);
+  document.getElementById('liveClockReset').addEventListener('click', resetClock);
+
+  // ----- Guardar en la nube -----
+  document.getElementById('liveSaveBtn').addEventListener('click', async () => {
+    const sb = window.__sb;
+    if(!sb){ toast('Sin conexión.'); return; }
+    if(events.length === 0){ toast('No hay eventos para guardar.'); return; }
+    const btn = document.getElementById('liveSaveBtn');
+    btn.disabled = true; btn.textContent = 'Guardando…';
+    try{
+      const clubId = await window.__getClubId();
+      if(!clubId){ toast('No se pudo identificar tu club.'); btn.disabled=false; btn.textContent='☁ Guardar registro'; return; }
+      const name = prompt('Nombre del partido/sesión:', 'Partido ' + new Date().toLocaleDateString('es-AR')) || 'Partido';
+      const cat = (window.__getActiveCategory && window.__getActiveCategory()) || null;
+      const payload = { club_id: clubId, categoria: cat, name, events, totals: totalsSnapshot() };
+      const res = await sb.from('live_sessions').insert(payload).select('id').single();
+      if(res.error){ toast('No se pudo guardar: ' + res.error.message); }
+      else { liveRowId = res.data.id; toast('Registro guardado ✓'); }
+    }catch(e){ console.error(e); toast('Error al guardar.'); }
+    finally{ btn.disabled=false; btn.textContent='☁ Guardar registro'; }
+  });
+
+  // ----- Cargar plantel de la categoría activa -----
+  async function loadSquad(){
+    const sb = window.__sb;
+    if(!sb) return;
+    const clubId = await window.__getClubId();
+    if(!clubId) return;
+    const cat = (window.__getActiveCategory && window.__getActiveCategory()) || null;
+    try{
+      let q = sb.from('players').select('*').eq('club_id', clubId);
+      q = cat ? q.eq('categoria', cat) : q.is('categoria', null);
+      const { data } = await q;
+      squad = (data||[]).map(p => ({ id:p.id, name:p.name, number:p.number||'', position:p.position||'' }));
+      // preservar estado de jugadores que siguen; inicializar nuevos
+      const ns = {};
+      squad.forEach(p => { ns[p.id] = state[p.id] || { onCourt:false, accumulated:0, lastInAt:null }; });
+      state = ns;
+      renderPlayers(); updateOnCourt();
+    }catch(e){ console.error('live squad', e); }
+  }
+
+  let started = false;
+  window.__initLiveOnce = function(){
+    if(!started){ started = true; updateClockUI(); renderLog(); }
+    loadSquad();
+  };
+  if(window.__onCategorySubscribe){
+    window.__onCategorySubscribe(() => { if(started) loadSquad(); });
   }
 })();
 
