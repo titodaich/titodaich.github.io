@@ -440,6 +440,36 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .ai-spinner{width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--accent-2);border-radius:50%;animation:aispin 0.7s linear infinite;}
 @keyframes aispin{to{transform:rotate(360deg);}}
 .ai-report-actions{margin-top:12px;display:flex;gap:8px;}
+/* Análisis IA de video */
+.ai-video-section{margin-top:18px;padding:14px;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;}
+.ai-video-picker{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.ai-picker-label{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
+.ai-video-select{flex:1;min-width:180px;background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--chalk);font-size:13px;padding:9px 10px;cursor:pointer;}
+.ai-review-layout{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-top:16px;}
+@media (max-width:860px){.ai-review-layout{grid-template-columns:1fr;}}
+.ai-preview-wrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;}
+#aiPreviewEl{width:100%;border-radius:8px;background:#000;aspect-ratio:16/9;}
+.ai-sub-title{font-family:'Oswald',sans-serif;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 10px;color:var(--muted);}
+.ai-sug-wrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;max-height:560px;overflow-y:auto;}
+.ai-video-hint{font-size:12px;color:var(--muted);margin:8px 0 0;line-height:1.5;}
+.ai-video-controls{margin-top:12px;display:flex;flex-direction:column;gap:8px;}
+.ai-progress-wrap{width:100%;height:8px;background:var(--bg);border-radius:999px;overflow:hidden;border:1px solid var(--line);}
+.ai-progress-bar{height:100%;width:0%;background:var(--accent-2);transition:width .3s ease;}
+.ai-progress-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.ai-suggestions{margin-top:12px;display:flex;flex-direction:column;gap:8px;}
+.ai-sug{background:var(--bg);border:1px solid var(--line);border-left:3px solid var(--accent-2);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.ai-sug .as-time{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent-2);font-weight:600;min-width:52px;}
+.ai-sug .as-conf{font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 7px;border-radius:999px;border:1px solid var(--line);}
+.ai-sug .as-conf.hi{color:var(--success);border-color:var(--success);}
+.ai-sug .as-conf.md{color:var(--muted);}
+.ai-sug .as-tag{font-family:'Oswald',sans-serif;font-size:12px;text-transform:uppercase;letter-spacing:0.4px;padding:3px 10px;border-radius:999px;border:1px solid var(--line);}
+.ai-sug .as-desc{flex:1;min-width:140px;font-size:12px;color:var(--muted);}
+.ai-sug .as-actions{display:flex;gap:6px;}
+.ai-sug .as-actions button{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:6px;padding:4px 9px;font-size:11px;cursor:pointer;}
+.ai-sug .as-actions .as-go:hover{border-color:var(--accent-2);color:var(--accent-2);}
+.ai-sug .as-actions .as-ok:hover{border-color:var(--success);color:var(--success);}
+.ai-sug .as-actions .as-no:hover{border-color:var(--danger);color:var(--danger);}
+.ai-sug.accepted{opacity:0.45;border-left-color:var(--success);}
 .btn.danger-outline{border:1px solid var(--danger);background:transparent;color:var(--danger);}
 .btn.danger-outline:hover{background:var(--danger);color:#fff;}
 .rd-saved{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
@@ -1054,6 +1084,7 @@ body.editor-active #screen-editor{ display:block; }
   <!-- ===== MENÚ DE NAVEGACIÓN ===== -->
   <nav class="main-nav">
     <button class="nav-tab active" data-section="video">🎬 Video</button>
+    <button class="nav-tab" data-section="videoai">🤖 Video IA</button>
     <button class="nav-tab" data-section="stats">📊 Estadísticas</button>
     <button class="nav-tab" data-section="training">📋 Planificación</button>
     <button class="nav-tab" data-section="scouting">🔍 Scouting</button>
@@ -1126,6 +1157,49 @@ body.editor-active #screen-editor{ display:block; }
   </section>
 </div>
   </div><!-- /#section-video -->
+
+  <!-- ===== SECCIÓN: VIDEO IA (análisis automático) ===== -->
+  <div class="section-content" id="section-videoai">
+    <div class="scout-head">
+      <div>
+        <h2 class="scout-title">Análisis automático con IA</h2>
+        <p class="scout-sub">La IA recorre el video y sugiere jugadas con tus tags (córners, laterales, 3-1, 4-0, defensas, 5vs4...). Vos revisás y aceptás. Los recortes aceptados aparecen en la pestaña Video como los manuales.</p>
+      </div>
+    </div>
+
+    <div class="ai-video-section">
+      <div class="ai-video-picker">
+        <label class="ai-picker-label">Video a analizar</label>
+        <select id="aiVideoSelect" class="ai-video-select"></select>
+        <select id="aiModeSelect" class="ai-video-select" style="flex:0 0 auto;min-width:150px;" title="Rápido: menos imágenes, más veloz. Preciso: detecta movimiento y afina los límites de cada recorte.">
+          <option value="precise">🎯 Preciso</option>
+          <option value="fast">⚡ Rápido</option>
+        </select>
+        <button class="btn small primary" id="aiAnalyzeBtn">⚡ Analizar</button>
+        <label class="ai-picker-label" style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="aiOnlyHigh"> solo confianza alta</label>
+      </div>
+      <p class="ai-video-hint">Los videos se suben en la pestaña 🎬 Video. Acá elegís cuál analizar. Es un asistente: detecta lo evidente, no reemplaza tu ojo.</p>
+      <div class="ai-video-controls" id="aiVideoControls" style="display:none;">
+        <div class="ai-progress-wrap"><div class="ai-progress-bar" id="aiProgressBar"></div></div>
+        <div class="ai-progress-label" id="aiProgressLabel">Preparando…</div>
+        <button class="btn small danger-outline" id="aiCancelBtn">Cancelar</button>
+      </div>
+    </div>
+
+    <div class="ai-review-layout">
+      <div class="ai-preview-wrap">
+        <h3 class="ai-sub-title">Visor</h3>
+        <video id="aiPreviewEl" controls playsinline></video>
+        <p class="ai-video-hint">Tocá "▶ Ver" en una sugerencia para revisarla acá.</p>
+      </div>
+      <div class="ai-sug-wrap">
+        <h3 class="ai-sub-title">Jugadas sugeridas</h3>
+        <div class="ai-suggestions" id="aiSuggestions">
+          <p class="rd-empty">Todavía no analizaste ningún video.</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- ===== SECCIÓN: ESTADÍSTICAS ===== -->
   <div class="section-content" id="section-stats">
@@ -1788,6 +1862,7 @@ window.__initEditor = function(){
       if(target === 'training' && window.__loadTrainingOnce){ window.__loadTrainingOnce(); }
       if(target === 'stats' && window.__loadStatsOnce){ window.__loadStatsOnce(); }
       if(target === 'board' && window.__initBoardOnce){ window.__initBoardOnce(); }
+      if(target === 'videoai' && window.__refreshAIVideoSelect){ window.__refreshAIVideoSelect(); }
       window.scrollTo(0, 0);
     });
   });
@@ -3841,8 +3916,8 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
 // ---------------- CONFIG ----------------
 const TAG_PALETTE = ['#E3B341','#3FA7A0','#4C7EFF','#E5484D','#9067C6','#4CAF6D','#E86BA0','#34C1D9','#B98255','#8C8577'];
 const DEFAULT_TAG_NAMES = [
-  'Gol', 'Gol en contra', 'Defensa', 'Ataque 3-1', 'Ataque 4-0',
-  'Estrategia ataque', 'Estrategia defensa', '5 vs 4', '4 vs 5', '1 vs 1'
+  'Gol', 'Gol en contra', 'Córner', 'Lateral', 'Ataque 3-1',
+  'Ataque 4-0', 'Defensa individual', 'Defensa a cambio', '5 vs 4', '4 vs 5'
 ];
 
 let tags = DEFAULT_TAG_NAMES.map((name, i) => ({ id: 'tag' + i, name, color: TAG_PALETTE[i] }));
@@ -4353,6 +4428,388 @@ function handleTagClick(tagId){
   updateClipCounter();
   const n = items.filter(it => it.type === 'clip').length;
   toast('Recorte #'+n+' guardado ("'+tags.find(t=>t.id===activeTagId).name+'", '+fmt(start)+' – '+fmt(finish)+')');
+}
+
+// ---------------- ANÁLISIS DE VIDEO CON IA ----------------
+let aiAnalysisCancelled = false;
+let aiSuggestionsData = [];
+
+// Llenar el selector con los videos subidos en la pestaña Video
+window.__refreshAIVideoSelect = function(){
+  const sel = document.getElementById('aiVideoSelect');
+  if(!sel) return;
+  const prev = sel.value;
+  if(videos.length === 0){
+    sel.innerHTML = '<option value="">— No hay videos: subilos en la pestaña 🎬 Video —</option>';
+    return;
+  }
+  sel.innerHTML = videos.map(v => `<option value="${v.id}">${escapeHtml(v.name || 'Video')}</option>`).join('');
+  if(prev && videos.some(v => v.id === prev)) sel.value = prev;
+};
+
+document.getElementById('aiAnalyzeBtn').addEventListener('click', analizarVideoIA);
+document.getElementById('aiCancelBtn').addEventListener('click', () => { aiAnalysisCancelled = true; });
+
+async function analizarVideoIA(){
+  const selId = document.getElementById('aiVideoSelect').value;
+  const video = videos.find(v => v.id === selId);
+  if(!video || !video.url){ toast('Elegí un video (se suben en la pestaña 🎬 Video).'); return; }
+
+  const btn = document.getElementById('aiAnalyzeBtn');
+  const controls = document.getElementById('aiVideoControls');
+  const bar = document.getElementById('aiProgressBar');
+  const label = document.getElementById('aiProgressLabel');
+  const sugList = document.getElementById('aiSuggestions');
+  const mode = (document.getElementById('aiModeSelect')||{}).value || 'precise';
+
+  aiAnalysisCancelled = false;
+  aiSuggestionsData = [];
+  sugList.innerHTML = '';
+  btn.disabled = true;
+  controls.style.display = 'flex';
+
+  const fail = (msg) => { toast(msg); btn.disabled=false; controls.style.display='none'; };
+
+  // ---- Configuración según modo ----
+  // Rápido: 1 frame cada 12s, sin refinamiento. Preciso: ráfaga de 2 frames (movimiento) cada 8s + refinamiento de límites.
+  const STEP = mode==='fast' ? 12 : 8;
+  const BURST = mode==='fast' ? 1 : 2;
+  const BURST_GAP = 1.6;
+  const MAX_WINDOWS = 200;
+
+  // ---- Utilidad: crear un lector de video oculto ----
+  async function makeReader(){
+    const v = document.createElement('video');
+    v.muted = true; v.preload = 'auto';
+    const ready = new Promise((res, rej) => {
+      v.onloadedmetadata = res; v.onerror = rej;
+      setTimeout(() => rej(new Error('timeout')), 15000);
+    });
+    v.src = video.url;
+    if(v.readyState < 1){ await ready; }
+    const cw = 384;
+    const ch = Math.round(cw * (v.videoHeight / v.videoWidth)) || 216;
+    const cnv = document.createElement('canvas'); cnv.width = cw; cnv.height = ch;
+    const ctx = cnv.getContext('2d');
+    const seekTo = (t) => new Promise(res => {
+      const done = () => { v.onseeked = null; res(); };
+      v.onseeked = done;
+      setTimeout(done, 900);
+      v.currentTime = Math.min(Math.max(0, t), v.duration - 0.05);
+    });
+    return {
+      duration: v.duration,
+      async grab(t){ await seekTo(t); ctx.drawImage(v, 0, 0, cw, ch); return cnv.toDataURL('image/jpeg', 0.55).split(',')[1]; },
+      destroy(){ v.src=''; v.remove(); }
+    };
+  }
+
+  let readers;
+  try{ readers = await Promise.all([makeReader(), makeReader()]); }
+  catch(e){ fail('No se pudo leer el video para analizar.'); return; }
+  const duration = readers[0].duration;
+
+  const nWindows = Math.min(Math.floor(duration / STEP), MAX_WINDOWS);
+  if(nWindows < 2){ readers.forEach(r=>r.destroy()); fail('El video es muy corto para analizar.'); return; }
+
+  // ---- 1+2) PIPELINE: captura y análisis EN SIMULTÁNEO ----
+  const tagNames = tags.map(t => t.name);
+  const WINDOWS_PER_BATCH = mode==='fast' ? 8 : 4;
+  const OVERLAP = 1;   // cada tanda comparte una ventana con la siguiente (no cortar jugadas en el borde)
+  const CONC = 4;      // tandas de análisis en paralelo
+
+  const windows = [];
+  for(let i=0;i<nWindows;i++) windows.push({ t: i*STEP, frames: [] });
+
+  const batchDefs = [];
+  for(let i=0; i<nWindows; i += (WINDOWS_PER_BATCH - OVERLAP)){
+    batchDefs.push({ from:i, to: Math.min(i+WINDOWS_PER_BATCH, nWindows), sent:false });
+    if(i+WINDOWS_PER_BATCH >= nWindows) break;
+  }
+
+  const criterios = `CRITERIOS PARA IDENTIFICAR CADA SITUACIÓN (futsal):
+- "Córner": pelota en una esquina de la cancha, un jugador por ejecutar, compañeros en el área.
+- "Lateral": saque con el pie desde la línea de banda, pelota quieta sobre la línea.
+- "Ataque 3-1": UN PIVOT claramente adelantado cerca del área rival y tres por detrás rotando. Entre los dos fotogramas de la ventana el pivot se mantiene arriba y los de atrás rotan.
+- "Ataque 4-0": los cuatro de campo EN LÍNEA a altura similar, sin pivot fijo; entre fotogramas se ven desmarques al espacio desde la línea.
+- "Defensa individual": cada defensor pegado a un rival hombre a hombre por toda la cancha (presión alta). Entre los dos fotogramas cada defensor SIGUE al mismo rival aunque se cruce.
+- "Defensa a cambio": bloque zonal compacto cerca del área propia. Entre los dos fotogramas, cuando los atacantes se cruzan, los defensores INTERCAMBIAN marcas y mantienen la estructura.
+- "5 vs 4": un equipo ataca con cinco de campo (arquero-jugador; arco propio vacío o arquero en campo rival).
+- "4 vs 5": defensa de cuatro contra cinco atacantes.
+- "Gol": pelota entrando al arco o festejo inmediato.
+- "Gol en contra": ídem del equipo que registra (si no distinguís cuál es, usá "Gol").`;
+
+  let captured = 0, analyzedBatches = 0;
+  let found = [];
+  const capturedFlag = new Array(nWindows).fill(false);
+  const updateProgress = () => {
+    const capPart = (captured / nWindows) * 30;
+    const anPart = (analyzedBatches / batchDefs.length) * (mode==='fast' ? 70 : 45);
+    bar.style.width = Math.round(capPart + anPart) + '%';
+    label.textContent = `Capturando ${captured}/${nWindows} · Analizando tandas ${analyzedBatches}/${batchDefs.length}`;
+  };
+
+  async function analizarTanda(def){
+    const batch = windows.slice(def.from, def.to);
+    const content = [];
+    batch.forEach(w => {
+      w.frames.forEach((b64, bi) => {
+        content.push({ type:'text', text:`[Ventana t=${w.t}s, fotograma ${bi+1} de ${w.frames.length}${bi>0?` (+${(bi*BURST_GAP).toFixed(1)}s)`:''}]` });
+        content.push({ type:'image', source:{ type:'base64', media_type:'image/jpeg', data:b64 } });
+      });
+    });
+    content.push({ type:'text', text:`Fotogramas de un partido de FUTSAL agrupados en ventanas${BURST>1?' de '+BURST+' fotogramas separados '+BURST_GAP+'s (usá el MOVIMIENTO entre ambos para distinguir sistemas tácticos)':''}. Tags disponibles: ${tagNames.join(', ')}.
+
+${criterios}
+
+INSTRUCCIONES:
+- Sé conservador: marcá solo lo claro. No marques circulación neutral sin estructura.
+- Indicá tu confianza: "alta" solo si es inequívoco, "media" si es probable.
+- Respondé SOLO con un array JSON (sin texto extra, sin markdown):
+[{"time": <segundo de la ventana>, "tag": "<tag EXACTO>", "conf": "alta"|"media", "desc": "<máx 10 palabras>"}]
+Si no hay nada claro: [].` });
+    try{
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:800, messages:[{role:'user', content}] })
+      });
+      const data = await resp.json();
+      const texto = (data.content||[]).map(c=>c.text||'').join('').trim().replace(/```json|```/g,'');
+      let arr = JSON.parse(texto);
+      if(!Array.isArray(arr)) return [];
+      // Validar tiempos: si la IA devuelve un segundo que no es de esta tanda, corregir al más cercano
+      const validTimes = batch.map(w => w.t);
+      return arr.filter(x => typeof x.time==='number' && x.tag).map(x => {
+        if(!validTimes.includes(x.time)){
+          let best = validTimes[0];
+          validTimes.forEach(v => { if(Math.abs(v - x.time) < Math.abs(best - x.time)) best = v; });
+          x.time = best;
+        }
+        return x;
+      });
+    }catch(e){ return []; }
+  }
+
+  const queue = [];
+  let captureDone = false;
+  function maybeEnqueue(){
+    batchDefs.forEach(def => {
+      if(def.sent) return;
+      for(let i=def.from; i<def.to; i++){ if(!capturedFlag[i]) return; }
+      def.sent = true;
+      queue.push(def);
+    });
+  }
+  async function analysisWorker(){
+    while(!aiAnalysisCancelled){
+      const def = queue.shift();
+      if(!def){
+        if(captureDone) return;
+        await new Promise(r => setTimeout(r, 120));
+        continue;
+      }
+      const res = await analizarTanda(def);
+      found = found.concat(res);
+      analyzedBatches++;
+      updateProgress();
+    }
+  }
+  const analysisWorkers = Array.from({length: CONC}, () => analysisWorker());
+
+  const half = Math.ceil(nWindows/2);
+  async function captureRange(reader, from, to){
+    for(let i=from; i<to; i++){
+      if(aiAnalysisCancelled) return;
+      for(let b=0; b<BURST; b++){
+        windows[i].frames[b] = await reader.grab(windows[i].t + b*BURST_GAP);
+      }
+      capturedFlag[i] = true;
+      captured++;
+      updateProgress();
+      maybeEnqueue();
+    }
+  }
+  await Promise.all([ captureRange(readers[0], 0, half), captureRange(readers[1], half, nWindows) ]);
+  captureDone = true;
+  maybeEnqueue();
+  await Promise.all(analysisWorkers);
+  if(aiAnalysisCancelled){ readers.forEach(r=>r.destroy()); return finishAnalysis('Análisis cancelado.'); }
+
+  // ---- 3) Fusionar detecciones contiguas del mismo tag en un solo evento con rango ----
+  found.sort((a,b) => a.time - b.time);
+  const merged = [];
+  found.forEach(s => {
+    const prev = merged[merged.length-1];
+    if(prev && prev.tag === s.tag && (s.time - prev.timeEnd) <= STEP + 1){
+      prev.timeEnd = s.time;
+      if(s.conf === 'alta') prev.conf = 'alta';
+    } else {
+      merged.push({ tag:s.tag, desc:s.desc||'', conf:s.conf||'media', time:s.time, timeEnd:s.time });
+    }
+  });
+
+  // ---- 4) REFINAMIENTO de límites (solo modo preciso, máx 12 candidatos) ----
+  if(mode !== 'fast' && merged.length){
+    const aRefinar = merged.slice(0, 12);
+    let refDone = 0;
+    async function refinar(cand, rdr){
+      try{
+        const t0 = Math.max(0, cand.time - 8);
+        const t1 = Math.min(duration - 0.1, cand.timeEnd + 8);
+        const times = [];
+        for(let t=t0; t<=t1; t+=2.5) times.push(t);
+        const fr = [];
+        for(const t of times.slice(0, 12)){
+          if(aiAnalysisCancelled) return;
+          fr.push({ t: Math.round(t*10)/10, b64: await rdr.grab(t) });
+        }
+        const content = [];
+        fr.forEach(f => {
+          content.push({ type:'text', text:`[t=${f.t}s]` });
+          content.push({ type:'image', source:{ type:'base64', media_type:'image/jpeg', data:f.b64 } });
+        });
+        content.push({ type:'text', text:`REFINAMIENTO: fotogramas cada ~2.5s de un partido de futsal. Se detectó una posible jugada "${cand.tag}" alrededor de t=${cand.time}s. Confirmá si realmente ocurre y precisá su inicio y fin.
+Respondé SOLO JSON: {"confirmado": true|false, "start": <segundo donde empieza>, "end": <segundo donde termina>, "desc": "<máx 10 palabras>"}` });
+        const resp = await fetch('https://api.anthropic.com/v1/messages', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:300, messages:[{role:'user', content}] })
+        });
+        const data = await resp.json();
+        const texto = (data.content||[]).map(c=>c.text||'').join('').trim().replace(/```json|```/g,'');
+        const r = JSON.parse(texto);
+        if(r && typeof r.start === 'number' && typeof r.end === 'number' && r.end > r.start){
+          cand.start = Math.max(0, r.start - 1);
+          cand.end = r.end + 1;
+          if(r.desc) cand.desc = r.desc;
+          if(r.confirmado === false) cand.conf = 'media';
+          else if(r.confirmado === true && cand.conf !== 'alta') cand.conf = 'alta';
+        }
+      }catch(e){ /* refinamiento fallido: se queda con ±6s */ }
+      refDone++;
+      const pct = 75 + Math.round(refDone / aRefinar.length * 25);
+      bar.style.width = pct + '%';
+      label.textContent = `Afinando límites de recortes… ${refDone}/${aRefinar.length}`;
+    }
+    // refinar en paralelo: cada lector de video procesa su propia cola
+    const refQueue = aRefinar.slice();
+    async function refWorker(rdr){
+      while(refQueue.length && !aiAnalysisCancelled){
+        const cand = refQueue.shift();
+        await refinar(cand, rdr);
+      }
+    }
+    await Promise.all([ refWorker(readers[0]), refWorker(readers[1]) ]);
+  }
+
+  readers.forEach(r=>r.destroy());
+  const onlyHigh = (document.getElementById('aiOnlyHigh')||{}).checked;
+  const finalList = onlyHigh ? merged.filter(m => m.conf === 'alta') : merged;
+  aiSuggestionsData = finalList;
+
+  // Crear automáticamente los recortes con sus tags (quedan marcados en el timeline como los manuales)
+  finalList.forEach(s => aceptarSugerencia(s, video.id));
+  if(finalList.length){
+    renderItems(); updateClipCounter();
+    // Guardar en la nube automáticamente (reutiliza el flujo del botón ☁)
+    try{ document.getElementById('saveCloudBtn').click(); }catch(e){}
+  }
+
+  finishAnalysis(finalList.length
+    ? `Listo: ${finalList.length} recorte${finalList.length===1?'':'s'} creado${finalList.length===1?'':'s'} con sus tags (mirá la pestaña 🎬 Video). Descartá los que no correspondan.`
+    : 'No se detectaron jugadas claras. Podés marcar manualmente como siempre.');
+  renderAISuggestions(video.id);
+
+  function finishAnalysis(msg){
+    bar.style.width = '100%';
+    label.textContent = msg;
+    btn.disabled = false;
+    setTimeout(() => { controls.style.display = 'none'; }, 2500);
+  }
+}
+
+function aceptarSugerencia(s, videoId){
+  const tag = tags.find(t => t.name === s.tag) || tags[0];
+  // Si el refinamiento fijó límites reales, usarlos; si no, ±6s alrededor del momento
+  const start = (typeof s.start === 'number') ? s.start : Math.max(0, s.time - 6);
+  const end = (typeof s.end === 'number') ? s.end : ((s.timeEnd || s.time) + 6);
+  itemCounter++;
+  const itemId = 'item'+itemCounter;
+  items.push({ id:itemId, type:'clip', tagId: tag.id, videoId: videoId, start, end, note:(s.desc||'') + ' (IA)' });
+  s.accepted = true;
+  s.itemId = itemId;
+}
+
+function renderAISuggestions(videoId){
+  const sugList = document.getElementById('aiSuggestions');
+  sugList.innerHTML = '';
+  if(!aiSuggestionsData.length){
+    sugList.innerHTML = '<p class="rd-empty">Sin jugadas sugeridas. Analizá un video para ver candidatas acá.</p>';
+    return;
+  }
+
+  // Encabezado con "Aceptar todas"
+  const pendientes = aiSuggestionsData.filter(s => !s.accepted);
+  if(pendientes.length > 1){
+    const head = document.createElement('div');
+    head.style.cssText = 'display:flex;justify-content:flex-end;';
+    const allBtn = document.createElement('button');
+    allBtn.className = 'btn small';
+    allBtn.textContent = '✓ Aceptar todas (' + pendientes.length + ')';
+    allBtn.addEventListener('click', () => {
+      pendientes.forEach(s => aceptarSugerencia(s, videoId));
+      renderItems();
+      updateClipCounter();
+      renderAISuggestions(videoId);
+      toast(pendientes.length + ' recortes agregados con sus tags ✓');
+    });
+    head.appendChild(allBtn);
+    sugList.appendChild(head);
+  }
+
+  aiSuggestionsData.forEach((s, i) => {
+    const tag = tags.find(t => t.name === s.tag) || tags[0];
+    const div = document.createElement('div');
+    div.className = 'ai-sug' + (s.accepted ? ' accepted' : '');
+    const rangoTxt = (typeof s.start === 'number' && typeof s.end === 'number')
+      ? fmt(s.start) + ' – ' + fmt(s.end)
+      : fmt(s.time) + (s.timeEnd && s.timeEnd !== s.time ? ' – ' + fmt(s.timeEnd) : '');
+    div.innerHTML = `
+      <span class="as-time">${rangoTxt}</span>
+      <span class="as-tag" style="border-color:${tag.color};color:${tag.color}">${escapeHtml(tag.name)}</span>
+      <span class="as-conf ${s.conf==='alta'?'hi':'md'}">${s.conf==='alta'?'●':'○'} ${s.conf||'media'}</span>
+      <span class="as-desc">${escapeHtml(s.desc||'')}</span>
+      <span class="as-actions">
+        <button class="as-go">▶ Ver</button>
+        <button class="as-ok" ${s.accepted?'disabled':''}>✓ Aceptar</button>
+        <button class="as-no">✕</button>
+      </span>`;
+    div.querySelector('.as-go').addEventListener('click', () => {
+      const v = videos.find(x => x.id === videoId);
+      const pv = document.getElementById('aiPreviewEl');
+      if(!v || !pv) return;
+      if(pv.getAttribute('data-vid') !== videoId){ pv.src = v.url; pv.setAttribute('data-vid', videoId); }
+      const play = () => { pv.currentTime = Math.max(0, (typeof s.start==='number' ? s.start : s.time - 3)); pv.play(); };
+      if(pv.readyState >= 1) play(); else pv.onloadedmetadata = play;
+    });
+    div.querySelector('.as-ok').addEventListener('click', () => {
+      aceptarSugerencia(s, videoId);
+      renderItems();
+      updateClipCounter();
+      renderAISuggestions(videoId);
+      const tg = tags.find(t => t.name === s.tag) || tags[0];
+      toast('Recorte agregado: '+tg.name+' '+fmt(Math.max(0,s.time-6))+' – '+fmt(s.time+6));
+    });
+    div.querySelector('.as-no').addEventListener('click', () => {
+      if(s.itemId){
+        items = items.filter(it => it.id !== s.itemId);
+        renderItems(); updateClipCounter();
+      }
+      aiSuggestionsData.splice(i,1);
+      renderAISuggestions(videoId);
+      if(s.itemId) toast('Recorte descartado del timeline.');
+    });
+    sugList.appendChild(div);
+  });
 }
 
 // ---------------- ADD SEPARATOR ----------------
