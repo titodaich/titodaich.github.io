@@ -1178,6 +1178,12 @@ body.editor-active #screen-editor{ display:block; }
         <button class="btn small primary" id="aiAnalyzeBtn">⚡ Analizar</button>
         <label class="ai-picker-label" style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="aiOnlyHigh"> solo confianza alta</label>
       </div>
+      <div class="ai-video-picker" style="margin-top:10px;">
+        <input id="aiTeamMain" class="ai-video-select" placeholder="Equipo a analizar (ej: camiseta azul)">
+        <input id="aiTeamRival" class="ai-video-select" placeholder="Sparring (ej: camiseta blanca)">
+        <input id="aiApiKey" type="password" class="ai-video-select" placeholder="API key de Anthropic (necesaria fuera de Claude)">
+      </div>
+      <p class="ai-video-hint">La API key se guarda solo en este navegador. Conseguila en console.anthropic.com → API keys.</p>
       <p class="ai-video-hint">Los videos se suben en la pestaña 🎬 Video. Acá elegís cuál analizar. Es un asistente: detecta lo evidente, no reemplaza tu ojo.</p>
       <div class="ai-video-controls" id="aiVideoControls" style="display:none;">
         <div class="ai-progress-wrap"><div class="ai-progress-bar" id="aiProgressBar"></div></div>
@@ -2125,7 +2131,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     try{
       const resp = await fetch('https://api.anthropic.com/v1/messages', {
         method:'POST',
-        headers:{'Content-Type':'application/json'},
+        headers: aiHeaders(),
         body: JSON.stringify({
           model:'claude-sonnet-4-6',
           max_tokens:1500,
@@ -4450,7 +4456,22 @@ window.__refreshAIVideoSelect = function(){
 document.getElementById('aiAnalyzeBtn').addEventListener('click', analizarVideoIA);
 document.getElementById('aiCancelBtn').addEventListener('click', () => { aiAnalysisCancelled = true; });
 
+function aiHeaders(){
+  const h = {'Content-Type':'application/json'};
+  let k = '';
+  try{
+    const inp = document.getElementById('aiApiKey');
+    k = (inp && inp.value.trim()) || localStorage.getItem('ce_ai_key') || '';
+    if(inp && inp.value.trim()) localStorage.setItem('ce_ai_key', inp.value.trim());
+    if(inp && !inp.value && k) inp.value = k;
+  }catch(e){}
+  if(k){ h['x-api-key'] = k; h['anthropic-version'] = '2023-06-01'; h['anthropic-dangerous-direct-browser-access'] = 'true'; }
+  return h;
+}
+let aiApiErrors = 0;
+
 async function analizarVideoIA(){
+  aiApiErrors = 0;
   const selId = document.getElementById('aiVideoSelect').value;
   const video = videos.find(v => v.id === selId);
   if(!video || !video.url){ toast('Elegí un video (se suben en la pestaña 🎬 Video).'); return; }
@@ -4527,17 +4548,22 @@ async function analizarVideoIA(){
     if(i+WINDOWS_PER_BATCH >= nWindows) break;
   }
 
-  const criterios = `CRITERIOS PARA IDENTIFICAR CADA SITUACIÓN (futsal):
-- "Córner": pelota en una esquina de la cancha, un jugador por ejecutar, compañeros en el área.
+  const teamMain = (document.getElementById('aiTeamMain')||{}).value || '';
+  const teamRival = (document.getElementById('aiTeamRival')||{}).value || '';
+  const perspectiva = teamMain ? `PERSPECTIVA (muy importante): el EQUIPO A ANALIZAR es "${teamMain}"${teamRival?` y el sparring es "${teamRival}"`:''}. TODOS los tags se refieren al equipo a analizar: "Gol" = gol convertido por ${teamMain}; "Gol en contra" = gol que recibe; "Ataque 3-1"/"Ataque 4-0" = cuando ${teamMain} ataca; "Defensa individual"/"Defensa a cambio" = cuando ${teamMain} defiende; "5 vs 4" = ${teamMain} ataca con arquero-jugador; "4 vs 5" = ${teamMain} defiende en inferioridad. Ignorá las jugadas del sparring que no involucren estos tags del equipo a analizar.` : '';
+  const criterios = `${perspectiva}
+
+CRITERIOS (futsal):
+- "Córner": pelota quieta en una esquina, un jugador por ejecutar, compañeros posicionados en el área.
 - "Lateral": saque con el pie desde la línea de banda, pelota quieta sobre la línea.
-- "Ataque 3-1": UN PIVOT claramente adelantado cerca del área rival y tres por detrás rotando. Entre los dos fotogramas de la ventana el pivot se mantiene arriba y los de atrás rotan.
-- "Ataque 4-0": los cuatro de campo EN LÍNEA a altura similar, sin pivot fijo; entre fotogramas se ven desmarques al espacio desde la línea.
-- "Defensa individual": cada defensor pegado a un rival hombre a hombre por toda la cancha (presión alta). Entre los dos fotogramas cada defensor SIGUE al mismo rival aunque se cruce.
-- "Defensa a cambio": bloque zonal compacto cerca del área propia. Entre los dos fotogramas, cuando los atacantes se cruzan, los defensores INTERCAMBIAN marcas y mantienen la estructura.
+- "Ataque 3-1": hay un PIVOT DE REFERENCIA: un jugador central o dominante adelantado, de espaldas o cerca del área rival, al que buscan; tres compañeros por detrás.
+- "Ataque 4-0": los cuatro juegan ABIERTOS, SIN referencia central adelantada; línea de cuatro a altura similar que ataca el espacio con cortes.
+- "Defensa individual": CADA UNO SIGUE AL SUYO: cada defensor persigue a su hombre a donde vaya, incluso a través de cortes y bloqueos (entre los dos fotogramas, cada defensor sigue pegado al MISMO rival).
+- "Defensa a cambio": ante un CORTE POR DETRÁS, el defensor NO persigue: si ya hay un compañero adelante en esa zona, se queda y se INTERCAMBIAN las marcas (entre los dos fotogramas se ve el cambio de asignación manteniendo la estructura).
 - "5 vs 4": un equipo ataca con cinco de campo (arquero-jugador; arco propio vacío o arquero en campo rival).
 - "4 vs 5": defensa de cuatro contra cinco atacantes.
 - "Gol": pelota entrando al arco o festejo inmediato.
-- "Gol en contra": ídem del equipo que registra (si no distinguís cuál es, usá "Gol").`;
+- "Gol en contra": gol que recibe el equipo a analizar.`;
 
   let captured = 0, analyzedBatches = 0;
   let found = [];
@@ -4570,7 +4596,7 @@ INSTRUCCIONES:
 Si no hay nada claro: [].` });
     try{
       const resp = await fetch('https://api.anthropic.com/v1/messages', {
-        method:'POST', headers:{'Content-Type':'application/json'},
+        method:'POST', headers: aiHeaders(),
         body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:800, messages:[{role:'user', content}] })
       });
       const data = await resp.json();
@@ -4587,7 +4613,7 @@ Si no hay nada claro: [].` });
         }
         return x;
       });
-    }catch(e){ return []; }
+    }catch(e){ aiApiErrors++; return []; }
   }
 
   const queue = [];
@@ -4671,7 +4697,7 @@ Si no hay nada claro: [].` });
         content.push({ type:'text', text:`REFINAMIENTO: fotogramas cada ~2.5s de un partido de futsal. Se detectó una posible jugada "${cand.tag}" alrededor de t=${cand.time}s. Confirmá si realmente ocurre y precisá su inicio y fin.
 Respondé SOLO JSON: {"confirmado": true|false, "start": <segundo donde empieza>, "end": <segundo donde termina>, "desc": "<máx 10 palabras>"}` });
         const resp = await fetch('https://api.anthropic.com/v1/messages', {
-          method:'POST', headers:{'Content-Type':'application/json'},
+          method:'POST', headers: aiHeaders(),
           body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:300, messages:[{role:'user', content}] })
         });
         const data = await resp.json();
@@ -4716,7 +4742,7 @@ Respondé SOLO JSON: {"confirmado": true|false, "start": <segundo donde empieza>
 
   finishAnalysis(finalList.length
     ? `Listo: ${finalList.length} recorte${finalList.length===1?'':'s'} creado${finalList.length===1?'':'s'} con sus tags (mirá la pestaña 🎬 Video). Descartá los que no correspondan.`
-    : 'No se detectaron jugadas claras. Podés marcar manualmente como siempre.');
+    : (aiApiErrors > 0 ? 'No se pudo conectar con la IA (' + aiApiErrors + ' tandas fallaron). Cargá tu API key de Anthropic en el campo de arriba.' : 'No se detectaron jugadas claras. Podés marcar manualmente como siempre.'));
   renderAISuggestions(video.id);
 
   function finishAnalysis(msg){
