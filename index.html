@@ -505,33 +505,60 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .live-clock-bar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:16px;}
 .live-clock{font-family:'JetBrains Mono',monospace;font-size:38px;font-weight:700;color:var(--chalk);letter-spacing:1px;min-width:130px;}
 .live-clock.running{color:var(--success);}
-.live-clock-btns{display:flex;gap:8px;}
-.live-oncourt{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;color:var(--accent-2);text-transform:uppercase;letter-spacing:0.5px;}
-.live-mode{margin-left:auto;display:flex;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:3px;}
-.live-mode-btn{border:none;background:transparent;color:var(--muted);border-radius:999px;padding:7px 16px;font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;cursor:pointer;transition:all .15s ease;}
-.live-mode-btn.active{background:var(--accent);color:#fff;}
-.live-swap-hint{background:var(--panel-2);border:1px solid var(--accent);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--chalk);}
+.live-clock-type{font-family:'JetBrains Mono',monospace;font-size:11px;margin-top:2px;padding:2px 8px;border-radius:6px;display:inline-block;}
+.live-clock-type.parado{color:var(--accent);border:1px solid var(--accent);}
+.live-clock-type.corrido{color:var(--accent-2);border:1px solid var(--accent-2);}
+.live-clock-btns{display:flex;gap:8px;flex-wrap:wrap;}
+.live-half-badge{font-family:'Oswald',sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent);padding:5px 12px;border:1px solid var(--accent);border-radius:999px;}
+.live-oncourt{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;color:var(--accent-2);text-transform:uppercase;letter-spacing:0.5px;margin-left:auto;}
+.live-swap-hint{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--chalk);}
 .live-swap-hint b{color:var(--accent);}
-.live-swap-hint #liveSwapStep{display:block;margin-top:4px;color:var(--accent-2);font-family:'JetBrains Mono',monospace;font-size:12px;}
-.live-players{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:20px;}
-.live-player{background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;transition:all .12s ease;text-align:center;user-select:none;}
-.live-player:hover{border-color:var(--muted);}
-.live-player.on{border-color:var(--success);background:rgba(76,175,109,0.12);}
-.live-player.swap-out{border-color:var(--danger);background:rgba(240,85,63,0.15);}
-.live-player .lp-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
-.live-player .lp-name{font-family:'Oswald',sans-serif;font-size:16px;font-weight:600;margin:2px 0 6px;}
-.live-player .lp-time{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:var(--chalk);}
-.live-player.on .lp-time{color:var(--success);}
-.live-player .lp-status{font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-top:4px;}
-.live-player.on .lp-status{color:var(--success);}
+.live-swap-hint #liveSwapStep{display:block;margin-top:4px;color:var(--accent-2);font-family:'JetBrains Mono',monospace;font-size:12px;min-height:14px;}
+
+.live-field-layout{display:grid;grid-template-columns:1fr 220px;gap:16px;margin-bottom:20px;}
+@media (max-width:820px){.live-field-layout{grid-template-columns:1fr;}}
+.live-field-label{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:8px;}
+.live-field-wrap{}
+.live-field{position:relative;background:linear-gradient(135deg,#1c6640,#1f6f43);border:2px solid rgba(255,255,255,0.35);border-radius:14px;min-height:360px;padding:20px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto;gap:14px;align-content:center;justify-items:center;overflow:hidden;}
+.live-field::before{content:'';position:absolute;left:50%;top:8px;bottom:8px;width:2px;background:rgba(255,255,255,0.25);}
+.live-field::after{content:'';position:absolute;left:50%;top:50%;width:70px;height:70px;border:2px solid rgba(255,255,255,0.25);border-radius:50%;transform:translate(-50%,-50%);}
+.live-field .field-empty{grid-column:1/-1;align-self:center;color:rgba(255,255,255,0.7);font-family:'JetBrains Mono',monospace;font-size:12px;text-align:center;}
+.live-token{position:relative;z-index:1;background:rgba(16,22,28,0.55);border:2px solid #fff;border-radius:12px;padding:10px 8px;width:100%;max-width:150px;text-align:center;cursor:pointer;transition:all .12s ease;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);}
+.live-token:hover{background:rgba(16,22,28,0.75);}
+.live-token.swap-out{border-color:var(--danger);background:rgba(240,85,63,0.5);}
+.live-token .lt-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,0.8);}
+.live-token .lt-name{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;color:#fff;margin:1px 0 4px;}
+.live-token .lt-time{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;color:#fff;}
+
+.live-bench{display:flex;flex-direction:column;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;min-height:100px;}
+.bench-player{background:var(--panel-2);border:2px solid var(--line);border-radius:10px;padding:8px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .12s ease;}
+.bench-player:hover{border-color:var(--accent-2);}
+.bench-player.swap-in-ready{border-color:var(--success);}
+.bench-player .bp-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);min-width:22px;}
+.bench-player .bp-name{font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;flex:1;}
+.bench-player .bp-time{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);}
+.bench-empty{color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;padding:10px;}
+
+.live-totals-wrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;}
+.live-totals-head,.live-total-row{display:grid;grid-template-columns:1fr 70px 70px 80px;gap:8px;align-items:center;}
+.live-totals-head{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line);}
+.live-totals-head span:not(:first-child),.live-total-row span:not(:first-child){text-align:center;font-family:'JetBrains Mono',monospace;}
+.live-totals{margin-top:6px;}
+.live-total-row{padding:8px 10px;border-bottom:1px solid rgba(51,73,94,0.4);font-size:13px;}
+.live-total-row .ltr-name{font-weight:600;}
+.live-total-row .ltr-name small{color:var(--muted);font-weight:400;font-family:'JetBrains Mono',monospace;font-size:10px;margin-right:5px;}
+.live-total-row .ltr-total{color:var(--accent-2);font-weight:700;}
+.live-total-row.on-court{background:rgba(76,175,109,0.08);}
+
 .live-log-wrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;}
-.live-log{margin-top:10px;max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;}
+.live-log{margin-top:10px;max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;}
 .live-log-row{display:flex;gap:10px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 11px;font-size:13px;}
 .live-log-row .llr-time{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent-2);min-width:48px;font-weight:600;}
 .live-log-row .llr-type{font-family:'Oswald',sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:0.4px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);}
 .live-log-row .llr-type.in{color:var(--success);border-color:var(--success);}
 .live-log-row .llr-type.out{color:var(--danger);border-color:var(--danger);}
 .live-log-row .llr-type.swap{color:var(--accent-2);border-color:var(--accent-2);}
+.live-log-row .llr-type.half{color:var(--accent);border-color:var(--accent);}
 .live-log-row .llr-desc{flex:1;}
 
 /* ===== ESTADÍSTICAS ===== */
@@ -1583,36 +1610,54 @@ body.editor-active #screen-editor{ display:block; }
     <div class="scout-head">
       <div>
         <h2 class="scout-title">En vivo — control de minutos</h2>
-        <p class="scout-sub">Controlá los minutos de cada jugador en tiempo real. Máximo 5 en cancha.</p>
+        <p class="scout-sub">Los 5 en cancha. Tocá un titular y un suplente para hacer el cambio.</p>
       </div>
     </div>
 
     <div class="live-clock-bar">
-      <div class="live-clock" id="liveClock">00:00</div>
+      <div class="live-clock-main">
+        <div class="live-clock" id="liveClock">00:00</div>
+        <div class="live-clock-type" id="liveClockType"></div>
+      </div>
       <div class="live-clock-btns">
         <button class="btn small primary" id="liveClockToggle">▶ Iniciar</button>
+        <button class="btn small" id="liveHalfBtn">⏱ Fin 1er tiempo</button>
         <button class="btn small" id="liveClockReset">↺ Reiniciar</button>
       </div>
+      <div class="live-half-badge" id="liveHalfBadge">1er tiempo</div>
       <div class="live-oncourt" id="liveOnCourt">0 / 5 en cancha</div>
-      <div class="live-mode">
-        <button class="live-mode-btn active" data-mode="manual">Modo Manual</button>
-        <button class="live-mode-btn" data-mode="swap">Modo Cambio</button>
-      </div>
     </div>
 
-    <div class="live-swap-hint" id="liveSwapHint" style="display:none;">
-      Modo Cambio: tocá el jugador que <b>SALE</b>, después el que <b>ENTRA</b>.
+    <div class="live-swap-hint" id="liveSwapHint">
+      Tocá el jugador que <b>SALE</b> (en la cancha) y después el que <b>ENTRA</b> (del banco).
       <span id="liveSwapStep"></span>
     </div>
 
-    <div class="live-players" id="livePlayers"></div>
+    <div class="live-field-layout">
+      <div class="live-field-wrap">
+        <div class="live-field-label">EN CANCHA</div>
+        <div class="live-field" id="liveField"></div>
+      </div>
+      <div class="live-bench-wrap">
+        <div class="live-field-label">BANCO</div>
+        <div class="live-bench" id="liveBench"></div>
+      </div>
+    </div>
+
+    <div class="live-totals-wrap">
+      <div class="rd-card-head"><h3>Minutos por jugador</h3></div>
+      <div class="live-totals-head">
+        <span>Jugador</span><span>1er T</span><span>2do T</span><span>Total</span>
+      </div>
+      <div class="live-totals" id="liveTotals"></div>
+    </div>
 
     <div class="live-log-wrap">
       <div class="rd-card-head">
         <h3>Registro de eventos</h3>
         <button class="btn small" id="liveSaveBtn">☁ Guardar registro</button>
       </div>
-      <div class="live-log" id="liveLog"><p class="rd-empty">Todavía no hay eventos. Iniciá el reloj y tocá los jugadores.</p></div>
+      <div class="live-log" id="liveLog"><p class="rd-empty">Todavía no hay eventos. Iniciá el reloj y armá el equipo.</p></div>
     </div>
   </div>
 
@@ -2816,238 +2861,259 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   let clockSeconds = 0;
   let clockRunning = false;
   let clockTimer = null;
-  let mode = 'manual';           // 'manual' | 'swap'
-  let swapOutId = null;          // jugador seleccionado para salir (modo cambio)
+  let swapOutId = null;          // titular seleccionado para salir
   let squad = [];                // jugadores del plantel
-  // estado por jugador: { onCourt:bool, accumulated:seconds, lastInAt:seconds|null }
-  let state = {};
-  let events = [];               // {t, type:'in'|'out'|'swap', inId, outId, inName, outName, totals}
+  let clockType = 'corrido';
+  let halfMinutes = 25;
+  let currentHalf = 1;           // 1 o 2
+  let halfSplitAt = null;        // segundo en que terminó el 1er tiempo
+  // estado por jugador: onCourt, y acumulados por tiempo
+  let state = {};                // { pid: {onCourt, acc1, acc2, lastInAt} }
+  let events = [];
   let liveRowId = null;
 
   const fmtClock = (s) => {
+    s = Math.max(0, Math.round(s));
     const m = Math.floor(s/60), x = s%60;
     return String(m).padStart(2,'0') + ':' + String(x).padStart(2,'0');
   };
 
-  function playerTime(pid){
-    const st = state[pid];
-    if(!st) return 0;
-    let total = st.accumulated;
-    if(st.onCourt && st.lastInAt !== null) total += (clockSeconds - st.lastInAt);
-    return total;
+  function updateClockType(){
+    const cat = (window.__getActiveCategory && window.__getActiveCategory()) || '';
+    const parado = (cat === '1era' || cat === '3era');
+    clockType = parado ? 'parado' : 'corrido';
+    halfMinutes = parado ? 20 : 25;
+    const info = document.getElementById('liveClockType');
+    if(info){
+      info.textContent = parado
+        ? '⏱ Reloj PARADO · 2×20\' (frená cuando la pelota sale)'
+        : '⏱ Reloj CORRIDO · 2×25\' (corre sin parar)';
+      info.className = 'live-clock-type ' + clockType;
+    }
   }
+
+  function ensure(pid){ if(!state[pid]) state[pid] = {onCourt:false, acc1:0, acc2:0, lastInAt:null}; return state[pid]; }
+
+  // tiempo acumulado en el tiempo actual (en vivo)
+  function liveExtra(st){ return (st.onCourt && st.lastInAt!==null) ? (clockSeconds - st.lastInAt) : 0; }
+  function time1(pid){ const st=ensure(pid); return st.acc1 + (currentHalf===1 ? liveExtra(st) : 0); }
+  function time2(pid){ const st=ensure(pid); return st.acc2 + (currentHalf===2 ? liveExtra(st) : 0); }
+  function timeTotal(pid){ return time1(pid) + time2(pid); }
   function countOnCourt(){ return Object.values(state).filter(s => s.onCourt).length; }
 
   // ----- Reloj -----
-  const clockEl = () => document.getElementById('liveClock');
   function tickClock(){
     clockSeconds++;
-    updateClockUI();
-    updatePlayersTime();
+    updateClockUI(); updateTimes();
+    if(clockSeconds === halfMinutes*60){ toast('⏱ Se cumplieron '+halfMinutes+':00. Tocá "Fin 1er tiempo" si terminó.'); }
   }
   function updateClockUI(){
-    const el = clockEl(); if(!el) return;
+    const el = document.getElementById('liveClock'); if(!el) return;
     el.textContent = fmtClock(clockSeconds);
     el.classList.toggle('running', clockRunning);
     const t = document.getElementById('liveClockToggle');
     if(t) t.textContent = clockRunning ? '⏸ Pausar' : '▶ Iniciar';
+    const badge = document.getElementById('liveHalfBadge');
+    if(badge) badge.textContent = currentHalf===1 ? '1er tiempo' : '2do tiempo';
   }
   function startClock(){
-    if(clockRunning){ clockRunning = false; clearInterval(clockTimer); updateClockUI(); return; }
+    if(clockRunning){ clockRunning=false; clearInterval(clockTimer); updateClockUI(); return; }
     clockRunning = true;
     clockTimer = setInterval(tickClock, 1000);
     updateClockUI();
   }
   function resetClock(){
-    if(!confirm('¿Reiniciar el reloj y borrar los tiempos y eventos de esta sesión?')) return;
-    clockRunning = false; clearInterval(clockTimer);
-    clockSeconds = 0;
-    state = {}; events = []; swapOutId = null; liveRowId = null;
-    squad.forEach(p => { state[p.id] = { onCourt:false, accumulated:0, lastInAt:null }; });
-    updateClockUI(); renderPlayers(); renderLog(); updateOnCourt();
+    if(!confirm('¿Reiniciar todo? Se borran tiempos y eventos de esta sesión.')) return;
+    clockRunning=false; clearInterval(clockTimer);
+    clockSeconds=0; currentHalf=1; halfSplitAt=null; swapOutId=null;
+    events=[]; liveRowId=null;
+    Object.keys(state).forEach(pid => { state[pid]={onCourt:false,acc1:0,acc2:0,lastInAt:null}; });
+    updateClockUI(); renderField(); renderTotals(); renderLog(); updateOnCourt();
   }
 
-  // ----- Registrar eventos -----
+  // ----- Fin del 1er tiempo -----
+  function endFirstHalf(){
+    if(currentHalf !== 1){ toast('Ya estás en el 2do tiempo.'); return; }
+    if(!confirm('¿Terminar el 1er tiempo? Los minutos jugados hasta ahora quedan como "1er T".')) return;
+    // consolidar lo jugado hasta acá en acc1 para los que están en cancha
+    Object.keys(state).forEach(pid => {
+      const st = state[pid];
+      if(st.onCourt && st.lastInAt!==null){ st.acc1 += (clockSeconds - st.lastInAt); st.lastInAt = clockSeconds; }
+    });
+    halfSplitAt = clockSeconds;
+    currentHalf = 2;
+    clockRunning=false; clearInterval(clockTimer);
+    events.unshift({ t:clockSeconds, type:'half', inName:'', outName:'' });
+    updateClockUI(); renderField(); renderTotals(); renderLog();
+    toast('Fin del 1er tiempo. Cuando arranque el 2do, tocá Iniciar.');
+  }
+
+  // ----- Acciones -----
+  function playerIn(pid){
+    if(countOnCourt() >= 5){ toast('Ya hay 5 en cancha. Sacá a uno primero.'); return false; }
+    const st = ensure(pid); st.onCourt = true; st.lastInAt = clockSeconds; return true;
+  }
+  function playerOut(pid){
+    const st = ensure(pid);
+    if(st.onCourt && st.lastInAt!==null){
+      const dt = clockSeconds - st.lastInAt;
+      if(currentHalf===1) st.acc1 += dt; else st.acc2 += dt;
+    }
+    st.onCourt=false; st.lastInAt=null;
+  }
   function totalsSnapshot(){
-    const o = {};
-    squad.forEach(p => { o[p.name] = playerTime(p.id); });
-    return o;
+    const o={}; squad.forEach(p=>{ o[p.name]={t1:time1(p.id),t2:time2(p.id),total:timeTotal(p.id)}; }); return o;
   }
   function logEvent(type, inId, outId){
-    const inP = squad.find(p=>p.id===inId), outP = squad.find(p=>p.id===outId);
-    events.unshift({
-      t: clockSeconds, type,
-      inId, outId,
-      inName: inP?inP.name:'', outName: outP?outP.name:'',
-      totals: totalsSnapshot()
-    });
+    const inP=squad.find(p=>p.id===inId), outP=squad.find(p=>p.id===outId);
+    events.unshift({ t:clockSeconds, type, inName:inP?inP.name:'', outName:outP?outP.name:'', half:currentHalf });
     renderLog();
   }
 
-  // ----- Acciones sobre jugadores -----
-  function playerIn(pid){
-    if(countOnCourt() >= 5){ toast('Ya hay 5 jugadores en cancha. Sacá a uno primero.'); return false; }
-    state[pid].onCourt = true;
-    state[pid].lastInAt = clockSeconds;
-    return true;
+  // Tocar un TITULAR (en cancha): lo selecciona para salir, o lo saca si no hay banco
+  function tapOnCourt(pid){
+    if(swapOutId === pid){ swapOutId=null; updateStep(); renderField(); renderBench(); return; }
+    swapOutId = pid;
+    updateStep('Sale ' + (squad.find(p=>p.id===pid)||{}).name + ' → tocá quién ENTRA del banco.');
+    renderField(); renderBench();
   }
-  function playerOut(pid){
-    const st = state[pid];
-    if(st.onCourt && st.lastInAt !== null){ st.accumulated += (clockSeconds - st.lastInAt); }
-    st.onCourt = false; st.lastInAt = null;
-  }
-
-  function handleManual(pid){
-    if(state[pid].onCourt){
-      playerOut(pid);
-      logEvent('out', null, pid);
+  // Tocar un SUPLENTE (banco)
+  function tapBench(pid){
+    if(swapOutId !== null){
+      // cambio: sale swapOutId, entra pid
+      playerOut(swapOutId); playerIn(pid);
+      logEvent('swap', pid, swapOutId);
+      swapOutId=null; updateStep();
     } else {
+      // sin selección: entra directo si hay lugar
       if(playerIn(pid)) logEvent('in', pid, null);
     }
-    renderPlayers(); updateOnCourt();
+    renderField(); renderBench(); renderTotals(); updateOnCourt();
   }
 
-  function handleSwap(pid){
-    if(swapOutId === null){
-      // primer toque: debe ser alguien en cancha
-      if(!state[pid].onCourt){ toast('En Modo Cambio, primero tocá un jugador que ESTÉ en cancha (el que sale).'); return; }
-      swapOutId = pid;
-      renderPlayers();
-      document.getElementById('liveSwapStep').textContent = 'Sale: ' + (squad.find(p=>p.id===pid)||{}).name + ' → ahora tocá quién ENTRA.';
-    } else {
-      // segundo toque: el que entra (debe estar fuera)
-      if(pid === swapOutId){ swapOutId = null; renderPlayers(); document.getElementById('liveSwapStep').textContent=''; return; }
-      if(state[pid].onCourt){ toast('Ese jugador ya está en cancha. Tocá uno que esté afuera.'); return; }
-      const outId = swapOutId;
-      playerOut(outId);
-      playerIn(pid);
-      logEvent('swap', pid, outId);
-      swapOutId = null;
-      document.getElementById('liveSwapStep').textContent = '';
-      renderPlayers(); updateOnCourt();
-    }
+  function updateStep(txt){
+    const el=document.getElementById('liveSwapStep'); if(el) el.textContent = txt||'';
   }
 
-  function onPlayerTap(pid){
-    if(!state[pid]) state[pid] = { onCourt:false, accumulated:0, lastInAt:null };
-    if(mode === 'manual') handleManual(pid);
-    else handleSwap(pid);
-  }
-
-  // ----- Render -----
-  function renderPlayers(){
-    const cont = document.getElementById('livePlayers');
-    if(!cont) return;
-    if(squad.length === 0){
-      cont.innerHTML = '<p class="rd-empty">No hay jugadores en el plantel de esta categoría. Cargalos en Estadísticas → Plantel.</p>';
+  // ----- Render cancha + banco -----
+  function renderField(){
+    const field=document.getElementById('liveField'); if(!field) return;
+    const enCancha = squad.filter(p=>ensure(p.id).onCourt);
+    if(enCancha.length===0){
+      field.innerHTML = '<div class="field-empty">Todavía no hay jugadores en cancha.<br>Tocá suplentes del banco para armar el equipo (máx 5).</div>';
       return;
     }
-    cont.innerHTML = '';
-    squad.forEach(p => {
-      if(!state[p.id]) state[p.id] = { onCourt:false, accumulated:0, lastInAt:null };
-      const st = state[p.id];
-      const card = document.createElement('div');
-      card.className = 'live-player' + (st.onCourt ? ' on' : '') + (swapOutId===p.id ? ' swap-out' : '');
-      card.innerHTML = `
-        <div class="lp-num">${escapeHtml(p.number ? '#'+p.number : '')}</div>
-        <div class="lp-name">${escapeHtml(p.name)}</div>
-        <div class="lp-time" data-time="${p.id}">${fmtClock(playerTime(p.id))}</div>
-        <div class="lp-status">${swapOutId===p.id ? 'SALE…' : (st.onCourt ? '● En cancha' : 'Afuera')}</div>`;
-      card.addEventListener('click', () => onPlayerTap(p.id));
-      cont.appendChild(card);
+    field.innerHTML='';
+    enCancha.forEach(p=>{
+      const d=document.createElement('div');
+      d.className='live-token'+(swapOutId===p.id?' swap-out':'');
+      d.innerHTML=`<div class="lt-num">${escapeHtml(p.number?'#'+p.number:'')}</div><div class="lt-name">${escapeHtml(p.name)}</div><div class="lt-time" data-t="${p.id}">${fmtClock(timeTotal(p.id))}</div>`;
+      d.addEventListener('click',()=>tapOnCourt(p.id));
+      field.appendChild(d);
     });
   }
-  function updatePlayersTime(){
-    squad.forEach(p => {
-      const el = document.querySelector(`.lp-time[data-time="${p.id}"]`);
-      if(el) el.textContent = fmtClock(playerTime(p.id));
+  function renderBench(){
+    const bench=document.getElementById('liveBench'); if(!bench) return;
+    const suplentes = squad.filter(p=>!ensure(p.id).onCourt);
+    if(squad.length===0){ bench.innerHTML='<div class="bench-empty">Cargá jugadores en Estadísticas → Plantel.</div>'; return; }
+    if(suplentes.length===0){ bench.innerHTML='<div class="bench-empty">Sin suplentes.</div>'; return; }
+    bench.innerHTML='';
+    suplentes.forEach(p=>{
+      const d=document.createElement('div');
+      d.className='bench-player'+(swapOutId!==null?' swap-in-ready':'');
+      d.innerHTML=`<span class="bp-num">${escapeHtml(p.number?'#'+p.number:'')}</span><span class="bp-name">${escapeHtml(p.name)}</span><span class="bp-time" data-t="${p.id}">${fmtClock(timeTotal(p.id))}</span>`;
+      d.addEventListener('click',()=>tapBench(p.id));
+      bench.appendChild(d);
     });
+  }
+  function updateTimes(){
+    squad.forEach(p=>{
+      document.querySelectorAll(`[data-t="${p.id}"]`).forEach(el=>{ el.textContent=fmtClock(timeTotal(p.id)); });
+    });
+    // refrescar columnas de la tabla en vivo
+    renderTotalsValues();
   }
   function updateOnCourt(){
-    const el = document.getElementById('liveOnCourt');
-    if(el) el.textContent = countOnCourt() + ' / 5 en cancha';
+    const el=document.getElementById('liveOnCourt'); if(el) el.textContent=countOnCourt()+' / 5 en cancha';
+  }
+  function renderTotals(){
+    const cont=document.getElementById('liveTotals'); if(!cont) return;
+    if(squad.length===0){ cont.innerHTML='<p class="rd-empty">Sin jugadores.</p>'; return; }
+    cont.innerHTML='';
+    squad.forEach(p=>{
+      const row=document.createElement('div');
+      row.className='live-total-row'+(ensure(p.id).onCourt?' on-court':'');
+      row.dataset.row=p.id;
+      row.innerHTML=`<span class="ltr-name"><small>${escapeHtml(p.number?'#'+p.number:'')}</small>${escapeHtml(p.name)}</span><span data-t1="${p.id}">${fmtClock(time1(p.id))}</span><span data-t2="${p.id}">${fmtClock(time2(p.id))}</span><span class="ltr-total" data-tt="${p.id}">${fmtClock(timeTotal(p.id))}</span>`;
+      cont.appendChild(row);
+    });
+  }
+  function renderTotalsValues(){
+    squad.forEach(p=>{
+      const a=document.querySelector(`[data-t1="${p.id}"]`); if(a) a.textContent=fmtClock(time1(p.id));
+      const b=document.querySelector(`[data-t2="${p.id}"]`); if(b) b.textContent=fmtClock(time2(p.id));
+      const c=document.querySelector(`[data-tt="${p.id}"]`); if(c) c.textContent=fmtClock(timeTotal(p.id));
+    });
   }
   function renderLog(){
-    const el = document.getElementById('liveLog');
-    if(!el) return;
-    if(events.length === 0){ el.innerHTML = '<p class="rd-empty">Todavía no hay eventos. Iniciá el reloj y tocá los jugadores.</p>'; return; }
-    el.innerHTML = '';
-    events.forEach(ev => {
-      const row = document.createElement('div');
-      row.className = 'live-log-row';
-      let desc = '', cls = '';
-      if(ev.type === 'in'){ desc = 'Entra ' + escapeHtml(ev.inName); cls='in'; }
-      else if(ev.type === 'out'){ desc = 'Sale ' + escapeHtml(ev.outName); cls='out'; }
-      else { desc = 'Cambio: sale ' + escapeHtml(ev.outName) + ', entra ' + escapeHtml(ev.inName); cls='swap'; }
-      const label = ev.type==='in'?'Ingreso':(ev.type==='out'?'Salida':'Cambio');
-      row.innerHTML = `<span class="llr-time">${fmtClock(ev.t)}</span><span class="llr-type ${cls}">${label}</span><span class="llr-desc">${desc}</span>`;
+    const el=document.getElementById('liveLog'); if(!el) return;
+    if(events.length===0){ el.innerHTML='<p class="rd-empty">Todavía no hay eventos. Iniciá el reloj y armá el equipo.</p>'; return; }
+    el.innerHTML='';
+    events.forEach(ev=>{
+      const row=document.createElement('div'); row.className='live-log-row';
+      let desc='',cls='',label='';
+      if(ev.type==='in'){ desc='Entra '+escapeHtml(ev.inName); cls='in'; label='Ingreso'; }
+      else if(ev.type==='out'){ desc='Sale '+escapeHtml(ev.outName); cls='out'; label='Salida'; }
+      else if(ev.type==='swap'){ desc='Cambio: sale '+escapeHtml(ev.outName)+', entra '+escapeHtml(ev.inName); cls='swap'; label='Cambio'; }
+      else if(ev.type==='half'){ desc='— Fin del 1er tiempo —'; cls='half'; label='Tiempo'; }
+      row.innerHTML=`<span class="llr-time">${fmtClock(ev.t)}</span><span class="llr-type ${cls}">${label}</span><span class="llr-desc">${desc}</span>`;
       el.appendChild(row);
     });
   }
 
-  // ----- Modo -----
-  document.querySelectorAll('.live-mode-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.live-mode-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      mode = btn.dataset.mode;
-      swapOutId = null;
-      document.getElementById('liveSwapHint').style.display = mode==='swap' ? 'block' : 'none';
-      const step = document.getElementById('liveSwapStep'); if(step) step.textContent='';
-      renderPlayers();
-    });
-  });
-
   document.getElementById('liveClockToggle').addEventListener('click', startClock);
   document.getElementById('liveClockReset').addEventListener('click', resetClock);
+  document.getElementById('liveHalfBtn').addEventListener('click', endFirstHalf);
 
-  // ----- Guardar en la nube -----
+  // ----- Guardar -----
   document.getElementById('liveSaveBtn').addEventListener('click', async () => {
-    const sb = window.__sb;
-    if(!sb){ toast('Sin conexión.'); return; }
-    if(events.length === 0){ toast('No hay eventos para guardar.'); return; }
-    const btn = document.getElementById('liveSaveBtn');
-    btn.disabled = true; btn.textContent = 'Guardando…';
+    const sb=window.__sb; if(!sb){ toast('Sin conexión.'); return; }
+    if(events.length===0){ toast('No hay eventos para guardar.'); return; }
+    const btn=document.getElementById('liveSaveBtn'); btn.disabled=true; btn.textContent='Guardando…';
     try{
-      const clubId = await window.__getClubId();
-      if(!clubId){ toast('No se pudo identificar tu club.'); btn.disabled=false; btn.textContent='☁ Guardar registro'; return; }
-      const name = prompt('Nombre del partido/sesión:', 'Partido ' + new Date().toLocaleDateString('es-AR')) || 'Partido';
-      const cat = (window.__getActiveCategory && window.__getActiveCategory()) || null;
-      const payload = { club_id: clubId, categoria: cat, name, events, totals: totalsSnapshot() };
-      const res = await sb.from('live_sessions').insert(payload).select('id').single();
-      if(res.error){ toast('No se pudo guardar: ' + res.error.message); }
-      else { liveRowId = res.data.id; toast('Registro guardado ✓'); }
+      const clubId=await window.__getClubId();
+      if(!clubId){ toast('No se pudo identificar tu club.'); return; }
+      const name=prompt('Nombre del partido/sesión:', 'Partido '+new Date().toLocaleDateString('es-AR'))||'Partido';
+      const cat=(window.__getActiveCategory && window.__getActiveCategory())||null;
+      const res=await sb.from('live_sessions').insert({ club_id:clubId, categoria:cat, name, events, totals:totalsSnapshot() }).select('id').single();
+      if(res.error){ toast('No se pudo guardar: '+res.error.message); }
+      else { liveRowId=res.data.id; toast('Registro guardado ✓'); }
     }catch(e){ console.error(e); toast('Error al guardar.'); }
     finally{ btn.disabled=false; btn.textContent='☁ Guardar registro'; }
   });
 
-  // ----- Cargar plantel de la categoría activa -----
   async function loadSquad(){
-    const sb = window.__sb;
-    if(!sb) return;
-    const clubId = await window.__getClubId();
-    if(!clubId) return;
-    const cat = (window.__getActiveCategory && window.__getActiveCategory()) || null;
+    const sb=window.__sb; if(!sb) return;
+    const clubId=await window.__getClubId(); if(!clubId) return;
+    const cat=(window.__getActiveCategory && window.__getActiveCategory())||null;
     try{
-      let q = sb.from('players').select('*').eq('club_id', clubId);
-      q = cat ? q.eq('categoria', cat) : q.is('categoria', null);
-      const { data } = await q;
-      squad = (data||[]).map(p => ({ id:p.id, name:p.name, number:p.number||'', position:p.position||'' }));
-      // preservar estado de jugadores que siguen; inicializar nuevos
-      const ns = {};
-      squad.forEach(p => { ns[p.id] = state[p.id] || { onCourt:false, accumulated:0, lastInAt:null }; });
-      state = ns;
-      renderPlayers(); updateOnCourt();
-    }catch(e){ console.error('live squad', e); }
+      let q=sb.from('players').select('*').eq('club_id',clubId);
+      q=cat?q.eq('categoria',cat):q.is('categoria',null);
+      const {data}=await q;
+      squad=(data||[]).map(p=>({id:p.id,name:p.name,number:p.number||'',position:p.position||''}));
+      const ns={}; squad.forEach(p=>{ ns[p.id]=state[p.id]||{onCourt:false,acc1:0,acc2:0,lastInAt:null}; });
+      state=ns;
+      renderField(); renderBench(); renderTotals(); updateOnCourt();
+    }catch(e){ console.error('live squad',e); }
   }
 
-  let started = false;
-  window.__initLiveOnce = function(){
-    if(!started){ started = true; updateClockUI(); renderLog(); }
-    loadSquad();
+  let started=false;
+  window.__initLiveOnce=function(){
+    if(!started){ started=true; updateClockUI(); renderLog(); }
+    updateClockType(); loadSquad();
   };
   if(window.__onCategorySubscribe){
-    window.__onCategorySubscribe(() => { if(started) loadSquad(); });
+    window.__onCategorySubscribe(()=>{ if(started){ updateClockType(); loadSquad(); } });
   }
 })();
 
