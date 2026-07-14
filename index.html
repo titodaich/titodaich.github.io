@@ -1179,11 +1179,16 @@ body.editor-active #screen-editor{ display:block; }
         <label class="ai-picker-label" style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="aiOnlyHigh"> solo confianza alta</label>
       </div>
       <div class="ai-video-picker" style="margin-top:10px;">
-        <input id="aiTeamMain" class="ai-video-select" placeholder="Equipo a analizar (ej: camiseta azul)">
-        <input id="aiTeamRival" class="ai-video-select" placeholder="Sparring (ej: camiseta blanca)">
-        <input id="aiApiKey" type="password" class="ai-video-select" placeholder="API key de Anthropic (necesaria fuera de Claude)">
+        <input id="aiTeamMain" class="ai-video-select" autocomplete="off" name="equipo-analizar" placeholder="Equipo a analizar (ej: camiseta blanca)">
+        <input id="aiTeamRival" class="ai-video-select" autocomplete="off" name="equipo-sparring" placeholder="Equipo rival / sparring (ej: camiseta azul)">
       </div>
-      <p class="ai-video-hint">La API key se guarda solo en este navegador. Conseguila en console.anthropic.com → API keys.</p>
+      <details class="ai-config" style="margin-top:10px;">
+        <summary class="ai-picker-label" style="cursor:pointer;">⚙ Configuración de la IA</summary>
+        <div class="ai-video-picker" style="margin-top:8px;">
+          <input id="aiApiKey" type="password" class="ai-video-select" autocomplete="new-password" name="clave-servicio-ia" placeholder="API key de Anthropic (sk-ant-…)">
+        </div>
+        <p class="ai-video-hint">Se guarda solo en este navegador. Conseguila en console.anthropic.com → API keys (requiere crédito cargado).</p>
+      </details>
       <p class="ai-video-hint">Los videos se suben en la pestaña 🎬 Video. Acá elegís cuál analizar. Es un asistente: detecta lo evidente, no reemplaza tu ojo.</p>
       <div class="ai-video-controls" id="aiVideoControls" style="display:none;">
         <div class="ai-progress-wrap"><div class="ai-progress-bar" id="aiProgressBar"></div></div>
