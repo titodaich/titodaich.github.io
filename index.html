@@ -429,6 +429,17 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .material-item .mremove:hover{color:var(--danger);}
 
 .rd-footer{display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding-top:16px;border-top:1px solid var(--line);flex-wrap:wrap;gap:12px;}
+/* Informe táctico IA */
+.ai-report-section{margin-top:20px;padding:16px;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;}
+.ai-report-body{margin-top:12px;}
+.ai-report-body .rd-empty{margin:0;}
+.ai-report-content{font-size:14px;line-height:1.6;color:var(--chalk);white-space:pre-wrap;}
+.ai-report-content h4{font-family:'Oswald',sans-serif;font-size:15px;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent-2);margin:16px 0 6px;}
+.ai-report-content strong{color:var(--chalk);}
+.ai-loading{display:flex;align-items:center;gap:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:13px;}
+.ai-spinner{width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--accent-2);border-radius:50%;animation:aispin 0.7s linear infinite;}
+@keyframes aispin{to{transform:rotate(360deg);}}
+.ai-report-actions{margin-top:12px;display:flex;gap:8px;}
 .btn.danger-outline{border:1px solid var(--danger);background:transparent;color:var(--danger);}
 .btn.danger-outline:hover{background:var(--danger);color:#fff;}
 .rd-saved{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
@@ -1401,6 +1412,16 @@ body.editor-active #screen-editor{ display:block; }
         </div>
       </div>
 
+      <div class="ai-report-section">
+        <div class="rd-card-head">
+          <h3>⚡ Informe táctico (IA)</h3>
+          <button class="btn small primary" id="genReportBtn">Generar informe</button>
+        </div>
+        <div class="ai-report-body" id="aiReportBody">
+          <p class="rd-empty">Cargá los datos del rival arriba y tocá "Generar informe". La IA va a analizar el scouting y armar un plan de partido.</p>
+        </div>
+      </div>
+
       <div class="rd-footer">
         <button class="btn danger-outline" id="deleteRivalBtn">Eliminar ficha</button>
         <span class="rd-saved" id="rdSaved">Los cambios se guardan solos</span>
@@ -1975,6 +1996,96 @@ window.__initEditor = function(){
   }
 
   function currentRival(){ return rivals.find(x => x.id === currentRivalId); }
+
+  // ===== INFORME TÁCTICO CON IA =====
+  document.getElementById('genReportBtn').addEventListener('click', generarInforme);
+
+  async function generarInforme(){
+    const r = currentRival();
+    if(!r){ toast('Abrí una ficha de rival primero.'); return; }
+    const body = document.getElementById('aiReportBody');
+    const btn = document.getElementById('genReportBtn');
+
+    // Armar el texto con todos los datos del rival
+    const jugadores = (r.players||[]).filter(p=>p.name).map(p => `- #${p.num||'?'} ${p.name}${p.note?(': '+p.note):''}`).join('\n');
+    const datos = `RIVAL: ${r.name||'Sin nombre'}
+${r.tournament?('Torneo: '+r.tournament):''}
+
+CÓMO ATACAN:
+${r.attack||'(sin datos)'}
+
+CÓMO DEFIENDEN:
+${r.defense||'(sin datos)'}
+
+PELOTA PARADA (ABP):
+${r.setpieces||'(sin datos)'}
+
+DATOS ADICIONALES:
+${r.data||'(sin datos)'}
+
+JUGADORES CLAVE:
+${jugadores||'(sin datos)'}`;
+
+    // ¿Hay algo cargado?
+    const vacio = !r.attack && !r.defense && !r.setpieces && !r.data && (!r.players || r.players.filter(p=>p.name).length===0);
+    if(vacio){ toast('Cargá algún dato del rival antes de generar el informe.'); return; }
+
+    btn.disabled = true;
+    body.innerHTML = '<div class="ai-loading"><div class="ai-spinner"></div> Analizando el scouting y armando el plan de partido…</div>';
+
+    const prompt = `Sos un analista táctico de futsal profesional. Con los siguientes datos de scouting de un equipo rival, redactá un informe táctico claro y accionable para el cuerpo técnico, en español rioplatense, pensado para futsal (5 jugadores, cancha de futsal).
+
+${datos}
+
+Estructurá el informe con estas secciones (usá los títulos exactamente así, precedidos de "## "):
+## Resumen del rival
+## Cómo hacerles daño (nuestro plan ofensivo)
+## Cómo contenerlos (nuestro plan defensivo)
+## Pelota parada
+## Jugadores a vigilar
+## Claves del partido
+
+Sé concreto y práctico, como hablándole a los jugadores. Si falta información en algún punto, no lo inventes: señalá brevemente qué convendría scoutear. No uses asteriscos para negritas.`;
+
+    try{
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          model:'claude-sonnet-4-6',
+          max_tokens:1500,
+          messages:[{role:'user', content:prompt}]
+        })
+      });
+      const data = await resp.json();
+      const texto = (data.content||[]).map(c=>c.text||'').join('\n').trim();
+      if(!texto){ body.innerHTML = '<p class="rd-empty">No se pudo generar el informe. Probá de nuevo.</p>'; btn.disabled=false; return; }
+
+      // Formatear: convertir "## Título" en subtítulos
+      const htmlReport = texto
+        .split('\n')
+        .map(line => {
+          if(line.startsWith('## ')) return `<h4>${escapeHtml(line.slice(3))}</h4>`;
+          return escapeHtml(line);
+        })
+        .join('\n');
+
+      body.innerHTML = `<div class="ai-report-content">${htmlReport}</div>
+        <div class="ai-report-actions">
+          <button class="btn small" id="copyReportBtn">📋 Copiar</button>
+          <button class="btn small" id="regenReportBtn">↻ Generar de nuevo</button>
+        </div>`;
+      document.getElementById('copyReportBtn').addEventListener('click', () => {
+        navigator.clipboard.writeText(texto).then(()=>toast('Informe copiado ✓')).catch(()=>toast('No se pudo copiar.'));
+      });
+      document.getElementById('regenReportBtn').addEventListener('click', generarInforme);
+    }catch(e){
+      console.error(e);
+      body.innerHTML = '<p class="rd-empty">Hubo un error al generar el informe. Revisá la conexión y probá de nuevo.</p>';
+    } finally {
+      btn.disabled = false;
+    }
+  }
 
   const fieldMap = {
     rdName:'name', rdDate:'date', rdTournament:'tournament', rdAttack:'attack',
