@@ -557,6 +557,33 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .origin-bar .ob-fill{height:100%;background:var(--accent-2);border-radius:4px;}
 .origin-bar.against .ob-fill{background:var(--danger);}
 .annual-empty{text-align:center;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:13px;padding:40px;}
+/* Períodos (1er sem / 2do sem / anual) */
+.periodos-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px;}
+.periodo-card{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;}
+.periodo-title{font-family:'Oswald',sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:10px;}
+.periodo-part{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0;}
+.periodo-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.ps{text-align:center;}
+.ps-val{display:block;font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;line-height:1;}
+.ps-lbl{display:block;font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-top:4px;}
+.record-note{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:8px;line-height:1.4;}
+/* Tiles de totales y promedios */
+.stat-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px;}
+.stat-tile{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px 10px;text-align:center;}
+.st-val{font-family:'Oswald',sans-serif;font-size:26px;font-weight:700;line-height:1;}
+.st-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-top:6px;}
+.record-row{display:flex;gap:10px;margin-top:12px;}
+.rec-item{flex:1;text-align:center;font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;padding:8px;border-radius:8px;border:1px solid var(--line);}
+.rec-item small{display:block;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:400;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-top:2px;}
+.rec-win{color:var(--success);}
+.rec-draw{color:var(--muted);}
+.rec-loss{color:var(--danger);}
+/* Detalle de goles */
+.goal-detail-list{display:flex;flex-direction:column;gap:8px;}
+.goal-detail-row{background:var(--bg);border:1px solid var(--line);border-left:3px solid var(--accent-2);border-radius:8px;padding:9px 11px;}
+.goal-detail-row .gd-rival{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);}
+.goal-detail-row .gd-detail{font-size:13px;color:var(--chalk);margin:3px 0;}
+.goal-detail-row .gd-meta{font-size:11px;color:var(--accent-2);}
 /* Ajuste primer semestre */
 .adj-row{display:flex;gap:8px;align-items:center;margin-bottom:7px;}
 .adj-row input,.adj-row select{background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-family:'Inter',sans-serif;font-size:13px;padding:7px 9px;}
@@ -1209,6 +1236,12 @@ body.editor-active #screen-editor{ display:block; }
       </div>
       <div class="cloud-list">
         <p class="rd-empty" style="margin-bottom:8px;">Cargá los totales del primer semestre. Se suman a la estadística anual de esta categoría.</p>
+        <div class="adj-section" style="margin-bottom:14px;">
+          <div class="adj-row" style="align-items:center;">
+            <label style="flex:1;font-size:13px;color:var(--chalk);">Partidos jugados en el 1er semestre</label>
+            <input class="adj-num" id="adjMatches" type="number" min="0" placeholder="ej: 15">
+          </div>
+        </div>
         <div class="adj-section">
           <div class="rd-card-head"><h3>⚽ Goleadores</h3><button class="btn small" id="adjAddScorer">+ Goleador</button></div>
           <div id="adjScorers"></div>
@@ -2776,7 +2809,7 @@ window.__initEditor = function(){
   let origins = [];      // formas de origen de gol (con subs)
   let originsRowId = null;
   let matches = [];      // partidos de la categoría
-  let adjustment = { scorers:[], scored:[], conceded:[] };   // resumen primer semestre
+  let adjustment = { scorers:[], scored:[], conceded:[], matchesPlayed:0 };   // resumen primer semestre
   let adjRowId = null;   // id de la fila de ajuste en la nube
   let currentMatch = null;
   const saveTimers = {};
@@ -2858,13 +2891,13 @@ window.__initEditor = function(){
         aq = cat ? aq.eq('categoria', cat) : aq.is('categoria', null);
         const aRes = await aq;
         if(aRes.data && aRes.data.length){
-          adjustment = { scorers: aRes.data[0].scorers||[], scored: aRes.data[0].scored||[], conceded: aRes.data[0].conceded||[] };
+          adjustment = { scorers: aRes.data[0].scorers||[], scored: aRes.data[0].scored||[], conceded: aRes.data[0].conceded||[], matchesPlayed: aRes.data[0].matches_played||0 };
           adjRowId = aRes.data[0].id;
         } else {
-          adjustment = { scorers:[], scored:[], conceded:[] };
+          adjustment = { scorers:[], scored:[], conceded:[], matchesPlayed:0 };
           adjRowId = null;
         }
-      }catch(e){ adjustment = { scorers:[], scored:[], conceded:[] }; adjRowId = null; }
+      }catch(e){ adjustment = { scorers:[], scored:[], conceded:[], matchesPlayed:0 }; adjRowId = null; }
       refreshActiveSub();
     }catch(e){ console.error('stats load', e); }
   }
@@ -3294,6 +3327,12 @@ window.__initEditor = function(){
   adjModal.addEventListener('click', e => { if(e.target.id==='adjModal') adjModal.style.display='none'; });
 
   function renderAdjEditor(){
+    // Campo de partidos jugados
+    const mp = document.getElementById('adjMatches');
+    if(mp){
+      mp.value = adjustment.matchesPlayed || '';
+      mp.oninput = e => { adjustment.matchesPlayed = e.target.value; };
+    }
     // Opciones de jugadores del plantel
     const playerOpts = (selected) => {
       let o = '<option value="">— Jugador —</option>';
@@ -3366,6 +3405,7 @@ window.__initEditor = function(){
       const payload = {
         club_id: clubId, categoria: cat,
         scorers: adjustment.scorers, scored: adjustment.scored, conceded: adjustment.conceded,
+        matches_played: Number(adjustment.matchesPlayed)||0,
         updated_at: new Date().toISOString()
       };
       // Buscar si ya existe una fila de ajuste para este club+categoría
@@ -3410,13 +3450,26 @@ window.__initEditor = function(){
     const origenFavor = {}, origenContra = {};
     const subFavor = {}, subContra = {};   // desglose de Estrategia
     let totalGF = 0, totalGA = 0;
+    const golesFavorDetalle = [];   // lista de goles a favor con detalle
+    const golesContraDetalle = [];  // lista de goles en contra con detalle
+    let ganados = 0, empatados = 0, perdidos = 0, vallasInvictas = 0;
     matches.forEach(m => {
+      const gfMatch = (m.goalsFor||[]).length;
+      const gaMatch = (m.goalsAgainst||[]).length;
+      // resultado del partido
+      if(gfMatch > gaMatch) ganados++;
+      else if(gfMatch < gaMatch) perdidos++;
+      else empatados++;
+      if(gaMatch === 0) vallasInvictas++;
       (m.goalsFor||[]).forEach(g => {
         totalGF++;
         if(g.player_name) goleadores[g.player_name] = (goleadores[g.player_name]||0)+1;
         if(g.origin){
           origenFavor[g.origin] = (origenFavor[g.origin]||0)+1;
           if(g.sub) subFavor[g.sub] = (subFavor[g.sub]||0)+1;
+        }
+        if(g.detail && g.detail.trim()){
+          golesFavorDetalle.push({ rival:m.rival, date:m.date, player:g.player_name, min:g.min, origin:g.origin, sub:g.sub, detail:g.detail });
         }
       });
       (m.goalsAgainst||[]).forEach(g => {
@@ -3425,12 +3478,24 @@ window.__initEditor = function(){
           origenContra[g.origin] = (origenContra[g.origin]||0)+1;
           if(g.sub) subContra[g.sub] = (subContra[g.sub]||0)+1;
         }
+        if(g.detail && g.detail.trim()){
+          golesContraDetalle.push({ rival:m.rival, date:m.date, keeper:g.keeper_name, min:g.min, origin:g.origin, sub:g.sub, detail:g.detail });
+        }
       });
       (m.assists||[]).forEach(a => { if(a.player_name) asistidores[a.player_name]=(asistidores[a.player_name]||0)+1; });
       (m.cards||[]).forEach(c => { if(c.player_name) tarjetas[c.player_name]=(tarjetas[c.player_name]||0)+1; });
     });
 
-    // Sumar el AJUSTE del primer semestre (totales cargados a mano)
+    // --- Guardar totales del 2do SEMESTRE (partidos cargados en la app) ---
+    const gf2 = totalGF, ga2 = totalGA, part2 = matches.length;
+
+    // --- Totales del 1er SEMESTRE (del ajuste cargado a mano) ---
+    let gf1 = 0, ga1 = 0;
+    (adjustment.scorers||[]).forEach(s => { if(s.name && s.goals) gf1 += Number(s.goals); });
+    (adjustment.conceded||[]).forEach(c => { if(c.origin && c.count) ga1 += Number(c.count); });
+    const part1 = Number(adjustment.matchesPlayed)||0;
+
+    // Sumar el AJUSTE del primer semestre a los acumulados (goleadores, orígenes, totales del año)
     (adjustment.scorers||[]).forEach(s => {
       if(s.name && s.goals){ goleadores[s.name] = (goleadores[s.name]||0) + Number(s.goals); totalGF += Number(s.goals); }
     });
@@ -3463,13 +3528,62 @@ window.__initEditor = function(){
       }).join('');
     };
 
+    // Helper para un bloque de período
+    const prom = (g, n) => n ? (g/n).toFixed(2) : '—';
+    const difStr = (d) => (d>=0?'+':'')+d;
+    const difColor = (d) => d>=0?'var(--success)':'var(--danger)';
+    const periodoHTML = (titulo, gf, ga, part, mostrarProm) => {
+      const d = gf - ga;
+      return `<div class="periodo-card">
+        <div class="periodo-title">${titulo}${part?` <span class="periodo-part">${part} partido${part===1?'':'s'}</span>`:''}</div>
+        <div class="periodo-stats">
+          <div class="ps"><span class="ps-val">${gf}</span><span class="ps-lbl">GF</span></div>
+          <div class="ps"><span class="ps-val" style="color:var(--danger)">${ga}</span><span class="ps-lbl">GC</span></div>
+          <div class="ps"><span class="ps-val" style="color:${difColor(d)}">${difStr(d)}</span><span class="ps-lbl">Dif</span></div>
+          ${mostrarProm?`<div class="ps"><span class="ps-val">${prom(gf,part)}</span><span class="ps-lbl">Prom GF</span></div>
+          <div class="ps"><span class="ps-val">${prom(ga,part)}</span><span class="ps-lbl">Prom GC</span></div>`:''}
+        </div>
+      </div>`;
+    };
+    // Promedios: mostrar solo si hay partidos cargados
+    const hay1 = part1 > 0 || gf1 > 0 || ga1 > 0;
+    let periodosHTML = '';
+    if(hay1){
+      periodosHTML = `
+        <div class="periodos-wrap">
+          ${periodoHTML('1er semestre', gf1, ga1, part1, part1>0)}
+          ${periodoHTML('2do semestre', gf2, ga2, part2, part2>0)}
+          ${periodoHTML('Anual', totalGF, totalGA, part1+part2, (part1+part2)>0)}
+        </div>`;
+    } else {
+      // Sin ajuste del 1er semestre: un solo bloque con lo cargado
+      periodosHTML = `<div class="periodos-wrap">${periodoHTML('Temporada', gf2, ga2, part2, part2>0)}</div>`;
+    }
+
+    const detailListHTML = (arr, against) => {
+      if(!arr.length) return '<div class="annual-empty" style="padding:16px;">No cargaste detalles de goles todavía. Al cargar un gol podés escribir cómo fue.</div>';
+      return arr.map(g => {
+        const quien = against ? (g.keeper?('Arquero: '+escapeHtml(g.keeper)):'') : (g.player?escapeHtml(g.player):'');
+        const linea2 = [g.min?("min "+escapeHtml(g.min)):'', g.origin?escapeHtml(g.origin)+(g.sub?(' · '+escapeHtml(g.sub)):''):'', quien].filter(Boolean).join(' · ');
+        return `<div class="goal-detail-row">
+          <div class="gd-rival">vs ${escapeHtml(g.rival||'—')}</div>
+          <div class="gd-detail">${escapeHtml(g.detail)}</div>
+          ${linea2?`<div class="gd-meta">${linea2}</div>`:''}
+        </div>`;
+      }).join('');
+    };
+
     el.innerHTML = `
       <div class="annual-card">
-        <h3>Resumen — ${matches.length} partido${matches.length===1?'':'s'}</h3>
-        <div class="annual-grid">
-          <div><div class="ob-label"><span>Goles a favor</span><span class="rk-val">${totalGF}</span></div></div>
-          <div><div class="ob-label"><span>Goles en contra</span><span class="rk-val" style="color:var(--danger)">${totalGA}</span></div></div>
+        <h3>Resumen por período</h3>
+        ${periodosHTML}
+        <div class="record-row">
+          <span class="rec-item rec-win">${ganados} <small>ganados</small></span>
+          <span class="rec-item rec-draw">${empatados} <small>empatados</small></span>
+          <span class="rec-item rec-loss">${perdidos} <small>perdidos</small></span>
+          <span class="rec-item" style="color:var(--accent-2)">${vallasInvictas} <small>vallas invictas</small></span>
         </div>
+        <p class="record-note">Ganados/empatados/perdidos y vallas invictas corresponden al 2º semestre (partidos cargados en la app).</p>
       </div>
       <div class="annual-grid">
         <div class="annual-card"><h3>⚽ Goleadores</h3>${rankHTML(goleadores)}</div>
@@ -3478,6 +3592,10 @@ window.__initEditor = function(){
       <div class="annual-grid">
         <div class="annual-card"><h3>Cómo convertimos</h3>${barsHTML(origenFavor, totalGF, false, subFavor)}</div>
         <div class="annual-card"><h3>Cómo nos convierten</h3>${barsHTML(origenContra, totalGA, true, subContra)}</div>
+      </div>
+      <div class="annual-grid">
+        <div class="annual-card"><h3>🎯 Detalle de goles a favor</h3><div class="goal-detail-list">${detailListHTML(golesFavorDetalle, false)}</div></div>
+        <div class="annual-card"><h3>🥅 Detalle de goles en contra</h3><div class="goal-detail-list">${detailListHTML(golesContraDetalle, true)}</div></div>
       </div>
       <div class="annual-card"><h3>🟨 Tarjetas</h3>${rankHTML(tarjetas)}</div>
     `;
