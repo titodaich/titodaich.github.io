@@ -502,6 +502,17 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .board-plays-empty{color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.5;}
 
 /* ===== EN VIVO ===== */
+.live-topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px;flex-wrap:wrap;}
+.live-match-info .live-vs{font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;color:var(--chalk);}
+.live-finish-top{font-size:15px;padding:11px 24px;}
+.live-call-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}
+.live-call-item{background:var(--panel-2);border:2px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .12s ease;user-select:none;}
+.live-call-item:hover{border-color:var(--muted);}
+.live-call-item.called{border-color:var(--success);background:rgba(76,175,109,0.12);}
+.live-call-item .lci-check{width:18px;height:18px;border-radius:5px;border:2px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;}
+.live-call-item.called .lci-check{background:var(--success);border-color:var(--success);}
+.live-call-item .lci-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.live-call-item .lci-name{font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;flex:1;}
 .live-clock-bar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:16px;}
 .live-clock{font-family:'JetBrains Mono',monospace;font-size:38px;font-weight:700;color:var(--chalk);letter-spacing:1px;min-width:130px;}
 .live-clock.running{color:var(--success);}
@@ -541,6 +552,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .live-token .lt-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,0.8);}
 .live-token .lt-name{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;color:#fff;margin:1px 0 4px;}
 .live-token .lt-time{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;color:#fff;}
+.live-token .lt-actions{display:flex;gap:4px;justify-content:center;margin-top:6px;}
+.live-token .lt-act{border:1px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.1);border-radius:6px;padding:2px 7px;font-size:12px;cursor:pointer;color:#fff;display:flex;align-items:center;gap:2px;}
+.live-token .lt-act:hover{background:rgba(255,255,255,0.25);}
+.live-token .lt-act .lt-cnt{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;}
 
 .live-bench{display:flex;flex-direction:column;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;min-height:100px;}
 .bench-player{background:var(--panel-2);border:2px solid var(--line);border-radius:10px;padding:8px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .12s ease;}
@@ -552,7 +567,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .bench-empty{color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;padding:10px;}
 
 .live-totals-wrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;}
-.live-totals-head,.live-total-row{display:grid;grid-template-columns:1fr 70px 70px 80px;gap:8px;align-items:center;}
+.live-totals-head,.live-total-row{display:grid;grid-template-columns:1fr 62px 62px 70px 40px 40px;gap:8px;align-items:center;}
 .live-totals-head{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line);}
 .live-totals-head span:not(:first-child),.live-total-row span:not(:first-child){text-align:center;font-family:'JetBrains Mono',monospace;}
 .live-totals{margin-top:6px;}
@@ -631,6 +646,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .match-table th.mt-gf,.match-table th.mt-gc{width:36px;text-align:center;}
 .match-table th.mt-fecha{width:124px;}
 .match-table th.mt-open{width:64px;}
+.match-table th.mt-del-h{width:34px;}
+.match-table .mt-del{text-align:center;}
+.btn-del-match{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px;transition:all .12s ease;}
+.btn-del-match:hover{border-color:var(--danger);color:var(--danger);background:rgba(240,85,63,0.1);}
 .match-table td{padding:4px 8px;border-bottom:1px solid rgba(51,73,94,0.4);vertical-align:middle;}
 .match-table td.mt-gf,.match-table td.mt-gc{text-align:center;font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;}
 .match-table td.mt-gf .win{color:var(--success);}
@@ -680,6 +699,24 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .ps-val{display:block;font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;line-height:1;}
 .ps-lbl{display:block;font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-top:4px;}
 .record-note{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:8px;line-height:1.4;}
+/* Anuales: conversión destacada con gráfico */
+.annual-featured{border-color:var(--accent-2);}
+.chart-row{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:8px;}
+.chart-bars{flex:1;min-width:180px;}
+.donut-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;}
+.donut-svg{width:128px;height:128px;flex-shrink:0;}
+.donut-total{fill:var(--chalk);font-family:'Oswald',sans-serif;font-size:26px;font-weight:700;}
+.donut-sub{fill:var(--muted);font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:1px;}
+.donut-legend{display:flex;flex-direction:column;gap:4px;}
+.donut-leg-item{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;}
+.donut-leg-item b{color:var(--chalk);}
+.dl-dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+.donut-empty{color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:12px;padding:30px;text-align:center;}
+.annual-more{margin-top:4px;}
+.annual-more>summary{cursor:pointer;font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent-2);padding:12px 16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;list-style:none;}
+.annual-more>summary::-webkit-details-marker{display:none;}
+.annual-more>summary::before{content:'▸ ';}
+.annual-more[open]>summary::before{content:'▾ ';}
 /* Tiles de totales y promedios */
 .stat-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px;}
 .stat-tile{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px 10px;text-align:center;}
@@ -769,6 +806,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .topbar-right{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
 .project-actions{display:flex;gap:8px;}
 .user-badge{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.lang-select{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;color:var(--chalk);font-size:12px;padding:6px 8px;cursor:pointer;font-family:'JetBrains Mono',monospace;}
 
 .layout{display:grid;grid-template-columns:1fr 1.4fr;gap:20px;}
 @media (max-width:860px){.layout{grid-template-columns:1fr;}}
@@ -1135,33 +1173,38 @@ body.editor-active #screen-editor{ display:block; }
       <div class="brand-sub">Panel de entrenador — futsal</div>
     </div>
     <div class="topbar-right">
+      <select id="langSelect" class="lang-select" title="Idioma / Language / Idioma">
+        <option value="es">🇪🇸 ES</option>
+        <option value="en">🇬🇧 EN</option>
+        <option value="pt">🇧🇷 PT</option>
+      </select>
       <span class="user-badge" id="userBadge"></span>
       <div class="project-actions" id="videoProjectActions">
-        <button class="btn small primary" id="saveCloudBtn">☁ Guardar en la nube</button>
-        <button class="btn small ghost" id="loadCloudBtn">☁ Mis partidos</button>
-        <button class="btn small ghost" id="loadProjectBtn">Cargar archivo</button>
-        <button class="btn small ghost" id="saveProjectBtn">Guardar archivo</button>
+        <button class="btn small primary" id="saveCloudBtn" data-i18n="saveCloud">☁ Guardar en la nube</button>
+        <button class="btn small ghost" id="loadCloudBtn" data-i18n="myMatches">☁ Mis partidos</button>
+        <button class="btn small ghost" id="loadProjectBtn" data-i18n="loadFile">Cargar archivo</button>
+        <button class="btn small ghost" id="saveProjectBtn" data-i18n="saveFile">Guardar archivo</button>
         <input type="file" id="projectFileInput" class="file-input" accept="application/json">
       </div>
-      <button class="btn small ghost" id="logoutBtn">Cerrar sesión</button>
+      <button class="btn small ghost" id="logoutBtn" data-i18n="logout">Cerrar sesión</button>
     </div>
   </div>
 
   <!-- ===== BARRA DE CATEGORÍAS ===== -->
   <div class="category-bar">
-    <span class="cat-label">Categoría:</span>
+    <span class="cat-label" data-i18n="category">Categoría:</span>
     <div class="cat-chips" id="catChips"></div>
   </div>
 
   <!-- ===== MENÚ DE NAVEGACIÓN ===== -->
   <nav class="main-nav">
-    <button class="nav-tab active" data-section="video">🎬 Video</button>
-    <button class="nav-tab" data-section="videoai">🤖 Video IA</button>
-    <button class="nav-tab" data-section="stats">📊 Estadísticas</button>
-    <button class="nav-tab" data-section="training">📋 Planificación</button>
-    <button class="nav-tab" data-section="scouting">🔍 Scouting</button>
-    <button class="nav-tab" data-section="board">✏️ Pizarra</button>
-    <button class="nav-tab" data-section="live">🔴 En vivo</button>
+    <button class="nav-tab active" data-section="video" data-i18n="navVideo">🎬 Video</button>
+    <button class="nav-tab" data-section="videoai" data-i18n="navVideoAI">🤖 Video IA</button>
+    <button class="nav-tab" data-section="stats" data-i18n="navStats">📊 Estadísticas</button>
+    <button class="nav-tab" data-section="training" data-i18n="navTraining">📋 Planificación</button>
+    <button class="nav-tab" data-section="scouting" data-i18n="navScouting">🔍 Scouting</button>
+    <button class="nav-tab" data-section="board" data-i18n="navBoard">✏️ Pizarra</button>
+    <button class="nav-tab" data-section="live" data-i18n="navLive">🔴 En vivo</button>
   </nav>
 
   <!-- ===== SECCIÓN: VIDEO ===== -->
@@ -1640,66 +1683,100 @@ body.editor-active #screen-editor{ display:block; }
     <div class="scout-head">
       <div>
         <h2 class="scout-title">En vivo — control de minutos</h2>
-        <p class="scout-sub">Los 5 en cancha. Tocá un titular y un suplente para hacer el cambio.</p>
+        <p class="scout-sub" id="liveSubtitle">Elegí el rival y los convocados para arrancar.</p>
+      </div>
+      <button class="btn small" id="liveNewMatchBtn" style="display:none;">↺ Nuevo partido</button>
+    </div>
+
+    <!-- PANTALLA DE SETUP -->
+    <div id="liveSetup">
+      <div class="annual-card" style="margin-bottom:16px;">
+        <div class="rd-card-head"><h3>1 · Rival del partido</h3></div>
+        <div id="liveSetupRivals" style="margin-top:10px;"></div>
+      </div>
+      <div class="annual-card">
+        <div class="rd-card-head">
+          <h3>2 · Convocados</h3>
+          <div style="display:flex;gap:8px;">
+            <button class="btn small" id="liveCallAll">Todos</button>
+            <button class="btn small" id="liveCallNone">Ninguno</button>
+          </div>
+        </div>
+        <p class="scout-sub" style="margin:6px 0 12px;">Tocá los jugadores que están convocados. Solo ellos aparecerán en el partido.</p>
+        <div class="live-call-grid" id="liveCallGrid"></div>
+      </div>
+      <div style="margin-top:18px;text-align:center;">
+        <button class="btn primary" id="liveStartBtn" style="font-size:16px;padding:12px 32px;">▶ Iniciar partido</button>
+        <p class="scout-sub" id="liveStartHint" style="margin-top:8px;"></p>
       </div>
     </div>
 
-    <div class="live-clock-bar">
-      <div class="live-clock-main">
-        <div class="live-clock" id="liveClock">00:00</div>
-        <div class="live-clock-type" id="liveClockType"></div>
+    <!-- PARTIDO ACTIVO -->
+    <div id="liveActive" style="display:none;">
+      <div class="live-topbar">
+        <div class="live-match-info">
+          <span class="live-vs" id="liveVsRival">vs —</span>
+        </div>
+        <button class="btn primary live-finish-top" id="liveFinishBtnTop">🏁 Finalizar partido</button>
       </div>
-      <div class="live-clock-btns" id="liveAutoCtrls">
-        <button class="btn small primary" id="liveClockToggle">▶ Iniciar</button>
-        <button class="btn small" id="liveHalfBtn">⏱ Fin 1er tiempo</button>
-        <button class="btn small" id="liveClockReset">↺ Reiniciar</button>
-      </div>
-      <div class="live-manual-ctrls" id="liveManualCtrls" style="display:none;">
-        <span class="lmc-label">Minuto (regresivo):</span>
-        <button class="btn small lmc-btn" id="liveMinUp">+1'</button>
-        <span class="lmc-min" id="liveManualMin">20'</span>
-        <button class="btn small lmc-btn" id="liveMinDown">−1'</button>
-        <button class="btn small" id="liveHalfBtnM">⏱ Fin 1er tiempo</button>
-        <button class="btn small" id="liveClockResetM">↺ Reiniciar</button>
-      </div>
-      <div class="live-clock-btns" id="liveParadoCtrls" style="display:none;">
-        <button class="btn small" id="liveHalfBtnP">⏱ Fin 1er tiempo</button>
-        <button class="btn small" id="liveClockResetP">↺ Reiniciar</button>
-      </div>
-      <div class="live-half-badge" id="liveHalfBadge">1er tiempo</div>
-      <div class="live-oncourt" id="liveOnCourt">0 / 5 en cancha</div>
-    </div>
 
-    <div class="live-swap-hint" id="liveSwapHint">
-      Tocá el jugador que <b>SALE</b> (en la cancha) y después el que <b>ENTRA</b> (del banco).
-      <span id="liveSwapStep"></span>
-    </div>
+      <div class="live-clock-bar">
+        <div class="live-clock-main">
+          <div class="live-clock" id="liveClock">00:00</div>
+          <div class="live-clock-type" id="liveClockType"></div>
+        </div>
+        <div class="live-clock-btns" id="liveAutoCtrls">
+          <button class="btn small primary" id="liveClockToggle">▶ Iniciar</button>
+          <button class="btn small" id="liveHalfBtn">⏱ Fin 1er tiempo</button>
+          <button class="btn small" id="liveClockReset">↺ Reiniciar</button>
+        </div>
+        <div class="live-manual-ctrls" id="liveManualCtrls" style="display:none;">
+          <span class="lmc-label">Minuto (regresivo):</span>
+          <button class="btn small lmc-btn" id="liveMinUp">+1'</button>
+          <span class="lmc-min" id="liveManualMin">20'</span>
+          <button class="btn small lmc-btn" id="liveMinDown">−1'</button>
+          <button class="btn small" id="liveHalfBtnM">⏱ Fin 1er tiempo</button>
+          <button class="btn small" id="liveClockResetM">↺ Reiniciar</button>
+        </div>
+        <div class="live-clock-btns" id="liveParadoCtrls" style="display:none;">
+          <button class="btn small" id="liveHalfBtnP">⏱ Fin 1er tiempo</button>
+          <button class="btn small" id="liveClockResetP">↺ Reiniciar</button>
+        </div>
+        <div class="live-half-badge" id="liveHalfBadge">1er tiempo</div>
+        <div class="live-oncourt" id="liveOnCourt">0 / 5 en cancha</div>
+      </div>
 
-    <div class="live-field-layout">
-      <div class="live-field-wrap">
-        <div class="live-field-label">EN CANCHA</div>
-        <div class="live-field" id="liveField"></div>
+      <div class="live-swap-hint" id="liveSwapHint">
+        Tocá el jugador que <b>SALE</b> (en la cancha) y después el que <b>ENTRA</b> (del banco). Los botones ⚽ y 🟨 cargan gol y falta.
+        <span id="liveSwapStep"></span>
       </div>
-      <div class="live-bench-wrap">
-        <div class="live-field-label">BANCO</div>
-        <div class="live-bench" id="liveBench"></div>
-      </div>
-    </div>
 
-    <div class="live-totals-wrap">
-      <div class="rd-card-head"><h3>Minutos por jugador</h3></div>
-      <div class="live-totals-head">
-        <span>Jugador</span><span>1er T</span><span>2do T</span><span>Total</span>
+      <div class="live-field-layout">
+        <div class="live-field-wrap">
+          <div class="live-field-label">EN CANCHA</div>
+          <div class="live-field" id="liveField"></div>
+        </div>
+        <div class="live-bench-wrap">
+          <div class="live-field-label">BANCO</div>
+          <div class="live-bench" id="liveBench"></div>
+        </div>
       </div>
-      <div class="live-totals" id="liveTotals"></div>
-    </div>
 
-    <div class="live-log-wrap">
-      <div class="rd-card-head">
-        <h3>Registro de eventos</h3>
-        <button class="btn small primary" id="liveFinishBtn">🏁 Finalizar partido</button>
+      <div class="live-totals-wrap">
+        <div class="rd-card-head"><h3>Minutos y acciones por jugador</h3></div>
+        <div class="live-totals-head">
+          <span>Jugador</span><span>1er T</span><span>2do T</span><span>Total</span><span>⚽</span><span>🟨</span>
+        </div>
+        <div class="live-totals" id="liveTotals"></div>
       </div>
-      <div class="live-log" id="liveLog"><p class="rd-empty">Todavía no hay eventos. Iniciá el reloj y armá el equipo.</p></div>
+
+      <div class="live-log-wrap">
+        <div class="rd-card-head">
+          <h3>Registro de eventos</h3>
+          <button class="btn small primary" id="liveFinishBtn">🏁 Finalizar partido</button>
+        </div>
+        <div class="live-log" id="liveLog"><p class="rd-empty">Todavía no hay eventos. Iniciá el reloj y armá el equipo.</p></div>
+      </div>
     </div>
   </div>
 
@@ -1790,7 +1867,85 @@ body.editor-active #screen-editor{ display:block; }
 <!-- Cargador de librerías con múltiples CDNs de respaldo.
      Si un CDN está bloqueado (firewall, antivirus, red corporativa), prueba el siguiente. -->
 <script>
-window.__libsReady = (function(){
+// ==================== SISTEMA DE IDIOMAS (i18n) ====================
+window.I18N = {
+  es: {
+    // Header / nav
+    saveCloud:'☁ Guardar en la nube', myMatches:'☁ Mis partidos', loadFile:'Cargar archivo', saveFile:'Guardar archivo',
+    logout:'Cerrar sesión', category:'Categoría:',
+    navVideo:'🎬 Video', navVideoAI:'🤖 Video IA', navStats:'📊 Estadísticas', navTraining:'📋 Planificación',
+    navScouting:'🔍 Scouting', navBoard:'✏️ Pizarra', navLive:'🔴 En vivo',
+    brandSub:'Panel de entrenador — futsal',
+    // Login
+    loginTitle:'Ingresá a tu panel', loginEmail:'Email', loginPass:'Contraseña', loginBtn:'Ingresar',
+    // En vivo
+    liveTitle:'En vivo — control de minutos', liveSetupSub:'Elegí el rival y los convocados para arrancar.',
+    liveStep1:'1 · Rival del partido', liveStep2:'2 · Convocados', liveAll:'Todos', liveNone:'Ninguno',
+    liveCallHint:'Tocá los jugadores que están convocados. Solo ellos aparecerán en el partido.',
+    liveStartBtn:'▶ Iniciar partido', liveNewMatch:'↺ Nuevo partido', liveFinish:'🏁 Finalizar partido',
+    liveOnField:'EN CANCHA', liveBench:'BANCO', liveMinBy:'Minutos y acciones por jugador',
+    liveEvents:'Registro de eventos', liveStart:'▶ Iniciar', liveHalf:'⏱ Fin 1er tiempo', liveReset:'↺ Reiniciar',
+  },
+  en: {
+    saveCloud:'☁ Save to cloud', myMatches:'☁ My matches', loadFile:'Load file', saveFile:'Save file',
+    logout:'Log out', category:'Category:',
+    navVideo:'🎬 Video', navVideoAI:'🤖 AI Video', navStats:'📊 Statistics', navTraining:'📋 Planning',
+    navScouting:'🔍 Scouting', navBoard:'✏️ Board', navLive:'🔴 Live',
+    brandSub:'Coaching panel — futsal',
+    loginTitle:'Sign in to your panel', loginEmail:'Email', loginPass:'Password', loginBtn:'Sign in',
+    liveTitle:'Live — minutes control', liveSetupSub:'Pick the opponent and called-up players to start.',
+    liveStep1:'1 · Opponent', liveStep2:'2 · Called-up', liveAll:'All', liveNone:'None',
+    liveCallHint:'Tap the players who are called up. Only they will appear in the match.',
+    liveStartBtn:'▶ Start match', liveNewMatch:'↺ New match', liveFinish:'🏁 End match',
+    liveOnField:'ON COURT', liveBench:'BENCH', liveMinBy:'Minutes and actions per player',
+    liveEvents:'Event log', liveStart:'▶ Start', liveHalf:'⏱ End 1st half', liveReset:'↺ Reset',
+  },
+  pt: {
+    saveCloud:'☁ Salvar na nuvem', myMatches:'☁ Meus jogos', loadFile:'Carregar arquivo', saveFile:'Salvar arquivo',
+    logout:'Sair', category:'Categoria:',
+    navVideo:'🎬 Vídeo', navVideoAI:'🤖 Vídeo IA', navStats:'📊 Estatísticas', navTraining:'📋 Planejamento',
+    navScouting:'🔍 Scouting', navBoard:'✏️ Prancheta', navLive:'🔴 Ao vivo',
+    brandSub:'Painel do treinador — futsal',
+    loginTitle:'Entre no seu painel', loginEmail:'E-mail', loginPass:'Senha', loginBtn:'Entrar',
+    liveTitle:'Ao vivo — controle de minutos', liveSetupSub:'Escolha o adversário e os convocados para começar.',
+    liveStep1:'1 · Adversário', liveStep2:'2 · Convocados', liveAll:'Todos', liveNone:'Nenhum',
+    liveCallHint:'Toque nos jogadores convocados. Só eles aparecerão na partida.',
+    liveStartBtn:'▶ Iniciar partida', liveNewMatch:'↺ Nova partida', liveFinish:'🏁 Finalizar partida',
+    liveOnField:'EM QUADRA', liveBench:'BANCO', liveMinBy:'Minutos e ações por jogador',
+    liveEvents:'Registro de eventos', liveStart:'▶ Iniciar', liveHalf:'⏱ Fim 1º tempo', liveReset:'↺ Reiniciar',
+  }
+};
+window.__lang = (function(){ try{ return localStorage.getItem('ce_lang') || 'es'; }catch(e){ return 'es'; } })();
+window.t = function(key){
+  const L = window.I18N[window.__lang] || window.I18N.es;
+  return (L && L[key] !== undefined) ? L[key] : (window.I18N.es[key] !== undefined ? window.I18N.es[key] : key);
+};
+window.applyI18n = function(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k = el.getAttribute('data-i18n');
+    const v = window.t(k);
+    if(v !== undefined) el.textContent = v;
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{
+    const k = el.getAttribute('data-i18n-ph');
+    const v = window.t(k);
+    if(v !== undefined) el.setAttribute('placeholder', v);
+  });
+};
+window.setLang = function(lang){
+  window.__lang = lang;
+  try{ localStorage.setItem('ce_lang', lang); }catch(e){}
+  window.applyI18n();
+  document.dispatchEvent(new CustomEvent('langchange', {detail:{lang}}));
+};
+document.addEventListener('DOMContentLoaded', ()=>{
+  const sel = document.getElementById('langSelect');
+  if(sel){ sel.value = window.__lang; sel.addEventListener('change', e=>window.setLang(e.target.value)); }
+  window.applyI18n();
+});
+</script>
+<script>
+  window.__libsReady = (function(){
   // Cada librería con una lista de URLs alternativas (se prueban en orden).
   const LIBS = {
     supabase: {
@@ -2949,15 +3104,21 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   let clockRunning = false;
   let clockTimer = null;
   let swapOutId = null;          // titular seleccionado para salir
-  let squad = [];                // jugadores del plantel
+  let allSquad = [];             // TODO el plantel de la categoría
+  let squad = [];                // solo los convocados (los que juegan este partido)
   let clockType = 'corrido';
   let halfMinutes = 25;
   let currentHalf = 1;           // 1 o 2
   let halfSplitAt = null;        // segundo en que terminó el 1er tiempo
-  // estado por jugador: onCourt, y acumulados por tiempo
-  let state = {};                // { pid: {onCourt, acc1, acc2, lastInAt} }
+  // estado por jugador: onCourt, acumulados por tiempo, goles y faltas
+  let state = {};                // { pid: {onCourt, acc1, acc2, lastInAt, goals, fouls} }
   let events = [];
   let liveRowId = null;
+  // setup
+  let setupCalled = {};          // { pid: true } convocados elegidos en el setup
+  let matchRival = '';           // nombre del rival elegido
+  let matchLinkId = null;        // id del partido linkeado
+  let inSetup = true;
 
   const fmtClock = (s) => {
     s = Math.max(0, Math.round(s));
@@ -3035,7 +3196,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     if(tpOnOk){ const fn=tpOnOk; tpOnOk=null; fn(regresivoToElapsed(tpMin,tpSec), tpMin, tpSec); }
   });
 
-  function ensure(pid){ if(!state[pid]) state[pid] = {onCourt:false, acc1:0, acc2:0, lastInAt:null}; return state[pid]; }
+  function ensure(pid){ if(!state[pid]) state[pid] = {onCourt:false, acc1:0, acc2:0, lastInAt:null, goals:0, fouls:0}; if(state[pid].goals===undefined) state[pid].goals=0; if(state[pid].fouls===undefined) state[pid].fouls=0; return state[pid]; }
 
   // tiempo acumulado en el tiempo actual (en vivo)
   // "reloj efectivo": en corrido usa clockSeconds; en parado usa el minuto manual regresivo
@@ -3121,7 +3282,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     st.onCourt=false; st.lastInAt=null;
   }
   function totalsSnapshot(){
-    const o={}; squad.forEach(p=>{ o[p.name]={t1:time1(p.id),t2:time2(p.id),total:timeTotal(p.id)}; }); return o;
+    const o={}; squad.forEach(p=>{ const st=ensure(p.id); o[p.name]={t1:time1(p.id),t2:time2(p.id),total:timeTotal(p.id),goals:st.goals||0,fouls:st.fouls||0,number:p.number||''}; }); return o;
   }
   function logEvent(type, inId, outId){
     const inP=squad.find(p=>p.id===inId), outP=squad.find(p=>p.id===outId);
@@ -3228,8 +3389,12 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       d.style.left = slot.x + '%';
       d.style.top = slot.y + '%';
       const roleLabel = role==='otro' ? '' : role.charAt(0).toUpperCase()+role.slice(1);
-      d.innerHTML=`<div class="lt-num">${escapeHtml(p.number?'#'+p.number:'')}${roleLabel?' · '+roleLabel:''}</div><div class="lt-name">${escapeHtml(p.name)}</div><div class="lt-time" data-t="${p.id}">${fmtClock(timeTotal(p.id))}</div>`;
-      d.addEventListener('click',()=>tapOnCourt(p.id));
+      const st=ensure(p.id);
+      d.innerHTML=`<div class="lt-num">${escapeHtml(p.number?'#'+p.number:'')}${roleLabel?' · '+roleLabel:''}</div><div class="lt-name">${escapeHtml(p.name)}</div><div class="lt-time" data-t="${p.id}">${fmtClock(timeTotal(p.id))}</div><div class="lt-actions"><button class="lt-act lt-goal" title="Gol">⚽<span class="lt-cnt">${st.goals||0}</span></button><button class="lt-act lt-foul" title="Falta">🟨<span class="lt-cnt">${st.fouls||0}</span></button></div>`;
+      // click en la ficha (fuera de los botones) = cambio
+      d.addEventListener('click',(e)=>{ if(e.target.closest('.lt-act')) return; tapOnCourt(p.id); });
+      d.querySelector('.lt-goal').addEventListener('click',(e)=>{ e.stopPropagation(); addGoal(p.id); });
+      d.querySelector('.lt-foul').addEventListener('click',(e)=>{ e.stopPropagation(); addFoul(p.id); });
       field.appendChild(d);
     });
   }
@@ -3265,7 +3430,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       const row=document.createElement('div');
       row.className='live-total-row'+(ensure(p.id).onCourt?' on-court':'');
       row.dataset.row=p.id;
-      row.innerHTML=`<span class="ltr-name"><small>${escapeHtml(p.number?'#'+p.number:'')}</small>${escapeHtml(p.name)}</span><span data-t1="${p.id}">${fmtClock(time1(p.id))}</span><span data-t2="${p.id}">${fmtClock(time2(p.id))}</span><span class="ltr-total" data-tt="${p.id}">${fmtClock(timeTotal(p.id))}</span>`;
+      row.innerHTML=`<span class="ltr-name"><small>${escapeHtml(p.number?'#'+p.number:'')}</small>${escapeHtml(p.name)}</span><span data-t1="${p.id}">${fmtClock(time1(p.id))}</span><span data-t2="${p.id}">${fmtClock(time2(p.id))}</span><span class="ltr-total" data-tt="${p.id}">${fmtClock(timeTotal(p.id))}</span><span data-g="${p.id}">${ensure(p.id).goals||0}</span><span data-f="${p.id}">${ensure(p.id).fouls||0}</span>`;
       cont.appendChild(row);
     });
   }
@@ -3287,6 +3452,8 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       else if(ev.type==='out'){ desc='Sale '+escapeHtml(ev.outName); cls='out'; label='Salida'; }
       else if(ev.type==='swap'){ desc='Cambio: sale '+escapeHtml(ev.outName)+', entra '+escapeHtml(ev.inName); cls='swap'; label='Cambio'; }
       else if(ev.type==='half'){ desc='— Fin del 1er tiempo —'; cls='half'; label='Tiempo'; }
+      else if(ev.type==='goal'){ desc='⚽ Gol de '+escapeHtml(ev.inName); cls='in'; label='Gol'; }
+      else if(ev.type==='foul'){ desc='🟨 Falta de '+escapeHtml(ev.inName); cls='out'; label='Falta'; }
       row.innerHTML=`<span class="llr-time">${fmtClock(ev.t)}</span><span class="llr-type ${cls}">${label}</span><span class="llr-desc">${desc}</span>`;
       el.appendChild(row);
     });
@@ -3303,42 +3470,25 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   document.getElementById('liveHalfBtnP').addEventListener('click', endFirstHalf);
   document.getElementById('liveClockResetP').addEventListener('click', resetClock);
 
-  // ----- Finalizar partido (archiva en Minutaje y limpia el vivo) -----
-  document.getElementById('liveFinishBtn').addEventListener('click', async () => {
-    if(events.length===0){ toast('No hay datos del partido para archivar.'); return; }
+  // ----- Finalizar partido (usa el rival ya elegido al inicio) -----
+  async function finishMatch(){
+    if(events.length===0){ if(!confirm('No hay eventos cargados. ¿Finalizar igual?')) return; }
     const sb=window.__sb; if(!sb){ toast('Sin conexión.'); return; }
     const clubId=await window.__getClubId(); if(!clubId){ toast('No se pudo identificar tu club.'); return; }
-    // consolidar el tiempo en curso de los que están en cancha
+    // consolidar el tiempo en curso
     Object.keys(state).forEach(pid => {
       const st=state[pid];
-      if(st.onCourt && st.lastInAt!==null){ const dt=clockSeconds-st.lastInAt; if(currentHalf===1) st.acc1+=dt; else st.acc2+=dt; st.lastInAt=clockSeconds; }
+      if(st.onCourt && st.lastInAt!==null){ const dt=nowSeconds()-st.lastInAt; if(currentHalf===1) st.acc1+=Math.max(0,dt); else st.acc2+=Math.max(0,dt); st.lastInAt=nowSeconds(); }
     });
-    const cat=(window.__getActiveCategory && window.__getActiveCategory())||null;
-    // traer partidos de esta categoría para linkear
-    let q=sb.from('stat_matches').select('id,rival,match_date').eq('club_id',clubId);
-    q=cat?q.eq('categoria',cat):q.is('categoria',null);
-    let matchesList=[];
-    try{ const {data}=await q; matchesList=data||[]; }catch(e){}
-    const cont=document.getElementById('liveMatchOptions');
-    cont.innerHTML='';
-    const opts=[{id:null,rival:'(Sin linkear — archivar suelto)',match_date:''}].concat(
-      matchesList.sort((a,b)=>(a.match_date||'').localeCompare(b.match_date||''))
-    );
-    opts.forEach(m=>{
-      const btn=document.createElement('button'); btn.className='cloud-item';
-      const when=m.match_date?new Date(m.match_date+'T00:00:00').toLocaleDateString('es-AR'):'';
-      btn.innerHTML=`<span class="ci-name">${escapeHtml(m.rival||'Sin rival')}</span><span class="ci-date">${when}</span>`;
-      btn.addEventListener('click',()=>finishAndArchive(m.id, m.rival||'Partido'));
-      cont.appendChild(btn);
-    });
-    document.getElementById('liveSaveModal').style.display='flex';
-  });
+    finishAndArchive(matchLinkId, matchRival||'Partido');
+  }
+  document.getElementById('liveFinishBtn').addEventListener('click', finishMatch);
+  document.getElementById('liveFinishBtnTop').addEventListener('click', finishMatch);
   document.getElementById('liveSaveClose').addEventListener('click',()=>{ document.getElementById('liveSaveModal').style.display='none'; });
   document.getElementById('liveSaveModal').addEventListener('click',e=>{ if(e.target.id==='liveSaveModal') e.target.style.display='none'; });
 
   async function finishAndArchive(matchId, rivalName){
     const sb=window.__sb; if(!sb) return;
-    document.getElementById('liveSaveModal').style.display='none';
     try{
       const clubId=await window.__getClubId();
       const cat=(window.__getActiveCategory && window.__getActiveCategory())||null;
@@ -3350,15 +3500,13 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       const res=await sb.from('live_sessions').insert(payload).select('id').single();
       if(res.error){ toast('No se pudo archivar: '+res.error.message); return; }
       toast('Partido archivado en Estadísticas → Minutaje ✓');
-      // Limpiar el vivo para el próximo partido
-      clockRunning=false; clearInterval(clockTimer);
-      clockSeconds=0; currentHalf=1; halfSplitAt=null; swapOutId=null; manualMin=halfMinutes;
-      events=[]; liveRowId=null;
-      Object.keys(state).forEach(pid => { state[pid]={onCourt:false,acc1:0,acc2:0,lastInAt:null}; });
-      updateClockUI(); renderField(); renderBench(); renderTotals(); renderLog(); updateOnCourt(); updateStep();
+      // Volver a la pantalla de setup para el próximo partido
+      setupCalled={}; matchRival=''; matchLinkId=null;
+      backToSetup();
     }catch(e){ console.error(e); toast('Error al archivar.'); }
   }
 
+  // ===== SETUP: cargar plantel y partidos para elegir =====
   async function loadSquad(){
     const sb=window.__sb; if(!sb) return;
     const clubId=await window.__getClubId(); if(!clubId) return;
@@ -3367,20 +3515,122 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       let q=sb.from('players').select('*').eq('club_id',clubId);
       q=cat?q.eq('categoria',cat):q.is('categoria',null);
       const {data}=await q;
-      squad=(data||[]).map(p=>({id:p.id,name:p.name,number:p.number||'',position:p.position||''}));
-      const ns={}; squad.forEach(p=>{ ns[p.id]=state[p.id]||{onCourt:false,acc1:0,acc2:0,lastInAt:null}; });
-      state=ns;
-      renderField(); renderBench(); renderTotals(); updateOnCourt();
+      allSquad=(data||[]).map(p=>({id:p.id,name:p.name,number:p.number||'',position:p.position||''}));
+      renderSetup();
     }catch(e){ console.error('live squad',e); }
+  }
+
+  async function renderSetup(){
+    // rivales (partidos de la categoría)
+    const sb=window.__sb; const cont=document.getElementById('liveSetupRivals');
+    if(cont){
+      cont.innerHTML='<p class="rd-empty">Cargando partidos…</p>';
+      try{
+        const clubId=await window.__getClubId();
+        const cat=(window.__getActiveCategory && window.__getActiveCategory())||null;
+        let q=sb.from('stat_matches').select('id,rival,match_date').eq('club_id',clubId);
+        q=cat?q.eq('categoria',cat):q.is('categoria',null);
+        const {data}=await q;
+        const list=(data||[]).sort((a,b)=>(a.match_date||'').localeCompare(b.match_date||''));
+        cont.innerHTML='';
+        if(list.length===0){ cont.innerHTML='<p class="rd-empty">No hay partidos cargados en Estadísticas → Partidos. Podés igual jugar sin linkear (elegí "Amistoso").</p>'; }
+        const opts=list.concat([{id:null,rival:'Amistoso / sin linkear',match_date:''}]);
+        opts.forEach(m=>{
+          const btn=document.createElement('button'); btn.className='cloud-item'+(matchLinkId===m.id&&matchRival===(m.rival||'')?' selected':'');
+          const when=m.match_date?new Date(m.match_date+'T00:00:00').toLocaleDateString('es-AR'):'';
+          btn.innerHTML=`<span class="ci-name">${escapeHtml(m.rival||'Sin rival')}</span><span class="ci-date">${when}</span>`;
+          btn.addEventListener('click',()=>{
+            matchLinkId=m.id; matchRival=m.rival||'Amistoso';
+            document.querySelectorAll('#liveSetupRivals .cloud-item').forEach(b=>b.classList.remove('selected'));
+            btn.classList.add('selected');
+            updateStartHint();
+          });
+          cont.appendChild(btn);
+        });
+      }catch(e){ cont.innerHTML='<p class="rd-empty">No se pudieron cargar los partidos.</p>'; }
+    }
+    // convocados
+    renderCallGrid();
+    updateStartHint();
+  }
+
+  function renderCallGrid(){
+    const grid=document.getElementById('liveCallGrid'); if(!grid) return;
+    if(allSquad.length===0){ grid.innerHTML='<p class="rd-empty">No hay jugadores en el plantel de esta categoría. Cargalos en Estadísticas → Plantel.</p>'; return; }
+    grid.innerHTML='';
+    allSquad.forEach(p=>{
+      const on=!!setupCalled[p.id];
+      const d=document.createElement('div');
+      d.className='live-call-item'+(on?' called':'');
+      d.innerHTML=`<span class="lci-check">${on?'✓':''}</span><span class="lci-num">${escapeHtml(p.number?'#'+p.number:'')}</span><span class="lci-name">${escapeHtml(p.name)}</span>`;
+      d.addEventListener('click',()=>{ setupCalled[p.id]=!setupCalled[p.id]; renderCallGrid(); updateStartHint(); });
+      grid.appendChild(d);
+    });
+  }
+
+  function calledCount(){ return allSquad.filter(p=>setupCalled[p.id]).length; }
+  function updateStartHint(){
+    const h=document.getElementById('liveStartHint'); if(!h) return;
+    const n=calledCount();
+    const rival = matchRival ? ('vs '+matchRival) : 'sin rival elegido';
+    h.textContent = `${rival} · ${n} convocado${n===1?'':'s'}`;
+  }
+
+  document.getElementById('liveCallAll').addEventListener('click',()=>{ allSquad.forEach(p=>setupCalled[p.id]=true); renderCallGrid(); updateStartHint(); });
+  document.getElementById('liveCallNone').addEventListener('click',()=>{ setupCalled={}; renderCallGrid(); updateStartHint(); });
+
+  document.getElementById('liveStartBtn').addEventListener('click',()=>{
+    if(!matchRival){ toast('Elegí el rival primero.'); return; }
+    const conv=allSquad.filter(p=>setupCalled[p.id]);
+    if(conv.length<5){ toast('Elegí al menos 5 convocados.'); return; }
+    // fijar el plantel del partido = convocados
+    squad=conv.map(p=>({...p}));
+    state={}; squad.forEach(p=>{ state[p.id]={onCourt:false,acc1:0,acc2:0,lastInAt:null,goals:0,fouls:0}; });
+    events=[]; clockSeconds=0; currentHalf=1; halfSplitAt=null; swapOutId=null; manualMin=halfMinutes; liveRowId=null;
+    inSetup=false;
+    document.getElementById('liveSetup').style.display='none';
+    document.getElementById('liveActive').style.display='block';
+    document.getElementById('liveNewMatchBtn').style.display='inline-flex';
+    document.getElementById('liveVsRival').textContent='vs '+matchRival;
+    document.getElementById('liveSubtitle').textContent='Partido en curso — vs '+matchRival;
+    updateClockType(); updateClockUI(); renderField(); renderBench(); renderTotals(); renderLog(); updateOnCourt(); updateStep();
+  });
+
+  document.getElementById('liveNewMatchBtn').addEventListener('click',()=>{
+    if(events.length>0 && !confirm('¿Empezar un partido nuevo? Si no finalizaste el actual, se perderán sus datos.')) return;
+    backToSetup();
+  });
+  function backToSetup(){
+    clockRunning=false; clearInterval(clockTimer);
+    inSetup=true;
+    document.getElementById('liveActive').style.display='none';
+    document.getElementById('liveSetup').style.display='block';
+    document.getElementById('liveNewMatchBtn').style.display='none';
+    document.getElementById('liveSubtitle').textContent='Elegí el rival y los convocados para arrancar.';
+    renderSetup();
+  }
+
+  // ===== Gol / Falta =====
+  function addGoal(pid){
+    const st=ensure(pid); st.goals++;
+    events.unshift({ t:nowSeconds(), type:'goal', inName:(squad.find(p=>p.id===pid)||{}).name||'', outName:'', half:currentHalf });
+    renderField(); renderTotals(); renderLog();
+    toast('⚽ Gol de '+((squad.find(p=>p.id===pid)||{}).name||''));
+  }
+  function addFoul(pid){
+    const st=ensure(pid); st.fouls++;
+    events.unshift({ t:nowSeconds(), type:'foul', inName:(squad.find(p=>p.id===pid)||{}).name||'', outName:'', half:currentHalf });
+    renderField(); renderTotals(); renderLog();
   }
 
   let started=false;
   window.__initLiveOnce=function(){
-    if(!started){ started=true; updateClockUI(); renderLog(); }
-    updateClockType(); loadSquad();
+    if(!started){ started=true; renderLog(); }
+    updateClockType();
+    if(inSetup){ document.getElementById('liveSetup').style.display='block'; document.getElementById('liveActive').style.display='none'; loadSquad(); }
   };
   if(window.__onCategorySubscribe){
-    window.__onCategorySubscribe(()=>{ if(started){ updateClockType(); loadSquad(); } });
+    window.__onCategorySubscribe(()=>{ if(started && inSetup){ setupCalled={}; matchRival=''; matchLinkId=null; updateClockType(); loadSquad(); } });
   }
 })();
 
@@ -3850,6 +4100,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
             <th class="mt-gc">GC</th>
             <th class="mt-fecha">Fecha del partido</th>
             <th class="mt-open"></th>
+            <th class="mt-del-h"></th>
           </tr>
         </thead>
         <tbody id="matchTableBody"></tbody>
@@ -3867,6 +4118,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
         <td class="mt-gc"><span class="${cls==='loss'?'loss':''}">${s.a}</span></td>
         <td><input type="date" class="mt-date-in" value="${escapeHtml(m.date||'')}"></td>
         <td class="mt-open"><button class="btn small mt-open-btn">Abrir →</button></td>
+        <td class="mt-del"><button class="btn-del-match" title="Borrar partido">✕</button></td>
       `;
       const rivalIn = tr.querySelector('.mt-rival-in');
       const dateIn = tr.querySelector('.mt-date-in');
@@ -3874,8 +4126,22 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       dateIn.addEventListener('change', e => { m.date = e.target.value; saveMatchRow(m); sortMatches(); renderMatchList(); });
       dateIn.addEventListener('input', e => { m.date = e.target.value; saveMatchRow(m); });
       tr.querySelector('.mt-open-btn').addEventListener('click', () => openMatch(m.id));
+      tr.querySelector('.btn-del-match').addEventListener('click', () => deleteMatch(m));
       body.appendChild(tr);
     });
+  }
+
+  async function deleteMatch(m){
+    const nombre = m.rival ? ('"'+m.rival+'"') : 'este partido';
+    if(!confirm('¿Borrar '+nombre+'? Se elimina el partido y sus goles. No afecta a los demás.')) return;
+    const sb = window.__sb;
+    if(sb && !String(m.id).startsWith('tmp')){
+      try{ await sb.from('stat_matches').delete().eq('id', m.id); }
+      catch(e){ console.error(e); toast('No se pudo borrar.'); return; }
+    }
+    matches = matches.filter(x => x.id !== m.id);
+    renderMatchList();
+    toast('Partido borrado.');
   }
 
   // Guardado directo de una fila de la planilla (rival/fecha), con debounce por id
@@ -4179,11 +4445,11 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     let html=`<button class="btn small" id="minsBack" style="margin-bottom:14px;">← Volver a la lista</button>
       <div class="annual-card">
         <div class="rd-card-head"><h3>${escapeHtml(s.name||'Partido')}</h3></div>
-        <div class="live-totals-head" style="margin-top:8px;"><span>Jugador</span><span>1er T</span><span>2do T</span><span>Total</span></div>
+        <div class="live-totals-head" style="margin-top:8px;grid-template-columns:1fr 62px 62px 70px 40px 40px;"><span>Jugador</span><span>1er T</span><span>2do T</span><span>Total</span><span>⚽</span><span>🟨</span></div>
         <div>`;
     if(rows.length===0){ html+='<p class="rd-empty">Sin datos de minutos.</p>'; }
     rows.forEach(r=>{
-      html+=`<div class="live-total-row"><span class="ltr-name">${escapeHtml(r.name)}</span><span>${fmtMin(r.t1)}</span><span>${fmtMin(r.t2)}</span><span class="ltr-total">${fmtMin(r.total)}</span></div>`;
+      html+=`<div class="live-total-row" style="grid-template-columns:1fr 62px 62px 70px 40px 40px;"><span class="ltr-name">${escapeHtml(r.name)}</span><span>${fmtMin(r.t1)}</span><span>${fmtMin(r.t2)}</span><span class="ltr-total">${fmtMin(r.total)}</span><span>${r.goals||0}</span><span>${r.fouls||0}</span></div>`;
     });
     html+='</div></div>';
     // eventos
@@ -4195,6 +4461,8 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
         else if(ev.type==='out'){desc='Sale '+escapeHtml(ev.outName);cls='out';label='Salida';}
         else if(ev.type==='swap'){desc='Sale '+escapeHtml(ev.outName)+', entra '+escapeHtml(ev.inName);cls='swap';label='Cambio';}
         else if(ev.type==='half'){desc='— Fin del 1er tiempo —';cls='half';label='Tiempo';}
+        else if(ev.type==='goal'){desc='⚽ Gol de '+escapeHtml(ev.inName);cls='in';label='Gol';}
+        else if(ev.type==='foul'){desc='🟨 Falta de '+escapeHtml(ev.inName);cls='out';label='Falta';}
         html+=`<div class="live-log-row"><span class="llr-time">${fmtMin(ev.t)}</span><span class="llr-type ${cls}">${label}</span><span class="llr-desc">${desc}</span></div>`;
       });
       html+='</div></div>';
@@ -4525,19 +4793,46 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
         <p class="record-note">Ganados/empatados/perdidos y vallas invictas corresponden al 2º semestre (partidos cargados en la app).</p>
       </div>
       <div class="annual-grid">
-        <div class="annual-card"><h3>⚽ Goleadores</h3>${rankHTML(goleadores)}</div>
-        <div class="annual-card"><h3>🅰 Asistencias</h3>${rankHTML(asistidores)}</div>
+        <div class="annual-card annual-featured">
+          <h3>⚽ Cómo convertimos</h3>
+          <div class="chart-row">${donutHTML(origenFavor, totalGF, 'var(--success)')}<div class="chart-bars">${barsHTML(origenFavor, totalGF, false, subFavor)}</div></div>
+        </div>
+        <div class="annual-card annual-featured">
+          <h3>🥅 Cómo nos convierten</h3>
+          <div class="chart-row">${donutHTML(origenContra, totalGA, 'var(--danger)')}<div class="chart-bars">${barsHTML(origenContra, totalGA, true, subContra)}</div></div>
+        </div>
       </div>
-      <div class="annual-grid">
-        <div class="annual-card"><h3>Cómo convertimos</h3>${barsHTML(origenFavor, totalGF, false, subFavor)}</div>
-        <div class="annual-card"><h3>Cómo nos convierten</h3>${barsHTML(origenContra, totalGA, true, subContra)}</div>
-      </div>
-      <div class="annual-grid">
-        <div class="annual-card"><h3>🎯 Detalle de goles a favor</h3><div class="goal-detail-list">${detailListHTML(golesFavorDetalle, false)}</div></div>
-        <div class="annual-card"><h3>🥅 Detalle de goles en contra</h3><div class="goal-detail-list">${detailListHTML(golesContraDetalle, true)}</div></div>
-      </div>
-      <div class="annual-card"><h3>🟨 Tarjetas</h3>${rankHTML(tarjetas)}</div>
+      <details class="annual-more">
+        <summary>Ver más estadísticas (goleadores, asistencias, detalle, tarjetas)</summary>
+        <div class="annual-grid" style="margin-top:14px;">
+          <div class="annual-card"><h3>⚽ Goleadores</h3>${rankHTML(goleadores)}</div>
+          <div class="annual-card"><h3>🅰 Asistencias</h3>${rankHTML(asistidores)}</div>
+        </div>
+        <div class="annual-grid">
+          <div class="annual-card"><h3>🎯 Detalle de goles a favor</h3><div class="goal-detail-list">${detailListHTML(golesFavorDetalle, false)}</div></div>
+          <div class="annual-card"><h3>🥅 Detalle de goles en contra</h3><div class="goal-detail-list">${detailListHTML(golesContraDetalle, true)}</div></div>
+        </div>
+        <div class="annual-card"><h3>🟨 Tarjetas</h3>${rankHTML(tarjetas)}</div>
+      </details>
     `;
+  }
+
+  // Gráfico de dona (distribución de orígenes de gol)
+  function donutHTML(obj, total, color){
+    const entries = Object.entries(obj).filter(([k,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+    if(!entries.length || !total){ return '<div class="donut-empty">Sin datos</div>'; }
+    const palette = ['#2F8FCB','#E5342A','#4CAF6D','#E0A93B','#9B6FCB','#40BFB0','#D9668F','#7A8CA0'];
+    const R=52, C=2*Math.PI*R, cx=64, cy=64;
+    let acc=0, segs='';
+    entries.forEach(([k,v],i)=>{
+      const frac=v/total;
+      const dash=frac*C;
+      const col=palette[i%palette.length];
+      segs+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${col}" stroke-width="18" stroke-dasharray="${dash} ${C-dash}" stroke-dashoffset="${-acc*C}" transform="rotate(-90 ${cx} ${cy})"><title>${escapeHtml(k)}: ${v}</title></circle>`;
+      acc+=frac;
+    });
+    const leg=entries.map(([k,v],i)=>`<div class="donut-leg-item"><span class="dl-dot" style="background:${palette[i%palette.length]}"></span>${escapeHtml(k)} <b>${v}</b></div>`).join('');
+    return `<div class="donut-wrap"><svg viewBox="0 0 128 128" class="donut-svg">${segs}<text x="64" y="60" text-anchor="middle" class="donut-total">${total}</text><text x="64" y="76" text-anchor="middle" class="donut-sub">goles</text></svg><div class="donut-legend">${leg}</div></div>`;
   }
 
   // ========== EDITOR DE TAGS ==========
