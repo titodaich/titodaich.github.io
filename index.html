@@ -519,11 +519,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 @media (max-width:820px){.live-field-layout{grid-template-columns:1fr;}}
 .live-field-label{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:8px;}
 .live-field-wrap{}
-.live-field{position:relative;background:repeating-linear-gradient(90deg,#cd9860 0px,#cd9860 24px,#c28a52 24px,#c28a52 48px);border:2px solid rgba(255,255,255,0.45);border-radius:14px;min-height:360px;padding:20px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto;gap:14px;align-content:center;justify-items:center;overflow:hidden;}
-.live-field::before{content:'';position:absolute;left:50%;top:8px;bottom:8px;width:2px;background:rgba(255,255,255,0.55);}
-.live-field::after{content:'';position:absolute;left:50%;top:50%;width:70px;height:70px;border:2px solid rgba(255,255,255,0.55);border-radius:50%;transform:translate(-50%,-50%);}
-.live-field .field-empty{grid-column:1/-1;align-self:center;color:rgba(255,255,255,0.9);font-family:'JetBrains Mono',monospace;font-size:12px;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,0.5);}
-.live-token{position:relative;z-index:1;background:rgba(16,22,28,0.72);border:2px solid #fff;border-radius:12px;padding:10px 8px;width:100%;max-width:150px;text-align:center;cursor:pointer;transition:all .12s ease;box-shadow:0 3px 10px rgba(0,0,0,0.35);}
+.live-field{position:relative;background:repeating-linear-gradient(0deg,#cd9860 0px,#cd9860 26px,#c28a52 26px,#c28a52 52px);border:2px solid rgba(255,255,255,0.5);border-radius:14px;height:520px;overflow:hidden;}
+.live-field::before{content:'';position:absolute;top:50%;left:8px;right:8px;height:2px;background:rgba(255,255,255,0.55);}
+.live-field::after{content:'';position:absolute;left:50%;top:50%;width:80px;height:80px;border:2px solid rgba(255,255,255,0.55);border-radius:50%;transform:translate(-50%,-50%);}
+.live-field .field-goal{position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:120px;height:8px;background:rgba(255,255,255,0.85);border-radius:2px;}
+.live-field .field-area{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:200px;height:90px;border:2px solid rgba(255,255,255,0.4);border-bottom:none;border-radius:100px 100px 0 0;}
+.live-field .field-empty{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,0.9);font-family:'JetBrains Mono',monospace;font-size:12px;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,0.5);width:80%;}
+.live-token{position:absolute;z-index:2;transform:translate(-50%,-50%);background:rgba(16,22,28,0.72);border:2px solid #fff;border-radius:12px;padding:8px 6px;width:112px;text-align:center;cursor:pointer;transition:all .12s ease;box-shadow:0 3px 10px rgba(0,0,0,0.4);}
 .live-token:hover{background:rgba(16,22,28,0.75);}
 .live-token.swap-out{border-color:var(--danger);background:rgba(240,85,63,0.5);}
 .live-token .lt-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,0.8);}
@@ -3023,18 +3025,57 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   }
 
   // ----- Render cancha + banco -----
+  // Detecta el rol del jugador desde su campo 'position'
+  function roleOf(p){
+    const s = (p.position||'').toLowerCase();
+    if(/arq|golero|arquero|gk|porter/.test(s)) return 'arquero';
+    if(/cierre|fijo|last|defen/.test(s)) return 'cierre';
+    if(/pivot|pívot|pivote|delan|punta/.test(s)) return 'pivot';
+    if(/ala|lateral|wing|carril/.test(s)) return 'ala';
+    return 'otro';
+  }
+  // Coordenadas (%) por rol. Cancha vertical: arco abajo (y alto), pivot arriba (y bajo).
+  function slotsForField(enCancha){
+    // Posiciones base por rol
+    const base = {
+      arquero: [{x:50,y:90}],
+      cierre:  [{x:50,y:68}],
+      ala:     [{x:22,y:48},{x:78,y:48}],
+      pivot:   [{x:50,y:20}],
+      otro:    [{x:35,y:58},{x:65,y:58},{x:50,y:38},{x:30,y:32},{x:70,y:32}]
+    };
+    const used = { arquero:0, ala:0, cierre:0, pivot:0, otro:0 };
+    const result = [];
+    enCancha.forEach(p => {
+      let role = roleOf(p);
+      let slot;
+      const arr = base[role];
+      if(arr && used[role] < arr.length){ slot = arr[used[role]]; used[role]++; }
+      else { // si el rol está lleno o es 'otro', usar posiciones libres de 'otro'
+        slot = base.otro[used.otro % base.otro.length]; used.otro++;
+      }
+      result.push({ p, slot, role });
+    });
+    return result;
+  }
+
   function renderField(){
     const field=document.getElementById('liveField'); if(!field) return;
     const enCancha = squad.filter(p=>ensure(p.id).onCourt);
+    // elementos fijos de la cancha
+    let fixed = '<div class="field-area"></div><div class="field-goal"></div>';
     if(enCancha.length===0){
-      field.innerHTML = '<div class="field-empty">Todavía no hay jugadores en cancha.<br>Tocá suplentes del banco para armar el equipo (máx 5).</div>';
+      field.innerHTML = fixed + '<div class="field-empty">Todavía no hay jugadores en cancha.<br>Tocá suplentes del banco para armar el equipo (máx 5).</div>';
       return;
     }
-    field.innerHTML='';
-    enCancha.forEach(p=>{
+    field.innerHTML = fixed;
+    slotsForField(enCancha).forEach(({p, slot, role}) => {
       const d=document.createElement('div');
       d.className='live-token'+(swapOutId===p.id?' swap-out':'');
-      d.innerHTML=`<div class="lt-num">${escapeHtml(p.number?'#'+p.number:'')}</div><div class="lt-name">${escapeHtml(p.name)}</div><div class="lt-time" data-t="${p.id}">${fmtClock(timeTotal(p.id))}</div>`;
+      d.style.left = slot.x + '%';
+      d.style.top = slot.y + '%';
+      const roleLabel = role==='otro' ? '' : role.charAt(0).toUpperCase()+role.slice(1);
+      d.innerHTML=`<div class="lt-num">${escapeHtml(p.number?'#'+p.number:'')}${roleLabel?' · '+roleLabel:''}</div><div class="lt-name">${escapeHtml(p.name)}</div><div class="lt-time" data-t="${p.id}">${fmtClock(timeTotal(p.id))}</div>`;
       d.addEventListener('click',()=>tapOnCourt(p.id));
       field.appendChild(d);
     });
