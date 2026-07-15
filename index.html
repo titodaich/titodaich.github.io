@@ -509,6 +509,16 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .live-clock-type.parado{color:var(--accent);border:1px solid var(--accent);}
 .live-clock-type.corrido{color:var(--accent-2);border:1px solid var(--accent-2);}
 .live-clock-btns{display:flex;gap:8px;flex-wrap:wrap;}
+.live-manual-ctrls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.live-manual-ctrls .lmc-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.live-manual-ctrls .lmc-min{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:var(--accent);min-width:46px;text-align:center;}
+.live-manual-ctrls .lmc-btn{min-width:44px;}
+.time-picker{display:flex;align-items:center;justify-content:center;gap:12px;}
+.time-picker .tp-col{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.time-picker .tp-btn{min-width:56px;padding:6px;}
+.time-picker .tp-val{font-family:'JetBrains Mono',monospace;font-size:34px;font-weight:700;color:var(--chalk);min-width:56px;text-align:center;}
+.time-picker .tp-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
+.time-picker .tp-sep{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:700;color:var(--muted);align-self:flex-start;margin-top:34px;}
 .live-half-badge{font-family:'Oswald',sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent);padding:5px 12px;border:1px solid var(--accent);border-radius:999px;}
 .live-oncourt{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;color:var(--accent-2);text-transform:uppercase;letter-spacing:0.5px;margin-left:auto;}
 .live-swap-hint{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--chalk);}
@@ -1341,6 +1351,11 @@ body.editor-active #screen-editor{ display:block; }
           </div>
         </div>
 
+        <div class="rd-card" id="matchMinutesCard" style="display:none;margin-top:16px;">
+          <div class="rd-card-head"><h3>⏱ Minutos jugados</h3><span class="rd-saved" id="matchMinutesSrc"></span></div>
+          <div id="matchMinutesBody"></div>
+        </div>
+
         <div class="rd-footer">
           <button class="btn danger-outline" id="deleteMatchBtn">Eliminar partido</button>
           <div style="display:flex;gap:10px;align-items:center;">
@@ -1634,10 +1649,22 @@ body.editor-active #screen-editor{ display:block; }
         <div class="live-clock" id="liveClock">00:00</div>
         <div class="live-clock-type" id="liveClockType"></div>
       </div>
-      <div class="live-clock-btns">
+      <div class="live-clock-btns" id="liveAutoCtrls">
         <button class="btn small primary" id="liveClockToggle">▶ Iniciar</button>
         <button class="btn small" id="liveHalfBtn">⏱ Fin 1er tiempo</button>
         <button class="btn small" id="liveClockReset">↺ Reiniciar</button>
+      </div>
+      <div class="live-manual-ctrls" id="liveManualCtrls" style="display:none;">
+        <span class="lmc-label">Minuto (regresivo):</span>
+        <button class="btn small lmc-btn" id="liveMinUp">+1'</button>
+        <span class="lmc-min" id="liveManualMin">20'</span>
+        <button class="btn small lmc-btn" id="liveMinDown">−1'</button>
+        <button class="btn small" id="liveHalfBtnM">⏱ Fin 1er tiempo</button>
+        <button class="btn small" id="liveClockResetM">↺ Reiniciar</button>
+      </div>
+      <div class="live-clock-btns" id="liveParadoCtrls" style="display:none;">
+        <button class="btn small" id="liveHalfBtnP">⏱ Fin 1er tiempo</button>
+        <button class="btn small" id="liveClockResetP">↺ Reiniciar</button>
       </div>
       <div class="live-half-badge" id="liveHalfBadge">1er tiempo</div>
       <div class="live-oncourt" id="liveOnCourt">0 / 5 en cancha</div>
@@ -1670,7 +1697,7 @@ body.editor-active #screen-editor{ display:block; }
     <div class="live-log-wrap">
       <div class="rd-card-head">
         <h3>Registro de eventos</h3>
-        <button class="btn small" id="liveSaveBtn">☁ Guardar registro</button>
+        <button class="btn small primary" id="liveFinishBtn">🏁 Finalizar partido</button>
       </div>
       <div class="live-log" id="liveLog"><p class="rd-empty">Todavía no hay eventos. Iniciá el reloj y armá el equipo.</p></div>
     </div>
@@ -1688,6 +1715,37 @@ body.editor-active #screen-editor{ display:block; }
     <div class="cloud-list">
       <p class="rd-empty" style="margin-bottom:10px;">Elegí a qué partido asociar estos minutos (de Estadísticas → Partidos).</p>
       <div id="liveMatchOptions"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal cargar minuto:segundo (reloj parado) -->
+<div class="cloud-modal-overlay" id="liveTimeModal" style="display:none;">
+  <div class="cloud-modal" style="max-width:340px;">
+    <div class="cloud-modal-head">
+      <h3 id="liveTimeTitle">Minuto de entrada</h3>
+      <button class="cloud-close" id="liveTimeClose">✕</button>
+    </div>
+    <div style="padding:4px 2px 8px;">
+      <p class="rd-empty" id="liveTimeSub" style="margin-bottom:14px;">Reloj regresivo (20 → 0).</p>
+      <div class="time-picker">
+        <div class="tp-col">
+          <button class="btn small tp-btn" data-tp="min-up">▲</button>
+          <div class="tp-val" id="tpMin">20</div>
+          <button class="btn small tp-btn" data-tp="min-down">▼</button>
+          <div class="tp-lbl">min</div>
+        </div>
+        <div class="tp-sep">:</div>
+        <div class="tp-col">
+          <button class="btn small tp-btn" data-tp="sec-up">▲</button>
+          <div class="tp-val" id="tpSec">00</div>
+          <button class="btn small tp-btn" data-tp="sec-down">▼</button>
+          <div class="tp-lbl">seg</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px;">
+        <button class="btn primary" id="liveTimeOk" style="flex:1;">Confirmar</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2915,16 +2973,78 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     const info = document.getElementById('liveClockType');
     if(info){
       info.textContent = parado
-        ? '⏱ Reloj PARADO · 2×20\' (frená cuando la pelota sale)'
+        ? '⏱ Reloj PARADO · 2×20\' · cargá los minutos a mano'
         : '⏱ Reloj CORRIDO · 2×25\' (corre sin parar)';
       info.className = 'live-clock-type ' + clockType;
     }
+    // mostrar/ocultar controles según el tipo
+    const manualCtrls = document.getElementById('liveManualCtrls');
+    const autoCtrls = document.getElementById('liveAutoCtrls');
+    if(manualCtrls) manualCtrls.style.display = 'none';   // en parado ya no se usa el +/− global
+    if(autoCtrls) autoCtrls.style.display = parado ? 'none' : 'flex';
+    // en parado, botones de tiempo/reset propios
+    const paradoCtrls = document.getElementById('liveParadoCtrls');
+    if(paradoCtrls) paradoCtrls.style.display = parado ? 'flex' : 'none';
+    if(parado && events.length===0 && countOnCourt()===0){ manualMin = halfMinutes; }
+    updateClockUI();
   }
+
+  // ----- Reloj MANUAL (modo parado, regresivo 20→0) -----
+  // manualMin = minuto que marca el reloj oficial ahora (arranca en halfMinutes y baja)
+  let manualMin = halfMinutes;
+  function setManualMin(v){
+    manualMin = Math.max(0, Math.min(halfMinutes, v));
+    updateClockUI(); updateTimes();
+  }
+  // convierte el minuto regresivo a "segundos transcurridos" del tiempo actual
+  function manualElapsed(){ return (halfMinutes - manualMin) * 60; }
+
+  // ----- Picker de minuto:segundo (modo parado) -----
+  // Abre el modal y llama a onOk(elapsedSeconds) con el tramo elegido (regresivo)
+  let tpMin = 20, tpSec = 0, tpOnOk = null;
+  function openTimePicker(title, sub, defMin, defSec, onOk){
+    tpMin = Math.max(0, Math.min(halfMinutes, defMin));
+    tpSec = Math.max(0, Math.min(59, defSec));
+    tpOnOk = onOk;
+    document.getElementById('liveTimeTitle').textContent = title;
+    document.getElementById('liveTimeSub').textContent = sub;
+    renderTP();
+    document.getElementById('liveTimeModal').style.display='flex';
+  }
+  function renderTP(){
+    document.getElementById('tpMin').textContent = String(tpMin).padStart(2,'0');
+    document.getElementById('tpSec').textContent = String(tpSec).padStart(2,'0');
+  }
+  // segundos transcurridos del tiempo, desde un reloj regresivo min:seg
+  function regresivoToElapsed(min, sec){ return (halfMinutes*60) - (min*60 + sec); }
+
+  document.querySelectorAll('#liveTimeModal .tp-btn').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const a=b.dataset.tp;
+      if(a==='min-up') tpMin=Math.min(halfMinutes,tpMin+1);
+      else if(a==='min-down') tpMin=Math.max(0,tpMin-1);
+      else if(a==='sec-up') tpSec=(tpSec+1)%60;
+      else if(a==='sec-down') tpSec=(tpSec+59)%60;
+      renderTP();
+    });
+  });
+  document.getElementById('liveTimeClose').addEventListener('click',()=>{ document.getElementById('liveTimeModal').style.display='none'; tpOnOk=null; });
+  document.getElementById('liveTimeModal').addEventListener('click',e=>{ if(e.target.id==='liveTimeModal'){ e.target.style.display='none'; tpOnOk=null; } });
+  document.getElementById('liveTimeOk').addEventListener('click',()=>{
+    document.getElementById('liveTimeModal').style.display='none';
+    if(tpOnOk){ const fn=tpOnOk; tpOnOk=null; fn(regresivoToElapsed(tpMin,tpSec), tpMin, tpSec); }
+  });
 
   function ensure(pid){ if(!state[pid]) state[pid] = {onCourt:false, acc1:0, acc2:0, lastInAt:null}; return state[pid]; }
 
   // tiempo acumulado en el tiempo actual (en vivo)
-  function liveExtra(st){ return (st.onCourt && st.lastInAt!==null) ? (clockSeconds - st.lastInAt) : 0; }
+  // "reloj efectivo": en corrido usa clockSeconds; en parado usa el minuto manual regresivo
+  function nowSeconds(){ return clockType==='parado' ? manualElapsed() : clockSeconds; }
+  // en corrido, el tramo abierto suma en vivo; en parado, solo cuenta lo ya consolidado (el tramo se cierra al salir con su minuto)
+  function liveExtra(st){
+    if(clockType==='parado') return 0;
+    return (st.onCourt && st.lastInAt!==null) ? (nowSeconds() - st.lastInAt) : 0;
+  }
   function time1(pid){ const st=ensure(pid); return st.acc1 + (currentHalf===1 ? liveExtra(st) : 0); }
   function time2(pid){ const st=ensure(pid); return st.acc2 + (currentHalf===2 ? liveExtra(st) : 0); }
   function timeTotal(pid){ return time1(pid) + time2(pid); }
@@ -2938,12 +3058,19 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   }
   function updateClockUI(){
     const el = document.getElementById('liveClock'); if(!el) return;
-    el.textContent = fmtClock(clockSeconds);
-    el.classList.toggle('running', clockRunning);
+    if(clockType==='parado'){
+      el.textContent = currentHalf===1 ? '1º T' : '2º T';
+      el.classList.remove('running');
+    } else {
+      el.textContent = fmtClock(clockSeconds);
+      el.classList.toggle('running', clockRunning);
+    }
     const t = document.getElementById('liveClockToggle');
     if(t) t.textContent = clockRunning ? '⏸ Pausar' : '▶ Iniciar';
     const badge = document.getElementById('liveHalfBadge');
     if(badge) badge.textContent = currentHalf===1 ? '1er tiempo' : '2do tiempo';
+    const mm = document.getElementById('liveManualMin');
+    if(mm) mm.textContent = manualMin + "'";
   }
   function startClock(){
     if(clockRunning){ clockRunning=false; clearInterval(clockTimer); updateClockUI(); return; }
@@ -2954,7 +3081,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   function resetClock(){
     if(!confirm('¿Reiniciar todo? Se borran tiempos y eventos de esta sesión.')) return;
     clockRunning=false; clearInterval(clockTimer);
-    clockSeconds=0; currentHalf=1; halfSplitAt=null; swapOutId=null;
+    clockSeconds=0; currentHalf=1; halfSplitAt=null; swapOutId=null; manualMin=halfMinutes;
     events=[]; liveRowId=null;
     Object.keys(state).forEach(pid => { state[pid]={onCourt:false,acc1:0,acc2:0,lastInAt:null}; });
     updateClockUI(); renderField(); renderTotals(); renderLog(); updateOnCourt();
@@ -2965,28 +3092,31 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     if(currentHalf !== 1){ toast('Ya estás en el 2do tiempo.'); return; }
     if(!confirm('¿Terminar el 1er tiempo? Los minutos jugados hasta ahora quedan como "1er T".')) return;
     // consolidar lo jugado hasta acá en acc1 para los que están en cancha
+    const now = nowSeconds();
     Object.keys(state).forEach(pid => {
       const st = state[pid];
-      if(st.onCourt && st.lastInAt!==null){ st.acc1 += (clockSeconds - st.lastInAt); st.lastInAt = clockSeconds; }
+      if(st.onCourt && st.lastInAt!==null){ st.acc1 += Math.max(0, now - st.lastInAt); st.lastInAt = (clockType==='parado' ? 0 : now); }
     });
     halfSplitAt = clockSeconds;
     currentHalf = 2;
     clockRunning=false; clearInterval(clockTimer);
-    events.unshift({ t:clockSeconds, type:'half', inName:'', outName:'' });
+    events.unshift({ t:now, type:'half', inName:'', outName:'' });
+    // en parado, el 2do tiempo arranca de nuevo en 20'
+    if(clockType==='parado'){ manualMin = halfMinutes; Object.keys(state).forEach(pid=>{ if(state[pid].onCourt) state[pid].lastInAt = manualElapsed(); }); }
     updateClockUI(); renderField(); renderTotals(); renderLog();
-    toast('Fin del 1er tiempo. Cuando arranque el 2do, tocá Iniciar.');
+    toast('Fin del 1er tiempo. En el 2do, el reloj vuelve a ' + halfMinutes + '\'.');
   }
 
   // ----- Acciones -----
   function playerIn(pid){
     if(countOnCourt() >= 5){ toast('Ya hay 5 en cancha. Sacá a uno primero.'); return false; }
-    const st = ensure(pid); st.onCourt = true; st.lastInAt = clockSeconds; return true;
+    const st = ensure(pid); st.onCourt = true; st.lastInAt = nowSeconds(); return true;
   }
   function playerOut(pid){
     const st = ensure(pid);
     if(st.onCourt && st.lastInAt!==null){
-      const dt = clockSeconds - st.lastInAt;
-      if(currentHalf===1) st.acc1 += dt; else st.acc2 += dt;
+      const dt = nowSeconds() - st.lastInAt;
+      if(currentHalf===1) st.acc1 += Math.max(0,dt); else st.acc2 += Math.max(0,dt);
     }
     st.onCourt=false; st.lastInAt=null;
   }
@@ -2995,12 +3125,27 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   }
   function logEvent(type, inId, outId){
     const inP=squad.find(p=>p.id===inId), outP=squad.find(p=>p.id===outId);
-    events.unshift({ t:clockSeconds, type, inName:inP?inP.name:'', outName:outP?outP.name:'', half:currentHalf });
+    events.unshift({ t:nowSeconds(), type, inName:inP?inP.name:'', outName:outP?outP.name:'', half:currentHalf, min:(clockType==='parado'?manualMin:null) });
     renderLog();
   }
 
-  // Tocar un TITULAR (en cancha): lo selecciona para salir, o lo saca si no hay banco
+  // Tocar un TITULAR (en cancha): lo saca (en parado pide minuto de salida)
   function tapOnCourt(pid){
+    if(clockType==='parado'){
+      const st=ensure(pid);
+      const entradaMin = st.lastInAt!==null ? Math.round((halfMinutes*60 - st.lastInAt)/60) : halfMinutes;
+      openTimePicker('¿En qué minuto SALIÓ?', 'Entró en '+fmtClock(st.lastInAt!==null?st.lastInAt:0)+' de juego. Poné el minuto de salida (regresivo).', Math.max(0,entradaMin-1), 0, (elapsed)=>{
+        // salida no puede ser antes que la entrada
+        const outElapsed = Math.max(st.lastInAt||0, elapsed);
+        const dt = outElapsed - (st.lastInAt||0);
+        if(currentHalf===1) st.acc1 += dt; else st.acc2 += dt;
+        st.onCourt=false; st.lastInAt=null;
+        logEvent('out', null, pid);
+        renderField(); renderBench(); renderTotals(); updateOnCourt();
+      });
+      return;
+    }
+    // corrido: selección para cambio
     if(swapOutId === pid){ swapOutId=null; updateStep(); renderField(); renderBench(); return; }
     swapOutId = pid;
     updateStep('Sale ' + (squad.find(p=>p.id===pid)||{}).name + ' → tocá quién ENTRA del banco.');
@@ -3008,13 +3153,21 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   }
   // Tocar un SUPLENTE (banco)
   function tapBench(pid){
+    if(clockType==='parado'){
+      if(countOnCourt() >= 5){ toast('Ya hay 5 en cancha. Sacá a uno primero.'); return; }
+      openTimePicker('¿En qué minuto ENTRÓ?', 'Reloj regresivo ('+halfMinutes+' → 0).', halfMinutes, 0, (elapsed)=>{
+        const st=ensure(pid); st.onCourt=true; st.lastInAt=elapsed;
+        logEvent('in', pid, null);
+        renderField(); renderBench(); renderTotals(); updateOnCourt();
+      });
+      return;
+    }
+    // corrido
     if(swapOutId !== null){
-      // cambio: sale swapOutId, entra pid
       playerOut(swapOutId); playerIn(pid);
       logEvent('swap', pid, swapOutId);
       swapOutId=null; updateStep();
     } else {
-      // sin selección: entra directo si hay lugar
       if(playerIn(pid)) logEvent('in', pid, null);
     }
     renderField(); renderBench(); renderTotals(); updateOnCourt();
@@ -3142,30 +3295,40 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   document.getElementById('liveClockToggle').addEventListener('click', startClock);
   document.getElementById('liveClockReset').addEventListener('click', resetClock);
   document.getElementById('liveHalfBtn').addEventListener('click', endFirstHalf);
+  // controles del reloj manual (modo parado)
+  document.getElementById('liveMinUp').addEventListener('click', ()=>{ setManualMin(manualMin+1); });
+  document.getElementById('liveMinDown').addEventListener('click', ()=>{ setManualMin(manualMin-1); });
+  document.getElementById('liveHalfBtnM').addEventListener('click', endFirstHalf);
+  document.getElementById('liveClockResetM').addEventListener('click', resetClock);
+  document.getElementById('liveHalfBtnP').addEventListener('click', endFirstHalf);
+  document.getElementById('liveClockResetP').addEventListener('click', resetClock);
 
-  // ----- Guardar (linkeando a un partido de Estadísticas) -----
-  document.getElementById('liveSaveBtn').addEventListener('click', async () => {
-    if(events.length===0){ toast('No hay eventos para guardar.'); return; }
+  // ----- Finalizar partido (archiva en Minutaje y limpia el vivo) -----
+  document.getElementById('liveFinishBtn').addEventListener('click', async () => {
+    if(events.length===0){ toast('No hay datos del partido para archivar.'); return; }
     const sb=window.__sb; if(!sb){ toast('Sin conexión.'); return; }
     const clubId=await window.__getClubId(); if(!clubId){ toast('No se pudo identificar tu club.'); return; }
+    // consolidar el tiempo en curso de los que están en cancha
+    Object.keys(state).forEach(pid => {
+      const st=state[pid];
+      if(st.onCourt && st.lastInAt!==null){ const dt=clockSeconds-st.lastInAt; if(currentHalf===1) st.acc1+=dt; else st.acc2+=dt; st.lastInAt=clockSeconds; }
+    });
     const cat=(window.__getActiveCategory && window.__getActiveCategory())||null;
-    // traer partidos de esta categoría
+    // traer partidos de esta categoría para linkear
     let q=sb.from('stat_matches').select('id,rival,match_date').eq('club_id',clubId);
     q=cat?q.eq('categoria',cat):q.is('categoria',null);
     let matchesList=[];
     try{ const {data}=await q; matchesList=data||[]; }catch(e){}
     const cont=document.getElementById('liveMatchOptions');
     cont.innerHTML='';
-    // opción: sin linkear
-    const opts=[{id:null,rival:'(Sin linkear — guardar suelto)',match_date:''}].concat(
+    const opts=[{id:null,rival:'(Sin linkear — archivar suelto)',match_date:''}].concat(
       matchesList.sort((a,b)=>(a.match_date||'').localeCompare(b.match_date||''))
     );
     opts.forEach(m=>{
-      const btn=document.createElement('button');
-      btn.className='cloud-item';
+      const btn=document.createElement('button'); btn.className='cloud-item';
       const when=m.match_date?new Date(m.match_date+'T00:00:00').toLocaleDateString('es-AR'):'';
       btn.innerHTML=`<span class="ci-name">${escapeHtml(m.rival||'Sin rival')}</span><span class="ci-date">${when}</span>`;
-      btn.addEventListener('click',()=>doSaveLive(m.id, m.rival||'Partido'));
+      btn.addEventListener('click',()=>finishAndArchive(m.id, m.rival||'Partido'));
       cont.appendChild(btn);
     });
     document.getElementById('liveSaveModal').style.display='flex';
@@ -3173,7 +3336,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   document.getElementById('liveSaveClose').addEventListener('click',()=>{ document.getElementById('liveSaveModal').style.display='none'; });
   document.getElementById('liveSaveModal').addEventListener('click',e=>{ if(e.target.id==='liveSaveModal') e.target.style.display='none'; });
 
-  async function doSaveLive(matchId, rivalName){
+  async function finishAndArchive(matchId, rivalName){
     const sb=window.__sb; if(!sb) return;
     document.getElementById('liveSaveModal').style.display='none';
     try{
@@ -3185,9 +3348,15 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
         events, totals:totalsSnapshot()
       };
       const res=await sb.from('live_sessions').insert(payload).select('id').single();
-      if(res.error){ toast('No se pudo guardar: '+res.error.message); }
-      else { liveRowId=res.data.id; toast('Minutaje guardado en Estadísticas ✓'); }
-    }catch(e){ console.error(e); toast('Error al guardar.'); }
+      if(res.error){ toast('No se pudo archivar: '+res.error.message); return; }
+      toast('Partido archivado en Estadísticas → Minutaje ✓');
+      // Limpiar el vivo para el próximo partido
+      clockRunning=false; clearInterval(clockTimer);
+      clockSeconds=0; currentHalf=1; halfSplitAt=null; swapOutId=null; manualMin=halfMinutes;
+      events=[]; liveRowId=null;
+      Object.keys(state).forEach(pid => { state[pid]={onCourt:false,acc1:0,acc2:0,lastInAt:null}; });
+      updateClockUI(); renderField(); renderBench(); renderTotals(); renderLog(); updateOnCourt(); updateStep();
+    }catch(e){ console.error(e); toast('Error al archivar.'); }
   }
 
   async function loadSquad(){
@@ -3750,6 +3919,33 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     document.getElementById('matchList').style.display = 'none';
     document.getElementById('matchDetail').style.display = 'block';
     window.scrollTo(0,0);
+    loadMatchMinutes(m.id);
+  }
+
+  const fmtMinM = (s) => { s=Math.round(s||0); const mm=Math.floor(s/60),x=s%60; return String(mm).padStart(2,'0')+':'+String(x).padStart(2,'0'); };
+  async function loadMatchMinutes(matchId){
+    const card = document.getElementById('matchMinutesCard');
+    const body = document.getElementById('matchMinutesBody');
+    const src = document.getElementById('matchMinutesSrc');
+    if(!card) return;
+    card.style.display = 'none';
+    const sb = window.__sb; if(!sb) return;
+    try{
+      const clubId = await window.__getClubId(); if(!clubId) return;
+      const { data } = await sb.from('live_sessions').select('*').eq('club_id', clubId).eq('match_id', matchId).order('created_at',{ascending:false});
+      if(!data || data.length===0) return;   // no hay minutaje para este partido
+      const s = data[0];
+      const totals = s.totals || {};
+      const rows = Object.keys(totals).map(name=>({name, ...totals[name]})).sort((a,b)=>(b.total||0)-(a.total||0));
+      if(rows.length===0) return;
+      let html = `<div class="live-totals-head" style="margin-top:4px;"><span>Jugador</span><span>1er T</span><span>2do T</span><span>Total</span></div>`;
+      rows.forEach(r=>{
+        html += `<div class="live-total-row"><span class="ltr-name">${escapeHtml(r.name)}</span><span>${fmtMinM(r.t1)}</span><span>${fmtMinM(r.t2)}</span><span class="ltr-total">${fmtMinM(r.total)}</span></div>`;
+      });
+      body.innerHTML = html;
+      src.textContent = 'Cargado desde 🔴 En vivo';
+      card.style.display = 'block';
+    }catch(e){ /* si falla (ej: falta columna), no mostrar nada */ }
   }
 
   function saveMatch(immediate){
