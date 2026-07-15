@@ -1149,11 +1149,11 @@ body.editor-active #screen-editor{ display:block; }
         <label class="remember"><input type="checkbox" id="rememberMe" checked> Recordarme</label>
         <a href="#" class="link-muted" id="forgotLink">¿Olvidaste tu contraseña?</a>
       </div>
-      <button type="submit" class="btn-primary" id="submitBtn">Entrar</button>
+      <button type="submit" class="btn-primary" id="submitBtn" data-i18n="loginEnter">Entrar</button>
     </form>
 
     <div class="divider">o</div>
-    <button class="btn-ghost" id="toggleModeBtn">Crear una cuenta</button>
+    <button class="btn-ghost" id="toggleModeBtn" data-i18n="loginCreate">Crear una cuenta</button>
 
     <div class="foot-note" id="footNote">Conectado a Supabase — cuentas reales.</div>
   </div>
@@ -1170,7 +1170,7 @@ body.editor-active #screen-editor{ display:block; }
   <div class="topbar">
     <div>
       <div class="brand">CUERPO TÉCNICO<span class="dot">·</span>GESTIÓN FUTSAL</div>
-      <div class="brand-sub">Panel de entrenador — futsal</div>
+      <div class="brand-sub" data-i18n="brandSub">Panel de entrenador — futsal</div>
     </div>
     <div class="topbar-right">
       <select id="langSelect" class="lang-select" title="Idioma / Language / Idioma">
@@ -1245,12 +1245,12 @@ body.editor-active #screen-editor{ display:block; }
     <div class="timeline-head">
       <h2 style="margin:0;"><span class="n">03</span> Ordenalo y terminá</h2>
       <div class="actions">
-        <button class="btn small" id="bulkAddBtn">+ Cargar clips (varios)</button>
-        <button class="btn small" id="addSepBtn">+ Separador (texto/foto)</button>
-        <button class="btn small" id="playSeqBtn" disabled>▶ Reproducir secuencia</button>
-        <button class="btn small" id="exportJsonBtn" disabled>Descargar datos (.json)</button>
-        <button class="btn small" id="exportEachBtn" disabled>Exportar clips por separado</button>
-        <button class="btn small primary" id="exportSeqBtn" disabled>Exportar secuencia completa</button>
+        <button class="btn small" id="bulkAddBtn" data-i18n="vBulkAdd">+ Cargar clips (varios)</button>
+        <button class="btn small" id="addSepBtn" data-i18n="vSep">+ Separador (texto/foto)</button>
+        <button class="btn small" id="playSeqBtn" disabled data-i18n="vPlaySeq">▶ Reproducir secuencia</button>
+        <button class="btn small" id="exportJsonBtn" disabled data-i18n="vExportJson">Descargar datos (.json)</button>
+        <button class="btn small" id="exportEachBtn" disabled data-i18n="vExportEach">Exportar clips por separado</button>
+        <button class="btn small primary" id="exportSeqBtn" disabled data-i18n="vExportSeq">Exportar secuencia completa</button>
         <input type="file" id="bulkClipInput" class="file-input" accept="video/*" multiple>
       </div>
     </div>
@@ -1278,7 +1278,7 @@ body.editor-active #screen-editor{ display:block; }
   <div class="section-content" id="section-videoai">
     <div class="scout-head">
       <div>
-        <h2 class="scout-title">Análisis automático con IA</h2>
+        <h2 class="scout-title" data-i18n="aiTitle">Análisis automático con IA</h2>
         <p class="scout-sub">La IA recorre el video y sugiere jugadas con tus tags (córners, laterales, 3-1, 4-0, defensas, 5vs4...). Vos revisás y aceptás. Los recortes aceptados aparecen en la pestaña Video como los manuales.</p>
       </div>
     </div>
@@ -1291,7 +1291,7 @@ body.editor-active #screen-editor{ display:block; }
           <option value="precise">🎯 Preciso</option>
           <option value="fast">⚡ Rápido</option>
         </select>
-        <button class="btn small primary" id="aiAnalyzeBtn">⚡ Analizar</button>
+        <button class="btn small primary" id="aiAnalyzeBtn" data-i18n="aiAnalyze">⚡ Analizar</button>
         <label class="ai-picker-label" style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="aiOnlyHigh"> solo confianza alta</label>
       </div>
       <div class="ai-video-picker" style="margin-top:10px;">
@@ -1309,7 +1309,7 @@ body.editor-active #screen-editor{ display:block; }
       <div class="ai-video-controls" id="aiVideoControls" style="display:none;">
         <div class="ai-progress-wrap"><div class="ai-progress-bar" id="aiProgressBar"></div></div>
         <div class="ai-progress-label" id="aiProgressLabel">Preparando…</div>
-        <button class="btn small danger-outline" id="aiCancelBtn">Cancelar</button>
+        <button class="btn small danger-outline" id="aiCancelBtn" data-i18n="aiCancel">Cancelar</button>
       </div>
     </div>
 
@@ -1332,11 +1332,11 @@ body.editor-active #screen-editor{ display:block; }
   <div class="section-content" id="section-stats">
     <!-- Sub-navegación de estadísticas -->
     <div class="stats-subnav">
-      <button class="stats-subtab active" data-sub="matches">⚽ Partidos</button>
-      <button class="stats-subtab" data-sub="squad">👥 Plantel</button>
-      <button class="stats-subtab" data-sub="calls">✅ Convocatorias</button>
-      <button class="stats-subtab" data-sub="minutes">⏱ Minutaje</button>
-      <button class="stats-subtab" data-sub="annual">📈 Estadísticas anuales</button>
+      <button class="stats-subtab active" data-sub="matches" data-i18n="stMatches">⚽ Partidos</button>
+      <button class="stats-subtab" data-sub="squad" data-i18n="stSquad">👥 Plantel</button>
+      <button class="stats-subtab" data-sub="calls" data-i18n="stCalls">✅ Convocatorias</button>
+      <button class="stats-subtab" data-sub="minutes" data-i18n="stMinutes">⏱ Minutaje</button>
+      <button class="stats-subtab" data-sub="annual" data-i18n="stAnnual">📈 Estadísticas anuales</button>
     </div>
 
     <!-- ===== SUB: PARTIDOS ===== -->
@@ -1345,10 +1345,10 @@ body.editor-active #screen-editor{ display:block; }
       <div id="matchList">
         <div class="scout-head">
           <div>
-            <h2 class="scout-title">Partidos</h2>
-            <p class="scout-sub">Cargá cada partido con sus goles, asistencias y tarjetas. Se suma solo en las estadísticas anuales.</p>
+            <h2 class="scout-title" data-i18n="stMatchesTitle">Partidos</h2>
+            <p class="scout-sub" data-i18n="stMatchesSub">Cargá cada partido con sus goles, asistencias y tarjetas. Se suma solo en las estadísticas anuales.</p>
           </div>
-          <button class="btn primary" id="newMatchBtn">+ Nuevo partido</button>
+          <button class="btn primary" id="newMatchBtn" data-i18n="newMatch">+ Nuevo partido</button>
         </div>
         <div class="match-list-rows" id="matchListRows"></div>
       </div>
@@ -1373,22 +1373,22 @@ body.editor-active #screen-editor{ display:block; }
           <!-- Goles a favor -->
           <div class="rd-col">
             <div class="rd-card">
-              <div class="rd-card-head"><h3>⚽ Goles a favor</h3><button class="btn small" id="addGoalForBtn">+ Gol</button></div>
+              <div class="rd-card-head"><h3 data-i18n="goalsFor">⚽ Goles a favor</h3><button class="btn small" id="addGoalForBtn" data-i18n="addGoal">+ Gol</button></div>
               <div class="goal-list" id="goalsForList"></div>
             </div>
             <div class="rd-card">
-              <div class="rd-card-head"><h3>🅰 Asistencias</h3><button class="btn small" id="addAssistBtn">+ Asistencia</button></div>
+              <div class="rd-card-head"><h3 data-i18n="assists">🅰 Asistencias</h3><button class="btn small" id="addAssistBtn" data-i18n="addAssist">+ Asistencia</button></div>
               <div class="goal-list" id="assistsList"></div>
             </div>
           </div>
           <!-- Goles en contra + tarjetas -->
           <div class="rd-col">
             <div class="rd-card">
-              <div class="rd-card-head"><h3>🥅 Goles en contra</h3><button class="btn small" id="addGoalAgainstBtn">+ Gol en contra</button></div>
+              <div class="rd-card-head"><h3 data-i18n="goalsAgainst">🥅 Goles en contra</h3><button class="btn small" id="addGoalAgainstBtn" data-i18n="addGoalAgainst">+ Gol en contra</button></div>
               <div class="goal-list" id="goalsAgainstList"></div>
             </div>
             <div class="rd-card">
-              <div class="rd-card-head"><h3>🟨 Tarjetas</h3><button class="btn small" id="addCardBtn">+ Tarjeta</button></div>
+              <div class="rd-card-head"><h3 data-i18n="cards">🟨 Tarjetas</h3><button class="btn small" id="addCardBtn" data-i18n="addCard">+ Tarjeta</button></div>
               <div class="goal-list" id="cardsList"></div>
             </div>
           </div>
@@ -1400,9 +1400,9 @@ body.editor-active #screen-editor{ display:block; }
         </div>
 
         <div class="rd-footer">
-          <button class="btn danger-outline" id="deleteMatchBtn">Eliminar partido</button>
+          <button class="btn danger-outline" id="deleteMatchBtn" data-i18n="delMatch">Eliminar partido</button>
           <div style="display:flex;gap:10px;align-items:center;">
-            <button class="btn small ghost" id="editTagsBtn">⚙ Editar tags de gol</button>
+            <button class="btn small ghost" id="editTagsBtn" data-i18n="editTags">⚙ Editar tags de gol</button>
             <span class="rd-saved" id="mtSaved">Los cambios se guardan solos</span>
           </div>
         </div>
@@ -1413,10 +1413,10 @@ body.editor-active #screen-editor{ display:block; }
     <div class="stats-sub" id="stats-squad">
       <div class="scout-head">
         <div>
-          <h2 class="scout-title">Plantel</h2>
-          <p class="scout-sub">Los jugadores de esta categoría. Se usan para cargar goleadores y asistencias.</p>
+          <h2 class="scout-title" data-i18n="squadTitle">Plantel</h2>
+          <p class="scout-sub" data-i18n="squadSub">Los jugadores de esta categoría. Se usan para cargar goleadores y asistencias.</p>
         </div>
-        <button class="btn primary" id="addPlayerToSquadBtn">+ Agregar jugador</button>
+        <button class="btn primary" id="addPlayerToSquadBtn" data-i18n="addPlayer">+ Agregar jugador</button>
       </div>
       <div class="squad-list" id="squadList"></div>
     </div>
@@ -1425,8 +1425,8 @@ body.editor-active #screen-editor{ display:block; }
     <div class="stats-sub" id="stats-calls">
       <div class="scout-head">
         <div>
-          <h2 class="scout-title">Convocatorias</h2>
-          <p class="scout-sub">Marcá quién estuvo convocado en cada partido. Tocá una vez para ✓ convocado, otra para ✕ no disponible, otra para vaciar.</p>
+          <h2 class="scout-title" data-i18n="callsTitle">Convocatorias</h2>
+          <p class="scout-sub" data-i18n="callsSub">Marcá quién estuvo convocado en cada partido. Tocá una vez para ✓ convocado, otra para ✕ no disponible, otra para vaciar.</p>
         </div>
       </div>
       <div class="calls-wrap" id="callsWrap"></div>
@@ -1436,8 +1436,8 @@ body.editor-active #screen-editor{ display:block; }
     <div class="stats-sub" id="stats-minutes">
       <div class="scout-head">
         <div>
-          <h2 class="scout-title">Minutaje</h2>
-          <p class="scout-sub">Minutos jugados por partido. Se cargan solos al guardar desde 🔴 En vivo.</p>
+          <h2 class="scout-title" data-i18n="minutesTitle">Minutaje</h2>
+          <p class="scout-sub" data-i18n="minutesSub">Minutos jugados por partido. Se cargan solos al guardar desde 🔴 En vivo.</p>
         </div>
       </div>
       <div id="minutesList"></div>
@@ -1448,10 +1448,10 @@ body.editor-active #screen-editor{ display:block; }
     <div class="stats-sub" id="stats-annual">
       <div class="scout-head">
         <div>
-          <h2 class="scout-title">Estadísticas anuales</h2>
-          <p class="scout-sub">Acumulado de todos los partidos, más el ajuste del primer semestre.</p>
+          <h2 class="scout-title" data-i18n="annualTitle">Estadísticas anuales</h2>
+          <p class="scout-sub" data-i18n="annualSub">Acumulado de todos los partidos, más el ajuste del primer semestre.</p>
         </div>
-        <button class="btn small" id="openAdjBtn">＋ Ajuste primer semestre</button>
+        <button class="btn small" id="openAdjBtn" data-i18n="openAdj">＋ Ajuste primer semestre</button>
       </div>
       <div id="annualContent"></div>
     </div>
@@ -1473,20 +1473,20 @@ body.editor-active #screen-editor{ display:block; }
           </div>
         </div>
         <div class="adj-section">
-          <div class="rd-card-head"><h3>⚽ Goleadores</h3><button class="btn small" id="adjAddScorer">+ Goleador</button></div>
+          <div class="rd-card-head"><h3 data-i18n="adjScorers">⚽ Goleadores</h3><button class="btn small" id="adjAddScorer" data-i18n="adjAddScorer">+ Goleador</button></div>
           <div id="adjScorers"></div>
         </div>
         <div class="adj-section" style="margin-top:14px;">
-          <div class="rd-card-head"><h3>🎯 Cómo hacemos los goles</h3><button class="btn small" id="adjAddScored">+ Origen</button></div>
+          <div class="rd-card-head"><h3 data-i18n="adjScored">🎯 Cómo hacemos los goles</h3><button class="btn small" id="adjAddScored" data-i18n="adjAddOrigin">+ Origen</button></div>
           <div id="adjScored"></div>
         </div>
         <div class="adj-section" style="margin-top:14px;">
-          <div class="rd-card-head"><h3>🥅 Cómo nos hicieron los goles</h3><button class="btn small" id="adjAddConceded">+ Origen</button></div>
+          <div class="rd-card-head"><h3 data-i18n="adjConceded">🥅 Cómo nos hicieron los goles</h3><button class="btn small" id="adjAddConceded" data-i18n="adjAddOrigin">+ Origen</button></div>
           <div id="adjConceded"></div>
         </div>
       </div>
       <div style="padding:0 22px 22px;display:flex;justify-content:flex-end;">
-        <button class="btn small primary" id="adjSaveBtn">Guardar ajuste</button>
+        <button class="btn small primary" id="adjSaveBtn" data-i18n="adjSave">Guardar ajuste</button>
       </div>
     </div>
   </div>
@@ -1497,10 +1497,10 @@ body.editor-active #screen-editor{ display:block; }
     <div id="trainList">
       <div class="scout-head">
         <div>
-          <h2 class="scout-title">Planificación de entrenamientos</h2>
-          <p class="scout-sub">Una ficha por semana. Editá el nombre y las fechas desde cada recuadro, o abrí la semana para planificar en detalle.</p>
+          <h2 class="scout-title" data-i18n="trainTitle">Planificación de entrenamientos</h2>
+          <p class="scout-sub" data-i18n="trainSub">Una ficha por semana. Editá el nombre y las fechas desde cada recuadro, o abrí la semana para planificar en detalle.</p>
         </div>
-        <button class="btn primary" id="addWeekBtn">+ Agregar semana</button>
+        <button class="btn primary" id="addWeekBtn" data-i18n="addWeek">+ Agregar semana</button>
       </div>
       <div class="rival-grid" id="weekGrid"></div>
     </div>
@@ -1536,7 +1536,7 @@ body.editor-active #screen-editor{ display:block; }
       <div class="rd-card">
         <div class="rd-card-head">
           <h3>Ejercicios de la semana</h3>
-          <button class="btn small" id="addExerciseBtn">+ Agregar ejercicio</button>
+          <button class="btn small" id="addExerciseBtn" data-i18n="addExercise">+ Agregar ejercicio</button>
         </div>
         <div class="week-grid-wrap">
           <table class="week-grid" id="weekTable">
@@ -1553,7 +1553,7 @@ body.editor-active #screen-editor{ display:block; }
       </div>
 
       <div class="rd-footer">
-        <button class="btn danger-outline" id="deleteWeekBtn">Vaciar semana</button>
+        <button class="btn danger-outline" id="deleteWeekBtn" data-i18n="emptyWeek">Vaciar semana</button>
         <span class="rd-saved" id="wkSaved">Los cambios se guardan solos</span>
       </div>
     </div>
@@ -1565,10 +1565,10 @@ body.editor-active #screen-editor{ display:block; }
     <div id="scoutList">
       <div class="scout-head">
         <div>
-          <h2 class="scout-title">Scouting de rivales</h2>
-          <p class="scout-sub">Editá el rival y la fecha del partido desde cada recuadro, o abrí la ficha para el análisis completo.</p>
+          <h2 class="scout-title" data-i18n="scoutTitle">Scouting de rivales</h2>
+          <p class="scout-sub" data-i18n="scoutSub">Editá el rival y la fecha del partido desde cada recuadro, o abrí la ficha para el análisis completo.</p>
         </div>
-        <button class="btn primary" id="addFechaBtn">+ Agregar partido</button>
+        <button class="btn primary" id="addFechaBtn" data-i18n="addFecha">+ Agregar partido</button>
       </div>
       <div class="rival-grid" id="rivalGrid"></div>
     </div>
@@ -1605,7 +1605,7 @@ body.editor-active #screen-editor{ display:block; }
           <div class="rd-card">
             <div class="rd-card-head">
               <h3>Jugadores clave</h3>
-              <button class="btn small" id="addPlayerBtn">+ Agregar</button>
+              <button class="btn small" id="addPlayerBtn" data-i18n="addKeyPlayer">+ Agregar</button>
             </div>
             <div class="player-list" id="playerList"></div>
           </div>
@@ -1613,8 +1613,8 @@ body.editor-active #screen-editor{ display:block; }
             <div class="rd-card-head">
               <h3>Material de referencia</h3>
               <div style="display:flex;gap:6px;">
-                <button class="btn small" id="addPhotoBtn">+ Foto</button>
-                <button class="btn small" id="addVideoBtn">+ Video</button>
+                <button class="btn small" id="addPhotoBtn" data-i18n="addPhoto">+ Foto</button>
+                <button class="btn small" id="addVideoBtn" data-i18n="addVideo">+ Video</button>
               </div>
             </div>
             <input type="file" id="scoutPhotoInput" class="file-input" accept="image/*">
@@ -1634,7 +1634,7 @@ body.editor-active #screen-editor{ display:block; }
       <div class="ai-report-section">
         <div class="rd-card-head">
           <h3>⚡ Informe táctico (IA)</h3>
-          <button class="btn small primary" id="genReportBtn">Generar informe</button>
+          <button class="btn small primary" id="genReportBtn" data-i18n="genReport">Generar informe</button>
         </div>
         <div class="ai-report-body" id="aiReportBody">
           <p class="rd-empty">Cargá los datos del rival arriba y tocá "Generar informe". La IA va a analizar el scouting y armar un plan de partido.</p>
@@ -1682,31 +1682,31 @@ body.editor-active #screen-editor{ display:block; }
   <div class="section-content" id="section-live">
     <div class="scout-head">
       <div>
-        <h2 class="scout-title">En vivo — control de minutos</h2>
-        <p class="scout-sub" id="liveSubtitle">Elegí el rival y los convocados para arrancar.</p>
+        <h2 class="scout-title" data-i18n="liveTitle">En vivo — control de minutos</h2>
+        <p class="scout-sub" id="liveSubtitle" data-i18n="liveSetupSub">Elegí el rival y los convocados para arrancar.</p>
       </div>
-      <button class="btn small" id="liveNewMatchBtn" style="display:none;">↺ Nuevo partido</button>
+      <button class="btn small" id="liveNewMatchBtn" data-i18n="liveNewMatch" style="display:none;">↺ Nuevo partido</button>
     </div>
 
     <!-- PANTALLA DE SETUP -->
     <div id="liveSetup">
       <div class="annual-card" style="margin-bottom:16px;">
-        <div class="rd-card-head"><h3>1 · Rival del partido</h3></div>
+        <div class="rd-card-head"><h3 data-i18n="liveStep1">1 · Rival del partido</h3></div>
         <div id="liveSetupRivals" style="margin-top:10px;"></div>
       </div>
       <div class="annual-card">
         <div class="rd-card-head">
-          <h3>2 · Convocados</h3>
+          <h3 data-i18n="liveStep2">2 · Convocados</h3>
           <div style="display:flex;gap:8px;">
-            <button class="btn small" id="liveCallAll">Todos</button>
-            <button class="btn small" id="liveCallNone">Ninguno</button>
+            <button class="btn small" id="liveCallAll" data-i18n="liveAll">Todos</button>
+            <button class="btn small" id="liveCallNone" data-i18n="liveNone">Ninguno</button>
           </div>
         </div>
-        <p class="scout-sub" style="margin:6px 0 12px;">Tocá los jugadores que están convocados. Solo ellos aparecerán en el partido.</p>
+        <p class="scout-sub" data-i18n="liveCallHint" style="margin:6px 0 12px;">Tocá los jugadores que están convocados. Solo ellos aparecerán en el partido.</p>
         <div class="live-call-grid" id="liveCallGrid"></div>
       </div>
       <div style="margin-top:18px;text-align:center;">
-        <button class="btn primary" id="liveStartBtn" style="font-size:16px;padding:12px 32px;">▶ Iniciar partido</button>
+        <button class="btn primary" id="liveStartBtn" data-i18n="liveStartBtn" style="font-size:16px;padding:12px 32px;">▶ Iniciar partido</button>
         <p class="scout-sub" id="liveStartHint" style="margin-top:8px;"></p>
       </div>
     </div>
@@ -1717,7 +1717,7 @@ body.editor-active #screen-editor{ display:block; }
         <div class="live-match-info">
           <span class="live-vs" id="liveVsRival">vs —</span>
         </div>
-        <button class="btn primary live-finish-top" id="liveFinishBtnTop">🏁 Finalizar partido</button>
+        <button class="btn primary live-finish-top" id="liveFinishBtnTop" data-i18n="liveFinish">🏁 Finalizar partido</button>
       </div>
 
       <div class="live-clock-bar">
@@ -1726,56 +1726,56 @@ body.editor-active #screen-editor{ display:block; }
           <div class="live-clock-type" id="liveClockType"></div>
         </div>
         <div class="live-clock-btns" id="liveAutoCtrls">
-          <button class="btn small primary" id="liveClockToggle">▶ Iniciar</button>
-          <button class="btn small" id="liveHalfBtn">⏱ Fin 1er tiempo</button>
-          <button class="btn small" id="liveClockReset">↺ Reiniciar</button>
+          <button class="btn small primary" id="liveClockToggle" data-i18n="liveStart">▶ Iniciar</button>
+          <button class="btn small" id="liveHalfBtn" data-i18n="liveHalf">⏱ Fin 1er tiempo</button>
+          <button class="btn small" id="liveClockReset" data-i18n="liveReset">↺ Reiniciar</button>
         </div>
         <div class="live-manual-ctrls" id="liveManualCtrls" style="display:none;">
-          <span class="lmc-label">Minuto (regresivo):</span>
+          <span class="lmc-label" data-i18n="liveMinReg">Minuto (regresivo):</span>
           <button class="btn small lmc-btn" id="liveMinUp">+1'</button>
           <span class="lmc-min" id="liveManualMin">20'</span>
           <button class="btn small lmc-btn" id="liveMinDown">−1'</button>
-          <button class="btn small" id="liveHalfBtnM">⏱ Fin 1er tiempo</button>
-          <button class="btn small" id="liveClockResetM">↺ Reiniciar</button>
+          <button class="btn small" id="liveHalfBtnM" data-i18n="liveHalf">⏱ Fin 1er tiempo</button>
+          <button class="btn small" id="liveClockResetM" data-i18n="liveReset">↺ Reiniciar</button>
         </div>
         <div class="live-clock-btns" id="liveParadoCtrls" style="display:none;">
-          <button class="btn small" id="liveHalfBtnP">⏱ Fin 1er tiempo</button>
-          <button class="btn small" id="liveClockResetP">↺ Reiniciar</button>
+          <button class="btn small" id="liveHalfBtnP" data-i18n="liveHalf">⏱ Fin 1er tiempo</button>
+          <button class="btn small" id="liveClockResetP" data-i18n="liveReset">↺ Reiniciar</button>
         </div>
-        <div class="live-half-badge" id="liveHalfBadge">1er tiempo</div>
+        <div class="live-half-badge" id="liveHalfBadge" data-i18n="liveFirstHalf">1er tiempo</div>
         <div class="live-oncourt" id="liveOnCourt">0 / 5 en cancha</div>
       </div>
 
       <div class="live-swap-hint" id="liveSwapHint">
-        Tocá el jugador que <b>SALE</b> (en la cancha) y después el que <b>ENTRA</b> (del banco). Los botones ⚽ y 🟨 cargan gol y falta.
+        <span data-i18n="liveSwapHintTxt">Tocá el jugador que SALE (en la cancha) y después el que ENTRA (del banco). Los botones ⚽ y 🟨 cargan gol y falta.</span>
         <span id="liveSwapStep"></span>
       </div>
 
       <div class="live-field-layout">
         <div class="live-field-wrap">
-          <div class="live-field-label">EN CANCHA</div>
+          <div class="live-field-label" data-i18n="liveOnField">EN CANCHA</div>
           <div class="live-field" id="liveField"></div>
         </div>
         <div class="live-bench-wrap">
-          <div class="live-field-label">BANCO</div>
+          <div class="live-field-label" data-i18n="liveBench">BANCO</div>
           <div class="live-bench" id="liveBench"></div>
         </div>
       </div>
 
       <div class="live-totals-wrap">
-        <div class="rd-card-head"><h3>Minutos y acciones por jugador</h3></div>
+        <div class="rd-card-head"><h3 data-i18n="liveMinBy">Minutos y acciones por jugador</h3></div>
         <div class="live-totals-head">
-          <span>Jugador</span><span>1er T</span><span>2do T</span><span>Total</span><span>⚽</span><span>🟨</span>
+          <span data-i18n="livePlayer">Jugador</span><span data-i18n="liveT1">1er T</span><span data-i18n="liveT2">2do T</span><span data-i18n="liveTotal">Total</span><span>⚽</span><span>🟨</span>
         </div>
         <div class="live-totals" id="liveTotals"></div>
       </div>
 
       <div class="live-log-wrap">
         <div class="rd-card-head">
-          <h3>Registro de eventos</h3>
-          <button class="btn small primary" id="liveFinishBtn">🏁 Finalizar partido</button>
+          <h3 data-i18n="liveEvents">Registro de eventos</h3>
+          <button class="btn small primary" id="liveFinishBtn" data-i18n="liveFinish">🏁 Finalizar partido</button>
         </div>
-        <div class="live-log" id="liveLog"><p class="rd-empty">Todavía no hay eventos. Iniciá el reloj y armá el equipo.</p></div>
+        <div class="live-log" id="liveLog"><p class="rd-empty" data-i18n="liveNoEvents">Todavía no hay eventos. Iniciá el reloj y armá el equipo.</p></div>
       </div>
     </div>
   </div>
@@ -1885,6 +1885,42 @@ window.I18N = {
     liveStartBtn:'▶ Iniciar partido', liveNewMatch:'↺ Nuevo partido', liveFinish:'🏁 Finalizar partido',
     liveOnField:'EN CANCHA', liveBench:'BANCO', liveMinBy:'Minutos y acciones por jugador',
     liveEvents:'Registro de eventos', liveStart:'▶ Iniciar', liveHalf:'⏱ Fin 1er tiempo', liveReset:'↺ Reiniciar',
+    liveMinReg:'Minuto (regresivo):', liveFirstHalf:'1er tiempo', liveSecondHalf:'2do tiempo',
+    liveSwapHintTxt:'Tocá el jugador que SALE (en la cancha) y después el que ENTRA (del banco). Los botones ⚽ y 🟨 cargan gol y falta.',
+    livePlayer:'Jugador', liveT1:'1er T', liveT2:'2do T', liveTotal:'Total',
+    liveNoEvents:'Todavía no hay eventos. Iniciá el reloj y armá el equipo.',
+    liveClockRunning:'⏱ Reloj CORRIDO · 2×25\' (corre sin parar)', liveClockStopped:'⏱ Reloj PARADO · 2×20\' · cargá los minutos a mano',
+    liveOnCourtLbl:'en cancha', livePause:'⏸ Pausar',
+    // Login
+    loginCreate:'Crear una cuenta', loginEnter:'Entrar', loginBackLogin:'Ya tengo cuenta',
+    // Video
+    vBulkAdd:'+ Cargar clips (varios)', vSep:'+ Separador (texto/foto)', vPlaySeq:'▶ Reproducir secuencia',
+    vExportJson:'Descargar datos (.json)', vExportEach:'Exportar clips por separado', vExportSeq:'Exportar secuencia completa',
+    // Video IA
+    aiTitle:'Análisis automático con IA', aiSub:'La IA recorre el video y sugiere jugadas con tus tags (córners, laterales, 3-1, 4-0, defensas, 5vs4...). Vos revisás y aceptás. Los recortes aceptados aparecen en la pestaña Video como los manuales.',
+    aiAnalyze:'⚡ Analizar', aiCancel:'Cancelar',
+    // Estadísticas subtabs
+    stMatches:'⚽ Partidos', stSquad:'👥 Plantel', stCalls:'✅ Convocatorias', stMinutes:'⏱ Minutaje', stAnnual:'📈 Estadísticas anuales',
+    stMatchesTitle:'Partidos', stMatchesSub:'Cargá cada partido con sus goles, asistencias y tarjetas. Se suma solo en las estadísticas anuales.',
+    newMatch:'+ Nuevo partido', goalsFor:'⚽ Goles a favor', addGoal:'+ Gol', assists:'🅰 Asistencias', addAssist:'+ Asistencia',
+    goalsAgainst:'🥅 Goles en contra', addGoalAgainst:'+ Gol en contra', cards:'🟨 Tarjetas', addCard:'+ Tarjeta',
+    delMatch:'Eliminar partido', editTags:'⚙ Editar tags de gol',
+    squadTitle:'Plantel', squadSub:'Los jugadores de esta categoría. Se usan para cargar goleadores y asistencias.', addPlayer:'+ Agregar jugador',
+    callsTitle:'Convocatorias', callsSub:'Marcá quién estuvo convocado en cada partido. Tocá una vez para ✓ convocado, otra para ✕ no disponible, otra para vaciar.',
+    minutesTitle:'Minutaje', minutesSub:'Minutos jugados por partido. Se cargan solos al guardar desde 🔴 En vivo.',
+    annualTitle:'Estadísticas anuales', annualSub:'Acumulado de todos los partidos, más el ajuste del primer semestre.', openAdj:'＋ Ajuste primer semestre',
+    adjScorers:'⚽ Goleadores', adjAddScorer:'+ Goleador', adjScored:'🎯 Cómo hacemos los goles', adjConceded:'🥅 Cómo nos hicieron los goles', adjAddOrigin:'+ Origen', adjSave:'Guardar ajuste',
+    // Planificación
+    trainTitle:'Planificación de entrenamientos', trainSub:'Una ficha por semana. Editá el nombre y las fechas desde cada recuadro, o abrí la semana para planificar en detalle.',
+    addWeek:'+ Agregar semana', addExercise:'+ Agregar ejercicio', emptyWeek:'Vaciar semana',
+    // Scouting
+    scoutTitle:'Scouting de rivales', scoutSub:'Editá el rival y la fecha del partido desde cada recuadro, o abrí la ficha para el análisis completo.',
+    addFecha:'+ Agregar partido', addKeyPlayer:'+ Agregar', addPhoto:'+ Foto', addVideo:'+ Video', genReport:'Generar informe',
+    // Pizarra
+    boardTitle:'Pizarra táctica', boardSub:'Movés las fichas y grabás jugadas animadas para tu equipo.',
+    // Anuales layout
+    annConvert:'⚽ Cómo convertimos', annConceded:'🥅 Cómo nos convierten', annMore:'Ver más estadísticas (goleadores, asistencias, detalle, tarjetas)',
+    annPeriod:'Resumen por período', annGoalders:'⚽ Goleadores', annAssists:'🅰 Asistencias',
   },
   en: {
     saveCloud:'☁ Save to cloud', myMatches:'☁ My matches', loadFile:'Load file', saveFile:'Save file',
@@ -1899,6 +1935,34 @@ window.I18N = {
     liveStartBtn:'▶ Start match', liveNewMatch:'↺ New match', liveFinish:'🏁 End match',
     liveOnField:'ON COURT', liveBench:'BENCH', liveMinBy:'Minutes and actions per player',
     liveEvents:'Event log', liveStart:'▶ Start', liveHalf:'⏱ End 1st half', liveReset:'↺ Reset',
+    liveMinReg:'Minute (countdown):', liveFirstHalf:'1st half', liveSecondHalf:'2nd half',
+    liveSwapHintTxt:'Tap the player going OFF (on court) then the one coming ON (from the bench). The ⚽ and 🟨 buttons log goal and foul.',
+    livePlayer:'Player', liveT1:'1st H', liveT2:'2nd H', liveTotal:'Total',
+    liveNoEvents:'No events yet. Start the clock and set up the team.',
+    liveClockRunning:'⏱ RUNNING clock · 2×25\' (runs non-stop)', liveClockStopped:'⏱ STOPPED clock · 2×20\' · enter minutes manually',
+    liveOnCourtLbl:'on court', livePause:'⏸ Pause',
+    loginCreate:'Create an account', loginEnter:'Sign in', loginBackLogin:'I already have an account',
+    vBulkAdd:'+ Load clips (multiple)', vSep:'+ Separator (text/photo)', vPlaySeq:'▶ Play sequence',
+    vExportJson:'Download data (.json)', vExportEach:'Export clips separately', vExportSeq:'Export full sequence',
+    aiTitle:'Automatic AI analysis', aiSub:'The AI scans the video and suggests plays with your tags (corners, sidelines, 3-1, 4-0, defenses, 5v4...). You review and accept. Accepted clips appear in the Video tab like manual ones.',
+    aiAnalyze:'⚡ Analyze', aiCancel:'Cancel',
+    stMatches:'⚽ Matches', stSquad:'👥 Roster', stCalls:'✅ Call-ups', stMinutes:'⏱ Minutes', stAnnual:'📈 Season stats',
+    stMatchesTitle:'Matches', stMatchesSub:'Log each match with its goals, assists and cards. It adds up in the season stats.',
+    newMatch:'+ New match', goalsFor:'⚽ Goals for', addGoal:'+ Goal', assists:'🅰 Assists', addAssist:'+ Assist',
+    goalsAgainst:'🥅 Goals against', addGoalAgainst:'+ Goal against', cards:'🟨 Cards', addCard:'+ Card',
+    delMatch:'Delete match', editTags:'⚙ Edit goal tags',
+    squadTitle:'Roster', squadSub:'The players of this category. Used to log scorers and assists.', addPlayer:'+ Add player',
+    callsTitle:'Call-ups', callsSub:'Mark who was called up for each match. Tap once for ✓ called, again for ✕ unavailable, again to clear.',
+    minutesTitle:'Minutes', minutesSub:'Minutes played per match. Loaded automatically when saving from 🔴 Live.',
+    annualTitle:'Season stats', annualSub:'Total of all matches, plus the first-half adjustment.', openAdj:'＋ First-half adjustment',
+    adjScorers:'⚽ Scorers', adjAddScorer:'+ Scorer', adjScored:'🎯 How we score', adjConceded:'🥅 How we concede', adjAddOrigin:'+ Origin', adjSave:'Save adjustment',
+    trainTitle:'Training planning', trainSub:'One card per week. Edit the name and dates in each box, or open the week to plan in detail.',
+    addWeek:'+ Add week', addExercise:'+ Add exercise', emptyWeek:'Clear week',
+    scoutTitle:'Opponent scouting', scoutSub:'Edit the opponent and match date in each box, or open the card for full analysis.',
+    addFecha:'+ Add match', addKeyPlayer:'+ Add', addPhoto:'+ Photo', addVideo:'+ Video', genReport:'Generate report',
+    boardTitle:'Tactic board', boardSub:'Move the pieces and record animated plays for your team.',
+    annConvert:'⚽ How we score', annConceded:'🥅 How we concede', annMore:'See more stats (scorers, assists, detail, cards)',
+    annPeriod:'Summary by period', annGoalders:'⚽ Scorers', annAssists:'🅰 Assists',
   },
   pt: {
     saveCloud:'☁ Salvar na nuvem', myMatches:'☁ Meus jogos', loadFile:'Carregar arquivo', saveFile:'Salvar arquivo',
@@ -1913,6 +1977,34 @@ window.I18N = {
     liveStartBtn:'▶ Iniciar partida', liveNewMatch:'↺ Nova partida', liveFinish:'🏁 Finalizar partida',
     liveOnField:'EM QUADRA', liveBench:'BANCO', liveMinBy:'Minutos e ações por jogador',
     liveEvents:'Registro de eventos', liveStart:'▶ Iniciar', liveHalf:'⏱ Fim 1º tempo', liveReset:'↺ Reiniciar',
+    liveMinReg:'Minuto (regressivo):', liveFirstHalf:'1º tempo', liveSecondHalf:'2º tempo',
+    liveSwapHintTxt:'Toque no jogador que SAI (em quadra) e depois no que ENTRA (do banco). Os botões ⚽ e 🟨 registram gol e falta.',
+    livePlayer:'Jogador', liveT1:'1º T', liveT2:'2º T', liveTotal:'Total',
+    liveNoEvents:'Ainda não há eventos. Inicie o relógio e monte o time.',
+    liveClockRunning:'⏱ Relógio CORRIDO · 2×25\' (corre sem parar)', liveClockStopped:'⏱ Relógio PARADO · 2×20\' · insira os minutos manualmente',
+    liveOnCourtLbl:'em quadra', livePause:'⏸ Pausar',
+    loginCreate:'Criar uma conta', loginEnter:'Entrar', loginBackLogin:'Já tenho conta',
+    vBulkAdd:'+ Carregar clipes (vários)', vSep:'+ Separador (texto/foto)', vPlaySeq:'▶ Reproduzir sequência',
+    vExportJson:'Baixar dados (.json)', vExportEach:'Exportar clipes separados', vExportSeq:'Exportar sequência completa',
+    aiTitle:'Análise automática com IA', aiSub:'A IA percorre o vídeo e sugere jogadas com suas tags (escanteios, laterais, 3-1, 4-0, defesas, 5x4...). Você revisa e aceita. Os cortes aceitos aparecem na aba Vídeo como os manuais.',
+    aiAnalyze:'⚡ Analisar', aiCancel:'Cancelar',
+    stMatches:'⚽ Jogos', stSquad:'👥 Elenco', stCalls:'✅ Convocações', stMinutes:'⏱ Minutagem', stAnnual:'📈 Estatísticas anuais',
+    stMatchesTitle:'Jogos', stMatchesSub:'Registre cada jogo com seus gols, assistências e cartões. Soma nas estatísticas anuais.',
+    newMatch:'+ Novo jogo', goalsFor:'⚽ Gols a favor', addGoal:'+ Gol', assists:'🅰 Assistências', addAssist:'+ Assistência',
+    goalsAgainst:'🥅 Gols contra', addGoalAgainst:'+ Gol contra', cards:'🟨 Cartões', addCard:'+ Cartão',
+    delMatch:'Excluir jogo', editTags:'⚙ Editar tags de gol',
+    squadTitle:'Elenco', squadSub:'Os jogadores desta categoria. Usados para registrar artilheiros e assistências.', addPlayer:'+ Adicionar jogador',
+    callsTitle:'Convocações', callsSub:'Marque quem foi convocado em cada jogo. Toque uma vez para ✓ convocado, outra para ✕ indisponível, outra para limpar.',
+    minutesTitle:'Minutagem', minutesSub:'Minutos jogados por partida. Carregam sozinhos ao salvar em 🔴 Ao vivo.',
+    annualTitle:'Estatísticas anuais', annualSub:'Total de todos os jogos, mais o ajuste do primeiro semestre.', openAdj:'＋ Ajuste primeiro semestre',
+    adjScorers:'⚽ Artilheiros', adjAddScorer:'+ Artilheiro', adjScored:'🎯 Como fazemos os gols', adjConceded:'🥅 Como sofremos os gols', adjAddOrigin:'+ Origem', adjSave:'Salvar ajuste',
+    trainTitle:'Planejamento de treinos', trainSub:'Um cartão por semana. Edite o nome e as datas em cada caixa, ou abra a semana para planejar em detalhe.',
+    addWeek:'+ Adicionar semana', addExercise:'+ Adicionar exercício', emptyWeek:'Limpar semana',
+    scoutTitle:'Scouting de adversários', scoutSub:'Edite o adversário e a data do jogo em cada caixa, ou abra o cartão para a análise completa.',
+    addFecha:'+ Adicionar jogo', addKeyPlayer:'+ Adicionar', addPhoto:'+ Foto', addVideo:'+ Vídeo', genReport:'Gerar relatório',
+    boardTitle:'Prancheta tática', boardSub:'Mova as peças e grave jogadas animadas para seu time.',
+    annConvert:'⚽ Como marcamos', annConceded:'🥅 Como sofremos', annMore:'Ver mais estatísticas (artilheiros, assistências, detalhe, cartões)',
+    annPeriod:'Resumo por período', annGoalders:'⚽ Artilheiros', annAssists:'🅰 Assistências',
   }
 };
 window.__lang = (function(){ try{ return localStorage.getItem('ce_lang') || 'es'; }catch(e){ return 'es'; } })();
@@ -3133,9 +3225,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     halfMinutes = parado ? 20 : 25;
     const info = document.getElementById('liveClockType');
     if(info){
-      info.textContent = parado
-        ? '⏱ Reloj PARADO · 2×20\' · cargá los minutos a mano'
-        : '⏱ Reloj CORRIDO · 2×25\' (corre sin parar)';
+      info.textContent = parado ? window.t('liveClockStopped') : window.t('liveClockRunning');
       info.className = 'live-clock-type ' + clockType;
     }
     // mostrar/ocultar controles según el tipo
@@ -3227,9 +3317,9 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       el.classList.toggle('running', clockRunning);
     }
     const t = document.getElementById('liveClockToggle');
-    if(t) t.textContent = clockRunning ? '⏸ Pausar' : '▶ Iniciar';
+    if(t) t.textContent = clockRunning ? window.t('livePause') : window.t('liveStart');
     const badge = document.getElementById('liveHalfBadge');
-    if(badge) badge.textContent = currentHalf===1 ? '1er tiempo' : '2do tiempo';
+    if(badge) badge.textContent = currentHalf===1 ? window.t('liveFirstHalf') : window.t('liveSecondHalf');
     const mm = document.getElementById('liveManualMin');
     if(mm) mm.textContent = manualMin + "'";
   }
@@ -3420,7 +3510,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     renderTotalsValues();
   }
   function updateOnCourt(){
-    const el=document.getElementById('liveOnCourt'); if(el) el.textContent=countOnCourt()+' / 5 en cancha';
+    const el=document.getElementById('liveOnCourt'); if(el) el.textContent=countOnCourt()+' / 5 '+window.t('liveOnCourtLbl');
   }
   function renderTotals(){
     const cont=document.getElementById('liveTotals'); if(!cont) return;
@@ -3622,6 +3712,12 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     events.unshift({ t:nowSeconds(), type:'foul', inName:(squad.find(p=>p.id===pid)||{}).name||'', outName:'', half:currentHalf });
     renderField(); renderTotals(); renderLog();
   }
+
+  document.addEventListener('langchange', ()=>{
+    if(!started) return;
+    updateClockType(); updateClockUI(); updateOnCourt();
+    if(inSetup){ updateStartHint(); } else { renderField(); renderBench(); renderTotals(); renderLog(); }
+  });
 
   let started=false;
   window.__initLiveOnce=function(){
