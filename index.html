@@ -858,6 +858,27 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .project-actions{display:flex;gap:8px;}
 .user-badge{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
 .lang-select{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;color:var(--chalk);font-size:12px;padding:6px 8px;cursor:pointer;font-family:'JetBrains Mono',monospace;}
+.sub-banner{display:flex;align-items:center;gap:12px;padding:11px 18px;font-family:'Inter',sans-serif;font-size:14px;position:sticky;top:0;z-index:9999;}
+.sub-banner.warning{background:linear-gradient(90deg,#3a2d10,#4a3a12);color:#F2C94C;border-bottom:1px solid #6b5518;}
+.sub-banner.expired{background:linear-gradient(90deg,#3a1410,#4a1712);color:#F0553F;border-bottom:1px solid #6b2018;}
+.sub-banner .sb-icon{font-size:18px;}
+.sub-banner .sb-text{flex:1;}
+.sub-banner .sb-text b{color:#fff;}
+.sub-banner .sb-btn{background:var(--accent);color:#fff;text-decoration:none;padding:7px 16px;border-radius:8px;font-weight:700;font-size:13px;white-space:nowrap;font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:0.4px;}
+.sub-banner .sb-btn:hover{opacity:0.9;}
+.sub-banner .sb-btn{cursor:pointer;border:none;}
+.plans-overlay{position:fixed;inset:0;background:rgba(6,10,14,0.8);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
+.plans-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:28px;max-width:460px;width:100%;position:relative;}
+.plans-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;}
+.plans-box h2{font-family:'Oswald',sans-serif;font-size:24px;margin:0 0 4px;}
+.plans-sub{color:var(--muted);font-size:14px;margin:0 0 20px;}
+.plans-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.plan-card{display:flex;flex-direction:column;gap:6px;background:var(--panel-2);border:2px solid var(--line);border-radius:12px;padding:16px;text-decoration:none;color:var(--chalk);transition:all .12s ease;}
+.plan-card:hover{border-color:var(--accent);transform:translateY(-2px);}
+.plan-label{font-family:'Oswald',sans-serif;font-size:17px;font-weight:600;}
+.plan-go{font-size:12px;color:var(--accent);font-weight:600;}
+.plans-contact{text-align:center;margin:18px 0 0;font-size:13px;color:var(--muted);}
+.plans-contact a{color:var(--accent-2);}
 
 .layout{display:grid;grid-template-columns:1fr 1.4fr;gap:20px;}
 @media (max-width:860px){.layout{grid-template-columns:1fr;}}
@@ -2052,7 +2073,7 @@ window.I18N = {
     mPickVideo:'Elegí un video (se suben en la pestaña 🎬 Video).', mClipDiscarded:'Recorte descartado del timeline.',
     mSepAdded:'Separador agregado al final. Arrastralo para ubicarlo donde quieras.',
     mSeqExported:'Secuencia exportada.', mExportCancel:'Exportación cancelada.',
-    mNoRecSupport:'Tu navegador no soporta grabación de video en vivo.',
+    mNoRecSupport:'Tu navegador no soporta grabación de video en vivo.', subEndingTitle:'Tu prueba está por terminar.', subEndingMsg:'Te quedan {d} días. Activá tu cuenta para no perder el acceso.', subExpiredTitle:'Tu período venció.', subExpiredMsg:'Podés seguir viendo tus datos, pero para cargar nuevos necesitás activar tu cuenta.', subPayBtn:'Activar cuenta', plansTitle:'Activá tu cuenta', plansSub:'Elegí el plan y pagá con Mercado Pago. Apenas confirmemos el pago, activamos tu cuenta.', plan1:'1 mes', plan3:'3 meses', plan6:'6 meses', plan12:'12 meses', planGo:'Pagar', plansContact:'¿Dudas o querés pagar de otra forma?',
   },
   en: {
     saveCloud:'☁ Save to cloud', myMatches:'☁ My matches', loadFile:'Load file', saveFile:'Save file',
@@ -2123,7 +2144,7 @@ window.I18N = {
     mPickVideo:'Pick a video (upload them in the 🎬 Video tab).', mClipDiscarded:'Clip removed from the timeline.',
     mSepAdded:'Separator added at the end. Drag it wherever you want.',
     mSeqExported:'Sequence exported.', mExportCancel:'Export canceled.',
-    mNoRecSupport:'Your browser does not support live video recording.',
+    mNoRecSupport:'Your browser does not support live video recording.', subEndingTitle:'Your trial is ending.', subEndingMsg:'{d} days left. Activate your account to keep access.', subExpiredTitle:'Your period has expired.', subExpiredMsg:'You can still view your data, but to add new data you need to activate your account.', subPayBtn:'Activate account', plansTitle:'Activate your account', plansSub:'Choose a plan and pay. As soon as we confirm the payment, we activate your account.', plan1:'1 month', plan3:'3 months', plan6:'6 months', plan12:'12 months', planGo:'Pay', plansContact:'Questions or another payment method?',
   },
   pt: {
     saveCloud:'☁ Salvar na nuvem', myMatches:'☁ Meus jogos', loadFile:'Carregar arquivo', saveFile:'Salvar arquivo',
@@ -2194,7 +2215,7 @@ window.I18N = {
     mPickVideo:'Escolha um vídeo (envie-os na aba 🎬 Vídeo).', mClipDiscarded:'Corte removido da linha do tempo.',
     mSepAdded:'Separador adicionado ao final. Arraste-o para onde quiser.',
     mSeqExported:'Sequência exportada.', mExportCancel:'Exportação cancelada.',
-    mNoRecSupport:'Seu navegador não suporta gravação de vídeo ao vivo.',
+    mNoRecSupport:'Seu navegador não suporta gravação de vídeo ao vivo.', subEndingTitle:'Seu teste está terminando.', subEndingMsg:'Faltam {d} dias. Ative sua conta para não perder o acesso.', subExpiredTitle:'Seu período expirou.', subExpiredMsg:'Você ainda pode ver seus dados, mas para adicionar novos precisa ativar sua conta.', subPayBtn:'Ativar conta', plansTitle:'Ative sua conta', plansSub:'Escolha o plano e pague. Assim que confirmarmos o pagamento, ativamos sua conta.', plan1:'1 mês', plan3:'3 meses', plan6:'6 meses', plan12:'12 meses', planGo:'Pagar', plansContact:'Dúvidas ou outra forma de pagamento?',
   }
 };
 window.__lang = (function(){ try{ return localStorage.getItem('ce_lang') || 'es'; }catch(e){ return 'es'; } })();
@@ -2308,6 +2329,33 @@ document.addEventListener('DOMContentLoaded', ()=>{
 // ---------------- CONFIG SUPABASE ----------------
 const SUPABASE_URL = 'https://pzhouyxvfgkufmnqokeh.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_kSd8QnrUeB0SvHVtWlarCA_BAYas52j';
+
+// ==================================================================
+// CONFIG DE PAGOS  ←  COMPLETÁ ACÁ CON TUS LINKS DE MERCADO PAGO
+// ==================================================================
+// Poné entre las comillas el link de pago que generás en Mercado Pago.
+// Podés poner uno solo (el mensual) para arrancar, o los cuatro.
+// Si dejás alguno vacío, el botón usa el WhatsApp de abajo como respaldo.
+window.__PAY = {
+  whatsapp: '',                 // ej: '5491122334455' (con código de país, sin +, sin espacios)
+  mp: {
+    mes1:  '',                  // link Mercado Pago - 1 mes
+    mes3:  '',                  // link Mercado Pago - 3 meses
+    mes6:  '',                  // link Mercado Pago - 6 meses
+    mes12: ''                   // link Mercado Pago - 12 meses
+  },
+  stripe: {                     // (futuro) para vender al exterior
+    mes1:'', mes3:'', mes6:'', mes12:''
+  }
+};
+// El botón "Activar cuenta" usa esto para decidir a dónde manda al usuario.
+window.__payLink = (function(){
+  const p = window.__PAY;
+  if(p.mp && p.mp.mes1) return p.mp.mes1;                         // 1) link de MP mensual
+  if(p.whatsapp) return 'https://wa.me/'+p.whatsapp+'?text='+encodeURIComponent('Hola! Quiero activar mi cuenta de Cancha Edit.'); // 2) WhatsApp
+  return '#';                                                     // 3) nada configurado aún
+})();
+// ==================================================================
 
 // Adaptador de storage "a prueba de sandbox": usa localStorage si está
 // disponible (sitio ya desplegado) y si no, cae a memoria (vista previa)
@@ -5399,8 +5447,79 @@ try{
     }catch(e){ return null; }
   };
 
+  // Chequea el estado de la suscripción y muestra el cartel si corresponde
+  window.__checkSubscription = async function(){
+    try{
+      const clubId = await window.__getClubId();
+      if(!clubId) return;
+      const { data, error } = await sb.from('clubs')
+        .select('subscription_status, trial_ends_at, subscription_ends_at')
+        .eq('id', clubId).single();
+      if(error || !data) return;
+      const st = data.subscription_status;
+      let end = null;
+      if(st === 'active') end = data.subscription_ends_at;
+      else if(st === 'trial') end = data.trial_ends_at;
+      const daysLeft = end ? Math.ceil((new Date(end).getTime() - Date.now())/(1000*60*60*24)) : null;
+      renderSubBanner(st, daysLeft);
+    }catch(e){ /* silencioso */ }
+  };
+
+  function renderSubBanner(status, daysLeft){
+    let banner = document.getElementById('subBanner');
+    // vencido: estado expired, o prueba/activo con días negativos
+    const vencido = status === 'expired' || (daysLeft !== null && daysLeft < 0);
+    const porVencer = !vencido && daysLeft !== null && daysLeft <= 7;
+    if(!vencido && !porVencer){ if(banner) banner.remove(); return; }
+    if(!banner){
+      banner = document.createElement('div');
+      banner.id = 'subBanner';
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
+    if(vencido){
+      banner.className = 'sub-banner expired';
+      banner.innerHTML = `<span class="sb-icon">🔒</span><span class="sb-text"><b>${window.t('subExpiredTitle')}</b> ${window.t('subExpiredMsg')}</span><button class="sb-btn" id="sbPayBtn">${window.t('subPayBtn')}</button>`;
+    } else {
+      banner.className = 'sub-banner warning';
+      const msg = window.t('subEndingMsg').replace('{d}', daysLeft);
+      banner.innerHTML = `<span class="sb-icon">⏳</span><span class="sb-text"><b>${window.t('subEndingTitle')}</b> ${msg}</span><button class="sb-btn" id="sbPayBtn">${window.t('subPayBtn')}</button>`;
+    }
+    const payBtn = document.getElementById('sbPayBtn');
+    if(payBtn) payBtn.addEventListener('click', openPlansModal);
+  }
+
+  // Modal de planes: el usuario elige período y va al pago
+  function openPlansModal(){
+    let modal = document.getElementById('plansModal');
+    if(modal) modal.remove();
+    const P = window.__PAY || {mp:{},whatsapp:''};
+    const waLink = P.whatsapp ? ('https://wa.me/'+P.whatsapp+'?text='+encodeURIComponent('Hola! Quiero activar mi cuenta de Cancha Edit.')) : null;
+    const plans = [
+      { key:'mes1',  label:window.t('plan1'),  months:1 },
+      { key:'mes3',  label:window.t('plan3'),  months:3 },
+      { key:'mes6',  label:window.t('plan6'),  months:6 },
+      { key:'mes12', label:window.t('plan12'), months:12 }
+    ];
+    let cards = '';
+    plans.forEach(pl=>{
+      const link = (P.mp && P.mp[pl.key]) ? P.mp[pl.key] : (waLink || '#');
+      cards += `<a class="plan-card" href="${link}" target="_blank" rel="noopener"><span class="plan-label">${pl.label}</span><span class="plan-go">${window.t('planGo')} →</span></a>`;
+    });
+    const contactLine = waLink ? `<p class="plans-contact">${window.t('plansContact')} <a href="${waLink}" target="_blank">WhatsApp</a></p>` : '';
+    modal = document.createElement('div');
+    modal.id = 'plansModal';
+    modal.className = 'plans-overlay';
+    modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><h2>${window.t('plansTitle')}</h2><p class="plans-sub">${window.t('plansSub')}</p><div class="plans-grid">${cards}</div>${contactLine}</div>`;
+    document.body.appendChild(modal);
+    document.getElementById('plansClose').addEventListener('click',()=>modal.remove());
+    modal.addEventListener('click',e=>{ if(e.target===modal) modal.remove(); });
+  }
+  window.__openPlansModal = openPlansModal;
+
   // Cargar las categorías del club apenas hay conexión.
   if(window.__loadCategoriesOnce) window.__loadCategoriesOnce();
+  // Revisar el estado de la suscripción y mostrar cartel si corresponde
+  if(window.__checkSubscription) window.__checkSubscription();
 }catch(err){
   console.error('Supabase no se pudo inicializar en el editor:', err);
   const badge = document.getElementById('userBadge');
