@@ -497,6 +497,12 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .board-plays-list{display:flex;flex-direction:column;gap:8px;}
 .board-play{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;}
 .board-play-name{font-weight:600;font-size:13px;margin-bottom:6px;word-break:break-word;}
+.board-desc-wrap{margin:0 0 12px;}
+.board-desc-input{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:9px;color:var(--chalk);font-family:'Inter',sans-serif;font-size:13px;padding:10px 12px;}
+.board-desc-input:focus{outline:none;border-color:var(--accent-2);}
+.board-desc-input::placeholder{color:var(--muted);}
+.board-desc-show{position:absolute;top:10px;left:10px;right:10px;z-index:5;background:rgba(16,22,28,0.85);border:1px solid var(--accent-2);border-radius:8px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:13px;color:var(--chalk);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);box-shadow:0 2px 10px rgba(0,0,0,0.4);}
+.board-play-desc{color:var(--muted);font-size:11px;margin-bottom:6px;font-style:italic;word-break:break-word;}
 .board-play-actions{display:flex;gap:5px;flex-wrap:wrap;}
 .board-play-actions button{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;transition:all .12s ease;}
 .board-play-actions .bp-play:hover{border-color:var(--accent-2);color:var(--accent-2);}
@@ -510,6 +516,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .live-finish-top{font-size:15px;padding:11px 24px;}
 .live-call-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}
 .live-call-item{background:var(--panel-2);border:2px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .12s ease;user-select:none;}
+.rival-pick{display:flex;align-items:center;gap:10px;width:100%;background:var(--panel-2);border:2px solid var(--line);border-radius:10px;padding:11px 14px;cursor:pointer;color:var(--chalk);font-family:inherit;text-align:left;transition:all .12s ease;margin-bottom:8px;user-select:none;}
+.rival-pick:hover{border-color:var(--accent-2);}
+.rival-pick.selected{border-color:var(--success);background:rgba(76,175,109,0.15);}
+.rival-pick .rp-check{width:20px;height:20px;border-radius:6px;border:2px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;}
+.rival-pick.selected .rp-check{background:var(--success);border-color:var(--success);}
+.rival-pick.selected .rp-check::after{content:'✓';}
+.rival-pick .rp-name{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;flex:1;}
+.rival-pick .rp-date{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
 .live-call-item:hover{border-color:var(--muted);}
 .live-call-item.called{border-color:var(--success);background:rgba(76,175,109,0.12);}
 .live-call-item .lci-check{width:18px;height:18px;border-radius:5px;border:2px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;}
@@ -1675,8 +1689,13 @@ body.editor-active #screen-editor{ display:block; }
       <button class="btn small board-rec" id="boardRecBtn">● Grabar</button>
     </div>
 
+    <div class="board-desc-wrap">
+      <input type="text" id="boardDescInput" class="board-desc-input" data-i18n-ph="boardDescPh" placeholder="Descripción de la jugada (opcional): ej. Salida 3-1 por derecha, bloqueo del pivot...">
+    </div>
+
     <div class="board-layout">
       <div class="board-wrap">
+        <div class="board-desc-show" id="boardDescShow" style="display:none;"></div>
         <svg id="futsalBoard" viewBox="0 0 680 400" xmlns="http://www.w3.org/2000/svg"></svg>
       </div>
       <div class="board-plays">
@@ -1928,10 +1947,40 @@ window.I18N = {
     scoutTitle:'Scouting de rivales', scoutSub:'Editá el rival y la fecha del partido desde cada recuadro, o abrí la ficha para el análisis completo.',
     addFecha:'+ Agregar partido', addKeyPlayer:'+ Agregar', addPhoto:'+ Foto', addVideo:'+ Video', genReport:'Generar informe',
     // Pizarra
-    boardTitle:'Pizarra táctica', boardSub:'Movés las fichas y grabás jugadas animadas para tu equipo.',
+    boardTitle:'Pizarra táctica', boardSub:'Movés las fichas y grabás jugadas animadas para tu equipo.', boardDescPh:'Descripción de la jugada (opcional): ej. Salida 3-1 por derecha, bloqueo del pivot...',
     // Anuales layout
     annConvert:'⚽ Cómo convertimos', annConceded:'🥅 Cómo nos convierten', annMore:'Ver más estadísticas (goleadores, asistencias, detalle, tarjetas)',
     annPeriod:'Resumen por período', annGoalders:'⚽ Goleadores', annAssists:'🅰 Asistencias',
+    // Mensajes (toasts/confirms/prompts)
+    mNoConn:'Sin conexión.', mNoConnServer:'Sin conexión con el servidor.', mNoClub:'No se pudo identificar tu club.',
+    mSaveErr:'Error al guardar.', mSaved:'Guardado ✓', mDeleteErr:'No se pudo eliminar.',
+    mFull5:'Ya hay 5 en cancha. Sacá a uno primero.',
+    mResetAll:'¿Reiniciar todo? Se borran tiempos y eventos de esta sesión.',
+    mAlready2nd:'Ya estás en el 2do tiempo.',
+    mEndHalf:'¿Terminar el 1er tiempo? Los minutos jugados hasta ahora quedan como "1er T".',
+    mFinishNoEv:'No hay eventos cargados. ¿Finalizar igual?',
+    mArchived:'Partido archivado en Estadísticas → Minutaje ✓', mArchiveErr:'Error al archivar.',
+    mPickRival:'Elegí el rival primero.', mPick5:'Elegí al menos 5 convocados.',
+    mNewMatchQ:'¿Empezar un partido nuevo? Si no finalizaste el actual, se perderán sus datos.',
+    mNothingUndo:'No hay nada para deshacer.', mUndoOnlyLast:'Solo se puede deshacer el último gol o falta.',
+    mGoalOf:'⚽ Gol de ', mFoulOf:'⚠️ Falta de ', mCardTo:'🟨 Tarjeta a ',
+    mPlayerName:'Nombre del jugador:', mNumOpt:'Número (opcional):', mPosOpt:'Posición (opcional): arquero, cierre, ala, pívot...',
+    mNameEmpty:'El nombre no puede quedar vacío.', mPlayerUpd:'Jugador actualizado ✓', mAddErr:'No se pudo agregar.',
+    mRemoveQ:'¿Quitar a ', mMatchName:'Nombre del partido:', mMatchSaved:'Partido guardado en la nube ✓',
+    mMatchDeleted:'Partido borrado.', mDelMatchErr:'No se pudo borrar.', mCreateMatchErr:'No se pudo crear el partido.',
+    mDetailErr:'No se pudo abrir el detalle.', mAdjSaved:'Ajuste guardado ✓',
+    mOpenRivalFirst:'Abrí una ficha de rival primero.', mLoadRivalData:'Cargá algún dato del rival antes de generar el informe.',
+    mReportCopied:'Informe copiado ✓', mCopyErr:'No se pudo copiar.',
+    mPlayShort:'La jugada fue muy corta.', mPlayName:'Nombre de la jugada:', mPlaySaved:'Jugada guardada ✓',
+    mVideoLink:'Pegá el enlace del video (YouTube, Drive, etc.):', mShortName:'Ponele un nombre corto (opcional):',
+    mNotVideo:'Ese archivo no parece ser un video.', mProjectSaved:'Proyecto guardado. Guardá también los videos para retomarlo después.',
+    mNothingSave:'No hay nada para guardar todavía.', mLoadMatchErr:'No se pudo cargar el partido.',
+    mReadProjErr:'No se pudo leer ese archivo de proyecto.', mExpFirst:'Esperá a que termine la exportación para seguir marcando.',
+    mLoadVideoFirst:'Cargá un video primero.', mClipShort:'El recorte es muy corto, no se guardó.',
+    mPickVideo:'Elegí un video (se suben en la pestaña 🎬 Video).', mClipDiscarded:'Recorte descartado del timeline.',
+    mSepAdded:'Separador agregado al final. Arrastralo para ubicarlo donde quieras.',
+    mSeqExported:'Secuencia exportada.', mExportCancel:'Exportación cancelada.',
+    mNoRecSupport:'Tu navegador no soporta grabación de video en vivo.',
   },
   en: {
     saveCloud:'☁ Save to cloud', myMatches:'☁ My matches', loadFile:'Load file', saveFile:'Save file',
@@ -1971,9 +2020,38 @@ window.I18N = {
     addWeek:'+ Add week', addExercise:'+ Add exercise', emptyWeek:'Clear week',
     scoutTitle:'Opponent scouting', scoutSub:'Edit the opponent and match date in each box, or open the card for full analysis.',
     addFecha:'+ Add match', addKeyPlayer:'+ Add', addPhoto:'+ Photo', addVideo:'+ Video', genReport:'Generate report',
-    boardTitle:'Tactic board', boardSub:'Move the pieces and record animated plays for your team.',
+    boardTitle:'Tactic board', boardSub:'Move the pieces and record animated plays for your team.', boardDescPh:'Play description (optional): e.g. 3-1 build-up on the right, pivot screen...',
     annConvert:'⚽ How we score', annConceded:'🥅 How we concede', annMore:'See more stats (scorers, assists, detail, cards)',
     annPeriod:'Summary by period', annGoalders:'⚽ Scorers', annAssists:'🅰 Assists',
+    mNoConn:'No connection.', mNoConnServer:'No connection to the server.', mNoClub:'Could not identify your club.',
+    mSaveErr:'Error saving.', mSaved:'Saved ✓', mDeleteErr:'Could not delete.',
+    mFull5:'There are already 5 on court. Take one out first.',
+    mResetAll:'Reset everything? This clears times and events of this session.',
+    mAlready2nd:'You are already in the 2nd half.',
+    mEndHalf:'End the 1st half? Minutes played so far are locked as "1st H".',
+    mFinishNoEv:'No events logged. End anyway?',
+    mArchived:'Match archived in Statistics → Minutes ✓', mArchiveErr:'Error archiving.',
+    mPickRival:'Pick the opponent first.', mPick5:'Select at least 5 called-up players.',
+    mNewMatchQ:'Start a new match? If you did not finish the current one, its data will be lost.',
+    mNothingUndo:'Nothing to undo.', mUndoOnlyLast:'Only the last goal or foul can be undone.',
+    mGoalOf:'⚽ Goal by ', mFoulOf:'⚠️ Foul by ', mCardTo:'🟨 Card to ',
+    mPlayerName:'Player name:', mNumOpt:'Number (optional):', mPosOpt:'Position (optional): goalkeeper, defender, winger, pivot...',
+    mNameEmpty:'The name cannot be empty.', mPlayerUpd:'Player updated ✓', mAddErr:'Could not add.',
+    mRemoveQ:'Remove ', mMatchName:'Match name:', mMatchSaved:'Match saved to cloud ✓',
+    mMatchDeleted:'Match deleted.', mDelMatchErr:'Could not delete.', mCreateMatchErr:'Could not create the match.',
+    mDetailErr:'Could not open the detail.', mAdjSaved:'Adjustment saved ✓',
+    mOpenRivalFirst:'Open an opponent card first.', mLoadRivalData:'Add some opponent data before generating the report.',
+    mReportCopied:'Report copied ✓', mCopyErr:'Could not copy.',
+    mPlayShort:'The play was too short.', mPlayName:'Play name:', mPlaySaved:'Play saved ✓',
+    mVideoLink:'Paste the video link (YouTube, Drive, etc.):', mShortName:'Give it a short name (optional):',
+    mNotVideo:'That file does not look like a video.', mProjectSaved:'Project saved. Save the videos too to resume later.',
+    mNothingSave:'Nothing to save yet.', mLoadMatchErr:'Could not load the match.',
+    mReadProjErr:'Could not read that project file.', mExpFirst:'Wait for the export to finish before marking more.',
+    mLoadVideoFirst:'Load a video first.', mClipShort:'The clip is too short, not saved.',
+    mPickVideo:'Pick a video (upload them in the 🎬 Video tab).', mClipDiscarded:'Clip removed from the timeline.',
+    mSepAdded:'Separator added at the end. Drag it wherever you want.',
+    mSeqExported:'Sequence exported.', mExportCancel:'Export canceled.',
+    mNoRecSupport:'Your browser does not support live video recording.',
   },
   pt: {
     saveCloud:'☁ Salvar na nuvem', myMatches:'☁ Meus jogos', loadFile:'Carregar arquivo', saveFile:'Salvar arquivo',
@@ -2013,9 +2091,38 @@ window.I18N = {
     addWeek:'+ Adicionar semana', addExercise:'+ Adicionar exercício', emptyWeek:'Limpar semana',
     scoutTitle:'Scouting de adversários', scoutSub:'Edite o adversário e a data do jogo em cada caixa, ou abra o cartão para a análise completa.',
     addFecha:'+ Adicionar jogo', addKeyPlayer:'+ Adicionar', addPhoto:'+ Foto', addVideo:'+ Vídeo', genReport:'Gerar relatório',
-    boardTitle:'Prancheta tática', boardSub:'Mova as peças e grave jogadas animadas para seu time.',
+    boardTitle:'Prancheta tática', boardSub:'Mova as peças e grave jogadas animadas para seu time.', boardDescPh:'Descrição da jogada (opcional): ex. Saída 3-1 pela direita, bloqueio do pivô...',
     annConvert:'⚽ Como marcamos', annConceded:'🥅 Como sofremos', annMore:'Ver mais estatísticas (artilheiros, assistências, detalhe, cartões)',
     annPeriod:'Resumo por período', annGoalders:'⚽ Artilheiros', annAssists:'🅰 Assistências',
+    mNoConn:'Sem conexão.', mNoConnServer:'Sem conexão com o servidor.', mNoClub:'Não foi possível identificar seu clube.',
+    mSaveErr:'Erro ao salvar.', mSaved:'Salvo ✓', mDeleteErr:'Não foi possível excluir.',
+    mFull5:'Já há 5 em quadra. Tire um primeiro.',
+    mResetAll:'Reiniciar tudo? Apaga tempos e eventos desta sessão.',
+    mAlready2nd:'Você já está no 2º tempo.',
+    mEndHalf:'Terminar o 1º tempo? Os minutos jogados até agora ficam como "1º T".',
+    mFinishNoEv:'Não há eventos registrados. Finalizar mesmo assim?',
+    mArchived:'Jogo arquivado em Estatísticas → Minutagem ✓', mArchiveErr:'Erro ao arquivar.',
+    mPickRival:'Escolha o adversário primeiro.', mPick5:'Selecione pelo menos 5 convocados.',
+    mNewMatchQ:'Iniciar uma nova partida? Se você não finalizou a atual, os dados serão perdidos.',
+    mNothingUndo:'Nada para desfazer.', mUndoOnlyLast:'Só é possível desfazer o último gol ou falta.',
+    mGoalOf:'⚽ Gol de ', mFoulOf:'⚠️ Falta de ', mCardTo:'🟨 Cartão para ',
+    mPlayerName:'Nome do jogador:', mNumOpt:'Número (opcional):', mPosOpt:'Posição (opcional): goleiro, fixo, ala, pivô...',
+    mNameEmpty:'O nome não pode ficar vazio.', mPlayerUpd:'Jogador atualizado ✓', mAddErr:'Não foi possível adicionar.',
+    mRemoveQ:'Remover ', mMatchName:'Nome do jogo:', mMatchSaved:'Jogo salvo na nuvem ✓',
+    mMatchDeleted:'Jogo excluído.', mDelMatchErr:'Não foi possível excluir.', mCreateMatchErr:'Não foi possível criar o jogo.',
+    mDetailErr:'Não foi possível abrir o detalhe.', mAdjSaved:'Ajuste salvo ✓',
+    mOpenRivalFirst:'Abra um cartão de adversário primeiro.', mLoadRivalData:'Adicione dados do adversário antes de gerar o relatório.',
+    mReportCopied:'Relatório copiado ✓', mCopyErr:'Não foi possível copiar.',
+    mPlayShort:'A jogada foi muito curta.', mPlayName:'Nome da jogada:', mPlaySaved:'Jogada salva ✓',
+    mVideoLink:'Cole o link do vídeo (YouTube, Drive, etc.):', mShortName:'Dê um nome curto (opcional):',
+    mNotVideo:'Esse arquivo não parece ser um vídeo.', mProjectSaved:'Projeto salvo. Salve também os vídeos para retomar depois.',
+    mNothingSave:'Nada para salvar ainda.', mLoadMatchErr:'Não foi possível carregar o jogo.',
+    mReadProjErr:'Não foi possível ler esse arquivo de projeto.', mExpFirst:'Espere a exportação terminar para marcar mais.',
+    mLoadVideoFirst:'Carregue um vídeo primeiro.', mClipShort:'O corte é muito curto, não foi salvo.',
+    mPickVideo:'Escolha um vídeo (envie-os na aba 🎬 Vídeo).', mClipDiscarded:'Corte removido da linha do tempo.',
+    mSepAdded:'Separador adicionado ao final. Arraste-o para onde quiser.',
+    mSeqExported:'Sequência exportada.', mExportCancel:'Exportação cancelada.',
+    mNoRecSupport:'Seu navegador não suporta gravação de vídeo ao vivo.',
   }
 };
 window.__lang = (function(){ try{ return localStorage.getItem('ce_lang') || 'es'; }catch(e){ return 'es'; } })();
@@ -2554,7 +2661,7 @@ window.__initEditor = function(){
 
   async function generarInforme(){
     const r = currentRival();
-    if(!r){ toast('Abrí una ficha de rival primero.'); return; }
+    if(!r){ toast(window.t('mOpenRivalFirst')); return; }
     const body = document.getElementById('aiReportBody');
     const btn = document.getElementById('genReportBtn');
 
@@ -2580,7 +2687,7 @@ ${jugadores||'(sin datos)'}`;
 
     // ¿Hay algo cargado?
     const vacio = !r.attack && !r.defense && !r.setpieces && !r.data && (!r.players || r.players.filter(p=>p.name).length===0);
-    if(vacio){ toast('Cargá algún dato del rival antes de generar el informe.'); return; }
+    if(vacio){ toast(window.t('mLoadRivalData')); return; }
 
     btn.disabled = true;
     body.innerHTML = '<div class="ai-loading"><div class="ai-spinner"></div> Analizando el scouting y armando el plan de partido…</div>';
@@ -2628,7 +2735,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
           <button class="btn small" id="regenReportBtn">↻ Generar de nuevo</button>
         </div>`;
       document.getElementById('copyReportBtn').addEventListener('click', () => {
-        navigator.clipboard.writeText(texto).then(()=>toast('Informe copiado ✓')).catch(()=>toast('No se pudo copiar.'));
+        navigator.clipboard.writeText(texto).then(()=>toast(window.t('mReportCopied'))).catch(()=>toast(window.t('mCopyErr')));
       });
       document.getElementById('regenReportBtn').addEventListener('click', generarInforme);
     }catch(e){
@@ -2727,9 +2834,9 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   });
   document.getElementById('addVideoBtn').addEventListener('click', () => {
     const r = currentRival(); if(!r) return;
-    const url = prompt('Pegá el enlace del video (YouTube, Drive, etc.):');
+    const url = prompt(window.t('mVideoLink'));
     if(!url) return;
-    const label = prompt('Ponele un nombre corto (opcional):') || 'Video';
+    const label = prompt(window.t('mShortName')) || 'Video';
     r.materials.push({ type:'video', url, label });
     renderMaterials(); flashSaved();
   });
@@ -3068,19 +3175,22 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     clearInterval(recTimer);
     recBtn.classList.remove('recording');
     recBtn.textContent = '● Grabar';
-    if(recFrames.length < 2){ toast('La jugada fue muy corta.'); return; }
-    const name = prompt('Nombre de la jugada:', 'Jugada ' + (plays.length+1));
+    if(recFrames.length < 2){ toast(window.t('mPlayShort')); return; }
+    const name = prompt(window.t('mPlayName'), 'Jugada ' + (plays.length+1));
     if(name === null) return;
+    const descEl = document.getElementById('boardDescInput');
+    const desc = descEl ? (descEl.value||'').trim() : '';
     const play = {
       id: 'play'+Date.now(),
       name: name || ('Jugada '+(plays.length+1)),
+      desc: desc,
       frames: recFrames,
       tokensSnapshot: JSON.parse(JSON.stringify(tokens))
     };
     plays.unshift(play);
     renderPlays();
     savePlayToCloud(play);
-    toast('Jugada guardada ✓');
+    toast(window.t('mPlaySaved'));
   }
 
   // Guardar una jugada en la nube
@@ -3091,11 +3201,19 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     if(!clubId) return;
     try{
       const { data:{ session } } = await sb.auth.getSession();
-      const { data, error } = await sb.from('board_plays').insert({
+      const payload = {
         club_id: clubId, categoria: catActual(),
         name: play.name, frames: play.frames, tokens_snapshot: play.tokensSnapshot,
         created_by: session ? session.user.id : null
-      }).select().single();
+      };
+      if(play.desc) payload.description = play.desc;
+      let { data, error } = await sb.from('board_plays').insert(payload).select().single();
+      // si falla por falta de columna description, reintentar sin ella
+      if(error && payload.description!==undefined){
+        delete payload.description;
+        const retry = await sb.from('board_plays').insert(payload).select().single();
+        data = retry.data; error = retry.error;
+      }
       if(error){ console.error('board save', error); return; }
       play.dbId = data.id;   // guardamos el id real para poder borrar
     }catch(e){ console.error(e); }
@@ -3116,7 +3234,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       const { data, error } = await q.order('created_at', { ascending:false });
       if(error){ console.error('board load', error); return; }
       plays = (data||[]).map(p => ({
-        id:'play'+p.id, dbId:p.id, name:p.name||'Jugada',
+        id:'play'+p.id, dbId:p.id, name:p.name||'Jugada', desc:p.description||'',
         frames:p.frames||[], tokensSnapshot:p.tokens_snapshot||[]
       }));
       renderPlays();
@@ -3127,6 +3245,12 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   let playingTimer = null;
   function playPlay(play){
     if(playingTimer) return;
+    // mostrar la descripción sobre la cancha (si tiene)
+    const descShow = document.getElementById('boardDescShow');
+    if(descShow){
+      if(play.desc){ descShow.textContent = play.desc; descShow.style.display='block'; }
+      else { descShow.style.display='none'; }
+    }
     // restaurar las fichas al estado inicial de la jugada
     tokens = JSON.parse(JSON.stringify(play.tokensSnapshot));
     render();
@@ -3165,6 +3289,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       const dur = (play.frames[play.frames.length-1].t/1000).toFixed(1);
       item.innerHTML = `
         <div class="board-play-name">${escapeHtml(play.name)} <span style="color:var(--muted);font-weight:400;font-size:11px;">${dur}s</span></div>
+        ${play.desc ? `<div class="board-play-desc">${escapeHtml(play.desc)}</div>` : ''}
         <div class="board-play-actions">
           <button class="bp-play">▶ Ver</button>
           <button class="bp-export">⬇ Exportar</button>
@@ -3345,7 +3470,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     updateClockUI();
   }
   function resetClock(){
-    if(!confirm('¿Reiniciar todo? Se borran tiempos y eventos de esta sesión.')) return;
+    if(!confirm(window.t('mResetAll'))) return;
     clockRunning=false; clearInterval(clockTimer);
     clockSeconds=0; currentHalf=1; halfSplitAt=null; swapOutId=null; manualMin=halfMinutes;
     events=[]; liveRowId=null;
@@ -3355,8 +3480,8 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
 
   // ----- Fin del 1er tiempo -----
   function endFirstHalf(){
-    if(currentHalf !== 1){ toast('Ya estás en el 2do tiempo.'); return; }
-    if(!confirm('¿Terminar el 1er tiempo? Los minutos jugados hasta ahora quedan como "1er T".')) return;
+    if(currentHalf !== 1){ toast(window.t('mAlready2nd')); return; }
+    if(!confirm(window.t('mEndHalf'))) return;
     // consolidar lo jugado hasta acá en acc1 para los que están en cancha
     const now = nowSeconds();
     Object.keys(state).forEach(pid => {
@@ -3375,7 +3500,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
 
   // ----- Acciones -----
   function playerIn(pid){
-    if(countOnCourt() >= 5){ toast('Ya hay 5 en cancha. Sacá a uno primero.'); return false; }
+    if(countOnCourt() >= 5){ toast(window.t('mFull5')); return false; }
     const st = ensure(pid); st.onCourt = true; st.lastInAt = nowSeconds(); return true;
   }
   function playerOut(pid){
@@ -3420,7 +3545,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   // Tocar un SUPLENTE (banco)
   function tapBench(pid){
     if(clockType==='parado'){
-      if(countOnCourt() >= 5){ toast('Ya hay 5 en cancha. Sacá a uno primero.'); return; }
+      if(countOnCourt() >= 5){ toast(window.t('mFull5')); return; }
       openTimePicker('¿En qué minuto ENTRÓ?', 'Reloj regresivo ('+halfMinutes+' → 0).', halfMinutes, 0, (elapsed)=>{
         const st=ensure(pid); st.onCourt=true; st.lastInAt=elapsed;
         logEvent('in', pid, null);
@@ -3579,9 +3704,9 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
 
   // ----- Finalizar partido (usa el rival ya elegido al inicio) -----
   async function finishMatch(){
-    if(events.length===0){ if(!confirm('No hay eventos cargados. ¿Finalizar igual?')) return; }
-    const sb=window.__sb; if(!sb){ toast('Sin conexión.'); return; }
-    const clubId=await window.__getClubId(); if(!clubId){ toast('No se pudo identificar tu club.'); return; }
+    if(events.length===0){ if(!confirm(window.t('mFinishNoEv'))) return; }
+    const sb=window.__sb; if(!sb){ toast(window.t('mNoConn')); return; }
+    const clubId=await window.__getClubId(); if(!clubId){ toast(window.t('mNoClub')); return; }
     // consolidar el tiempo en curso
     Object.keys(state).forEach(pid => {
       const st=state[pid];
@@ -3607,11 +3732,11 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       };
       const res=await sb.from('live_sessions').insert(payload).select('id').single();
       if(res.error){ toast('No se pudo archivar: '+res.error.message); return; }
-      toast('Partido archivado en Estadísticas → Minutaje ✓');
+      toast(window.t('mArchived'));
       // Volver a la pantalla de setup para el próximo partido
       setupCalled={}; matchRival=''; matchLinkId=null;
       backToSetup();
-    }catch(e){ console.error(e); toast('Error al archivar.'); }
+    }catch(e){ console.error(e); toast(window.t('mArchiveErr')); }
   }
 
   // ===== SETUP: cargar plantel y partidos para elegir =====
@@ -3644,12 +3769,12 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
         if(list.length===0){ cont.innerHTML='<p class="rd-empty">No hay partidos cargados en Estadísticas → Partidos. Podés igual jugar sin linkear (elegí "Amistoso").</p>'; }
         const opts=list.concat([{id:null,rival:'Amistoso / sin linkear',match_date:''}]);
         opts.forEach(m=>{
-          const btn=document.createElement('button'); btn.className='cloud-item'+(matchLinkId===m.id&&matchRival===(m.rival||'')?' selected':'');
+          const btn=document.createElement('button'); btn.className='rival-pick'+(matchLinkId===m.id&&matchRival===(m.rival||'')?' selected':'');
           const when=m.match_date?new Date(m.match_date+'T00:00:00').toLocaleDateString('es-AR'):'';
-          btn.innerHTML=`<span class="ci-name">${escapeHtml(m.rival||'Sin rival')}</span><span class="ci-date">${when}</span>`;
+          btn.innerHTML=`<span class="rp-check"></span><span class="rp-name">${escapeHtml(m.rival||'Sin rival')}</span><span class="rp-date">${when}</span>`;
           btn.addEventListener('click',()=>{
             matchLinkId=m.id; matchRival=m.rival||'Amistoso';
-            document.querySelectorAll('#liveSetupRivals .cloud-item').forEach(b=>b.classList.remove('selected'));
+            document.querySelectorAll('#liveSetupRivals .rival-pick').forEach(b=>b.classList.remove('selected'));
             btn.classList.add('selected');
             updateStartHint();
           });
@@ -3688,9 +3813,9 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   document.getElementById('liveCallNone').addEventListener('click',()=>{ setupCalled={}; renderCallGrid(); updateStartHint(); });
 
   document.getElementById('liveStartBtn').addEventListener('click',()=>{
-    if(!matchRival){ toast('Elegí el rival primero.'); return; }
+    if(!matchRival){ toast(window.t('mPickRival')); return; }
     const conv=allSquad.filter(p=>setupCalled[p.id]);
-    if(conv.length<5){ toast('Elegí al menos 5 convocados.'); return; }
+    if(conv.length<5){ toast(window.t('mPick5')); return; }
     // fijar el plantel del partido = convocados
     squad=conv.map(p=>({...p}));
     state={}; squad.forEach(p=>{ state[p.id]={onCourt:false,acc1:0,acc2:0,lastInAt:null,goals:0,fouls:0}; });
@@ -3705,7 +3830,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   });
 
   document.getElementById('liveNewMatchBtn').addEventListener('click',()=>{
-    if(events.length>0 && !confirm('¿Empezar un partido nuevo? Si no finalizaste el actual, se perderán sus datos.')) return;
+    if(events.length>0 && !confirm(window.t('mNewMatchQ'))) return;
     backToSetup();
   });
   function backToSetup(){
@@ -3723,30 +3848,30 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     const st=ensure(pid); st.goals++;
     events.unshift({ t:nowSeconds(), type:'goal', pid, inName:(squad.find(p=>p.id===pid)||{}).name||'', outName:'', half:currentHalf });
     renderField(); renderTotals(); renderLog();
-    toast('⚽ Gol de '+((squad.find(p=>p.id===pid)||{}).name||''));
+    toast(window.t('mGoalOf')+((squad.find(p=>p.id===pid)||{}).name||''));
   }
   function addFoul(pid){
     const st=ensure(pid); st.fouls++;
     events.unshift({ t:nowSeconds(), type:'foul', pid, inName:(squad.find(p=>p.id===pid)||{}).name||'', outName:'', half:currentHalf });
     renderField(); renderTotals(); renderLog();
-    toast('⚠️ Falta de '+((squad.find(p=>p.id===pid)||{}).name||''));
+    toast(window.t('mFoulOf')+((squad.find(p=>p.id===pid)||{}).name||''));
   }
   function addCard(pid){
     const st=ensure(pid); st.cards++;
     events.unshift({ t:nowSeconds(), type:'card', pid, inName:(squad.find(p=>p.id===pid)||{}).name||'', outName:'', half:currentHalf });
     renderField(); renderTotals(); renderLog();
-    toast('🟨 Tarjeta a '+((squad.find(p=>p.id===pid)||{}).name||''));
+    toast(window.t('mCardTo')+((squad.find(p=>p.id===pid)||{}).name||''));
   }
   // Deshacer el último evento (gol, falta o cambio)
   function undoLastEvent(){
-    if(events.length===0){ toast('No hay nada para deshacer.'); return; }
+    if(events.length===0){ toast(window.t('mNothingUndo')); return; }
     const ev = events[0];
     let msg = '';
     if(ev.type==='goal'){ const st=ensure(ev.pid); if(st) st.goals=Math.max(0,(st.goals||0)-1); msg='Gol deshecho'; }
     else if(ev.type==='foul'){ const st=ensure(ev.pid); if(st) st.fouls=Math.max(0,(st.fouls||0)-1); msg='Falta deshecha'; }
     else if(ev.type==='card'){ const st=ensure(ev.pid); if(st) st.cards=Math.max(0,(st.cards||0)-1); msg='Tarjeta deshecha'; }
     else if(ev.type==='in' || ev.type==='swap' || ev.type==='out' || ev.type==='half'){
-      toast('Solo se puede deshacer el último gol o falta.'); return;
+      toast(window.t('mUndoOnlyLast')); return;
     }
     else { toast('No se puede deshacer este evento.'); return; }
     events.shift();
@@ -4178,25 +4303,25 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
         <button class="sq-del" title="Quitar">✕</button>
       `;
       card.querySelector('.sq-edit').addEventListener('click', async () => {
-        const name = prompt('Nombre del jugador:', p.name || '');
+        const name = prompt(window.t('mPlayerName'), p.name || '');
         if(name === null) return;                       // canceló
-        if(!name.trim()){ toast('El nombre no puede quedar vacío.'); return; }
-        const number = prompt('Número (opcional):', p.number || '');
+        if(!name.trim()){ toast(window.t('mNameEmpty')); return; }
+        const number = prompt(window.t('mNumOpt'), p.number || '');
         if(number === null) return;
-        const position = prompt('Posición (opcional): arquero, cierre, ala, pívot...', p.position || '');
+        const position = prompt(window.t('mPosOpt'), p.position || '');
         if(position === null) return;
         const sb = window.__sb;
         // actualizar en la nube
         if(sb && !String(p.id).startsWith('tmp')){
           try{
             const { error } = await sb.from('players').update({ name:name.trim(), number, position }).eq('id', p.id);
-            if(error){ toast('No se pudo guardar el cambio.'); return; }
-          }catch(e){ console.error(e); toast('Error al guardar.'); return; }
+            if(error){ toast(window.t('mSaveErr')); return; }
+          }catch(e){ console.error(e); toast(window.t('mSaveErr')); return; }
         }
         // actualizar en memoria
         p.name = name.trim(); p.number = number; p.position = position;
         renderSquad();
-        toast('Jugador actualizado ✓');
+        toast(window.t('mPlayerUpd'));
       });
       card.querySelector('.sq-del').addEventListener('click', async () => {
         if(!confirm('¿Quitar a '+p.name+' del plantel?')) return;
@@ -4209,15 +4334,15 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     });
   }
   document.getElementById('addPlayerToSquadBtn').addEventListener('click', async () => {
-    const name = prompt('Nombre del jugador:');
+    const name = prompt(window.t('mPlayerName'));
     if(!name || !name.trim()) return;
-    const number = prompt('Número (opcional):') || '';
-    const position = prompt('Posición (opcional): arquero, cierre, ala, pívot...') || '';
+    const number = prompt(window.t('mNumOpt')) || '';
+    const position = prompt(window.t('mPosOpt')) || '';
     const sb = window.__sb;
-    if(!sb || !clubId){ toast('Sin conexión.'); return; }
+    if(!sb || !clubId){ toast(window.t('mNoConn')); return; }
     try{
       const { data, error } = await sb.from('players').insert({ club_id:clubId, categoria:catActual(), name:name.trim(), number, position }).select().single();
-      if(error){ toast('No se pudo agregar.'); return; }
+      if(error){ toast(window.t('mAddErr')); return; }
       squad.push({ id:data.id, name:data.name, number:data.number||'', position:data.position||'' });
       renderSquad();
     }catch(e){ console.error(e); }
@@ -4279,11 +4404,11 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     const sb = window.__sb;
     if(sb && !String(m.id).startsWith('tmp')){
       try{ await sb.from('stat_matches').delete().eq('id', m.id); }
-      catch(e){ console.error(e); toast('No se pudo borrar.'); return; }
+      catch(e){ console.error(e); toast(window.t('mDelMatchErr')); return; }
     }
     matches = matches.filter(x => x.id !== m.id);
     renderMatchList();
-    toast('Partido borrado.');
+    toast(window.t('mMatchDeleted'));
   }
 
   // Guardado directo de una fila de la planilla (rival/fecha), con debounce por id
@@ -4300,14 +4425,14 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
 
   document.getElementById('newMatchBtn').addEventListener('click', async () => {
     const sb = window.__sb;
-    if(!sb || !clubId){ toast('Sin conexión.'); return; }
+    if(!sb || !clubId){ toast(window.t('mNoConn')); return; }
     try{
       const { data:{ session } } = await sb.auth.getSession();
       const { data, error } = await sb.from('stat_matches').insert({
         club_id:clubId, categoria:catActual(), rival:'', match_date:null,
         goals_for:[], goals_against:[], assists:[], cards:[], created_by: session?session.user.id:null
       }).select().single();
-      if(error){ toast('No se pudo crear el partido.'); return; }
+      if(error){ toast(window.t('mCreateMatchErr')); return; }
       const m = { id:data.id, rival:'', date:'', goalsFor:[], goalsAgainst:[], assists:[], cards:[] };
       matches.push(m);
       renderMatchList();
@@ -4614,7 +4739,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     }
     detail.innerHTML=html;
     document.getElementById('minsBack').addEventListener('click',()=>renderMinutes());
-    }catch(e){ console.error('showMinutesDetail', e); toast('No se pudo abrir el detalle.'); }
+    }catch(e){ console.error('showMinutesDetail', e); toast(window.t('mDetailErr')); }
   }
 
   function renderCalls(){
@@ -4745,11 +4870,11 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   document.getElementById('adjSaveBtn').addEventListener('click', async () => {
     const btn = document.getElementById('adjSaveBtn');
     const sb = window.__sb;
-    if(!sb){ toast('Sin conexión.'); return; }
+    if(!sb){ toast(window.t('mNoConn')); return; }
     btn.disabled = true; btn.textContent = 'Guardando…';
     try{
       const clubId = await window.__getClubId();
-      if(!clubId){ toast('No se pudo identificar tu club.'); btn.disabled=false; btn.textContent='Guardar ajuste'; return; }
+      if(!clubId){ toast(window.t('mNoClub')); btn.disabled=false; btn.textContent='Guardar ajuste'; return; }
       // limpiar filas vacías
       adjustment.scorers = (adjustment.scorers||[]).filter(s => s.name && s.goals);
       adjustment.scored = (adjustment.scored||[]).filter(c => c.origin && c.count);
@@ -4782,9 +4907,9 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       // Éxito: cerrar y refrescar
       adjModal.style.display = 'none';
       renderAnnual();
-      toast('Ajuste guardado ✓');
+      toast(window.t('mAdjSaved'));
     }catch(e){
-      console.error(e); toast('Error al guardar.');
+      console.error(e); toast(window.t('mSaveErr'));
     } finally {
       btn.disabled = false; btn.textContent = 'Guardar ajuste';
     }
@@ -5187,7 +5312,7 @@ const VIDEO_EXT_HINT = /\.(mov|mkv|avi|wmv|flv)$/i;
 
 function handleFile(file, attachToId){
   if(!file.type.startsWith('video/') && !/\.(mp4|webm|mov|mkv|avi)$/i.test(file.name)){
-    toast('Ese archivo no parece ser un video.');
+    toast(window.t('mNotVideo'));
     return;
   }
   audioTracksCache = null;
@@ -5387,7 +5512,7 @@ document.getElementById('saveProjectBtn').addEventListener('click', () => {
     })
   };
   downloadBlob(new Blob([JSON.stringify(project, null, 2)], {type:'application/json'}), 'proyecto_futsal.json');
-  toast('Proyecto guardado. Guardá también los videos para retomarlo después.');
+  toast(window.t('mProjectSaved'));
 });
 
 document.getElementById('loadProjectBtn').addEventListener('click', () => document.getElementById('projectFileInput').click());
@@ -5411,13 +5536,13 @@ function buildProjectPayload(){
 
 document.getElementById('saveCloudBtn').addEventListener('click', async () => {
   const sb = window.__sb;
-  if(!sb){ toast('Sin conexión con el servidor.'); return; }
+  if(!sb){ toast(window.t('mNoConnServer')); return; }
   const clubId = await window.__getClubId();
-  if(!clubId){ toast('No se pudo identificar tu club.'); return; }
-  if(items.length === 0 && videos.length === 0){ toast('No hay nada para guardar todavía.'); return; }
+  if(!clubId){ toast(window.t('mNoClub')); return; }
+  if(items.length === 0 && videos.length === 0){ toast(window.t('mNothingSave')); return; }
 
   const defaultName = videos[0]?.name || ('Partido ' + new Date().toLocaleDateString('es-AR'));
-  const name = prompt('Nombre del partido:', currentCloudProjectName || defaultName);
+  const name = prompt(window.t('mMatchName'), currentCloudProjectName || defaultName);
   if(name === null) return;
 
   const payload = buildProjectPayload();
@@ -5444,16 +5569,16 @@ document.getElementById('saveCloudBtn').addEventListener('click', async () => {
     if(result.error){ console.error(result.error); toast('No se pudo guardar: ' + result.error.message); return; }
     currentCloudProjectId = result.data.id;
     currentCloudProjectName = result.data.name;
-    toast('Partido guardado en la nube ✓');
-  }catch(err){ console.error(err); toast('Error al guardar en la nube.'); }
+    toast(window.t('mMatchSaved'));
+  }catch(err){ console.error(err); toast(window.t('mSaveErr')); }
 });
 
 // Abrir el modal con la lista de partidos guardados
 document.getElementById('loadCloudBtn').addEventListener('click', async () => {
   const sb = window.__sb;
-  if(!sb){ toast('Sin conexión con el servidor.'); return; }
+  if(!sb){ toast(window.t('mNoConnServer')); return; }
   const clubId = await window.__getClubId();
-  if(!clubId){ toast('No se pudo identificar tu club.'); return; }
+  if(!clubId){ toast(window.t('mNoClub')); return; }
   const listEl = document.getElementById('cloudList');
   listEl.innerHTML = '<div class="cloud-empty">Cargando…</div>';
   document.getElementById('cloudModal').style.display = 'flex';
@@ -5482,9 +5607,9 @@ document.getElementById('loadCloudBtn').addEventListener('click', async () => {
       item.querySelector('.ci-del').addEventListener('click', async () => {
         if(!confirm('¿Eliminar "'+(p.name||'este partido')+'" de la nube?')) return;
         const { error:delErr } = await sb.from('video_projects').delete().eq('id', p.id);
-        if(delErr){ toast('No se pudo eliminar.'); return; }
+        if(delErr){ toast(window.t('mDeleteErr')); return; }
         item.remove();
-        toast('Partido eliminado.');
+        toast(window.t('mMatchDeleted'));
       });
       listEl.appendChild(item);
     });
@@ -5498,7 +5623,7 @@ async function loadCloudProject(id){
   if(!sb) return;
   try{
     const { data, error } = await sb.from('video_projects').select('*').eq('id', id).single();
-    if(error){ toast('No se pudo cargar el partido.'); return; }
+    if(error){ toast(window.t('mLoadMatchErr')); return; }
     tags = data.tags || tags;
     activeTagId = tags[0]?.id || activeTagId;
     videos = (data.videos || []).map(v => ({ id:v.id, name:v.name, file:null, url:null, duration:null, missing:true }));
@@ -5554,7 +5679,7 @@ document.getElementById('projectFileInput').addEventListener('change', (e) => {
         ? 'Proyecto cargado. Tocá cada video en la lista para volver a subirlo (mismo nombre, mismo archivo).'
         : 'Proyecto cargado. Subí el video para continuar.');
     }catch(err){
-      toast('No se pudo leer ese archivo de proyecto.');
+      toast(window.t('mReadProjErr'));
     }
   };
   reader.readAsText(file);
@@ -5587,8 +5712,8 @@ function updateClipCounter(){
 }
 
 function handleTagClick(tagId){
-  if(tagsLocked){ toast('Esperá a que termine la exportación para seguir marcando.'); return; }
-  if(!activeVideoId){ toast('Cargá un video primero.'); return; }
+  if(tagsLocked){ toast(window.t('mExpFirst')); return; }
+  if(!activeVideoId){ toast(window.t('mLoadVideoFirst')); return; }
   if(!marking){
     activeTagId = tagId;
     markStartTime = videoEl.currentTime;
@@ -5607,7 +5732,7 @@ function handleTagClick(tagId){
   const end = videoEl.currentTime;
   marking = false;
   if(Math.abs(end - markStartTime) < 0.5){
-    toast('El recorte es muy corto, no se guardó.');
+    toast(window.t('mClipShort'));
     renderTags();
     updateRecordStatus();
     return;
@@ -5662,7 +5787,7 @@ async function analizarVideoIA(){
   aiApiErrors = 0;
   const selId = document.getElementById('aiVideoSelect').value;
   const video = videos.find(v => v.id === selId);
-  if(!video || !video.url){ toast('Elegí un video (se suben en la pestaña 🎬 Video).'); return; }
+  if(!video || !video.url){ toast(window.t('mPickVideo')); return; }
 
   const btn = document.getElementById('aiAnalyzeBtn');
   const controls = document.getElementById('aiVideoControls');
@@ -6020,7 +6145,7 @@ function renderAISuggestions(videoId){
       }
       aiSuggestionsData.splice(i,1);
       renderAISuggestions(videoId);
-      if(s.itemId) toast('Recorte descartado del timeline.');
+      if(s.itemId) toast(window.t('mClipDiscarded'));
     });
     sugList.appendChild(div);
   });
@@ -6031,7 +6156,7 @@ document.getElementById('addSepBtn').addEventListener('click', () => {
   itemCounter++;
   items.push({ id:'item'+itemCounter, type:'separator', title:'Nueva situación', note:'', image:null, imgEl:null, duration:3 });
   renderItems();
-  toast('Separador agregado al final. Arrastralo para ubicarlo donde quieras.');
+  toast(window.t('mSepAdded'));
 });
 
 // ---------------- CARGA MASIVA DE CLIPS YA HECHOS ----------------
@@ -6553,7 +6678,7 @@ function drawLoop(){
 
 async function recordItems(list, onProgress){
   const mime = pickMimeType();
-  if(!mime){ toast('Tu navegador no soporta grabación de video en vivo.'); return null; }
+  if(!mime){ toast(window.t('mNoRecSupport')); return null; }
 
   // Tamaño del canvas fijo para toda la exportación (tomado del primer video con archivo real).
   const firstClip = list.find(it => it.type === 'clip');
@@ -6663,9 +6788,9 @@ document.getElementById('exportSeqBtn').addEventListener('click', async () => {
   toggleExportButtons(false);
   if(result){
     downloadBlob(result.blob, 'secuencia_final.'+extFor(result.mime));
-    toast('Secuencia exportada.');
+    toast(window.t('mSeqExported'));
   } else if(exportCancelled){
-    toast('Exportación cancelada.');
+    toast(window.t('mExportCancel'));
   }
 });
 
@@ -6690,7 +6815,7 @@ async function exportSingleClip(item){
     downloadBlob(result.blob, fname);
     toast('"'+tagName+'" exportado.');
   } else if(exportCancelled){
-    toast('Exportación cancelada.');
+    toast(window.t('mExportCancel'));
   }
 }
 
@@ -6732,7 +6857,7 @@ document.getElementById('exportEachBtn').addEventListener('click', async () => {
   hideOverlay();
   toggleExportButtons(false);
   if(!exportCancelled) toast(zip ? 'Listo: un solo .zip con todos los clips.' : 'Clips exportados.');
-  else toast('Exportación cancelada.');
+  else toast(window.t('mExportCancel'));
 });
 
 };
