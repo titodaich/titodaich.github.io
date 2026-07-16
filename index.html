@@ -497,6 +497,35 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .board-plays-list{display:flex;flex-direction:column;gap:8px;}
 .board-play{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;}
 .board-play-name{font-weight:600;font-size:13px;margin-bottom:6px;word-break:break-word;}
+/* ===== CALENDARIO ===== */
+.cal-details{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-bottom:20px;overflow:hidden;}
+.cal-details>summary{cursor:pointer;font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent-2);padding:14px 18px;list-style:none;user-select:none;}
+.cal-details>summary::-webkit-details-marker{display:none;}
+.cal-details>summary::before{content:'▸ ';}
+.cal-details[open]>summary::before{content:'▾ ';}
+.cal-box{padding:0 18px 18px;}
+.cal-nav{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.cal-month{font-family:'Oswald',sans-serif;font-size:17px;font-weight:600;text-transform:capitalize;min-width:150px;}
+.cal-legend{display:flex;gap:14px;margin-left:auto;flex-wrap:wrap;}
+.cal-leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);}
+.cal-dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cal-dow{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;color:var(--muted);text-align:center;padding:4px 0;letter-spacing:0.5px;}
+.cal-cell{min-height:66px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:5px 6px;cursor:pointer;transition:all .12s ease;display:flex;flex-direction:column;gap:3px;overflow:hidden;}
+.cal-cell:hover{border-color:var(--accent-2);}
+.cal-cell.empty{background:transparent;border:none;cursor:default;}
+.cal-cell.today{border-color:var(--accent);}
+.cal-daynum{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.cal-cell.today .cal-daynum{color:var(--accent);font-weight:700;}
+.cal-note{font-size:10px;line-height:1.2;border-radius:4px;padding:2px 4px;color:#fff;word-break:break-word;overflow:hidden;max-height:32px;}
+.cal-note.match{background:var(--accent);}
+.cal-note.train{background:var(--accent-2);}
+.cal-note.concept{background:var(--success);}
+.cal-field-lbl{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin:10px 0 6px;}
+.cal-type-row{display:flex;gap:6px;}
+.cal-type-btn{flex:1;border:2px solid var(--line);background:transparent;color:var(--muted);border-radius:8px;padding:8px 4px;font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .12s ease;}
+.cal-type-btn.selected{border-color:var(--tc);color:#fff;background:var(--tc);}
+@media (max-width:600px){.cal-cell{min-height:52px;}.cal-note{font-size:8px;}.cal-legend{width:100%;margin-left:0;}}
 .board-desc-wrap{margin:0 0 12px;}
 .board-desc-input{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:9px;color:var(--chalk);font-family:'Inter',sans-serif;font-size:13px;padding:10px 12px;}
 .board-desc-input:focus{outline:none;border-color:var(--accent-2);}
@@ -1524,7 +1553,50 @@ body.editor-active #screen-editor{ display:block; }
         </div>
         <button class="btn primary" id="addWeekBtn" data-i18n="addWeek">+ Agregar semana</button>
       </div>
+
+      <!-- CALENDARIO MENSUAL (desplegable, cerrado por defecto) -->
+      <details class="cal-details" id="calDetails">
+        <summary data-i18n="calTitle">📅 Calendario de la temporada</summary>
+        <div class="cal-box">
+          <div class="cal-nav">
+            <button class="btn small" id="calPrev">‹</button>
+            <span class="cal-month" id="calMonth"></span>
+            <button class="btn small" id="calNext">›</button>
+            <div class="cal-legend">
+              <span class="cal-leg"><i class="cal-dot" style="background:var(--accent)"></i><span data-i18n="calMatch">Partido</span></span>
+              <span class="cal-leg"><i class="cal-dot" style="background:var(--accent-2)"></i><span data-i18n="calTrain">Entrenamiento</span></span>
+              <span class="cal-leg"><i class="cal-dot" style="background:var(--success)"></i><span data-i18n="calConcept">Concepto</span></span>
+            </div>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+      </details>
+
       <div class="rival-grid" id="weekGrid"></div>
+    </div>
+
+    <!-- Modal editar día del calendario -->
+    <div class="cloud-modal-overlay" id="calModal" style="display:none;">
+      <div class="cloud-modal" style="max-width:380px;">
+        <div class="cloud-modal-head">
+          <h3 id="calModalTitle">Anotar</h3>
+          <button class="cloud-close" id="calModalClose">✕</button>
+        </div>
+        <div style="padding:6px 2px;">
+          <label class="cal-field-lbl" data-i18n="calType">Tipo</label>
+          <div class="cal-type-row" id="calTypeRow">
+            <button class="cal-type-btn selected" data-type="match" style="--tc:var(--accent)"><span data-i18n="calMatch">Partido</span></button>
+            <button class="cal-type-btn" data-type="train" style="--tc:var(--accent-2)"><span data-i18n="calTrain">Entrenamiento</span></button>
+            <button class="cal-type-btn" data-type="concept" style="--tc:var(--success)"><span data-i18n="calConcept">Concepto</span></button>
+          </div>
+          <label class="cal-field-lbl" data-i18n="calText">Texto</label>
+          <input type="text" id="calText" class="board-desc-input" data-i18n-ph="calTextPh" placeholder="Ej. Copa Argentina - Fecha 1">
+          <div style="display:flex;gap:8px;margin-top:16px;">
+            <button class="btn primary" id="calSaveBtn" style="flex:1;" data-i18n="calSave">Guardar</button>
+            <button class="btn danger-outline" id="calDelBtn" data-i18n="calDelete">Borrar</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Vista FICHA de una semana -->
@@ -1942,7 +2014,7 @@ window.I18N = {
     adjScorers:'⚽ Goleadores', adjAddScorer:'+ Goleador', adjScored:'🎯 Cómo hacemos los goles', adjConceded:'🥅 Cómo nos hicieron los goles', adjAddOrigin:'+ Origen', adjSave:'Guardar ajuste',
     // Planificación
     trainTitle:'Planificación de entrenamientos', trainSub:'Una ficha por semana. Editá el nombre y las fechas desde cada recuadro, o abrí la semana para planificar en detalle.',
-    addWeek:'+ Agregar semana', addExercise:'+ Agregar ejercicio', emptyWeek:'Vaciar semana',
+    addWeek:'+ Agregar semana', addExercise:'+ Agregar ejercicio', emptyWeek:'Vaciar semana', calTitle:'📅 Calendario de la temporada', calMatch:'Partido', calTrain:'Entrenamiento', calConcept:'Concepto', calType:'Tipo', calText:'Texto', calTextPh:'Ej. Copa Argentina - Fecha 1', calSave:'Guardar', calDelete:'Borrar', calEmpty:'Escribí algún texto.',
     // Scouting
     scoutTitle:'Scouting de rivales', scoutSub:'Editá el rival y la fecha del partido desde cada recuadro, o abrí la ficha para el análisis completo.',
     addFecha:'+ Agregar partido', addKeyPlayer:'+ Agregar', addPhoto:'+ Foto', addVideo:'+ Video', genReport:'Generar informe',
@@ -2017,7 +2089,7 @@ window.I18N = {
     annualTitle:'Season stats', annualSub:'Total of all matches, plus the first-half adjustment.', openAdj:'＋ First-half adjustment',
     adjScorers:'⚽ Scorers', adjAddScorer:'+ Scorer', adjScored:'🎯 How we score', adjConceded:'🥅 How we concede', adjAddOrigin:'+ Origin', adjSave:'Save adjustment',
     trainTitle:'Training planning', trainSub:'One card per week. Edit the name and dates in each box, or open the week to plan in detail.',
-    addWeek:'+ Add week', addExercise:'+ Add exercise', emptyWeek:'Clear week',
+    addWeek:'+ Add week', addExercise:'+ Add exercise', emptyWeek:'Clear week', calTitle:'📅 Season calendar', calMatch:'Match', calTrain:'Training', calConcept:'Concept', calType:'Type', calText:'Text', calTextPh:'e.g. Copa Argentina - Round 1', calSave:'Save', calDelete:'Delete', calEmpty:'Write some text.',
     scoutTitle:'Opponent scouting', scoutSub:'Edit the opponent and match date in each box, or open the card for full analysis.',
     addFecha:'+ Add match', addKeyPlayer:'+ Add', addPhoto:'+ Photo', addVideo:'+ Video', genReport:'Generate report',
     boardTitle:'Tactic board', boardSub:'Move the pieces and record animated plays for your team.', boardDescPh:'Play description (optional): e.g. 3-1 build-up on the right, pivot screen...',
@@ -2088,7 +2160,7 @@ window.I18N = {
     annualTitle:'Estatísticas anuais', annualSub:'Total de todos os jogos, mais o ajuste do primeiro semestre.', openAdj:'＋ Ajuste primeiro semestre',
     adjScorers:'⚽ Artilheiros', adjAddScorer:'+ Artilheiro', adjScored:'🎯 Como fazemos os gols', adjConceded:'🥅 Como sofremos os gols', adjAddOrigin:'+ Origem', adjSave:'Salvar ajuste',
     trainTitle:'Planejamento de treinos', trainSub:'Um cartão por semana. Edite o nome e as datas em cada caixa, ou abra a semana para planejar em detalhe.',
-    addWeek:'+ Adicionar semana', addExercise:'+ Adicionar exercício', emptyWeek:'Limpar semana',
+    addWeek:'+ Adicionar semana', addExercise:'+ Adicionar exercício', emptyWeek:'Limpar semana', calTitle:'📅 Calendário da temporada', calMatch:'Jogo', calTrain:'Treino', calConcept:'Conceito', calType:'Tipo', calText:'Texto', calTextPh:'Ex. Copa Argentina - Rodada 1', calSave:'Salvar', calDelete:'Excluir', calEmpty:'Escreva algum texto.',
     scoutTitle:'Scouting de adversários', scoutSub:'Edite o adversário e a data do jogo em cada caixa, ou abra o cartão para a análise completa.',
     addFecha:'+ Adicionar jogo', addKeyPlayer:'+ Adicionar', addPhoto:'+ Foto', addVideo:'+ Vídeo', genReport:'Gerar relatório',
     boardTitle:'Prancheta tática', boardSub:'Mova as peças e grave jogadas animadas para seu time.', boardDescPh:'Descrição da jogada (opcional): ex. Saída 3-1 pela direita, bloqueio do pivô...',
@@ -4141,12 +4213,123 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     if(loadedOnce) return;
     loadedOnce = true;
     loadFromCloud();
+    loadCalNotes();
   };
 
   // Recargar cuando cambia la categoría (si ya se cargó al menos una vez)
   if(window.__onCategorySubscribe){
-    window.__onCategorySubscribe(() => { if(loadedOnce) loadFromCloud(); });
+    window.__onCategorySubscribe(() => { if(loadedOnce){ loadFromCloud(); loadCalNotes(); } });
   }
+
+  // ==================== CALENDARIO MENSUAL ====================
+  let calDate = new Date();
+  let calNotes = {};
+  let calSelDate = null;
+  let calSelType = 'match';
+
+  const CAL_MONTHS = {
+    es:['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+    en:['January','February','March','April','May','June','July','August','September','October','November','December'],
+    pt:['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
+  };
+  const CAL_DOW = { es:['Lu','Ma','Mi','Ju','Vi','Sa','Do'], en:['Mo','Tu','We','Th','Fr','Sa','Su'], pt:['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'] };
+
+  function calKey(y,m,d){ return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'); }
+
+  function renderCalendar(){
+    const grid=document.getElementById('calGrid'); if(!grid) return;
+    const lang = window.__lang || 'es';
+    const y=calDate.getFullYear(), m=calDate.getMonth();
+    const mo=document.getElementById('calMonth'); if(mo) mo.textContent = CAL_MONTHS[lang][m]+' '+y;
+    grid.innerHTML='';
+    CAL_DOW[lang].forEach(d=>{ const h=document.createElement('div'); h.className='cal-dow'; h.textContent=d; grid.appendChild(h); });
+    let first=new Date(y,m,1).getDay(); first=(first===0)?6:first-1;
+    const daysInMonth=new Date(y,m+1,0).getDate();
+    const today=new Date(); const todayKey=calKey(today.getFullYear(),today.getMonth(),today.getDate());
+    for(let i=0;i<first;i++){ const e=document.createElement('div'); e.className='cal-cell empty'; grid.appendChild(e); }
+    for(let d=1;d<=daysInMonth;d++){
+      const key=calKey(y,m,d);
+      const cell=document.createElement('div');
+      cell.className='cal-cell'+(key===todayKey?' today':'');
+      let inner='<span class="cal-daynum">'+d+'</span>';
+      const note=calNotes[key];
+      if(note){ inner+=`<span class="cal-note ${note.type}">${escapeHtml(note.text)}</span>`; }
+      cell.innerHTML=inner;
+      cell.addEventListener('click',()=>openCalDay(key));
+      grid.appendChild(cell);
+    }
+  }
+
+  function openCalDay(key){
+    calSelDate=key;
+    const note=calNotes[key];
+    calSelType = note ? note.type : 'match';
+    const [yy,mm,dd]=key.split('-');
+    document.getElementById('calModalTitle').textContent = dd+'/'+mm+'/'+yy;
+    document.getElementById('calText').value = note ? note.text : '';
+    document.querySelectorAll('#calTypeRow .cal-type-btn').forEach(b=>b.classList.toggle('selected', b.dataset.type===calSelType));
+    document.getElementById('calDelBtn').style.display = note ? 'inline-flex' : 'none';
+    document.getElementById('calModal').style.display='flex';
+    setTimeout(()=>document.getElementById('calText').focus(),50);
+  }
+
+  document.querySelectorAll('#calTypeRow .cal-type-btn').forEach(b=>{
+    b.addEventListener('click',()=>{ calSelType=b.dataset.type; document.querySelectorAll('#calTypeRow .cal-type-btn').forEach(x=>x.classList.toggle('selected',x===b)); });
+  });
+  document.getElementById('calModalClose').addEventListener('click',()=>{ document.getElementById('calModal').style.display='none'; });
+  document.getElementById('calModal').addEventListener('click',e=>{ if(e.target.id==='calModal') e.target.style.display='none'; });
+  document.getElementById('calPrev').addEventListener('click',()=>{ calDate.setMonth(calDate.getMonth()-1); renderCalendar(); });
+  document.getElementById('calNext').addEventListener('click',()=>{ calDate.setMonth(calDate.getMonth()+1); renderCalendar(); });
+
+  document.getElementById('calSaveBtn').addEventListener('click',async()=>{
+    const text=(document.getElementById('calText').value||'').trim();
+    if(!text){ toast(window.t('calEmpty')); return; }
+    const prev=calNotes[calSelDate];
+    calNotes[calSelDate]={type:calSelType, text, dbId:prev?prev.dbId:null};
+    document.getElementById('calModal').style.display='none';
+    renderCalendar();
+    await saveCalNote(calSelDate);
+  });
+  document.getElementById('calDelBtn').addEventListener('click',async()=>{
+    const note=calNotes[calSelDate];
+    if(note && note.dbId && window.__sb){ try{ await window.__sb.from('calendar_notes').delete().eq('id',note.dbId); }catch(e){} }
+    delete calNotes[calSelDate];
+    document.getElementById('calModal').style.display='none';
+    renderCalendar();
+  });
+
+  async function saveCalNote(key){
+    const sb=window.__sb; if(!sb) return;
+    const clubId=await window.__getClubId(); if(!clubId) return;
+    const note=calNotes[key]; if(!note) return;
+    try{
+      if(note.dbId){
+        await sb.from('calendar_notes').update({ type:note.type, text:note.text }).eq('id',note.dbId);
+      } else {
+        const cat=catActual();
+        const {data,error}=await sb.from('calendar_notes').insert({ club_id:clubId, categoria:cat, day:key, type:note.type, text:note.text }).select('id').single();
+        if(!error && data) note.dbId=data.id;
+        else if(error) toast('No se pudo guardar (¿corriste calendar-notes.sql?).');
+      }
+    }catch(e){ console.error('cal save',e); }
+  }
+
+  async function loadCalNotes(){
+    const sb=window.__sb; if(!sb) return;
+    const clubId=await window.__getClubId(); if(!clubId) return;
+    const cat=catActual();
+    try{
+      let q=sb.from('calendar_notes').select('*').eq('club_id',clubId);
+      q=cat?q.eq('categoria',cat):q.is('categoria',null);
+      const {data}=await q;
+      calNotes={};
+      (data||[]).forEach(r=>{ calNotes[r.day]={type:r.type,text:r.text,dbId:r.id}; });
+      renderCalendar();
+    }catch(e){ console.error('cal load',e); renderCalendar(); }
+  }
+
+  document.addEventListener('langchange', ()=>{ renderCalendar(); });
+  renderCalendar();
 
   renderList();
 })();
