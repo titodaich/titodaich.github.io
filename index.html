@@ -362,6 +362,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .rival-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;transition:border-color .15s ease;display:flex;flex-direction:column;}
 .rival-card:hover{border-color:var(--accent-2);}
 .rival-card .rc-fecha{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;font-weight:600;}
+.rc-week-edit{display:flex;align-items:center;gap:6px;}
+.rc-week-in{width:52px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;padding:3px 6px;text-align:center;}
+.rc-week-in:focus{outline:none;border-color:var(--accent);}
 .rival-card .rc-name-in{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:7px;color:var(--chalk);font-family:'Oswald',sans-serif;font-size:16px;text-transform:uppercase;letter-spacing:0.3px;padding:8px 10px;margin-bottom:10px;}
 .rival-card .rc-name-in:focus{outline:none;border-color:var(--accent);}
 .rival-card .rc-name-in::placeholder{color:var(--muted);font-size:13px;}
@@ -567,7 +570,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .bench-empty{color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;padding:10px;}
 
 .live-totals-wrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;}
-.live-totals-head,.live-total-row{display:grid;grid-template-columns:1fr 62px 62px 70px 40px 40px;gap:8px;align-items:center;}
+.live-totals-head,.live-total-row{display:grid;grid-template-columns:1fr 58px 58px 64px 34px 34px 34px;gap:6px;align-items:center;}
 .live-totals-head{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line);}
 .live-totals-head span:not(:first-child),.live-total-row span:not(:first-child){text-align:center;font-family:'JetBrains Mono',monospace;}
 .live-totals{margin-top:6px;}
@@ -792,7 +795,12 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .cloud-close{border:none;background:transparent;color:var(--muted);font-size:20px;cursor:pointer;}
 .cloud-close:hover{color:var(--chalk);}
 .cloud-list{padding:14px 22px 22px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;}
-.cloud-item{display:flex;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:12px 14px;}
+.cloud-item{display:flex;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:12px 14px;width:100%;text-align:left;cursor:pointer;color:var(--chalk);font-family:inherit;transition:all .12s ease;margin-bottom:6px;}
+.cloud-item:hover{border-color:var(--muted);}
+.cloud-item.selected{border-color:var(--success);background:rgba(76,175,109,0.12);}
+.cloud-item.selected::before{content:'✓';color:var(--success);font-weight:700;}
+.cloud-item .ci-name{font-weight:600;font-size:14px;flex:1;}
+.cloud-item .ci-date{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
 .cloud-item .ci-info{flex:1;min-width:0;}
 .cloud-item .ci-name{font-weight:600;font-size:14px;margin-bottom:3px;}
 .cloud-item .ci-meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
@@ -1765,7 +1773,7 @@ body.editor-active #screen-editor{ display:block; }
       <div class="live-totals-wrap">
         <div class="rd-card-head"><h3 data-i18n="liveMinBy">Minutos y acciones por jugador</h3></div>
         <div class="live-totals-head">
-          <span data-i18n="livePlayer">Jugador</span><span data-i18n="liveT1">1er T</span><span data-i18n="liveT2">2do T</span><span data-i18n="liveTotal">Total</span><span>⚽</span><span>🟨</span>
+          <span data-i18n="livePlayer">Jugador</span><span data-i18n="liveT1">1er T</span><span data-i18n="liveT2">2do T</span><span data-i18n="liveTotal">Total</span><span title="Goles">⚽</span><span title="Faltas">⚠️</span><span title="Tarjetas">🟨</span>
         </div>
         <div class="live-totals" id="liveTotals"></div>
       </div>
@@ -1773,7 +1781,10 @@ body.editor-active #screen-editor{ display:block; }
       <div class="live-log-wrap">
         <div class="rd-card-head">
           <h3 data-i18n="liveEvents">Registro de eventos</h3>
-          <button class="btn small primary" id="liveFinishBtn" data-i18n="liveFinish">🏁 Finalizar partido</button>
+          <div style="display:flex;gap:8px;">
+            <button class="btn small" id="liveUndoBtn" data-i18n="liveUndo">↩ Deshacer último</button>
+            <button class="btn small primary" id="liveFinishBtn" data-i18n="liveFinish">🏁 Finalizar partido</button>
+          </div>
         </div>
         <div class="live-log" id="liveLog"><p class="rd-empty" data-i18n="liveNoEvents">Todavía no hay eventos. Iniciá el reloj y armá el equipo.</p></div>
       </div>
@@ -1890,7 +1901,7 @@ window.I18N = {
     livePlayer:'Jugador', liveT1:'1er T', liveT2:'2do T', liveTotal:'Total',
     liveNoEvents:'Todavía no hay eventos. Iniciá el reloj y armá el equipo.',
     liveClockRunning:'⏱ Reloj CORRIDO · 2×25\' (corre sin parar)', liveClockStopped:'⏱ Reloj PARADO · 2×20\' · cargá los minutos a mano',
-    liveOnCourtLbl:'en cancha', livePause:'⏸ Pausar',
+    liveOnCourtLbl:'en cancha', livePause:'⏸ Pausar', liveUndo:'↩ Deshacer último', weekLbl:'Semana', fechaLbl:'Fecha',
     // Login
     loginCreate:'Crear una cuenta', loginEnter:'Entrar', loginBackLogin:'Ya tengo cuenta',
     // Video
@@ -1940,7 +1951,7 @@ window.I18N = {
     livePlayer:'Player', liveT1:'1st H', liveT2:'2nd H', liveTotal:'Total',
     liveNoEvents:'No events yet. Start the clock and set up the team.',
     liveClockRunning:'⏱ RUNNING clock · 2×25\' (runs non-stop)', liveClockStopped:'⏱ STOPPED clock · 2×20\' · enter minutes manually',
-    liveOnCourtLbl:'on court', livePause:'⏸ Pause',
+    liveOnCourtLbl:'on court', livePause:'⏸ Pause', liveUndo:'↩ Undo last', weekLbl:'Week', fechaLbl:'Match',
     loginCreate:'Create an account', loginEnter:'Sign in', loginBackLogin:'I already have an account',
     vBulkAdd:'+ Load clips (multiple)', vSep:'+ Separator (text/photo)', vPlaySeq:'▶ Play sequence',
     vExportJson:'Download data (.json)', vExportEach:'Export clips separately', vExportSeq:'Export full sequence',
@@ -1982,7 +1993,7 @@ window.I18N = {
     livePlayer:'Jogador', liveT1:'1º T', liveT2:'2º T', liveTotal:'Total',
     liveNoEvents:'Ainda não há eventos. Inicie o relógio e monte o time.',
     liveClockRunning:'⏱ Relógio CORRIDO · 2×25\' (corre sem parar)', liveClockStopped:'⏱ Relógio PARADO · 2×20\' · insira os minutos manualmente',
-    liveOnCourtLbl:'em quadra', livePause:'⏸ Pausar',
+    liveOnCourtLbl:'em quadra', livePause:'⏸ Pausar', liveUndo:'↩ Desfazer último', weekLbl:'Semana', fechaLbl:'Jogo',
     loginCreate:'Criar uma conta', loginEnter:'Entrar', loginBackLogin:'Já tenho conta',
     vBulkAdd:'+ Carregar clipes (vários)', vSep:'+ Separador (texto/foto)', vPlaySeq:'▶ Reproduzir sequência',
     vExportJson:'Baixar dados (.json)', vExportEach:'Exportar clipes separados', vExportSeq:'Exportar sequência completa',
@@ -2488,7 +2499,7 @@ window.__initEditor = function(){
       card.className = 'rival-card';
       card.dataset.id = r.id;
       card.innerHTML = `
-        <div class="rc-fecha">Fecha ${r.fecha}</div>
+        <div class="rc-fecha rc-week-edit"><span data-i18n="fechaLbl">Fecha</span> <input type="number" class="rc-fecha-in" min="1" max="99" value="${r.fecha}"></div>
         <input class="rc-name-in" placeholder="Nombre del rival" value="${escapeHtml(r.name||'')}">
         <label class="rc-date-label">Se juega el
           <input type="date" class="rc-date-in" value="${escapeHtml(r.date||'')}">
@@ -2502,8 +2513,11 @@ window.__initEditor = function(){
       // Edición desde la tarjeta (sin entrar)
       const nameIn = card.querySelector('.rc-name-in');
       const dateIn = card.querySelector('.rc-date-in');
+      const fechaIn = card.querySelector('.rc-fecha-in');
       nameIn.addEventListener('click', e => e.stopPropagation());
       dateIn.addEventListener('click', e => e.stopPropagation());
+      fechaIn.addEventListener('click', e => e.stopPropagation());
+      fechaIn.addEventListener('change', e => { const v=parseInt(e.target.value,10); if(v>0){ r.fecha=v; saveToCloud(r); } });
       nameIn.addEventListener('input', e => { r.name = e.target.value; saveToCloud(r); });
       dateIn.addEventListener('input', e => { r.date = e.target.value; saveToCloud(r); });
       // Abrir ficha
@@ -2745,8 +2759,9 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       toast('Llegaste al máximo de ' + MAX_FECHAS + ' fechas.');
       return;
     }
-    const nextFecha = rivals.length + 1;
+    const nextFecha = rivals.reduce((mx,r)=>Math.max(mx, r.fecha||0), 0) + 1;
     const nuevo = makeFixture(nextFecha);
+    nuevo.id = 'r'+Date.now();
     rivals.push(nuevo);
     saveToCloud(nuevo, true);   // guardar la nueva fecha en la nube
     renderList();
@@ -3286,7 +3301,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     if(tpOnOk){ const fn=tpOnOk; tpOnOk=null; fn(regresivoToElapsed(tpMin,tpSec), tpMin, tpSec); }
   });
 
-  function ensure(pid){ if(!state[pid]) state[pid] = {onCourt:false, acc1:0, acc2:0, lastInAt:null, goals:0, fouls:0}; if(state[pid].goals===undefined) state[pid].goals=0; if(state[pid].fouls===undefined) state[pid].fouls=0; return state[pid]; }
+  function ensure(pid){ if(!state[pid]) state[pid] = {onCourt:false, acc1:0, acc2:0, lastInAt:null, goals:0, fouls:0, cards:0}; if(state[pid].goals===undefined) state[pid].goals=0; if(state[pid].fouls===undefined) state[pid].fouls=0; if(state[pid].cards===undefined) state[pid].cards=0; return state[pid]; }
 
   // tiempo acumulado en el tiempo actual (en vivo)
   // "reloj efectivo": en corrido usa clockSeconds; en parado usa el minuto manual regresivo
@@ -3372,7 +3387,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     st.onCourt=false; st.lastInAt=null;
   }
   function totalsSnapshot(){
-    const o={}; squad.forEach(p=>{ const st=ensure(p.id); o[p.name]={t1:time1(p.id),t2:time2(p.id),total:timeTotal(p.id),goals:st.goals||0,fouls:st.fouls||0,number:p.number||''}; }); return o;
+    const o={}; squad.forEach(p=>{ const st=ensure(p.id); o[p.name]={t1:time1(p.id),t2:time2(p.id),total:timeTotal(p.id),goals:st.goals||0,fouls:st.fouls||0,cards:st.cards||0,number:p.number||''}; }); return o;
   }
   function logEvent(type, inId, outId){
     const inP=squad.find(p=>p.id===inId), outP=squad.find(p=>p.id===outId);
@@ -3480,11 +3495,12 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       d.style.top = slot.y + '%';
       const roleLabel = role==='otro' ? '' : role.charAt(0).toUpperCase()+role.slice(1);
       const st=ensure(p.id);
-      d.innerHTML=`<div class="lt-num">${escapeHtml(p.number?'#'+p.number:'')}${roleLabel?' · '+roleLabel:''}</div><div class="lt-name">${escapeHtml(p.name)}</div><div class="lt-time" data-t="${p.id}">${fmtClock(timeTotal(p.id))}</div><div class="lt-actions"><button class="lt-act lt-goal" title="Gol">⚽<span class="lt-cnt">${st.goals||0}</span></button><button class="lt-act lt-foul" title="Falta">🟨<span class="lt-cnt">${st.fouls||0}</span></button></div>`;
+      d.innerHTML=`<div class="lt-num">${escapeHtml(p.number?'#'+p.number:'')}${roleLabel?' · '+roleLabel:''}</div><div class="lt-name">${escapeHtml(p.name)}</div><div class="lt-time" data-t="${p.id}">${fmtClock(timeTotal(p.id))}</div><div class="lt-actions"><button class="lt-act lt-goal" title="Gol">⚽<span class="lt-cnt">${st.goals||0}</span></button><button class="lt-act lt-foul" title="Falta">⚠️<span class="lt-cnt">${st.fouls||0}</span></button><button class="lt-act lt-card" title="Tarjeta amarilla">🟨<span class="lt-cnt">${st.cards||0}</span></button></div>`;
       // click en la ficha (fuera de los botones) = cambio
       d.addEventListener('click',(e)=>{ if(e.target.closest('.lt-act')) return; tapOnCourt(p.id); });
       d.querySelector('.lt-goal').addEventListener('click',(e)=>{ e.stopPropagation(); addGoal(p.id); });
       d.querySelector('.lt-foul').addEventListener('click',(e)=>{ e.stopPropagation(); addFoul(p.id); });
+      d.querySelector('.lt-card').addEventListener('click',(e)=>{ e.stopPropagation(); addCard(p.id); });
       field.appendChild(d);
     });
   }
@@ -3520,7 +3536,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       const row=document.createElement('div');
       row.className='live-total-row'+(ensure(p.id).onCourt?' on-court':'');
       row.dataset.row=p.id;
-      row.innerHTML=`<span class="ltr-name"><small>${escapeHtml(p.number?'#'+p.number:'')}</small>${escapeHtml(p.name)}</span><span data-t1="${p.id}">${fmtClock(time1(p.id))}</span><span data-t2="${p.id}">${fmtClock(time2(p.id))}</span><span class="ltr-total" data-tt="${p.id}">${fmtClock(timeTotal(p.id))}</span><span data-g="${p.id}">${ensure(p.id).goals||0}</span><span data-f="${p.id}">${ensure(p.id).fouls||0}</span>`;
+      row.innerHTML=`<span class="ltr-name"><small>${escapeHtml(p.number?'#'+p.number:'')}</small>${escapeHtml(p.name)}</span><span data-t1="${p.id}">${fmtClock(time1(p.id))}</span><span data-t2="${p.id}">${fmtClock(time2(p.id))}</span><span class="ltr-total" data-tt="${p.id}">${fmtClock(timeTotal(p.id))}</span><span data-g="${p.id}">${ensure(p.id).goals||0}</span><span data-f="${p.id}">${ensure(p.id).fouls||0}</span><span data-c="${p.id}">${ensure(p.id).cards||0}</span>`;
       cont.appendChild(row);
     });
   }
@@ -3543,7 +3559,8 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       else if(ev.type==='swap'){ desc='Cambio: sale '+escapeHtml(ev.outName)+', entra '+escapeHtml(ev.inName); cls='swap'; label='Cambio'; }
       else if(ev.type==='half'){ desc='— Fin del 1er tiempo —'; cls='half'; label='Tiempo'; }
       else if(ev.type==='goal'){ desc='⚽ Gol de '+escapeHtml(ev.inName); cls='in'; label='Gol'; }
-      else if(ev.type==='foul'){ desc='🟨 Falta de '+escapeHtml(ev.inName); cls='out'; label='Falta'; }
+      else if(ev.type==='foul'){ desc='⚠️ Falta de '+escapeHtml(ev.inName); cls='out'; label='Falta'; }
+      else if(ev.type==='card'){ desc='🟨 Tarjeta a '+escapeHtml(ev.inName); cls='half'; label='Tarjeta'; }
       row.innerHTML=`<span class="llr-time">${fmtClock(ev.t)}</span><span class="llr-type ${cls}">${label}</span><span class="llr-desc">${desc}</span>`;
       el.appendChild(row);
     });
@@ -3574,6 +3591,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   }
   document.getElementById('liveFinishBtn').addEventListener('click', finishMatch);
   document.getElementById('liveFinishBtnTop').addEventListener('click', finishMatch);
+  document.getElementById('liveUndoBtn').addEventListener('click', undoLastEvent);
   document.getElementById('liveSaveClose').addEventListener('click',()=>{ document.getElementById('liveSaveModal').style.display='none'; });
   document.getElementById('liveSaveModal').addEventListener('click',e=>{ if(e.target.id==='liveSaveModal') e.target.style.display='none'; });
 
@@ -3703,14 +3721,37 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   // ===== Gol / Falta =====
   function addGoal(pid){
     const st=ensure(pid); st.goals++;
-    events.unshift({ t:nowSeconds(), type:'goal', inName:(squad.find(p=>p.id===pid)||{}).name||'', outName:'', half:currentHalf });
+    events.unshift({ t:nowSeconds(), type:'goal', pid, inName:(squad.find(p=>p.id===pid)||{}).name||'', outName:'', half:currentHalf });
     renderField(); renderTotals(); renderLog();
     toast('⚽ Gol de '+((squad.find(p=>p.id===pid)||{}).name||''));
   }
   function addFoul(pid){
     const st=ensure(pid); st.fouls++;
-    events.unshift({ t:nowSeconds(), type:'foul', inName:(squad.find(p=>p.id===pid)||{}).name||'', outName:'', half:currentHalf });
+    events.unshift({ t:nowSeconds(), type:'foul', pid, inName:(squad.find(p=>p.id===pid)||{}).name||'', outName:'', half:currentHalf });
     renderField(); renderTotals(); renderLog();
+    toast('⚠️ Falta de '+((squad.find(p=>p.id===pid)||{}).name||''));
+  }
+  function addCard(pid){
+    const st=ensure(pid); st.cards++;
+    events.unshift({ t:nowSeconds(), type:'card', pid, inName:(squad.find(p=>p.id===pid)||{}).name||'', outName:'', half:currentHalf });
+    renderField(); renderTotals(); renderLog();
+    toast('🟨 Tarjeta a '+((squad.find(p=>p.id===pid)||{}).name||''));
+  }
+  // Deshacer el último evento (gol, falta o cambio)
+  function undoLastEvent(){
+    if(events.length===0){ toast('No hay nada para deshacer.'); return; }
+    const ev = events[0];
+    let msg = '';
+    if(ev.type==='goal'){ const st=ensure(ev.pid); if(st) st.goals=Math.max(0,(st.goals||0)-1); msg='Gol deshecho'; }
+    else if(ev.type==='foul'){ const st=ensure(ev.pid); if(st) st.fouls=Math.max(0,(st.fouls||0)-1); msg='Falta deshecha'; }
+    else if(ev.type==='card'){ const st=ensure(ev.pid); if(st) st.cards=Math.max(0,(st.cards||0)-1); msg='Tarjeta deshecha'; }
+    else if(ev.type==='in' || ev.type==='swap' || ev.type==='out' || ev.type==='half'){
+      toast('Solo se puede deshacer el último gol o falta.'); return;
+    }
+    else { toast('No se puede deshacer este evento.'); return; }
+    events.shift();
+    renderField(); renderTotals(); renderLog();
+    toast('↩ '+msg);
   }
 
   document.addEventListener('langchange', ()=>{
@@ -3824,7 +3865,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       card.className = 'rival-card';
       card.dataset.id = w.id;
       card.innerHTML = `
-        <div class="rc-fecha">Semana ${w.semana}</div>
+        <div class="rc-fecha rc-week-edit"><span data-i18n="weekLbl">Semana</span> <input type="number" class="rc-week-in" min="1" max="99" value="${w.semana}"></div>
         <input class="rc-name-in" placeholder="Próximo rival" value="${escapeHtml(w.name||'')}">
         <label class="rc-date-label">Desde
           <input type="date" class="rc-from-in" value="${escapeHtml(w.from||'')}">
@@ -3837,7 +3878,9 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       const nameIn = card.querySelector('.rc-name-in');
       const fromIn = card.querySelector('.rc-from-in');
       const toIn = card.querySelector('.rc-to-in');
-      [nameIn, fromIn, toIn].forEach(el => el.addEventListener('click', e => e.stopPropagation()));
+      const weekIn = card.querySelector('.rc-week-in');
+      [nameIn, fromIn, toIn, weekIn].forEach(el => el.addEventListener('click', e => e.stopPropagation()));
+      weekIn.addEventListener('change', e => { const v=parseInt(e.target.value,10); if(v>0){ w.semana=v; saveToCloud(w); } });
       nameIn.addEventListener('input', e => { w.name = e.target.value; saveToCloud(w); });
       fromIn.addEventListener('input', e => { w.from = e.target.value; saveToCloud(w); });
       toIn.addEventListener('input', e => { w.to = e.target.value; saveToCloud(w); });
@@ -3937,8 +3980,11 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
 
   document.getElementById('addWeekBtn').addEventListener('click', () => {
     if(weeks.length >= MAX_SEMANAS){ toast('Llegaste al máximo de ' + MAX_SEMANAS + ' semanas.'); return; }
-    const nextSem = weeks.length + 1;
+    const maxSem = weeks.reduce((mx,w)=>Math.max(mx, w.semana||0), 0);
+    const nextSem = maxSem + 1;
     const nueva = makeWeek(nextSem);
+    // id único basado en timestamp para no chocar si se editan números
+    nueva.id = 'w'+Date.now();
     weeks.push(nueva);
     saveToCloud(nueva, true);
     renderList();
@@ -4532,8 +4578,10 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   }
 
   function showMinutesDetail(s){
+    try{
     const list=document.getElementById('minutesList');
     const detail=document.getElementById('minutesDetail');
+    if(!list||!detail){ return; }
     list.style.display='none'; detail.style.display='block';
     const totals=s.totals||{};
     // ordenar por total desc
@@ -4541,11 +4589,11 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     let html=`<button class="btn small" id="minsBack" style="margin-bottom:14px;">← Volver a la lista</button>
       <div class="annual-card">
         <div class="rd-card-head"><h3>${escapeHtml(s.name||'Partido')}</h3></div>
-        <div class="live-totals-head" style="margin-top:8px;grid-template-columns:1fr 62px 62px 70px 40px 40px;"><span>Jugador</span><span>1er T</span><span>2do T</span><span>Total</span><span>⚽</span><span>🟨</span></div>
+        <div class="live-totals-head" style="margin-top:8px;grid-template-columns:1fr 58px 58px 64px 34px 34px 34px;"><span>Jugador</span><span>1er T</span><span>2do T</span><span>Total</span><span title="Goles">⚽</span><span title="Faltas">⚠️</span><span title="Tarjetas">🟨</span></div>
         <div>`;
     if(rows.length===0){ html+='<p class="rd-empty">Sin datos de minutos.</p>'; }
     rows.forEach(r=>{
-      html+=`<div class="live-total-row" style="grid-template-columns:1fr 62px 62px 70px 40px 40px;"><span class="ltr-name">${escapeHtml(r.name)}</span><span>${fmtMin(r.t1)}</span><span>${fmtMin(r.t2)}</span><span class="ltr-total">${fmtMin(r.total)}</span><span>${r.goals||0}</span><span>${r.fouls||0}</span></div>`;
+      html+=`<div class="live-total-row" style="grid-template-columns:1fr 58px 58px 64px 34px 34px 34px;"><span class="ltr-name">${escapeHtml(r.name)}</span><span>${fmtMin(r.t1)}</span><span>${fmtMin(r.t2)}</span><span class="ltr-total">${fmtMin(r.total)}</span><span>${r.goals||0}</span><span>${r.fouls||0}</span><span>${r.cards||0}</span></div>`;
     });
     html+='</div></div>';
     // eventos
@@ -4558,13 +4606,15 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
         else if(ev.type==='swap'){desc='Sale '+escapeHtml(ev.outName)+', entra '+escapeHtml(ev.inName);cls='swap';label='Cambio';}
         else if(ev.type==='half'){desc='— Fin del 1er tiempo —';cls='half';label='Tiempo';}
         else if(ev.type==='goal'){desc='⚽ Gol de '+escapeHtml(ev.inName);cls='in';label='Gol';}
-        else if(ev.type==='foul'){desc='🟨 Falta de '+escapeHtml(ev.inName);cls='out';label='Falta';}
+        else if(ev.type==='foul'){desc='⚠️ Falta de '+escapeHtml(ev.inName);cls='out';label='Falta';}
+        else if(ev.type==='card'){desc='🟨 Tarjeta a '+escapeHtml(ev.inName);cls='half';label='Tarjeta';}
         html+=`<div class="live-log-row"><span class="llr-time">${fmtMin(ev.t)}</span><span class="llr-type ${cls}">${label}</span><span class="llr-desc">${desc}</span></div>`;
       });
       html+='</div></div>';
     }
     detail.innerHTML=html;
     document.getElementById('minsBack').addEventListener('click',()=>renderMinutes());
+    }catch(e){ console.error('showMinutesDetail', e); toast('No se pudo abrir el detalle.'); }
   }
 
   function renderCalls(){
