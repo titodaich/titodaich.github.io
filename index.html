@@ -873,10 +873,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .plans-box h2{font-family:'Oswald',sans-serif;font-size:24px;margin:0 0 4px;}
 .plans-sub{color:var(--muted);font-size:14px;margin:0 0 20px;}
 .plans-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.plan-card{display:flex;flex-direction:column;gap:6px;background:var(--panel-2);border:2px solid var(--line);border-radius:12px;padding:16px;text-decoration:none;color:var(--chalk);transition:all .12s ease;}
+.plans-grid-3{grid-template-columns:1fr 1fr 1fr;}
+.plan-card{display:flex;flex-direction:column;gap:6px;background:var(--panel-2);border:2px solid var(--line);border-radius:12px;padding:16px;text-decoration:none;color:var(--chalk);transition:all .12s ease;text-align:center;align-items:center;}
 .plan-card:hover{border-color:var(--accent);transform:translateY(-2px);}
-.plan-label{font-family:'Oswald',sans-serif;font-size:17px;font-weight:600;}
+.plan-label{font-family:'Oswald',sans-serif;font-size:16px;font-weight:600;}
+.plan-price{font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;color:var(--chalk);}
 .plan-go{font-size:12px;color:var(--accent);font-weight:600;}
+@media (max-width:480px){.plans-grid-3{grid-template-columns:1fr;}}
 .plans-contact{text-align:center;margin:18px 0 0;font-size:13px;color:var(--muted);}
 .plans-contact a{color:var(--accent-2);}
 
@@ -2331,29 +2334,40 @@ const SUPABASE_URL = 'https://pzhouyxvfgkufmnqokeh.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_kSd8QnrUeB0SvHVtWlarCA_BAYas52j';
 
 // ==================================================================
-// CONFIG DE PAGOS  ←  COMPLETÁ ACÁ CON TUS LINKS DE MERCADO PAGO
+// CONFIG DE PAGOS  ←  COMPLETÁ ACÁ TUS PRECIOS Y LINKS
 // ==================================================================
-// Poné entre las comillas el link de pago que generás en Mercado Pago.
-// Podés poner uno solo (el mensual) para arrancar, o los cuatro.
-// Si dejás alguno vacío, el botón usa el WhatsApp de abajo como respaldo.
+// Editá los precios y los links cuando quieras. 'ars' = pesos, 'usd' = dólares.
+// Si un link queda vacío, el botón usa el WhatsApp de abajo como respaldo.
 window.__PAY = {
-  whatsapp: '',                 // ej: '5491122334455' (con código de país, sin +, sin espacios)
-  mp: {
-    mes1:  '',                  // link Mercado Pago - 1 mes
-    mes3:  '',                  // link Mercado Pago - 3 meses
-    mes6:  '',                  // link Mercado Pago - 6 meses
-    mes12: ''                   // link Mercado Pago - 12 meses
-  },
-  stripe: {                     // (futuro) para vender al exterior
-    mes1:'', mes3:'', mes6:'', mes12:''
-  }
+  whatsapp: '',                 // ej: '5491122334455' (código país, sin + ni espacios)
+  currency: 'ars',             // moneda que se MUESTRA por defecto: 'ars' (Argentina) o 'usd' (exterior)
+  showPrices: false,           // ← poné true cuando quieras MOSTRAR los precios en la pantalla de planes
+  plans: [
+    { key:'mes1',  months:1,  ars: 0,  usd: 0,  mpLink:'', stripeLink:'' },
+    { key:'mes6',  months:6,  ars: 0,  usd: 0,  mpLink:'', stripeLink:'' },
+    { key:'mes12', months:12, ars: 0,  usd: 0,  mpLink:'', stripeLink:'' }
+  ]
 };
-// El botón "Activar cuenta" usa esto para decidir a dónde manda al usuario.
+// Formatea el precio segun la moneda elegida
+window.__fmtPrice = function(plan){
+  const cur = (window.__PAY.currency === 'usd') ? 'usd' : 'ars';
+  if(cur === 'usd') return 'US$ ' + plan.usd;
+  return '$ ' + Number(plan.ars).toLocaleString('es-AR');
+};
+// Link de pago de un plan (MP para pesos, Stripe para dólares), con WhatsApp de respaldo
+window.__planLink = function(plan){
+  const cur = (window.__PAY.currency === 'usd') ? 'usd' : 'ars';
+  const link = cur === 'usd' ? plan.stripeLink : plan.mpLink;
+  if(link) return link;
+  if(window.__PAY.whatsapp) return 'https://wa.me/'+window.__PAY.whatsapp+'?text='+encodeURIComponent('Hola! Quiero activar mi cuenta de Cancha Edit ('+plan.months+' meses).');
+  return '#';
+};
+// (compat) link genérico para el botón directo
 window.__payLink = (function(){
   const p = window.__PAY;
-  if(p.mp && p.mp.mes1) return p.mp.mes1;                         // 1) link de MP mensual
-  if(p.whatsapp) return 'https://wa.me/'+p.whatsapp+'?text='+encodeURIComponent('Hola! Quiero activar mi cuenta de Cancha Edit.'); // 2) WhatsApp
-  return '#';                                                     // 3) nada configurado aún
+  if(p.plans && p.plans[0] && p.plans[0].mpLink) return p.plans[0].mpLink;
+  if(p.whatsapp) return 'https://wa.me/'+p.whatsapp;
+  return '#';
 })();
 // ==================================================================
 
@@ -5492,24 +5506,26 @@ try{
   function openPlansModal(){
     let modal = document.getElementById('plansModal');
     if(modal) modal.remove();
-    const P = window.__PAY || {mp:{},whatsapp:''};
+    const P = window.__PAY || {plans:[],whatsapp:''};
     const waLink = P.whatsapp ? ('https://wa.me/'+P.whatsapp+'?text='+encodeURIComponent('Hola! Quiero activar mi cuenta de Cancha Edit.')) : null;
-    const plans = [
-      { key:'mes1',  label:window.t('plan1'),  months:1 },
-      { key:'mes3',  label:window.t('plan3'),  months:3 },
-      { key:'mes6',  label:window.t('plan6'),  months:6 },
-      { key:'mes12', label:window.t('plan12'), months:12 }
-    ];
+    const labelFor = (pl)=>{
+      if(pl.key==='mes1')  return window.t('plan1');
+      if(pl.key==='mes6')  return window.t('plan6');
+      if(pl.key==='mes12') return window.t('plan12');
+      if(pl.key==='mes3')  return window.t('plan3');
+      return pl.months + ' m';
+    };
     let cards = '';
-    plans.forEach(pl=>{
-      const link = (P.mp && P.mp[pl.key]) ? P.mp[pl.key] : (waLink || '#');
-      cards += `<a class="plan-card" href="${link}" target="_blank" rel="noopener"><span class="plan-label">${pl.label}</span><span class="plan-go">${window.t('planGo')} →</span></a>`;
+    (P.plans||[]).forEach(pl=>{
+      const link = window.__planLink ? window.__planLink(pl) : (waLink || '#');
+      const priceHtml = (P.showPrices && window.__fmtPrice) ? `<span class="plan-price">${window.__fmtPrice(pl)}</span>` : '';
+      cards += `<a class="plan-card" href="${link}" target="_blank" rel="noopener"><span class="plan-label">${labelFor(pl)}</span>${priceHtml}<span class="plan-go">${window.t('planGo')} →</span></a>`;
     });
     const contactLine = waLink ? `<p class="plans-contact">${window.t('plansContact')} <a href="${waLink}" target="_blank">WhatsApp</a></p>` : '';
     modal = document.createElement('div');
     modal.id = 'plansModal';
     modal.className = 'plans-overlay';
-    modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><h2>${window.t('plansTitle')}</h2><p class="plans-sub">${window.t('plansSub')}</p><div class="plans-grid">${cards}</div>${contactLine}</div>`;
+    modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><h2>${window.t('plansTitle')}</h2><p class="plans-sub">${window.t('plansSub')}</p><div class="plans-grid plans-grid-3">${cards}</div>${contactLine}</div>`;
     document.body.appendChild(modal);
     document.getElementById('plansClose').addEventListener('click',()=>modal.remove());
     modal.addEventListener('click',e=>{ if(e.target===modal) modal.remove(); });
