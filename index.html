@@ -336,10 +336,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .cat-chip.active{background:var(--accent-2);border-color:var(--accent-2);color:#10161C;box-shadow:0 2px 10px rgba(47,143,203,0.35);}
 
 /* ===== Menú de navegación (pestañas) ===== */
-.main-nav{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:24px;padding-top:14px;}.nav-tab{background:transparent;border:none;color:var(--muted);font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;padding:11px 20px;border-radius:8px 8px 0 0;position:relative;transition:color .15s ease, background .15s ease;}
-.nav-tab:hover{color:var(--chalk);background:rgba(255,255,255,0.03);}
-.nav-tab.active{color:var(--chalk);}
-.nav-tab.active::after{content:'';position:absolute;left:12px;right:12px;bottom:-1px;height:3px;background:var(--accent);border-radius:3px 3px 0 0;}
+.main-nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;padding:6px;background:var(--panel);border:1px solid var(--line);border-radius:14px;}
+.nav-tab{flex:1;min-width:96px;background:var(--panel-2);border:1.5px solid transparent;color:var(--muted);font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;padding:13px 10px;border-radius:10px;position:relative;cursor:pointer;transition:all .16s ease;display:flex;flex-direction:column;align-items:center;gap:7px;line-height:1.1;}
+.nav-tab:hover{color:var(--chalk);background:#1f3346;border-color:var(--line);transform:translateY(-1px);}
+.nav-tab.active{color:var(--chalk);background:linear-gradient(160deg,#20344a,#182838);border-color:var(--accent);box-shadow:0 3px 12px rgba(0,0,0,0.25),inset 0 1px 0 rgba(255,255,255,0.04);}
+/* ícono del tablero (emoji desde data-icon) */
+.nav-tab::before{content:attr(data-icon);font-size:23px;line-height:1;transition:transform .16s ease;}
+.nav-tab:hover::before,.nav-tab.active::before{transform:scale(1.12);}
 
 /* ===== Secciones ===== */
 .section-content{display:none;position:relative;z-index:1;}
@@ -1273,13 +1276,13 @@ body.editor-active #screen-editor{ display:block; }
 
   <!-- ===== MENÚ DE NAVEGACIÓN ===== -->
   <nav class="main-nav">
-    <button class="nav-tab active" data-section="video" data-i18n="navVideo">🎬 Video</button>
-    <button class="nav-tab" data-section="videoai" data-i18n="navVideoAI">🤖 Video IA</button>
-    <button class="nav-tab" data-section="stats" data-i18n="navStats">📊 Estadísticas</button>
-    <button class="nav-tab" data-section="training" data-i18n="navTraining">📋 Planificación</button>
-    <button class="nav-tab" data-section="scouting" data-i18n="navScouting">🔍 Scouting</button>
-    <button class="nav-tab" data-section="board" data-i18n="navBoard">✏️ Pizarra</button>
-    <button class="nav-tab" data-section="live" data-i18n="navLive">🔴 En vivo</button>
+    <button class="nav-tab active" data-section="video" data-icon="🎬"><span data-i18n="navVideo">Video</span></button>
+    <button class="nav-tab" data-section="videoai" data-icon="🤖"><span data-i18n="navVideoAI">Video IA</span></button>
+    <button class="nav-tab" data-section="stats" data-icon="📊"><span data-i18n="navStats">Estadísticas</span></button>
+    <button class="nav-tab" data-section="training" data-icon="📋"><span data-i18n="navTraining">Planificación</span></button>
+    <button class="nav-tab" data-section="scouting" data-icon="🔍"><span data-i18n="navScouting">Scouting</span></button>
+    <button class="nav-tab" data-section="board" data-icon="✏️"><span data-i18n="navBoard">Pizarra</span></button>
+    <button class="nav-tab" data-section="live" data-icon="🔴"><span data-i18n="navLive">En vivo</span></button>
   </nav>
 
   <!-- ===== SECCIÓN: VIDEO ===== -->
@@ -1999,8 +2002,8 @@ window.I18N = {
     // Header / nav
     saveCloud:'☁ Guardar en la nube', myMatches:'☁ Mis partidos', loadFile:'Cargar archivo', saveFile:'Guardar archivo',
     logout:'Cerrar sesión', category:'Categoría:',
-    navVideo:'🎬 Video', navVideoAI:'🤖 Video IA', navStats:'📊 Estadísticas', navTraining:'📋 Planificación',
-    navScouting:'🔍 Scouting', navBoard:'✏️ Pizarra', navLive:'🔴 En vivo',
+    navVideo:'Video', navVideoAI:'Video IA', navStats:'Estadísticas', navTraining:'Planificación',
+    navScouting:'Scouting', navBoard:'Pizarra', navLive:'En vivo',
     brandSub:'Panel de entrenador — futsal',
     // Login
     loginTitle:'Ingresá a tu panel', loginEmail:'Email', loginPass:'Contraseña', loginBtn:'Ingresar',
@@ -2081,8 +2084,8 @@ window.I18N = {
   en: {
     saveCloud:'☁ Save to cloud', myMatches:'☁ My matches', loadFile:'Load file', saveFile:'Save file',
     logout:'Log out', category:'Category:',
-    navVideo:'🎬 Video', navVideoAI:'🤖 AI Video', navStats:'📊 Statistics', navTraining:'📋 Planning',
-    navScouting:'🔍 Scouting', navBoard:'✏️ Board', navLive:'🔴 Live',
+    navVideo:'Video', navVideoAI:'AI Video', navStats:'Statistics', navTraining:'Planning',
+    navScouting:'Scouting', navBoard:'Board', navLive:'Live',
     brandSub:'Coaching panel — futsal',
     loginTitle:'Sign in to your panel', loginEmail:'Email', loginPass:'Password', loginBtn:'Sign in',
     liveTitle:'Live — minutes control', liveSetupSub:'Pick the opponent and called-up players to start.',
@@ -2152,8 +2155,8 @@ window.I18N = {
   pt: {
     saveCloud:'☁ Salvar na nuvem', myMatches:'☁ Meus jogos', loadFile:'Carregar arquivo', saveFile:'Salvar arquivo',
     logout:'Sair', category:'Categoria:',
-    navVideo:'🎬 Vídeo', navVideoAI:'🤖 Vídeo IA', navStats:'📊 Estatísticas', navTraining:'📋 Planejamento',
-    navScouting:'🔍 Scouting', navBoard:'✏️ Prancheta', navLive:'🔴 Ao vivo',
+    navVideo:'Vídeo', navVideoAI:'Vídeo IA', navStats:'Estatísticas', navTraining:'Planejamento',
+    navScouting:'Scouting', navBoard:'Prancheta', navLive:'Ao vivo',
     brandSub:'Painel do treinador — futsal',
     loginTitle:'Entre no seu painel', loginEmail:'E-mail', loginPass:'Senha', loginBtn:'Entrar',
     liveTitle:'Ao vivo — controle de minutos', liveSetupSub:'Escolha o adversário e os convocados para começar.',
