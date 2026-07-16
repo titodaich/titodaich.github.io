@@ -4935,9 +4935,13 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       wrap.innerHTML = '<div class="calls-empty">Primero cargá algún partido.</div>';
       return;
     }
-    // Partidos en orden cronológico (más viejo a la izquierda, más nuevo a la derecha).
-    // 'matches' ya viene ordenado cronológicamente ascendente.
-    const ordered = matches.slice();
+    // Partidos en orden cronológico: más viejo a la izquierda, más nuevo a la derecha.
+    const ordered = matches.slice().sort((a,b) => {
+      if(a.date && b.date) return a.date.localeCompare(b.date);
+      if(a.date && !b.date) return -1;
+      if(!a.date && b.date) return 1;
+      return (a.createdAt||'').localeCompare(b.createdAt||'');
+    });
     const table = document.createElement('table');
     table.className = 'calls-table';
     // Cabecera: primera celda (Jugador) + un partido por columna
