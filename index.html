@@ -558,6 +558,25 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .live-topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px;flex-wrap:wrap;}
 .live-match-info .live-vs{font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;color:var(--chalk);}
 .live-finish-top{font-size:15px;padding:11px 24px;}
+/* ===== MARCADOR EN VIVO ===== */
+.live-scoreboard{display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.25);}
+.live-scoreboard .lsb-side{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:74px;}
+.live-scoreboard .lsb-team{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.5px;color:var(--muted);text-transform:uppercase;}
+.live-scoreboard .lsb-goals{font-family:'Oswald',sans-serif;font-size:34px;font-weight:700;line-height:1;color:var(--chalk);min-width:28px;text-align:center;}
+.live-scoreboard .lsb-mid{font-family:'Oswald',sans-serif;font-size:22px;color:var(--muted);}
+.live-scoreboard .lsb-fouls{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px;}
+.live-scoreboard .lsb-fouls b{color:var(--accent);font-size:12px;}
+.live-scoreboard .lsb-goals-manual,.live-scoreboard .lsb-fouls-manual{display:flex;align-items:center;gap:6px;}
+.live-scoreboard .lsb-fouls-manual{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px;}
+.live-scoreboard .lsb-fouls-manual b{color:var(--accent);font-size:12px;}
+.live-scoreboard .lsb-mini{width:26px;height:26px;border-radius:7px;border:1px solid var(--line);background:var(--panel-2);color:var(--chalk);font-size:16px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:all .12s ease;}
+.live-scoreboard .lsb-mini:hover{border-color:var(--accent-2);color:var(--accent-2);}
+.live-scoreboard .lsb-mini:active{transform:scale(0.92);}
+.mins-scoreline{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:10px;}
+.mins-scoreline .msl-team{font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;color:var(--muted);text-transform:uppercase;}
+.mins-scoreline .msl-score{font-family:'Oswald',sans-serif;font-size:36px;font-weight:700;color:var(--chalk);letter-spacing:2px;}
+.mins-fouls{text-align:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);margin-top:6px;}
+.mins-fouls b{color:var(--accent);}
 .live-call-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}
 .live-call-item{background:var(--panel-2);border:2px solid var(--line);border-radius:10px;padding:9px 11px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .12s ease;user-select:none;}
 .rival-pick{display:flex;align-items:center;gap:10px;width:100%;background:var(--panel-2);border:2px solid var(--line);border-radius:10px;padding:11px 14px;cursor:pointer;color:var(--chalk);font-family:inherit;text-align:left;transition:all .12s ease;margin-bottom:8px;user-select:none;}
@@ -1950,6 +1969,30 @@ body.editor-active #screen-editor{ display:block; }
         <div class="live-match-info">
           <span class="live-vs" id="liveVsRival">vs —</span>
         </div>
+
+        <!-- MARCADOR: goles y faltas. A favor suben solos; en contra a mano -->
+        <div class="live-scoreboard" id="liveScoreboard">
+          <div class="lsb-side">
+            <div class="lsb-team" data-i18n="sbUs">NOSOTROS</div>
+            <div class="lsb-goals" id="sbGoalsFor">0</div>
+            <div class="lsb-fouls"><span data-i18n="sbFouls">Faltas</span> <b id="sbFoulsFor">0</b></div>
+          </div>
+          <div class="lsb-mid">—</div>
+          <div class="lsb-side">
+            <div class="lsb-team" data-i18n="sbThem">RIVAL</div>
+            <div class="lsb-goals-manual">
+              <button class="lsb-mini" id="sbGAminus" aria-label="−">−</button>
+              <span class="lsb-goals" id="sbGoalsAgainst">0</span>
+              <button class="lsb-mini" id="sbGAplus" aria-label="+">+</button>
+            </div>
+            <div class="lsb-fouls-manual">
+              <button class="lsb-mini" id="sbFAminus" aria-label="−">−</button>
+              <span><span data-i18n="sbFouls">Faltas</span> <b id="sbFoulsAgainst">0</b></span>
+              <button class="lsb-mini" id="sbFAplus" aria-label="+">+</button>
+            </div>
+          </div>
+        </div>
+
         <button class="btn primary live-finish-top" id="liveFinishBtnTop" data-i18n="liveFinish">🏁 Finalizar partido</button>
       </div>
 
@@ -2141,6 +2184,7 @@ window.I18N = {
     stMatchesTitle:'Partidos', stMatchesSub:'Cargá cada partido con sus goles, asistencias y tarjetas. Se suma solo en las estadísticas anuales.',
     newMatch:'+ Nuevo partido', goalsFor:'⚽ Goles a favor', addGoal:'+ Gol', assists:'🅰 Asistencias', addAssist:'+ Asistencia',
     goalsAgainst:'🥅 Goles en contra', addGoalAgainst:'+ Gol en contra', cards:'🟨 Tarjetas', addCard:'+ Tarjeta',
+    sbUs:'NOSOTROS', sbThem:'RIVAL', sbFouls:'Faltas',
     delMatch:'Eliminar partido', editTags:'⚙ Editar tags de gol',
     squadTitle:'Plantel', squadSub:'Los jugadores de esta categoría. Se usan para cargar goleadores y asistencias.', addPlayer:'+ Agregar jugador',
     callsTitle:'Convocatorias', callsSub:'Marcá quién estuvo convocado en cada partido. Tocá una vez para ✓ convocado, otra para ✕ no disponible, otra para vaciar.',
@@ -2167,6 +2211,7 @@ window.I18N = {
     mEndHalf:'¿Terminar el 1er tiempo? Los minutos jugados hasta ahora quedan como "1er T".',
     mFinishNoEv:'No hay eventos cargados. ¿Finalizar igual?',
     mArchived:'Partido archivado en Estadísticas → Minutaje ✓', mArchiveErr:'Error al archivar.',
+    mSavedLocal:'Sin señal: el partido quedó guardado en tu teléfono. Se subirá solo cuando vuelva internet ✓', mSyncedPending:'Se subió un partido pendiente ✓', mSyncedPendingN:'Se subieron {n} partidos pendientes ✓',
     mPickRival:'Elegí el rival primero.', mPick5:'Elegí al menos 5 convocados.',
     mNewMatchQ:'¿Empezar un partido nuevo? Si no finalizaste el actual, se perderán sus datos.',
     mNothingUndo:'No hay nada para deshacer.', mUndoOnlyLast:'Solo se puede deshacer el último gol o falta.',
@@ -2218,6 +2263,7 @@ window.I18N = {
     stMatchesTitle:'Matches', stMatchesSub:'Log each match with its goals, assists and cards. It adds up in the season stats.',
     newMatch:'+ New match', goalsFor:'⚽ Goals for', addGoal:'+ Goal', assists:'🅰 Assists', addAssist:'+ Assist',
     goalsAgainst:'🥅 Goals against', addGoalAgainst:'+ Goal against', cards:'🟨 Cards', addCard:'+ Card',
+    sbUs:'US', sbThem:'RIVAL', sbFouls:'Fouls',
     delMatch:'Delete match', editTags:'⚙ Edit goal tags',
     squadTitle:'Roster', squadSub:'The players of this category. Used to log scorers and assists.', addPlayer:'+ Add player',
     callsTitle:'Call-ups', callsSub:'Mark who was called up for each match. Tap once for ✓ called, again for ✕ unavailable, again to clear.',
@@ -2239,6 +2285,7 @@ window.I18N = {
     mEndHalf:'End the 1st half? Minutes played so far are locked as "1st H".',
     mFinishNoEv:'No events logged. End anyway?',
     mArchived:'Match archived in Statistics → Minutes ✓', mArchiveErr:'Error archiving.',
+    mSavedLocal:'No signal: the match was saved on your phone. It will upload automatically when internet is back ✓', mSyncedPending:'A pending match was uploaded ✓', mSyncedPendingN:'{n} pending matches were uploaded ✓',
     mPickRival:'Pick the opponent first.', mPick5:'Select at least 5 called-up players.',
     mNewMatchQ:'Start a new match? If you did not finish the current one, its data will be lost.',
     mNothingUndo:'Nothing to undo.', mUndoOnlyLast:'Only the last goal or foul can be undone.',
@@ -2290,6 +2337,7 @@ window.I18N = {
     stMatchesTitle:'Jogos', stMatchesSub:'Registre cada jogo com seus gols, assistências e cartões. Soma nas estatísticas anuais.',
     newMatch:'+ Novo jogo', goalsFor:'⚽ Gols a favor', addGoal:'+ Gol', assists:'🅰 Assistências', addAssist:'+ Assistência',
     goalsAgainst:'🥅 Gols contra', addGoalAgainst:'+ Gol contra', cards:'🟨 Cartões', addCard:'+ Cartão',
+    sbUs:'NÓS', sbThem:'RIVAL', sbFouls:'Faltas',
     delMatch:'Excluir jogo', editTags:'⚙ Editar tags de gol',
     squadTitle:'Elenco', squadSub:'Os jogadores desta categoria. Usados para registrar artilheiros e assistências.', addPlayer:'+ Adicionar jogador',
     callsTitle:'Convocações', callsSub:'Marque quem foi convocado em cada jogo. Toque uma vez para ✓ convocado, outra para ✕ indisponível, outra para limpar.',
@@ -2311,6 +2359,7 @@ window.I18N = {
     mEndHalf:'Terminar o 1º tempo? Os minutos jogados até agora ficam como "1º T".',
     mFinishNoEv:'Não há eventos registrados. Finalizar mesmo assim?',
     mArchived:'Jogo arquivado em Estatísticas → Minutagem ✓', mArchiveErr:'Erro ao arquivar.',
+    mSavedLocal:'Sem sinal: o jogo foi salvo no seu telefone. Será enviado automaticamente quando a internet voltar ✓', mSyncedPending:'Um jogo pendente foi enviado ✓', mSyncedPendingN:'{n} jogos pendentes foram enviados ✓',
     mPickRival:'Escolha o adversário primeiro.', mPick5:'Selecione pelo menos 5 convocados.',
     mNewMatchQ:'Iniciar uma nova partida? Se você não finalizou a atual, os dados serão perdidos.',
     mNothingUndo:'Nada para desfazer.', mUndoOnlyLast:'Só é possível desfazer o último gol ou falta.',
@@ -3616,6 +3665,10 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   let matchRival = '';           // nombre del rival elegido
   let matchLinkId = null;        // id del partido linkeado
   let inSetup = true;
+  // Marcador manual (lo que NO se deduce de los jugadores):
+  let goalsAgainstManual = 0;    // goles en contra (se cargan a mano) — NO se resetean
+  let foulsAgainst1 = 0;         // faltas del rival en el 1er tiempo (manual)
+  let foulsAgainst2 = 0;         // faltas del rival en el 2do tiempo (manual)
 
   const fmtClock = (s) => {
     s = Math.max(0, Math.round(s));
@@ -3691,7 +3744,11 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     if(tpOnOk){ const fn=tpOnOk; tpOnOk=null; fn(regresivoToElapsed(tpMin,tpSec), tpMin, tpSec); }
   });
 
-  function ensure(pid){ if(!state[pid]) state[pid] = {onCourt:false, acc1:0, acc2:0, lastInAt:null, goals:0, fouls:0, cards:0}; if(state[pid].goals===undefined) state[pid].goals=0; if(state[pid].fouls===undefined) state[pid].fouls=0; if(state[pid].cards===undefined) state[pid].cards=0; return state[pid]; }
+  function ensure(pid){ if(!state[pid]) state[pid] = {onCourt:false, acc1:0, acc2:0, lastInAt:null, goals:0, fouls1:0, fouls2:0, cards:0}; if(state[pid].goals===undefined) state[pid].goals=0; if(state[pid].cards===undefined) state[pid].cards=0; if(state[pid].fouls1===undefined) state[pid].fouls1=0; if(state[pid].fouls2===undefined) state[pid].fouls2=0; if(state[pid].fouls!==undefined && state[pid].fouls1===0 && state[pid].fouls2===0){ /* compat: partido viejo con fouls único → lo tratamos como del 1er tiempo */ state[pid].fouls1=state[pid].fouls; } return state[pid]; }
+  // faltas del tiempo que se está jugando (lo que se muestra en pantalla)
+  function foulsNow(pid){ const st=ensure(pid); return currentHalf===1 ? (st.fouls1||0) : (st.fouls2||0); }
+  // faltas totales del partido (para guardar en el historial)
+  function foulsTotal(pid){ const st=ensure(pid); return (st.fouls1||0)+(st.fouls2||0); }
 
   // tiempo acumulado en el tiempo actual (en vivo)
   // "reloj efectivo": en corrido usa clockSeconds; en parado usa el minuto manual regresivo
@@ -3759,8 +3816,8 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     events.unshift({ t:now, type:'half', inName:'', outName:'' });
     // en parado, el 2do tiempo arranca de nuevo en 20'
     if(clockType==='parado'){ manualMin = halfMinutes; Object.keys(state).forEach(pid=>{ if(state[pid].onCourt) state[pid].lastInAt = manualElapsed(); }); }
-    updateClockUI(); renderField(); renderTotals(); renderLog();
-    toast('Fin del 1er tiempo. En el 2do, el reloj vuelve a ' + halfMinutes + '\'.');
+    updateClockUI(); renderField(); renderTotals(); renderLog(); renderScoreboard();
+    toast('Fin del 1er tiempo. Faltas a 0 · el reloj vuelve a ' + halfMinutes + '\'.');
   }
 
   // ----- Acciones -----
@@ -3777,7 +3834,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     st.onCourt=false; st.lastInAt=null;
   }
   function totalsSnapshot(){
-    const o={}; squad.forEach(p=>{ const st=ensure(p.id); o[p.name]={t1:time1(p.id),t2:time2(p.id),total:timeTotal(p.id),goals:st.goals||0,fouls:st.fouls||0,cards:st.cards||0,number:p.number||''}; }); return o;
+    const o={}; squad.forEach(p=>{ const st=ensure(p.id); o[p.name]={t1:time1(p.id),t2:time2(p.id),total:timeTotal(p.id),goals:st.goals||0,fouls:foulsTotal(p.id),fouls1:st.fouls1||0,fouls2:st.fouls2||0,cards:st.cards||0,number:p.number||''}; }); return o;
   }
   function logEvent(type, inId, outId){
     const inP=squad.find(p=>p.id===inId), outP=squad.find(p=>p.id===outId);
@@ -3885,7 +3942,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       d.style.top = slot.y + '%';
       const roleLabel = role==='otro' ? '' : role.charAt(0).toUpperCase()+role.slice(1);
       const st=ensure(p.id);
-      d.innerHTML=`<div class="lt-num">${escapeHtml(p.number?'#'+p.number:'')}${roleLabel?' · '+roleLabel:''}</div><div class="lt-name">${escapeHtml(p.name)}</div><div class="lt-time" data-t="${p.id}">${fmtClock(timeTotal(p.id))}</div><div class="lt-actions"><button class="lt-act lt-goal" title="Gol">⚽<span class="lt-cnt">${st.goals||0}</span></button><button class="lt-act lt-foul" title="Falta">⚠️<span class="lt-cnt">${st.fouls||0}</span></button><button class="lt-act lt-card" title="Tarjeta amarilla">🟨<span class="lt-cnt">${st.cards||0}</span></button></div>`;
+      d.innerHTML=`<div class="lt-num">${escapeHtml(p.number?'#'+p.number:'')}${roleLabel?' · '+roleLabel:''}</div><div class="lt-name">${escapeHtml(p.name)}</div><div class="lt-time" data-t="${p.id}">${fmtClock(timeTotal(p.id))}</div><div class="lt-actions"><button class="lt-act lt-goal" title="Gol">⚽<span class="lt-cnt">${st.goals||0}</span></button><button class="lt-act lt-foul" title="Falta (del tiempo actual)">⚠️<span class="lt-cnt">${foulsNow(p.id)}</span></button><button class="lt-act lt-card" title="Tarjeta amarilla">🟨<span class="lt-cnt">${st.cards||0}</span></button></div>`;
       // click en la ficha (fuera de los botones) = cambio
       d.addEventListener('click',(e)=>{ if(e.target.closest('.lt-act')) return; tapOnCourt(p.id); });
       d.querySelector('.lt-goal').addEventListener('click',(e)=>{ e.stopPropagation(); addGoal(p.id); });
@@ -3918,6 +3975,18 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   function updateOnCourt(){
     const el=document.getElementById('liveOnCourt'); if(el) el.textContent=countOnCourt()+' / 5 '+window.t('liveOnCourtLbl');
   }
+  // Marcador: goles suben solos y NO se resetean; faltas son del TIEMPO ACTUAL (vuelven a 0 en el 2º tiempo).
+  function renderScoreboard(){
+    let gf=0, ff=0;
+    squad.forEach(p=>{ const st=ensure(p.id); gf+=(st.goals||0); ff+=foulsNow(p.id); });
+    const faManual = currentHalf===1 ? foulsAgainst1 : foulsAgainst2;
+    const set=(id,val)=>{ const el=document.getElementById(id); if(el) el.textContent=val; };
+    set('sbGoalsFor', gf);
+    set('sbFoulsFor', ff);
+    set('sbGoalsAgainst', goalsAgainstManual);
+    set('sbFoulsAgainst', faManual);
+  }
+
   function renderTotals(){
     const cont=document.getElementById('liveTotals'); if(!cont) return;
     if(squad.length===0){ cont.innerHTML='<p class="rd-empty">Sin jugadores.</p>'; return; }
@@ -3926,7 +3995,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       const row=document.createElement('div');
       row.className='live-total-row'+(ensure(p.id).onCourt?' on-court':'');
       row.dataset.row=p.id;
-      row.innerHTML=`<span class="ltr-name"><small>${escapeHtml(p.number?'#'+p.number:'')}</small>${escapeHtml(p.name)}</span><span data-t1="${p.id}">${fmtClock(time1(p.id))}</span><span data-t2="${p.id}">${fmtClock(time2(p.id))}</span><span class="ltr-total" data-tt="${p.id}">${fmtClock(timeTotal(p.id))}</span><span data-g="${p.id}">${ensure(p.id).goals||0}</span><span data-f="${p.id}">${ensure(p.id).fouls||0}</span><span data-c="${p.id}">${ensure(p.id).cards||0}</span>`;
+      row.innerHTML=`<span class="ltr-name"><small>${escapeHtml(p.number?'#'+p.number:'')}</small>${escapeHtml(p.name)}</span><span data-t1="${p.id}">${fmtClock(time1(p.id))}</span><span data-t2="${p.id}">${fmtClock(time2(p.id))}</span><span class="ltr-total" data-tt="${p.id}">${fmtClock(timeTotal(p.id))}</span><span data-g="${p.id}">${ensure(p.id).goals||0}</span><span data-f="${p.id}">${foulsTotal(p.id)}</span><span data-c="${p.id}">${ensure(p.id).cards||0}</span>`;
       cont.appendChild(row);
     });
   }
@@ -3970,8 +4039,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   // ----- Finalizar partido (usa el rival ya elegido al inicio) -----
   async function finishMatch(){
     if(events.length===0){ if(!confirm(window.t('mFinishNoEv'))) return; }
-    const sb=window.__sb; if(!sb){ toast(window.t('mNoConn')); return; }
-    const clubId=await window.__getClubId(); if(!clubId){ toast(window.t('mNoClub')); return; }
+    const clubId=await window.__getClubId();
     // consolidar el tiempo en curso
     Object.keys(state).forEach(pid => {
       const st=state[pid];
@@ -3985,24 +4053,96 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   document.getElementById('liveSaveClose').addEventListener('click',()=>{ document.getElementById('liveSaveModal').style.display='none'; });
   document.getElementById('liveSaveModal').addEventListener('click',e=>{ if(e.target.id==='liveSaveModal') e.target.style.display='none'; });
 
-  async function finishAndArchive(matchId, rivalName){
-    const sb=window.__sb; if(!sb) return;
-    try{
-      const clubId=await window.__getClubId();
-      const cat=(window.__getActiveCategory && window.__getActiveCategory())||null;
-      const payload={
-        club_id:clubId, categoria:cat, name:rivalName,
-        match_id:matchId||null, half_minutes:halfMinutes,
-        events, totals:totalsSnapshot()
-      };
-      const res=await sb.from('live_sessions').insert(payload).select('id').single();
-      if(res.error){ toast('No se pudo archivar: '+res.error.message); return; }
-      toast(window.t('mArchived'));
-      // Volver a la pantalla de setup para el próximo partido
-      setupCalled={}; matchRival=''; matchLinkId=null;
-      backToSetup();
-    }catch(e){ console.error(e); toast(window.t('mArchiveErr')); }
+  // ----- Marcador: contadores MANUALES (goles y faltas en contra) -----
+  function bindMini(id, fn){ const b=document.getElementById(id); if(b) b.addEventListener('click', fn); }
+  bindMini('sbGAplus', ()=>{ goalsAgainstManual++; renderScoreboard(); });
+  bindMini('sbGAminus',()=>{ goalsAgainstManual=Math.max(0,goalsAgainstManual-1); renderScoreboard(); });
+  bindMini('sbFAplus', ()=>{ if(currentHalf===1) foulsAgainst1++; else foulsAgainst2++; renderScoreboard(); });
+  bindMini('sbFAminus',()=>{ if(currentHalf===1) foulsAgainst1=Math.max(0,foulsAgainst1-1); else foulsAgainst2=Math.max(0,foulsAgainst2-1); renderScoreboard(); });
+
+  // ===== Cola local de sesiones pendientes (a prueba de cortes de señal) =====
+  const PENDING_KEY = 'ce_live_pending';
+  function readPending(){
+    try{ return JSON.parse(localStorage.getItem(PENDING_KEY) || '[]'); }catch(e){ return []; }
   }
+  function writePending(arr){
+    try{ localStorage.setItem(PENDING_KEY, JSON.stringify(arr)); }catch(e){ /* storage lleno o bloqueado */ }
+  }
+  function queuePending(payload){
+    const arr = readPending();
+    arr.push({ ...payload, __localId: 'lp_' + Date.now() + '_' + Math.random().toString(36).slice(2,7) });
+    writePending(arr);
+  }
+
+  // Intenta subir todas las sesiones pendientes. Devuelve cuántas subió.
+  async function flushPending(silent){
+    const sb = window.__sb;
+    if(!sb) return 0;
+    let arr = readPending();
+    if(!arr.length) return 0;
+    let subidas = 0;
+    const quedan = [];
+    for(const item of arr){
+      const { __localId, ...payload } = item;
+      try{
+        const res = await sb.from('live_sessions').insert(payload).select('id').single();
+        if(res && res.error){ quedan.push(item); }   // no se pudo: la dejamos para el próximo intento
+        else { subidas++; }
+      }catch(e){ quedan.push(item); }                 // sin señal: la dejamos
+    }
+    writePending(quedan);
+    if(subidas > 0 && !silent){
+      const msg = subidas === 1 ? window.t('mSyncedPending') : window.t('mSyncedPendingN').replace('{n}', subidas);
+      toast(msg);
+      // refrescar el minutaje si el usuario lo está mirando
+      if(typeof window.__refreshMinutes === 'function') window.__refreshMinutes();
+    }
+    return subidas;
+  }
+  // exponer para reintentos desde afuera y desde otros módulos
+  window.__flushLivePending = flushPending;
+
+  async function finishAndArchive(matchId, rivalName){
+    const clubId = await window.__getClubId();
+    const cat = (window.__getActiveCategory && window.__getActiveCategory()) || null;
+    const totals = totalsSnapshot();
+    // Guardamos el marcador del rival dentro de totals, sin tocar el esquema de la BD.
+    totals.__rival = { goalsAgainst: goalsAgainstManual, foulsAgainst: foulsAgainst1 + foulsAgainst2, foulsAgainst1: foulsAgainst1, foulsAgainst2: foulsAgainst2 };
+    const payload = {
+      club_id: clubId, categoria: cat, name: rivalName,
+      match_id: matchId || null, half_minutes: halfMinutes,
+      events, totals
+    };
+
+    // PASO 1: guardar SIEMPRE en el teléfono primero. Pase lo que pase, no se pierde.
+    queuePending(payload);
+
+    // PASO 2: intentar subir ya mismo lo pendiente (incluye este partido).
+    const sb = window.__sb;
+    let subioEste = false;
+    if(sb && navigator.onLine !== false){
+      try{
+        // subimos toda la cola; si este partido entra, genial
+        const antes = readPending().length;
+        await flushPending(true);
+        const despues = readPending().length;
+        subioEste = despues < antes;
+      }catch(e){ subioEste = false; }
+    }
+
+    if(subioEste && readPending().length === 0){
+      toast(window.t('mArchived'));
+    } else {
+      // quedó guardado en el teléfono; se subirá solo cuando vuelva internet
+      toast(window.t('mSavedLocal'));
+    }
+    // En ambos casos volvemos al setup: el partido está a salvo (local o nube)
+    setupCalled = {}; matchRival = ''; matchLinkId = null;
+    backToSetup();
+  }
+
+  // Reintentar subir pendientes cuando vuelve la conexión o al iniciar
+  window.addEventListener('online', () => { flushPending(false); });
 
   // ===== SETUP: cargar plantel y partidos para elegir =====
   async function loadSquad(){
@@ -4083,15 +4223,16 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     if(conv.length<5){ toast(window.t('mPick5')); return; }
     // fijar el plantel del partido = convocados
     squad=conv.map(p=>({...p}));
-    state={}; squad.forEach(p=>{ state[p.id]={onCourt:false,acc1:0,acc2:0,lastInAt:null,goals:0,fouls:0}; });
+    state={}; squad.forEach(p=>{ state[p.id]={onCourt:false,acc1:0,acc2:0,lastInAt:null,goals:0,fouls1:0,fouls2:0,cards:0}; });
     events=[]; clockSeconds=0; currentHalf=1; halfSplitAt=null; swapOutId=null; manualMin=halfMinutes; liveRowId=null;
+    goalsAgainstManual=0; foulsAgainst1=0; foulsAgainst2=0;
     inSetup=false;
     document.getElementById('liveSetup').style.display='none';
     document.getElementById('liveActive').style.display='block';
     document.getElementById('liveNewMatchBtn').style.display='inline-flex';
     document.getElementById('liveVsRival').textContent='vs '+matchRival;
     document.getElementById('liveSubtitle').textContent='Partido en curso — vs '+matchRival;
-    updateClockType(); updateClockUI(); renderField(); renderBench(); renderTotals(); renderLog(); updateOnCourt(); updateStep();
+    updateClockType(); updateClockUI(); renderField(); renderBench(); renderTotals(); renderLog(); updateOnCourt(); updateStep(); renderScoreboard();
   });
 
   document.getElementById('liveNewMatchBtn').addEventListener('click',()=>{
@@ -4112,19 +4253,19 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   function addGoal(pid){
     const st=ensure(pid); st.goals++;
     events.unshift({ t:nowSeconds(), type:'goal', pid, inName:(squad.find(p=>p.id===pid)||{}).name||'', outName:'', half:currentHalf });
-    renderField(); renderTotals(); renderLog();
+    renderField(); renderTotals(); renderLog(); renderScoreboard();
     toast(window.t('mGoalOf')+((squad.find(p=>p.id===pid)||{}).name||''));
   }
   function addFoul(pid){
-    const st=ensure(pid); st.fouls++;
+    const st=ensure(pid); if(currentHalf===1) st.fouls1++; else st.fouls2++;
     events.unshift({ t:nowSeconds(), type:'foul', pid, inName:(squad.find(p=>p.id===pid)||{}).name||'', outName:'', half:currentHalf });
-    renderField(); renderTotals(); renderLog();
+    renderField(); renderTotals(); renderLog(); renderScoreboard();
     toast(window.t('mFoulOf')+((squad.find(p=>p.id===pid)||{}).name||''));
   }
   function addCard(pid){
     const st=ensure(pid); st.cards++;
     events.unshift({ t:nowSeconds(), type:'card', pid, inName:(squad.find(p=>p.id===pid)||{}).name||'', outName:'', half:currentHalf });
-    renderField(); renderTotals(); renderLog();
+    renderField(); renderTotals(); renderLog(); renderScoreboard();
     toast(window.t('mCardTo')+((squad.find(p=>p.id===pid)||{}).name||''));
   }
   // Deshacer el último evento (gol, falta o cambio)
@@ -4133,21 +4274,21 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     const ev = events[0];
     let msg = '';
     if(ev.type==='goal'){ const st=ensure(ev.pid); if(st) st.goals=Math.max(0,(st.goals||0)-1); msg='Gol deshecho'; }
-    else if(ev.type==='foul'){ const st=ensure(ev.pid); if(st) st.fouls=Math.max(0,(st.fouls||0)-1); msg='Falta deshecha'; }
+    else if(ev.type==='foul'){ const st=ensure(ev.pid); if(st){ if(ev.half===2){ st.fouls2=Math.max(0,(st.fouls2||0)-1); } else { st.fouls1=Math.max(0,(st.fouls1||0)-1); } } msg='Falta deshecha'; }
     else if(ev.type==='card'){ const st=ensure(ev.pid); if(st) st.cards=Math.max(0,(st.cards||0)-1); msg='Tarjeta deshecha'; }
     else if(ev.type==='in' || ev.type==='swap' || ev.type==='out' || ev.type==='half'){
       toast(window.t('mUndoOnlyLast')); return;
     }
     else { toast('No se puede deshacer este evento.'); return; }
     events.shift();
-    renderField(); renderTotals(); renderLog();
+    renderField(); renderTotals(); renderLog(); renderScoreboard();
     toast('↩ '+msg);
   }
 
   document.addEventListener('langchange', ()=>{
     if(!started) return;
     updateClockType(); updateClockUI(); updateOnCourt();
-    if(inSetup){ updateStartHint(); } else { renderField(); renderBench(); renderTotals(); renderLog(); }
+    if(inSetup){ updateStartHint(); } else { renderField(); renderBench(); renderTotals(); renderLog(); renderScoreboard(); }
   });
 
   let started=false;
@@ -4155,6 +4296,8 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     if(!started){ started=true; renderLog(); }
     updateClockType();
     if(inSetup){ document.getElementById('liveSetup').style.display='block'; document.getElementById('liveActive').style.display='none'; loadSquad(); }
+    // por si quedó algún partido sin subir de una vez anterior, intentamos ahora
+    if(typeof flushPending === 'function') flushPending(false);
   };
   if(window.__onCategorySubscribe){
     window.__onCategorySubscribe(()=>{ if(started && inSetup){ setupCalled={}; matchRival=''; matchLinkId=null; updateClockType(); loadSquad(); } });
@@ -4930,7 +5073,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       if(!data || data.length===0) return;   // no hay minutaje para este partido
       const s = data[0];
       const totals = s.totals || {};
-      const rows = Object.keys(totals).map(name=>({name, ...totals[name]})).sort((a,b)=>(b.total||0)-(a.total||0));
+      const rows = Object.keys(totals).filter(k=>k!=='__rival').map(name=>({name, ...totals[name]})).sort((a,b)=>(b.total||0)-(a.total||0));
       if(rows.length===0) return;
       let html = `<div class="live-totals-head" style="margin-top:4px;"><span>Jugador</span><span>1er T</span><span>2do T</span><span>Total</span></div>`;
       rows.forEach(r=>{
@@ -5154,7 +5297,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     const tb=table.querySelector('tbody');
     sessions.forEach(s=>{
       const when=s.created_at?new Date(s.created_at).toLocaleDateString('es-AR'):'';
-      const nJug=s.totals?Object.keys(s.totals).length:0;
+      const nJug=s.totals?Object.keys(s.totals).filter(k=>k!=='__rival').length:0;
       const tr=document.createElement('tr');
       tr.innerHTML=`<td data-label="Partido"><span class="mt-fecha-badge">${escapeHtml(s.name||'Partido')}</span></td><td class="mt-fecha" data-label="Fecha">${when}</td><td data-label="Jugadores">${nJug} jugadores</td><td class="mt-open"><button class="btn small mt-open-btn">Ver detalle →</button></td>`;
       tr.querySelector('.mt-open-btn').addEventListener('click',()=>showMinutesDetail(s));
@@ -5170,9 +5313,18 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     if(!list||!detail){ return; }
     list.style.display='none'; detail.style.display='block';
     const totals=s.totals||{};
-    // ordenar por total desc
-    const rows=Object.keys(totals).map(name=>({name, ...totals[name]})).sort((a,b)=>(b.total||0)-(a.total||0));
+    const rival = totals.__rival || { goalsAgainst:0, foulsAgainst:0 };
+    // ordenar por total desc (excluyendo la entrada especial del rival)
+    const rows=Object.keys(totals).filter(k=>k!=='__rival').map(name=>({name, ...totals[name]})).sort((a,b)=>(b.total||0)-(a.total||0));
+    // marcador: goles/faltas a favor son la suma de los jugadores
+    let golesFavor=0, faltasFavor=0;
+    rows.forEach(r=>{ golesFavor+=(r.goals||0); faltasFavor+=(r.fouls||0); });
     let html=`<button class="btn small" id="minsBack" style="margin-bottom:14px;">← Volver a la lista</button>
+      <div class="annual-card" style="margin-bottom:14px;">
+        <div class="rd-card-head"><h3>${escapeHtml(s.name||'Partido')}</h3></div>
+        <div class="mins-scoreline"><span class="msl-team">Nosotros</span><span class="msl-score">${golesFavor} - ${rival.goalsAgainst||0}</span><span class="msl-team">${escapeHtml(s.name||'Rival')}</span></div>
+        <div class="mins-fouls">Faltas: <b>${faltasFavor}</b> — ${rival.foulsAgainst||0}</div>
+      </div>
       <div class="annual-card">
         <div class="rd-card-head"><h3>${escapeHtml(s.name||'Partido')}</h3></div>
         <div class="live-totals-head" style="margin-top:8px;grid-template-columns:1fr 58px 58px 64px 34px 34px 34px;"><span>Jugador</span><span>1er T</span><span>2do T</span><span>Total</span><span title="Goles">⚽</span><span title="Faltas">⚠️</span><span title="Tarjetas">🟨</span></div>
@@ -5633,6 +5785,13 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       }
     });
   }
+
+  // Permite que el sincronizador de En Vivo refresque la lista de minutaje
+  // si el usuario la está mirando cuando se sube un partido pendiente.
+  window.__refreshMinutes = function(){
+    const sub = document.querySelector('.stats-subtab.active');
+    if(sub && sub.dataset.sub === 'minutes'){ renderMinutes(); }
+  };
 })();
 
 
