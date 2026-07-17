@@ -559,19 +559,26 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .live-match-info .live-vs{font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;color:var(--chalk);}
 .live-finish-top{font-size:15px;padding:11px 24px;}
 /* ===== MARCADOR EN VIVO ===== */
-.live-scoreboard{display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.25);}
-.live-scoreboard .lsb-side{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:74px;}
+.live-scoreboard{display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 18px;box-shadow:0 2px 8px rgba(0,0,0,0.25);}
+.live-scoreboard .lsb-result{display:flex;align-items:center;gap:14px;}
+.live-scoreboard .lsb-col{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:70px;}
 .live-scoreboard .lsb-team{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.5px;color:var(--muted);text-transform:uppercase;}
-.live-scoreboard .lsb-goals{font-family:'Oswald',sans-serif;font-size:34px;font-weight:700;line-height:1;color:var(--chalk);min-width:28px;text-align:center;}
-.live-scoreboard .lsb-mid{font-family:'Oswald',sans-serif;font-size:22px;color:var(--muted);}
-.live-scoreboard .lsb-fouls{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px;}
-.live-scoreboard .lsb-fouls b{color:var(--accent);font-size:12px;}
-.live-scoreboard .lsb-goals-manual,.live-scoreboard .lsb-fouls-manual{display:flex;align-items:center;gap:6px;}
-.live-scoreboard .lsb-fouls-manual{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px;}
-.live-scoreboard .lsb-fouls-manual b{color:var(--accent);font-size:12px;}
+.live-scoreboard .lsb-goals{font-family:'Oswald',sans-serif;font-size:40px;font-weight:700;line-height:1;color:var(--chalk);min-width:30px;text-align:center;}
+.live-scoreboard .lsb-dash{font-family:'Oswald',sans-serif;font-size:30px;font-weight:700;color:var(--muted);align-self:flex-end;margin-bottom:2px;}
+.live-scoreboard .lsb-goals-manual{display:flex;align-items:center;gap:6px;}
+.live-scoreboard .lsb-fouls-row{display:flex;align-items:center;gap:20px;border-top:1px solid var(--line);padding-top:5px;width:100%;justify-content:center;}
+.live-scoreboard .lsb-fouls{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);}
+.live-scoreboard .lsb-fouls b{color:var(--accent);font-size:13px;}
+.live-scoreboard .lsb-fouls-manual{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);}
+.live-scoreboard .lsb-fouls-manual b{color:var(--accent);font-size:13px;}
 .live-scoreboard .lsb-mini{width:26px;height:26px;border-radius:7px;border:1px solid var(--line);background:var(--panel-2);color:var(--chalk);font-size:16px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:all .12s ease;}
 .live-scoreboard .lsb-mini:hover{border-color:var(--accent-2);color:var(--accent-2);}
 .live-scoreboard .lsb-mini:active{transform:scale(0.92);}
+/* Alerta de 5ta falta (tiro libre sin barrera / doble penal) */
+.live-scoreboard .foul-alert{background:var(--danger);border-radius:7px;padding:2px 8px;color:#fff !important;animation:foulPulse 1s ease-in-out infinite;}
+.live-scoreboard .foul-alert b{color:#fff !important;}
+.live-scoreboard .foul-alert::after{content:' ⚠ DOBLE PENAL';font-size:8px;font-weight:700;letter-spacing:0.3px;}
+@keyframes foulPulse{0%,100%{box-shadow:0 0 0 0 rgba(240,85,63,0.6);}50%{box-shadow:0 0 0 5px rgba(240,85,63,0);}}
 .mins-scoreline{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:10px;}
 .mins-scoreline .msl-team{font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;color:var(--muted);text-transform:uppercase;}
 .mins-scoreline .msl-score{font-family:'Oswald',sans-serif;font-size:36px;font-weight:700;color:var(--chalk);letter-spacing:2px;}
@@ -1845,6 +1852,18 @@ body.editor-active #screen-editor{ display:block; }
           <div class="rd-card">
             <label class="rd-field"><span>Datos</span><textarea id="rdData" rows="6" placeholder="Cualquier información adicional del rival: antecedentes, historial, resultados previos, observaciones generales..."></textarea></label>
           </div>
+          <div class="rd-card">
+            <h3>📋 Información partidos anteriores</h3>
+            <label class="rd-field"><textarea id="rdPrevMatches" rows="4" placeholder="Resultados y observaciones de partidos anteriores contra este rival: cómo se dieron, qué funcionó, qué nos costó..."></textarea></label>
+          </div>
+          <div class="rd-card">
+            <h3>⚠️ Sexta falta</h3>
+            <label class="rd-field"><textarea id="rdSixthFoul" rows="3" placeholder="Quién patea el tiro libre de 6ta falta, con qué pierna, a qué lado suele tirar, cómo defenderlo..."></textarea></label>
+          </div>
+          <div class="rd-card">
+            <h3>🎯 Penales</h3>
+            <label class="rd-field"><textarea id="rdPenalties" rows="3" placeholder="Quiénes patean los penales, a qué lado, cómo se para el arquero rival, tendencias..."></textarea></label>
+          </div>
         </div>
 
         <!-- Columna derecha: jugadores + material -->
@@ -1970,22 +1989,26 @@ body.editor-active #screen-editor{ display:block; }
           <span class="live-vs" id="liveVsRival">vs —</span>
         </div>
 
-        <!-- MARCADOR: goles y faltas. A favor suben solos; en contra a mano -->
+        <!-- MARCADOR: resultado (goles) grande arriba; faltas abajo. A favor suben solos; en contra a mano -->
         <div class="live-scoreboard" id="liveScoreboard">
-          <div class="lsb-side">
-            <div class="lsb-team" data-i18n="sbUs">NOSOTROS</div>
-            <div class="lsb-goals" id="sbGoalsFor">0</div>
-            <div class="lsb-fouls"><span data-i18n="sbFouls">Faltas</span> <b id="sbFoulsFor">0</b></div>
-          </div>
-          <div class="lsb-mid">—</div>
-          <div class="lsb-side">
-            <div class="lsb-team" data-i18n="sbThem">RIVAL</div>
-            <div class="lsb-goals-manual">
-              <button class="lsb-mini" id="sbGAminus" aria-label="−">−</button>
-              <span class="lsb-goals" id="sbGoalsAgainst">0</span>
-              <button class="lsb-mini" id="sbGAplus" aria-label="+">+</button>
+          <div class="lsb-result">
+            <div class="lsb-col">
+              <div class="lsb-team" data-i18n="sbUs">NOSOTROS</div>
+              <div class="lsb-goals" id="sbGoalsFor">0</div>
             </div>
-            <div class="lsb-fouls-manual">
+            <div class="lsb-dash">-</div>
+            <div class="lsb-col">
+              <div class="lsb-team" data-i18n="sbThem">RIVAL</div>
+              <div class="lsb-goals-manual">
+                <button class="lsb-mini" id="sbGAminus" aria-label="−">−</button>
+                <span class="lsb-goals" id="sbGoalsAgainst">0</span>
+                <button class="lsb-mini" id="sbGAplus" aria-label="+">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="lsb-fouls-row">
+            <div class="lsb-fouls" id="sbFoulsForBox"><span data-i18n="sbFouls">Faltas</span> <b id="sbFoulsFor">0</b></div>
+            <div class="lsb-fouls-manual" id="sbFoulsAgainstBox">
               <button class="lsb-mini" id="sbFAminus" aria-label="−">−</button>
               <span><span data-i18n="sbFouls">Faltas</span> <b id="sbFoulsAgainst">0</b></span>
               <button class="lsb-mini" id="sbFAplus" aria-label="+">+</button>
@@ -2221,6 +2244,7 @@ window.I18N = {
     mRemoveQ:'¿Quitar a ', mMatchName:'Nombre del partido:', mMatchSaved:'Partido guardado en la nube ✓',
     mMatchDeleted:'Partido borrado.', mDelMatchErr:'No se pudo borrar.', mCreateMatchErr:'No se pudo crear el partido.',
     mDetailErr:'No se pudo abrir el detalle.', mAdjSaved:'Ajuste guardado ✓',
+    minsEditRival:'✎ Corregir marcador rival', minsDelete:'🗑 Borrar partido', minsDeleteQ:'¿Seguro que querés borrar este partido? No se puede deshacer.', minsDeleted:'Partido borrado ✓', minsSaved:'Marcador corregido ✓', minsAskGoals:'Goles en contra del rival:', minsAskFouls:'Faltas del rival:',
     mOpenRivalFirst:'Abrí una ficha de rival primero.', mLoadRivalData:'Cargá algún dato del rival antes de generar el informe.',
     mReportCopied:'Informe copiado ✓', mCopyErr:'No se pudo copiar.',
     mPlayShort:'La jugada fue muy corta.', mPlayName:'Nombre de la jugada:', mPlaySaved:'Jugada guardada ✓',
@@ -2295,6 +2319,7 @@ window.I18N = {
     mRemoveQ:'Remove ', mMatchName:'Match name:', mMatchSaved:'Match saved to cloud ✓',
     mMatchDeleted:'Match deleted.', mDelMatchErr:'Could not delete.', mCreateMatchErr:'Could not create the match.',
     mDetailErr:'Could not open the detail.', mAdjSaved:'Adjustment saved ✓',
+    minsEditRival:'✎ Fix rival score', minsDelete:'🗑 Delete match', minsDeleteQ:'Are you sure you want to delete this match? This cannot be undone.', minsDeleted:'Match deleted ✓', minsSaved:'Score fixed ✓', minsAskGoals:'Goals against (rival):', minsAskFouls:'Rival fouls:',
     mOpenRivalFirst:'Open an opponent card first.', mLoadRivalData:'Add some opponent data before generating the report.',
     mReportCopied:'Report copied ✓', mCopyErr:'Could not copy.',
     mPlayShort:'The play was too short.', mPlayName:'Play name:', mPlaySaved:'Play saved ✓',
@@ -2369,6 +2394,7 @@ window.I18N = {
     mRemoveQ:'Remover ', mMatchName:'Nome do jogo:', mMatchSaved:'Jogo salvo na nuvem ✓',
     mMatchDeleted:'Jogo excluído.', mDelMatchErr:'Não foi possível excluir.', mCreateMatchErr:'Não foi possível criar o jogo.',
     mDetailErr:'Não foi possível abrir o detalhe.', mAdjSaved:'Ajuste salvo ✓',
+    minsEditRival:'✎ Corrigir placar rival', minsDelete:'🗑 Excluir jogo', minsDeleteQ:'Tem certeza que deseja excluir este jogo? Não pode ser desfeito.', minsDeleted:'Jogo excluído ✓', minsSaved:'Placar corrigido ✓', minsAskGoals:'Gols contra (rival):', minsAskFouls:'Faltas do rival:',
     mOpenRivalFirst:'Abra um cartão de adversário primeiro.', mLoadRivalData:'Adicione dados do adversário antes de gerar o relatório.',
     mReportCopied:'Relatório copiado ✓', mCopyErr:'Não foi possível copiar.',
     mPlayShort:'A jogada foi muito curta.', mPlayName:'Nome da jogada:', mPlaySaved:'Jogada salva ✓',
@@ -2801,7 +2827,7 @@ window.__initEditor = function(){
   const MAX_FECHAS = 38;
   function makeFixture(n){
     return { id:'r'+n, fecha:n, name:'', date:'', tournament:'',
-      attack:'', defense:'', setpieces:'', data:'', players:[], materials:[] };
+      attack:'', defense:'', setpieces:'', data:'', prevMatches:'', sixthFoul:'', penalties:'', players:[], materials:[] };
   }
   let rivals = [];
   rivals.push(makeFixture(1));
@@ -2858,6 +2884,11 @@ window.__initEditor = function(){
           r.defense = row.defense || '';
           r.setpieces = row.setpieces || '';
           r.data = row.data || '';
+          // Campos nuevos: si existen como columnas, se usan; si no, se extraen del bloque embebido en data.
+          r.prevMatches = row.prev_matches || '';
+          r.sixthFoul = row.sixth_foul || '';
+          r.penalties = row.penalties || '';
+          extraerEmbebidos(r);
           r.players = Array.isArray(row.players) ? row.players : [];
           r.materials = Array.isArray(row.materials) ? row.materials : [];
         });
@@ -2879,20 +2910,59 @@ window.__initEditor = function(){
     }catch(e){ console.error(e); }
   }
 
+  // Marcador para embeber los campos nuevos dentro de `data` si no existen las columnas.
+  const EMB_INI = '\n\n<<<CE_EXTRA';
+  const EMB_FIN = 'CE_EXTRA>>>';
+  // Quita el bloque embebido de `data` y lo vuelca en los campos del rival.
+  function extraerEmbebidos(r){
+    if(!r.data) return;
+    const i = r.data.indexOf(EMB_INI);
+    if(i === -1) return;
+    const j = r.data.indexOf(EMB_FIN, i);
+    if(j === -1) return;
+    const jsonStr = r.data.slice(i + EMB_INI.length, j);
+    try{
+      const obj = JSON.parse(jsonStr);
+      // solo pisamos si el campo no vino ya por columna
+      if(!r.prevMatches && obj.prevMatches) r.prevMatches = obj.prevMatches;
+      if(!r.sixthFoul && obj.sixthFoul) r.sixthFoul = obj.sixthFoul;
+      if(!r.penalties && obj.penalties) r.penalties = obj.penalties;
+    }catch(e){ /* bloque corrupto: lo ignoramos */ }
+    // limpiamos el bloque para que no se vea en el textarea de Datos
+    r.data = (r.data.slice(0, i) + r.data.slice(j + EMB_FIN.length)).trim();
+  }
+
   async function saveToCloud(r, immediate){
     const sb = window.__sb;
     if(!sb || !clubId) return;   // sin conexión: no rompe, queda en memoria
     const cat = catActual();
     const doSave = async () => {
-      const payload = {
+      // 1er intento: columnas propias para los campos nuevos
+      const base = {
         club_id: clubId, categoria: cat, fecha: r.fecha,
         name: r.name||'', match_date: r.date||null, tournament: r.tournament||'',
         attack: r.attack||'', defense: r.defense||'', setpieces: r.setpieces||'',
         data: r.data||'', players: r.players||[], materials: r.materials||[],
         updated_at: new Date().toISOString()
       };
-      const { error } = await sb.from('scouting').upsert(payload, { onConflict: 'club_id,categoria,fecha' });
-      if(error) console.error('scouting save', error);
+      const conCols = Object.assign({}, base, {
+        prev_matches: r.prevMatches||'', sixth_foul: r.sixthFoul||'', penalties: r.penalties||''
+      });
+      let { error } = await sb.from('scouting').upsert(conCols, { onConflict: 'club_id,categoria,fecha' });
+      if(error && /column|prev_matches|sixth_foul|penalties/i.test(error.message||'')){
+        // Fallback: no existen las columnas nuevas → embebemos en `data`
+        const tieneExtra = (r.prevMatches||r.sixthFoul||r.penalties);
+        let dataEmb = r.data||'';
+        if(tieneExtra){
+          const emb = JSON.stringify({ prevMatches:r.prevMatches||'', sixthFoul:r.sixthFoul||'', penalties:r.penalties||'' });
+          dataEmb = (r.data||'') + EMB_INI + emb + EMB_FIN;
+        }
+        const conEmb = Object.assign({}, base, { data: dataEmb });
+        const res2 = await sb.from('scouting').upsert(conEmb, { onConflict: 'club_id,categoria,fecha' });
+        if(res2.error) console.error('scouting save (fallback)', res2.error);
+      } else if(error){
+        console.error('scouting save', error);
+      }
     };
     if(immediate){ doSave(); return; }
     clearTimeout(saveTimers[r.fecha]);
@@ -2949,6 +3019,9 @@ window.__initEditor = function(){
     document.getElementById('rdDefense').value = r.defense || '';
     document.getElementById('rdSetpieces').value = r.setpieces || '';
     document.getElementById('rdData').value = r.data || '';
+    document.getElementById('rdPrevMatches').value = r.prevMatches || '';
+    document.getElementById('rdSixthFoul').value = r.sixthFoul || '';
+    document.getElementById('rdPenalties').value = r.penalties || '';
     renderPlayers();
     renderMaterials();
     listView.style.display = 'none';
@@ -2987,11 +3060,20 @@ ${r.setpieces||'(sin datos)'}
 DATOS ADICIONALES:
 ${r.data||'(sin datos)'}
 
+PARTIDOS ANTERIORES:
+${r.prevMatches||'(sin datos)'}
+
+SEXTA FALTA (tiro libre sin barrera):
+${r.sixthFoul||'(sin datos)'}
+
+PENALES:
+${r.penalties||'(sin datos)'}
+
 JUGADORES CLAVE:
 ${jugadores||'(sin datos)'}`;
 
     // ¿Hay algo cargado?
-    const vacio = !r.attack && !r.defense && !r.setpieces && !r.data && (!r.players || r.players.filter(p=>p.name).length===0);
+    const vacio = !r.attack && !r.defense && !r.setpieces && !r.data && !r.prevMatches && !r.sixthFoul && !r.penalties && (!r.players || r.players.filter(p=>p.name).length===0);
     if(vacio){ toast(window.t('mLoadRivalData')); return; }
 
     btn.disabled = true;
@@ -3053,7 +3135,8 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
 
   const fieldMap = {
     rdName:'name', rdDate:'date', rdTournament:'tournament', rdAttack:'attack',
-    rdDefense:'defense', rdSetpieces:'setpieces', rdData:'data'
+    rdDefense:'defense', rdSetpieces:'setpieces', rdData:'data',
+    rdPrevMatches:'prevMatches', rdSixthFoul:'sixthFoul', rdPenalties:'penalties'
   };
   Object.keys(fieldMap).forEach(inputId => {
     document.getElementById(inputId).addEventListener('input', (e) => {
@@ -3976,6 +4059,8 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     const el=document.getElementById('liveOnCourt'); if(el) el.textContent=countOnCourt()+' / 5 '+window.t('liveOnCourtLbl');
   }
   // Marcador: goles suben solos y NO se resetean; faltas son del TIEMPO ACTUAL (vuelven a 0 en el 2º tiempo).
+  // A partir de la 5ta falta acumulada en el tiempo, se resalta (tiro libre sin barrera / doble penal).
+  const FALTA_LIMITE = 5;
   function renderScoreboard(){
     let gf=0, ff=0;
     squad.forEach(p=>{ const st=ensure(p.id); gf+=(st.goals||0); ff+=foulsNow(p.id); });
@@ -3985,6 +4070,11 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     set('sbFoulsFor', ff);
     set('sbGoalsAgainst', goalsAgainstManual);
     set('sbFoulsAgainst', faManual);
+    // resaltar cuando se llega al límite de faltas
+    const boxFor = document.getElementById('sbFoulsForBox');
+    const boxAg = document.getElementById('sbFoulsAgainstBox');
+    if(boxFor) boxFor.classList.toggle('foul-alert', ff >= FALTA_LIMITE);
+    if(boxAg) boxAg.classList.toggle('foul-alert', faManual >= FALTA_LIMITE);
   }
 
   function renderTotals(){
@@ -5319,7 +5409,11 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     // marcador: goles/faltas a favor son la suma de los jugadores
     let golesFavor=0, faltasFavor=0;
     rows.forEach(r=>{ golesFavor+=(r.goals||0); faltasFavor+=(r.fouls||0); });
-    let html=`<button class="btn small" id="minsBack" style="margin-bottom:14px;">← Volver a la lista</button>
+    let html=`<div class="mins-detail-actions" style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+        <button class="btn small" id="minsBack">← Volver a la lista</button>
+        <button class="btn small" id="minsEditRival" data-i18n="minsEditRival">✎ Corregir marcador rival</button>
+        <button class="btn small danger-outline" id="minsDelete" data-i18n="minsDelete">🗑 Borrar partido</button>
+      </div>
       <div class="annual-card" style="margin-bottom:14px;">
         <div class="rd-card-head"><h3>${escapeHtml(s.name||'Partido')}</h3></div>
         <div class="mins-scoreline"><span class="msl-team">Nosotros</span><span class="msl-score">${golesFavor} - ${rival.goalsAgainst||0}</span><span class="msl-team">${escapeHtml(s.name||'Rival')}</span></div>
@@ -5352,6 +5446,46 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     }
     detail.innerHTML=html;
     document.getElementById('minsBack').addEventListener('click',()=>renderMinutes());
+
+    // ----- Borrar partido completo -----
+    const btnDel = document.getElementById('minsDelete');
+    if(btnDel) btnDel.addEventListener('click', async ()=>{
+      if(!confirm(window.t('minsDeleteQ'))) return;
+      const sbx = window.__sb;
+      if(!sbx || !s.id){ toast(window.t('mNoConn')); return; }
+      try{
+        const { error } = await sbx.from('live_sessions').delete().eq('id', s.id);
+        if(error){ toast(window.t('mSaveErr')); return; }
+        toast(window.t('minsDeleted'));
+        renderMinutes();
+      }catch(e){ console.error('del minutes', e); toast(window.t('mSaveErr')); }
+    });
+
+    // ----- Corregir marcador del rival (goles y faltas en contra) -----
+    const btnEdit = document.getElementById('minsEditRival');
+    if(btnEdit) btnEdit.addEventListener('click', async ()=>{
+      const gaAct = rival.goalsAgainst||0;
+      const faAct = rival.foulsAgainst||0;
+      const ga = prompt(window.t('minsAskGoals'), gaAct);
+      if(ga===null) return;
+      const fa = prompt(window.t('minsAskFouls'), faAct);
+      if(fa===null) return;
+      const gaN = Math.max(0, parseInt(ga,10)||0);
+      const faN = Math.max(0, parseInt(fa,10)||0);
+      const sbx = window.__sb;
+      if(!sbx || !s.id){ toast(window.t('mNoConn')); return; }
+      try{
+        // reconstruimos totals con el nuevo __rival, preservando el resto
+        const nuevosTotals = Object.assign({}, s.totals||{});
+        const rivalPrev = nuevosTotals.__rival || {};
+        nuevosTotals.__rival = Object.assign({}, rivalPrev, { goalsAgainst: gaN, foulsAgainst: faN });
+        const { error } = await sbx.from('live_sessions').update({ totals: nuevosTotals }).eq('id', s.id);
+        if(error){ toast(window.t('mSaveErr')); return; }
+        s.totals = nuevosTotals;   // actualizar en memoria para re-render inmediato
+        toast(window.t('minsSaved'));
+        showMinutesDetail(s);      // volver a dibujar con los nuevos valores
+      }catch(e){ console.error('edit rival', e); toast(window.t('mSaveErr')); }
+    });
     }catch(e){ console.error('showMinutesDetail', e); toast(window.t('mDetailErr')); }
   }
 
