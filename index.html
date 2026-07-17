@@ -346,6 +346,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .cat-chip{display:inline-flex;align-items:center;gap:6px;background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:6px 15px;font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;cursor:pointer;transition:all .15s ease;}
 .cat-chip:hover{border-color:var(--accent-2);color:var(--chalk);}
 .cat-chip.active{background:var(--accent-2);border-color:var(--accent-2);color:#10161C;box-shadow:0 2px 10px rgba(47,143,203,0.35);}
+.cat-chip.locked{opacity:0.55;border-style:dashed;}
+.cat-chip .chip-lock{font-size:10px;}
+.pl-section{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);}
+.pl-title{font-family:'Oswald',sans-serif;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;}
+.pl-hint{font-size:12px;color:var(--muted);margin:0 0 10px;}
+.pl-chips{display:flex;flex-wrap:wrap;gap:8px;}
+.pl-free-chip{background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);border-radius:999px;padding:7px 14px;font-family:'Oswald',sans-serif;font-size:13px;cursor:pointer;transition:all .12s ease;}
+.pl-free-chip:hover{border-color:var(--danger);}
+.pl-free-chip span{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
 
 /* ===== Menú de navegación (pestañas) ===== */
 .main-nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;padding:6px;background:var(--panel);border:1px solid var(--line);border-radius:14px;}
@@ -953,6 +962,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .plans-contact a{color:var(--accent-2);}
 .plans-legal{text-align:center;margin:10px 0 0;font-size:11px;color:var(--muted);}
 .plans-legal a{color:var(--accent-2);cursor:pointer;}
+.plans-back{background:transparent;border:none;color:var(--accent-2);font-size:12px;cursor:pointer;padding:0;margin-bottom:8px;font-family:'JetBrains Mono',monospace;}
+.plans-back:hover{text-decoration:underline;}
 .legal-body h3{font-family:'Oswald',sans-serif;font-size:15px;margin:18px 0 6px;color:var(--chalk);}
 .legal-body p{font-size:13px;line-height:1.55;color:var(--muted);margin:0 0 10px;}
 .legal-body b{color:var(--chalk);}
@@ -2584,32 +2595,63 @@ window.__PAY = {
   whatsapp: '',                 // ej: '5491122334455' (código país, sin + ni espacios)
   currency: 'ars',             // moneda que se MUESTRA por defecto: 'ars' (Argentina) o 'usd' (exterior)
   showPrices: false,           // ← poné true cuando quieras MOSTRAR los precios en la pantalla de planes
-  // Los planes que ve el usuario. Completá 'ars'/'usd' (precio) y 'mpLink' (link de Mercado Pago) cuando los tengas.
-  // 'badge' es una etiqueta opcional (ej: "Más elegido", "Mejor precio"). 'note' es una línea chica (ej: ahorro).
-  plans: [
-    { key:'mes1',  months:1,  ars: 0,  usd: 0,  mpLink:'', stripeLink:'', badge:'',            note:'' },
-    { key:'mes6',  months:6,  ars: 0,  usd: 0,  mpLink:'', stripeLink:'', badge:'Más elegido',  note:'' },
-    { key:'mes12', months:12, ars: 0,  usd: 0,  mpLink:'', stripeLink:'', badge:'Mejor precio', note:'' }
-  ]
+
+  // ═══ PACKS por cantidad de categorías ═══
+  // Cada pack habilita una cantidad de categorías (maxCategories) y tiene 3 duraciones
+  // con su propio precio y link de pago. Completá 'ars'/'usd' y 'mpLink' cuando los tengas.
+  // Mientras enabled=false, el límite NO se aplica (todos tienen las 8) y no se cobra.
+  packs: {
+    entrenador: {
+      name:'Entrenador', maxCategories:2, badge:'', note:'Hasta 2 categorías',
+      durations: [
+        { months:1,  ars:0, usd:0, mpLink:'', stripeLink:'' },
+        { months:6,  ars:0, usd:0, mpLink:'', stripeLink:'' },
+        { months:12, ars:0, usd:0, mpLink:'', stripeLink:'' }
+      ]
+    },
+    multi: {
+      name:'Multi', maxCategories:4, badge:'Más elegido', note:'Hasta 4 categorías',
+      durations: [
+        { months:1,  ars:0, usd:0, mpLink:'', stripeLink:'' },
+        { months:6,  ars:0, usd:0, mpLink:'', stripeLink:'' },
+        { months:12, ars:0, usd:0, mpLink:'', stripeLink:'' }
+      ]
+    },
+    club: {
+      name:'Club', maxCategories:8, badge:'Mejor precio', note:'Todas las categorías',
+      durations: [
+        { months:1,  ars:0, usd:0, mpLink:'', stripeLink:'' },
+        { months:6,  ars:0, usd:0, mpLink:'', stripeLink:'' },
+        { months:12, ars:0, usd:0, mpLink:'', stripeLink:'' }
+      ]
+    }
+  },
+  defaultPack: 'entrenador',   // pack que se asume si un club no tiene uno asignado
+  packOrder: ['entrenador','multi','club']   // orden en que se muestran
 };
-// Formatea el precio segun la moneda elegida
-window.__fmtPrice = function(plan){
+// Formatea un precio según la moneda elegida. Recibe un objeto duración {ars, usd}.
+window.__fmtPrice = function(dur){
   const cur = (window.__PAY.currency === 'usd') ? 'usd' : 'ars';
-  if(cur === 'usd') return 'US$ ' + plan.usd;
-  return '$ ' + Number(plan.ars).toLocaleString('es-AR');
+  if(cur === 'usd') return 'US$ ' + (dur.usd||0);
+  return '$ ' + Number(dur.ars||0).toLocaleString('es-AR');
 };
-// Link de pago de un plan (MP para pesos, Stripe para dólares), con WhatsApp de respaldo
-window.__planLink = function(plan){
+// Etiqueta de duración: "1 mes", "6 meses", "12 meses"
+window.__durLabel = function(months){
+  return months === 1 ? '1 mes' : months + ' meses';
+};
+// Link de pago de una duración de un pack (MP para pesos, Stripe para dólares), con WhatsApp de respaldo.
+window.__planLink = function(packKey, dur){
   const cur = (window.__PAY.currency === 'usd') ? 'usd' : 'ars';
-  const link = cur === 'usd' ? plan.stripeLink : plan.mpLink;
+  const link = cur === 'usd' ? dur.stripeLink : dur.mpLink;
   if(link) return link;
-  if(window.__PAY.whatsapp) return 'https://wa.me/'+window.__PAY.whatsapp+'?text='+encodeURIComponent('Hola! Quiero activar mi cuenta de Cancha Edit ('+plan.months+' meses).');
+  const P = window.__PAY;
+  const packName = (P.packs[packKey] && P.packs[packKey].name) || packKey;
+  if(P.whatsapp) return 'https://wa.me/'+P.whatsapp+'?text='+encodeURIComponent('Hola! Quiero activar mi cuenta de Cancha Edit — Pack '+packName+' ('+window.__durLabel(dur.months)+').');
   return '#';
 };
 // (compat) link genérico para el botón directo
 window.__payLink = (function(){
   const p = window.__PAY;
-  if(p.plans && p.plans[0] && p.plans[0].mpLink) return p.plans[0].mpLink;
   if(p.whatsapp) return 'https://wa.me/'+p.whatsapp;
   return '#';
 })();
@@ -2655,6 +2697,54 @@ window.__openLegal = function(){
   document.body.appendChild(m);
   document.getElementById('legalClose').addEventListener('click',()=>m.remove());
   m.addEventListener('click',e=>{ if(e.target===m) m.remove(); });
+};
+
+// Cartel cuando la cuenta llegó al límite de categorías de su pack.
+// Ofrece dos salidas: liberar una categoría ya usada, o mejorar el plan.
+window.__openPackLimit = function(catNueva){
+  let m = document.getElementById('packLimitModal');
+  if(m) m.remove();
+  const ocupadas = window.__getOcupadas ? window.__getOcupadas() : [];
+  const limite = window.__getCatLimite ? window.__getCatLimite() : ocupadas.length;
+  const P = window.__PAY || {};
+  const packActual = (window.__catState && window.__catState.pack) || P.defaultPack || 'entrenador';
+  const nombrePack = (P.packs && P.packs[packActual] && P.packs[packActual].name) || 'tu pack';
+  const chips = ocupadas.map(c =>
+    `<button class="pl-free-chip" data-cat="${c}">${c} <span>✕ liberar</span></button>`
+  ).join('');
+  m = document.createElement('div');
+  m.id = 'packLimitModal';
+  m.className = 'plans-overlay';
+  m.innerHTML = `<div class="plans-box" style="max-width:460px;text-align:left;">
+    <button class="plans-close" id="plClose">✕</button>
+    <h2 style="font-size:20px;">Llegaste al límite de tu pack</h2>
+    <p class="plans-sub">Tu pack <b>${nombrePack}</b> permite ${limite} categoría${limite>1?'s':''}. Para usar <b>${catNueva}</b> podés liberar una que ya tengas, o mejorar tu plan.</p>
+    <div class="pl-section">
+      <div class="pl-title">Liberar una categoría</div>
+      <p class="pl-hint">Dejás de usar esa categoría (sus datos quedan guardados, no se borran).</p>
+      <div class="pl-chips">${chips}</div>
+    </div>
+    <div class="pl-section">
+      <div class="pl-title">O mejorá tu plan</div>
+      <button class="btn-primary" id="plUpgrade" style="width:100%;margin-top:6px;">Ver planes con más categorías</button>
+    </div>
+  </div>`;
+  document.body.appendChild(m);
+  document.getElementById('plClose').addEventListener('click',()=>m.remove());
+  m.addEventListener('click',e=>{ if(e.target===m) m.remove(); });
+  // liberar una categoría y activar la nueva
+  m.querySelectorAll('.pl-free-chip').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const cat = btn.dataset.cat;
+      if(window.__liberarCategoria) await window.__liberarCategoria(cat);
+      m.remove();
+      // ahora hay lugar: seleccionar la nueva
+      const chip = [...document.querySelectorAll('#catChips .cat-chip')].find(c => c.textContent.replace('🔒','').trim() === catNueva);
+      if(chip) chip.click();
+    });
+  });
+  const up = document.getElementById('plUpgrade');
+  if(up) up.addEventListener('click', ()=>{ m.remove(); if(window.__openPlansModal) window.__openPlansModal(); });
 };
 // ==================================================================
 
@@ -2737,14 +2827,23 @@ async function ensureMembership(userId, fallbackClubName){
   const { data: memberships, error } = await sb.from('memberships').select('club_id').eq('user_id', userId).limit(1);
   // Si hubo un ERROR al leer (permisos, red), NO creamos un club nuevo:
   // podría ser que el club ya existe pero no lo pudimos leer. Crear uno duplicaría.
-  if(error){ console.error('No se pudo leer membership (no se crea club):', error); return; }
+  if(error){ console.error('No se pudo leer membership (no se crea club):', error); return { ok:false, reason:'read', error }; }
   if(!memberships || memberships.length === 0){
     const { data: club, error: clubErr } = await sb.from('clubs').insert({ name: fallbackClubName || 'Mi club' }).select().single();
-    if(clubErr){ console.error(clubErr); return; }
-    await sb.from('memberships').insert({ club_id: club.id, user_id: userId, role: 'owner' });
+    if(clubErr){
+      console.error('No se pudo crear el club:', clubErr);
+      return { ok:false, reason:'club_insert', error:clubErr };
+    }
+    const { error: memErr } = await sb.from('memberships').insert({ club_id: club.id, user_id: userId, role: 'owner' });
+    if(memErr){
+      console.error('No se pudo crear la membresía:', memErr);
+      return { ok:false, reason:'membership_insert', error:memErr };
+    }
     window.__clubIdCache = club.id;
+    return { ok:true, clubId: club.id, created:true };
   } else {
     window.__clubIdCache = memberships[0].club_id;
+    return { ok:true, clubId: memberships[0].club_id, created:false };
   }
 }
 
@@ -2782,7 +2881,15 @@ async function guardarPerfil(userId, email, perfil){
           return;
         }
       }catch(e){}
-      await ensureMembership(session.user.id, 'Mi club');
+      // Recuperar el nombre de club que cargó en su perfil (para usuarios que
+      // aún no tienen club creado, por ejemplo si se registraron antes del fix).
+      let nombreClub = 'Mi club';
+      try{
+        const { data: prof2 } = await sb.from('profiles').select('club_name, full_name').eq('id', session.user.id).single();
+        if(prof2 && prof2.club_name) nombreClub = prof2.club_name;
+        else if(prof2 && prof2.full_name) nombreClub = 'Club de ' + prof2.full_name;
+      }catch(e){}
+      await ensureMembership(session.user.id, nombreClub);
       window.__currentUserEmail = session.user.email;
       try{ await sb.rpc('touch_last_seen'); }catch(e){}
       // Latido periódico para reflejar "conectado" en el panel admin.
@@ -2842,8 +2949,13 @@ form.addEventListener('submit', async (e) => {
     submitBtn.textContent = 'Crear cuenta';
     if(error){ showError(traducirError(error)); return; }
     if(data.session){
-      await ensureMembership(data.user.id, clubName || ('Club de ' + (fullName || email)));
+      const mem = await ensureMembership(data.user.id, clubName || ('Club de ' + (fullName || email)));
       await guardarPerfil(data.user.id, email, perfil);
+      if(mem && !mem.ok){
+        // El club no se pudo crear (típicamente falta la política de INSERT en la base).
+        console.error('Membership no creada:', mem);
+        showError('Tu cuenta se creó, pero hubo un problema al preparar tu espacio de trabajo. Por favor, volvé a iniciar sesión en unos segundos. Si el problema sigue, avisanos.');
+      }
       window.__currentUserEmail = email;
       showEditor();
     } else {
@@ -2934,6 +3046,26 @@ window.__initEditor = function(){
   // La categoría activa se expone globalmente para que las secciones la usen.
   window.__getActiveCategory = () => activeCategory;
 
+  // ── Packs: qué categorías tiene "ocupadas" esta cuenta y cuál es su límite ──
+  // Se llena desde la nube (tabla clubs). Mientras el cobro esté apagado, no limita.
+  let ocupadas = [];            // categorías que la cuenta ya activó (ocupan lugar)
+  let clubPack = null;          // 'entrenador' | 'multi' | 'club'
+  window.__catState = { ocupadas, pack:null };
+
+  function cobroActivo(){ return !!(window.__PAY && window.__PAY.enabled); }
+  function limiteCategorias(){
+    const P = window.__PAY;
+    if(!P || !P.packs) return 8;
+    const pk = clubPack || P.defaultPack || 'entrenador';
+    return (P.packs[pk] && P.packs[pk].maxCategories) || 8;
+  }
+  // ¿La cuenta puede usar esta categoría? (sí, si el cobro está apagado, o si ya la ocupó, o si hay lugar)
+  function puedeUsar(cat){
+    if(!cobroActivo()) return true;                 // dormido en fase de prueba
+    if(ocupadas.includes(cat)) return true;         // ya la tenía
+    return ocupadas.length < limiteCategorias();    // hay lugar
+  }
+
   // Sistema de suscriptores: cada sección se engancha para enterarse del cambio.
   const subscribers = [];
   window.__onCategorySubscribe = function(fn){ if(typeof fn === 'function') subscribers.push(fn); };
@@ -2941,10 +3073,13 @@ window.__initEditor = function(){
 
   function renderChips(){
     chipsEl.innerHTML = '';
+    const activo = cobroActivo();
     FIXED_CATEGORIES.forEach(cat => {
       const chip = document.createElement('div');
-      chip.className = 'cat-chip' + (cat === activeCategory ? ' active' : '');
+      const bloqueada = activo && !ocupadas.includes(cat) && ocupadas.length >= limiteCategorias();
+      chip.className = 'cat-chip' + (cat === activeCategory ? ' active' : '') + (bloqueada ? ' locked' : '');
       chip.textContent = cat;
+      if(bloqueada) chip.innerHTML = cat + ' <span class="chip-lock">🔒</span>';
       chip.addEventListener('click', () => selectCategory(cat));
       chipsEl.appendChild(chip);
     });
@@ -2952,14 +3087,65 @@ window.__initEditor = function(){
 
   function selectCategory(cat){
     if(activeCategory === cat) return;
+    // Si el cobro está activo y la categoría no está ocupada y no hay lugar → cartel de límite
+    if(cobroActivo() && !ocupadas.includes(cat)){
+      if(ocupadas.length >= limiteCategorias()){
+        if(window.__openPackLimit) window.__openPackLimit(cat);
+        return;
+      }
+      // hay lugar: la ocupamos y persistimos
+      ocupadas.push(cat);
+      window.__catState.ocupadas = ocupadas;
+      persistOcupadas();
+    }
     activeCategory = cat;
     renderChips();
     notifyCategoryChange(cat);
   }
 
+  // Guarda en la nube qué categorías ocupó la cuenta (solo si el cobro está activo).
+  async function persistOcupadas(){
+    if(!cobroActivo()) return;
+    try{
+      const sb = window.__sb; const clubId = await window.__getClubId();
+      if(!sb || !clubId) return;
+      await sb.from('clubs').update({ active_categories: ocupadas }).eq('id', clubId);
+    }catch(e){ console.error('persistOcupadas', e); }
+  }
+
+  // Libera una categoría (para hacer lugar). La expone para el cartel de límite.
+  window.__liberarCategoria = async function(cat){
+    ocupadas = ocupadas.filter(c => c !== cat);
+    window.__catState.ocupadas = ocupadas;
+    await persistOcupadas();
+    renderChips();
+  };
+  window.__getOcupadas = () => ocupadas.slice();
+  window.__getCatLimite = () => limiteCategorias();
+
   renderChips();
 
-  window.__loadCategoriesOnce = function(){
+  // Carga el pack y las categorías ocupadas desde la nube.
+  window.__loadCategoriesOnce = async function(){
+    try{
+      const sb = window.__sb; const clubId = await window.__getClubId();
+      if(sb && clubId){
+        const { data } = await sb.from('clubs').select('pack, active_categories').eq('id', clubId).single();
+        if(data){
+          clubPack = data.pack || null;
+          window.__catState.pack = clubPack;
+          if(Array.isArray(data.active_categories) && data.active_categories.length){
+            ocupadas = data.active_categories.slice();
+          } else {
+            // Primera vez con cobro activo: contamos como ocupadas las categorías donde ya haya datos.
+            // Como no podemos escanear todo barato, ocupamos al menos la actual.
+            ocupadas = [activeCategory];
+          }
+          window.__catState.ocupadas = ocupadas;
+        }
+      }
+    }catch(e){ /* sin datos: seguimos sin límite */ }
+    renderChips();
     notifyCategoryChange(activeCategory);
   };
 })();
@@ -6162,38 +6348,70 @@ try{
   // Modal de planes: el usuario elige período y va al pago
   function openPlansModal(){
     if(!window.__PAY || !window.__PAY.enabled) return;   // cobro apagado: no abrir
+    const P = window.__PAY;
     let modal = document.getElementById('plansModal');
     if(modal) modal.remove();
-    const P = window.__PAY || {plans:[],whatsapp:''};
     const waLink = P.whatsapp ? ('https://wa.me/'+P.whatsapp+'?text='+encodeURIComponent('Hola! Quiero activar mi cuenta de Cancha Edit.')) : null;
-    const labelFor = (pl)=>{
-      if(pl.key==='mes1')  return window.t('plan1');
-      if(pl.key==='mes6')  return window.t('plan6');
-      if(pl.key==='mes12') return window.t('plan12');
-      if(pl.key==='mes3')  return window.t('plan3');
-      return pl.months + ' m';
-    };
-    let cards = '';
-    (P.plans||[]).forEach(pl=>{
-      const link = window.__planLink ? window.__planLink(pl) : (waLink || '#');
-      const priceHtml = (P.showPrices && window.__fmtPrice) ? `<span class="plan-price">${window.__fmtPrice(pl)}</span>` : '';
-      const perMonth = (P.showPrices && pl.months>1 && pl.ars) ? `<span class="plan-permonth">$ ${Math.round(pl.ars/pl.months).toLocaleString('es-AR')}/mes</span>` : '';
-      const badge = pl.badge ? `<span class="plan-badge">${pl.badge}</span>` : '';
-      const note = pl.note ? `<span class="plan-note">${pl.note}</span>` : '';
-      const destacado = pl.badge === 'Mejor precio' ? ' plan-featured' : '';
-      cards += `<a class="plan-card${destacado}" href="${link}" target="_blank" rel="noopener">${badge}<span class="plan-label">${labelFor(pl)}</span>${priceHtml}${perMonth}${note}<span class="plan-go">${window.t('planGo')} →</span></a>`;
-    });
     const contactLine = waLink ? `<p class="plans-contact">${window.t('plansContact')} <a href="${waLink}" target="_blank">WhatsApp</a></p>` : '';
     const legalLine = `<p class="plans-legal">Al activar tu cuenta aceptás los <a href="#" id="plansTermsLink">términos y la política de privacidad</a>.</p>`;
+
     modal = document.createElement('div');
     modal.id = 'plansModal';
     modal.className = 'plans-overlay';
-    modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><h2>${window.t('plansTitle')}</h2><p class="plans-sub">${window.t('plansSub')}</p><div class="plans-grid plans-grid-3">${cards}</div>${contactLine}${legalLine}</div>`;
     document.body.appendChild(modal);
-    document.getElementById('plansClose').addEventListener('click',()=>modal.remove());
-    const termsL = document.getElementById('plansTermsLink');
-    if(termsL) termsL.addEventListener('click',(e)=>{ e.preventDefault(); if(window.__openLegal) window.__openLegal(); });
+
+    // ── PASO 1: elegir el pack ──
+    function renderPaso1(){
+      const order = P.packOrder || Object.keys(P.packs);
+      let cards = '';
+      order.forEach(key=>{
+        const pk = P.packs[key]; if(!pk) return;
+        const badge = pk.badge ? `<span class="plan-badge">${pk.badge}</span>` : '';
+        const destacado = pk.badge === 'Mejor precio' ? ' plan-featured' : '';
+        // precio "desde": el más barato de sus duraciones (si hay precios cargados)
+        let desde = '';
+        if(P.showPrices){
+          const conPrecio = (pk.durations||[]).filter(d=>d.ars>0);
+          if(conPrecio.length){
+            const min = conPrecio.reduce((a,b)=> (b.ars/b.months < a.ars/a.months ? b : a));
+            desde = `<span class="plan-permonth">desde $ ${Math.round(min.ars/min.months).toLocaleString('es-AR')}/mes</span>`;
+          }
+        }
+        cards += `<div class="plan-card${destacado}" data-pack="${key}">${badge}<span class="plan-label">${pk.name}</span><span class="plan-note">${pk.note||''}</span>${desde}<span class="plan-go">Elegir →</span></div>`;
+      });
+      modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><h2>${window.t('plansTitle')}</h2><p class="plans-sub">Elegí el pack según cuántas categorías necesitás.</p><div class="plans-grid plans-grid-3">${cards}</div>${contactLine}${legalLine}</div>`;
+      wire();
+      modal.querySelectorAll('.plan-card[data-pack]').forEach(c=>{
+        c.addEventListener('click', ()=> renderPaso2(c.dataset.pack));
+      });
+    }
+
+    // ── PASO 2: elegir la duración del pack elegido ──
+    function renderPaso2(packKey){
+      const pk = P.packs[packKey]; if(!pk) return renderPaso1();
+      let cards = '';
+      (pk.durations||[]).forEach(dur=>{
+        const link = window.__planLink ? window.__planLink(packKey, dur) : (waLink||'#');
+        const priceHtml = (P.showPrices && window.__fmtPrice) ? `<span class="plan-price">${window.__fmtPrice(dur)}</span>` : '';
+        const perMonth = (P.showPrices && dur.months>1 && dur.ars) ? `<span class="plan-permonth">$ ${Math.round(dur.ars/dur.months).toLocaleString('es-AR')}/mes</span>` : '';
+        const destacado = dur.months === 12 ? ' plan-featured' : '';
+        cards += `<a class="plan-card${destacado}" href="${link}" target="_blank" rel="noopener"><span class="plan-label">${window.__durLabel(dur.months)}</span>${priceHtml}${perMonth}<span class="plan-go">${window.t('planGo')} →</span></a>`;
+      });
+      modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><button class="plans-back" id="plansBack">← Volver a los packs</button><h2>Pack ${pk.name}</h2><p class="plans-sub">${pk.note||''} · Elegí por cuánto tiempo.</p><div class="plans-grid plans-grid-3">${cards}</div>${contactLine}${legalLine}</div>`;
+      wire();
+      const back = document.getElementById('plansBack');
+      if(back) back.addEventListener('click', renderPaso1);
+    }
+
+    function wire(){
+      const close = document.getElementById('plansClose');
+      if(close) close.addEventListener('click', ()=>modal.remove());
+      const termsL = document.getElementById('plansTermsLink');
+      if(termsL) termsL.addEventListener('click',(e)=>{ e.preventDefault(); if(window.__openLegal) window.__openLegal(); });
+    }
+
     modal.addEventListener('click',e=>{ if(e.target===modal) modal.remove(); });
+    renderPaso1();
   }
   window.__openPlansModal = openPlansModal;
 
