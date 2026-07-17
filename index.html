@@ -1333,12 +1333,28 @@ body.editor-active #screen-editor{ display:block; }
 
     <form id="loginForm" novalidate>
       <div class="field" id="fullNameField" style="display:none;">
-        <label for="fullName">Tu nombre</label>
+        <label for="fullName">Nombre y apellido</label>
         <input type="text" id="fullName" placeholder="Juan Pérez" autocomplete="name">
       </div>
+      <div class="field" id="whatsappField" style="display:none;">
+        <label for="whatsapp">WhatsApp</label>
+        <input type="tel" id="whatsapp" placeholder="11 2345-6789" autocomplete="tel">
+      </div>
       <div class="field" id="clubNameField" style="display:none;">
-        <label for="clubName">Nombre del club</label>
+        <label for="clubName">Club o institución</label>
         <input type="text" id="clubName" placeholder="Club Atlético Ejemplo" autocomplete="organization">
+      </div>
+      <div class="field" id="roleField" style="display:none;">
+        <label for="coachRole">Rol / categoría que dirigís</label>
+        <input type="text" id="coachRole" placeholder="Ej: DT de 5ta, Preparador físico...">
+      </div>
+      <div class="field" id="categoriesField" style="display:none;">
+        <label for="coachCategories">Categoría/s que dirigís <span style="color:var(--muted);font-weight:400;">(opcional)</span></label>
+        <input type="text" id="coachCategories" placeholder="Ej: 5ta, 7ma, Primera...">
+      </div>
+      <div class="field" id="sourceField" style="display:none;">
+        <label for="coachSource">¿Cómo te enteraste de la app? <span style="color:var(--muted);font-weight:400;">(opcional)</span></label>
+        <input type="text" id="coachSource" placeholder="Ej: un colega, Instagram, Google...">
       </div>
       <div class="field">
         <label for="email">Email</label>
@@ -2607,6 +2623,11 @@ const cardTitle = document.getElementById('cardTitle');
 const cardLead = document.getElementById('cardLead');
 const fullNameField = document.getElementById('fullNameField');
 const clubNameField = document.getElementById('clubNameField');
+const whatsappField = document.getElementById('whatsappField');
+const roleField = document.getElementById('roleField');
+const categoriesField = document.getElementById('categoriesField');
+const sourceField = document.getElementById('sourceField');
+const signupFields = [fullNameField, whatsappField, clubNameField, roleField, categoriesField, sourceField];
 
 function showError(msg){ successMsg.classList.remove('show'); errorMsg.textContent = msg; errorMsg.classList.add('show'); }
 function showSuccess(msg){ errorMsg.classList.remove('show'); successMsg.textContent = msg; successMsg.classList.add('show'); }
@@ -2617,16 +2638,14 @@ function setMode(newMode){
   clearMsgs();
   if(mode === 'signup'){
     cardTitle.textContent = 'Crear cuenta';
-    cardLead.textContent = 'Registrá tu club y empezá a analizar partidos.';
-    fullNameField.style.display = 'block';
-    clubNameField.style.display = 'block';
+    cardLead.textContent = 'Registrate y empezá a analizar partidos.';
+    signupFields.forEach(f => { if(f) f.style.display = 'block'; });
     submitBtn.textContent = 'Crear cuenta';
     toggleModeBtn.textContent = '¿Ya tenés cuenta? Iniciá sesión';
   } else {
     cardTitle.textContent = 'Iniciar sesión';
     cardLead.textContent = 'Ingresá con tu cuenta de entrenador.';
-    fullNameField.style.display = 'none';
-    clubNameField.style.display = 'none';
+    signupFields.forEach(f => { if(f) f.style.display = 'none'; });
     submitBtn.textContent = 'Entrar';
     toggleModeBtn.textContent = 'Crear una cuenta';
   }
@@ -2647,6 +2666,24 @@ async function ensureMembership(userId, fallbackClubName){
   } else {
     window.__clubIdCache = memberships[0].club_id;
   }
+}
+
+// Guarda/actualiza los datos personales del entrenador en su perfil.
+async function guardarPerfil(userId, email, perfil){
+  if(!userId) return;
+  try{
+    const fila = {
+      id: userId, email: email,
+      full_name: perfil.full_name || '',
+      whatsapp: perfil.whatsapp || '',
+      club_name: perfil.club_name || '',
+      coach_role: perfil.coach_role || '',
+      coach_categories: perfil.coach_categories || '',
+      coach_source: perfil.coach_source || ''
+    };
+    const { error } = await sb.from('profiles').upsert(fila, { onConflict: 'id' });
+    if(error) console.error('guardarPerfil', error);
+  }catch(e){ console.error('guardarPerfil', e); }
 }
 
 // Arranque: inicializa Supabase (esperando los CDNs) y luego revisa si ya hay sesión.
@@ -2692,20 +2729,37 @@ form.addEventListener('submit', async (e) => {
 
   if(mode === 'signup'){
     const fullName = document.getElementById('fullName').value.trim();
+    const whatsapp = document.getElementById('whatsapp').value.trim();
     const clubName = document.getElementById('clubName').value.trim();
+    const coachRole = document.getElementById('coachRole').value.trim();
+    const coachCategories = document.getElementById('coachCategories').value.trim();
+    const coachSource = document.getElementById('coachSource').value.trim();
+    // Validar obligatorios
+    if(!fullName || !whatsapp || !clubName || !coachRole){
+      submitBtn.disabled = false;
+      showError('Completá tu nombre, WhatsApp, club y rol para crear la cuenta.');
+      return;
+    }
     submitBtn.textContent = 'Creando cuenta…';
+    const perfil = {
+      full_name: fullName, whatsapp, club_name: clubName,
+      coach_role: coachRole, coach_categories: coachCategories, coach_source: coachSource
+    };
     const { data, error } = await sb.auth.signUp({
       email, password,
-      options: { data: { full_name: fullName } }
+      options: { data: perfil }
     });
     submitBtn.disabled = false;
     submitBtn.textContent = 'Crear cuenta';
     if(error){ showError(traducirError(error)); return; }
     if(data.session){
       await ensureMembership(data.user.id, clubName || ('Club de ' + (fullName || email)));
+      await guardarPerfil(data.user.id, email, perfil);
       window.__currentUserEmail = email;
       showEditor();
     } else {
+      // Sin sesión (requiere confirmar email). Guardamos lo posible igual.
+      try{ await guardarPerfil(data.user?.id, email, perfil); }catch(e){}
       showSuccess('Cuenta creada. Revisá tu email para confirmarla y después iniciá sesión.');
       setMode('signin');
     }
