@@ -4278,8 +4278,47 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   }
   // Tocar un SUPLENTE (banco): entra. Si había uno seleccionado para salir, hace el cambio.
   function tapBench(pid){
+    // ── MODO PARADO (1era/3era): un solo minuto define el cambio ──
+    if(clockType==='parado'){
+      if(swapOutId !== null){
+        // CAMBIO: pedimos UN solo minuto (el del cambio) y lo usamos para el que sale y el que entra.
+        const outP = squad.find(p=>p.id===swapOutId);
+        const inP = squad.find(p=>p.id===pid);
+        const nombreOut = outP ? outP.name : '';
+        const nombreIn = inP ? inP.name : '';
+        openTimePicker(
+          '¿En qué minuto fue el cambio?',
+          'Sale ' + nombreOut + ', entra ' + nombreIn + '. Poné el minuto (reloj regresivo ' + halfMinutes + '→0).',
+          manualMin, 0,
+          (elapsed)=>{
+            // el que sale: acumula su tiempo hasta este minuto
+            const stOut = ensure(swapOutId);
+            if(stOut.onCourt && stOut.lastInAt!==null){
+              const dt = Math.max(0, elapsed - stOut.lastInAt);
+              if(currentHalf===1) stOut.acc1 += dt; else stOut.acc2 += dt;
+            }
+            stOut.onCourt=false; stOut.lastInAt=null;
+            // el que entra: arranca en este mismo minuto
+            const stIn = ensure(pid);
+            stIn.onCourt=true; stIn.lastInAt=elapsed;
+            // registrar el cambio con ese minuto
+            manualMin = Math.round(halfMinutes - elapsed/60);
+            logEvent('swap', pid, swapOutId);
+            swapOutId=null; updateStep();
+            renderField(); renderBench(); renderTotals(); updateOnCourt(); updateClockUI();
+          }
+        );
+        return;
+      }
+      // SIN cambio pendiente: es un titular que entra al arranque → minuto de inicio, sin preguntar.
+      if(countOnCourt() >= 5){ toast(window.t('mFull5')); return; }
+      const st=ensure(pid); st.onCourt=true; st.lastInAt=0;   // 0 = arranca desde el inicio del tiempo
+      logEvent('in', pid, null);
+      renderField(); renderBench(); renderTotals(); updateOnCourt();
+      return;
+    }
+    // ── MODO CORRIDO (resto de categorías): usa el reloj que corre ──
     if(swapOutId !== null){
-      // cambio: el que sale acumula su tiempo hasta AHORA, el que entra arranca AHORA.
       playerOut(swapOutId); playerIn(pid);
       logEvent('swap', pid, swapOutId);
       swapOutId=null; updateStep();
