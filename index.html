@@ -6320,7 +6320,7 @@ try{
       }
     }catch(e){}
 
-    // Cartel obligatorio (no se puede cerrar sin completar).
+    // Cartel para pedir el club. Tiene salida garantizada: nunca deja atrapado.
     let m = document.getElementById('clubAskModal');
     if(m) m.remove();
     m = document.createElement('div');
@@ -6328,44 +6328,88 @@ try{
     m.className = 'plans-overlay';
     m.innerHTML = `<div class="plans-box" style="max-width:420px;text-align:left;">
       <h2 style="font-size:20px;">¿De qué club sos?</h2>
-      <p class="plans-sub">Necesitamos el nombre de tu club o institución para preparar tu espacio de trabajo. Es obligatorio para continuar.</p>
-      <input type="text" id="clubAskInput" placeholder="Ej: Club Atlético Ejemplo" value="${(sugerido||'').replace(/"/g,'&quot;')}" style="width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--line);background:var(--panel-2);color:var(--chalk);font-size:15px;margin-bottom:6px;">
+      <p class="plans-sub">Escribí el nombre de tu club o institución para preparar tu espacio de trabajo.</p>
+      <input type="text" id="clubAskInput" placeholder="Ej: Atlanta" value="${(sugerido||'').replace(/"/g,'&quot;')}" style="width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--line);background:var(--panel-2);color:var(--chalk);font-size:15px;margin-bottom:6px;">
       <p id="clubAskError" style="color:var(--danger);font-size:12px;min-height:16px;margin:0 0 8px;"></p>
       <button class="btn-primary" id="clubAskBtn" style="width:100%;">Crear mi espacio</button>
+      <button id="clubAskSkip" style="width:100%;margin-top:8px;background:transparent;border:none;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline;">Entrar igual y completar después</button>
     </div>`;
     document.body.appendChild(m);
     const input = document.getElementById('clubAskInput');
     const errEl = document.getElementById('clubAskError');
     const btn = document.getElementById('clubAskBtn');
+    const skip = document.getElementById('clubAskSkip');
     input.focus();
+
+    // Crea el club de forma directa y robusta (no depende de otras funciones).
+    async function crearClubDirecto(userId, nombre){
+      // ¿ya existe una membresía? (por si se creó en otro intento)
+      try{
+        const { data: mem } = await sb.from('memberships').select('club_id').eq('user_id', userId).limit(1);
+        if(mem && mem.length){ window.__clubIdCache = mem[0].club_id; return { ok:true, clubId: mem[0].club_id }; }
+      }catch(e){ /* seguimos e intentamos crear */ }
+      // crear club
+      const { data: club, error: clubErr } = await sb.from('clubs').insert({ name: nombre }).select().single();
+      if(clubErr) return { ok:false, error: clubErr };
+      // crear membresía
+      const { error: memErr } = await sb.from('memberships').insert({ club_id: club.id, user_id: userId, role: 'owner' });
+      if(memErr) return { ok:false, error: memErr };
+      window.__clubIdCache = club.id;
+      return { ok:true, clubId: club.id };
+    }
+
+    // Timeout: si la red se cuelga, no dejamos el botón bloqueado para siempre.
+    function conTimeout(promesa, ms){
+      return Promise.race([
+        promesa,
+        new Promise((_,rej)=> setTimeout(()=>rej(new Error('timeout')), ms))
+      ]);
+    }
 
     async function crear(){
       const nombre = (input.value||'').trim();
       if(!nombre){ errEl.textContent = 'Escribí el nombre de tu club para continuar.'; return; }
-      btn.disabled = true; btn.textContent = 'Creando…';
+      btn.disabled = true; btn.textContent = 'Creando…'; errEl.textContent = '';
       try{
         const { data:{ session } } = await sb.auth.getSession();
-        if(!session){ errEl.textContent = 'Tu sesión expiró. Volvé a iniciar sesión.'; btn.disabled=false; btn.textContent='Crear mi espacio'; return; }
+        if(!session){ errEl.textContent = 'Tu sesión expiró. Cerrá y volvé a iniciar sesión.'; btn.disabled=false; btn.textContent='Crear mi espacio'; return; }
         window.__clubIdCache = null;
-        const res = await window.__ensureMembership(session.user.id, nombre);
+        const res = await conTimeout(crearClubDirecto(session.user.id, nombre), 12000);
         if(res && res.ok){
-          // guardar también el nombre en el perfil, por consistencia
           try{ await sb.from('profiles').update({ club_name: nombre }).eq('id', session.user.id); }catch(e){}
           m.remove();
-          // recargar categorías ahora que hay club
           if(window.__loadCategoriesOnce) window.__loadCategoriesOnce();
-          if(window.toast) toast('¡Listo! Tu espacio de trabajo está preparado ✓');
+          if(window.toast) toast('¡Listo! Tu espacio está preparado ✓');
         } else {
-          errEl.textContent = 'No se pudo crear tu espacio. Revisá tu conexión y probá de nuevo.';
-          btn.disabled = false; btn.textContent = 'Crear mi espacio';
+          const msg = (res && res.error && res.error.message) ? res.error.message : '';
+          errEl.textContent = 'No se pudo crear el club' + (msg ? ' ('+msg+')' : '') + '. Probá de nuevo o entrá igual.';
+          btn.disabled = false; btn.textContent = 'Reintentar';
         }
       }catch(e){
         console.error('crear club', e);
-        errEl.textContent = 'Hubo un error. Probá de nuevo en unos segundos.';
-        btn.disabled = false; btn.textContent = 'Crear mi espacio';
+        errEl.textContent = (e && e.message==='timeout')
+          ? 'La conexión está lenta. Probá de nuevo o entrá igual.'
+          : 'Hubo un error. Probá de nuevo o entrá igual.';
+        btn.disabled = false; btn.textContent = 'Reintentar';
       }
     }
+
+    // SALIDA DE EMERGENCIA: siempre puede entrar, aunque el club no se haya creado.
+    // Guarda el nombre en el perfil (si puede) para reintentar la creación más adelante.
+    async function salirIgual(){
+      const nombre = (input.value||'').trim();
+      if(nombre){
+        try{
+          const { data:{ session } } = await sb.auth.getSession();
+          if(session) await sb.from('profiles').update({ club_name: nombre }).eq('id', session.user.id);
+        }catch(e){}
+      }
+      m.remove();
+      if(window.toast) toast('Entraste. Si algo no guarda, avisanos y lo resolvemos.');
+    }
+
     btn.addEventListener('click', crear);
+    skip.addEventListener('click', salirIgual);
     input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') crear(); });
   };
 
