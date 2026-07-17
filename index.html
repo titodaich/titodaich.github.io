@@ -2846,6 +2846,8 @@ async function ensureMembership(userId, fallbackClubName){
     return { ok:true, clubId: memberships[0].club_id, created:false };
   }
 }
+// Exponer para que el cartel de "pedir club" (en otro scope) la pueda usar.
+window.__ensureMembership = ensureMembership;
 
 // Guarda/actualiza los datos personales del entrenador en su perfil.
 async function guardarPerfil(userId, email, perfil){
@@ -6299,6 +6301,74 @@ try{
     }catch(e){ return null; }
   };
 
+  // Verifica que el usuario tenga un club. Si no lo tiene (usuario nuevo o
+  // que quedó sin club), muestra un cartel OBLIGATORIO pidiendo el nombre.
+  window.__ensureClubOrAsk = async function(){
+    try{
+      const clubId = await window.__getClubId();
+      if(clubId) return;   // ya tiene club, todo bien
+    }catch(e){ /* seguimos a pedirlo */ }
+
+    // Buscar un nombre sugerido del perfil (si lo cargó al registrarse).
+    let sugerido = '';
+    try{
+      const { data:{ session } } = await sb.auth.getSession();
+      if(session){
+        const { data: prof } = await sb.from('profiles').select('club_name, full_name').eq('id', session.user.id).single();
+        if(prof && prof.club_name) sugerido = prof.club_name;
+        else if(prof && prof.full_name) sugerido = 'Club de ' + prof.full_name;
+      }
+    }catch(e){}
+
+    // Cartel obligatorio (no se puede cerrar sin completar).
+    let m = document.getElementById('clubAskModal');
+    if(m) m.remove();
+    m = document.createElement('div');
+    m.id = 'clubAskModal';
+    m.className = 'plans-overlay';
+    m.innerHTML = `<div class="plans-box" style="max-width:420px;text-align:left;">
+      <h2 style="font-size:20px;">¿De qué club sos?</h2>
+      <p class="plans-sub">Necesitamos el nombre de tu club o institución para preparar tu espacio de trabajo. Es obligatorio para continuar.</p>
+      <input type="text" id="clubAskInput" placeholder="Ej: Club Atlético Ejemplo" value="${(sugerido||'').replace(/"/g,'&quot;')}" style="width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--line);background:var(--panel-2);color:var(--chalk);font-size:15px;margin-bottom:6px;">
+      <p id="clubAskError" style="color:var(--danger);font-size:12px;min-height:16px;margin:0 0 8px;"></p>
+      <button class="btn-primary" id="clubAskBtn" style="width:100%;">Crear mi espacio</button>
+    </div>`;
+    document.body.appendChild(m);
+    const input = document.getElementById('clubAskInput');
+    const errEl = document.getElementById('clubAskError');
+    const btn = document.getElementById('clubAskBtn');
+    input.focus();
+
+    async function crear(){
+      const nombre = (input.value||'').trim();
+      if(!nombre){ errEl.textContent = 'Escribí el nombre de tu club para continuar.'; return; }
+      btn.disabled = true; btn.textContent = 'Creando…';
+      try{
+        const { data:{ session } } = await sb.auth.getSession();
+        if(!session){ errEl.textContent = 'Tu sesión expiró. Volvé a iniciar sesión.'; btn.disabled=false; btn.textContent='Crear mi espacio'; return; }
+        window.__clubIdCache = null;
+        const res = await window.__ensureMembership(session.user.id, nombre);
+        if(res && res.ok){
+          // guardar también el nombre en el perfil, por consistencia
+          try{ await sb.from('profiles').update({ club_name: nombre }).eq('id', session.user.id); }catch(e){}
+          m.remove();
+          // recargar categorías ahora que hay club
+          if(window.__loadCategoriesOnce) window.__loadCategoriesOnce();
+          if(window.toast) toast('¡Listo! Tu espacio de trabajo está preparado ✓');
+        } else {
+          errEl.textContent = 'No se pudo crear tu espacio. Revisá tu conexión y probá de nuevo.';
+          btn.disabled = false; btn.textContent = 'Crear mi espacio';
+        }
+      }catch(e){
+        console.error('crear club', e);
+        errEl.textContent = 'Hubo un error. Probá de nuevo en unos segundos.';
+        btn.disabled = false; btn.textContent = 'Crear mi espacio';
+      }
+    }
+    btn.addEventListener('click', crear);
+    input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') crear(); });
+  };
+
   // Chequea el estado de la suscripción y muestra el cartel si corresponde
   window.__checkSubscription = async function(){
     // Interruptor maestro: si el cobro está apagado, no mostramos NADA.
@@ -6419,6 +6489,8 @@ try{
   if(window.__loadCategoriesOnce) window.__loadCategoriesOnce();
   // Revisar el estado de la suscripción y mostrar cartel si corresponde
   if(window.__checkSubscription) window.__checkSubscription();
+  // Si el usuario no tiene club (nuevo, o quedó sin él), pedírselo de forma obligatoria.
+  if(window.__ensureClubOrAsk) window.__ensureClubOrAsk();
 }catch(err){
   console.error('Supabase no se pudo inicializar en el editor:', err);
   const badge = document.getElementById('userBadge');
