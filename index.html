@@ -645,6 +645,28 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 
 /* ===== ESTADÍSTICAS ===== */
 .stats-subnav{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap;}
+.export-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-8px 0 20px;padding:10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;}
+.export-lbl{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-right:2px;}
+.export-btn{white-space:nowrap;}
+.export-btn:hover{border-color:var(--success);color:var(--success);}
+@media print{
+  .export-bar,.stats-subnav,.main-nav,.topbar,.cat-bar,#subBanner,.cancha-bg,#toast{display:none !important;}
+  body,#screen-editor,#section-stats{background:#fff !important;color:#000 !important;}
+  /* Ocultamos todo salvo Estadísticas */
+  .section-content:not(#section-stats){display:none !important;}
+  /* Modo normal: se imprime la sub-pestaña visible */
+  .stats-sub:not(.active){display:none !important;}
+  /* Modo "PDF con gráficos": forzamos la pestaña anual con sus gráficos */
+  body.print-graphs #stats-annual{display:block !important;}
+  body.print-graphs .stats-sub:not(#stats-annual){display:none !important;}
+  body.print-graphs #stats-annual .annual-more{display:block !important;}
+  /* Legibilidad en papel */
+  #section-stats *{color:#000 !important;border-color:#999 !important;}
+  #section-stats table{width:100%;border-collapse:collapse;}
+  #section-stats th,#section-stats td{border:1px solid #999 !important;padding:4px 6px !important;}
+  #section-stats svg text{fill:#000 !important;}
+  @page{margin:14mm;}
+}
 .stats-subtab{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:9px 18px;font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;cursor:pointer;transition:all .15s ease;}
 .stats-subtab:hover{color:var(--chalk);border-color:var(--muted);}
 .stats-subtab.active{background:var(--accent);border-color:var(--accent);color:#10161C;}
@@ -1437,6 +1459,14 @@ body.editor-active #screen-editor{ display:block; }
       <button class="stats-subtab" data-sub="annual" data-i18n="stAnnual">📈 Estadísticas anuales</button>
     </div>
 
+    <!-- Barra de exportación -->
+    <div class="export-bar">
+      <span class="export-lbl" data-i18n="exportLbl">Exportar:</span>
+      <button class="btn small export-btn" id="exportExcelBtn" data-i18n="exportExcel">⬇ Excel</button>
+      <button class="btn small export-btn" id="exportPdfBtn" data-i18n="exportPdf">⬇ PDF</button>
+      <button class="btn small export-btn" id="exportPdfGraphBtn" data-i18n="exportPdfGraph">⬇ PDF con gráficos</button>
+    </div>
+
     <!-- ===== SUB: PARTIDOS ===== -->
     <div class="stats-sub active" id="stats-matches">
       <!-- Lista de partidos -->
@@ -2050,6 +2080,7 @@ window.I18N = {
     aiAnalyze:'⚡ Analizar', aiCancel:'Cancelar',
     // Estadísticas subtabs
     stMatches:'⚽ Partidos', stSquad:'👥 Plantel', stCalls:'✅ Convocatorias', stMinutes:'⏱ Minutaje', stAnnual:'📈 Estadísticas anuales',
+    exportLbl:'Exportar:', exportExcel:'⬇ Excel', exportPdf:'⬇ PDF', exportPdfGraph:'⬇ PDF con gráficos', exportEmpty:'No hay datos para exportar en esta pestaña.', exportReady:'Preparando la descarga…', exportPdfReady:'Se abrirá el diálogo de impresión. Elegí "Guardar como PDF".',
     stMatchesTitle:'Partidos', stMatchesSub:'Cargá cada partido con sus goles, asistencias y tarjetas. Se suma solo en las estadísticas anuales.',
     newMatch:'+ Nuevo partido', goalsFor:'⚽ Goles a favor', addGoal:'+ Gol', assists:'🅰 Asistencias', addAssist:'+ Asistencia',
     goalsAgainst:'🥅 Goles en contra', addGoalAgainst:'+ Gol en contra', cards:'🟨 Tarjetas', addCard:'+ Tarjeta',
@@ -2126,6 +2157,7 @@ window.I18N = {
     aiTitle:'Automatic AI analysis', aiSub:'The AI scans the video and suggests plays with your tags (corners, sidelines, 3-1, 4-0, defenses, 5v4...). You review and accept. Accepted clips appear in the Video tab like manual ones.',
     aiAnalyze:'⚡ Analyze', aiCancel:'Cancel',
     stMatches:'⚽ Matches', stSquad:'👥 Roster', stCalls:'✅ Call-ups', stMinutes:'⏱ Minutes', stAnnual:'📈 Season stats',
+    exportLbl:'Export:', exportExcel:'⬇ Excel', exportPdf:'⬇ PDF', exportPdfGraph:'⬇ PDF with charts', exportEmpty:'No data to export in this tab.', exportReady:'Preparing download…', exportPdfReady:'The print dialog will open. Choose "Save as PDF".',
     stMatchesTitle:'Matches', stMatchesSub:'Log each match with its goals, assists and cards. It adds up in the season stats.',
     newMatch:'+ New match', goalsFor:'⚽ Goals for', addGoal:'+ Goal', assists:'🅰 Assists', addAssist:'+ Assist',
     goalsAgainst:'🥅 Goals against', addGoalAgainst:'+ Goal against', cards:'🟨 Cards', addCard:'+ Card',
@@ -2197,6 +2229,7 @@ window.I18N = {
     aiTitle:'Análise automática com IA', aiSub:'A IA percorre o vídeo e sugere jogadas com suas tags (escanteios, laterais, 3-1, 4-0, defesas, 5x4...). Você revisa e aceita. Os cortes aceitos aparecem na aba Vídeo como os manuais.',
     aiAnalyze:'⚡ Analisar', aiCancel:'Cancelar',
     stMatches:'⚽ Jogos', stSquad:'👥 Elenco', stCalls:'✅ Convocações', stMinutes:'⏱ Minutagem', stAnnual:'📈 Estatísticas anuais',
+    exportLbl:'Exportar:', exportExcel:'⬇ Excel', exportPdf:'⬇ PDF', exportPdfGraph:'⬇ PDF com gráficos', exportEmpty:'Não há dados para exportar nesta aba.', exportReady:'Preparando o download…', exportPdfReady:'A janela de impressão será aberta. Escolha "Salvar como PDF".',
     stMatchesTitle:'Jogos', stMatchesSub:'Registre cada jogo com seus gols, assistências e cartões. Soma nas estatísticas anuais.',
     newMatch:'+ Novo jogo', goalsFor:'⚽ Gols a favor', addGoal:'+ Gol', assists:'🅰 Assistências', addAssist:'+ Assistência',
     goalsAgainst:'🥅 Gols contra', addGoalAgainst:'+ Gol contra', cards:'🟨 Cartões', addCard:'+ Cartão',
@@ -2292,6 +2325,14 @@ document.addEventListener('DOMContentLoaded', ()=>{
         'https://unpkg.com/jszip@3.10.1/dist/jszip.min.js',
         'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js'
       ]
+    },
+    xlsx: {
+      check: () => !!window.XLSX,
+      urls: [
+        'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+        'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
+      ]
     }
   };
 
@@ -2320,7 +2361,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
   return (async () => {
     const [okSupabase] = await Promise.all([
       loadWithFallback(LIBS.supabase),
-      loadWithFallback(LIBS.jszip)
+      loadWithFallback(LIBS.jszip),
+      loadWithFallback(LIBS.xlsx)
     ]);
     return { supabase: okSupabase };
   })();
@@ -4552,6 +4594,91 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     else if(sub === 'minutes') renderMinutes();
     else renderMatchList();
   }
+
+  // ========== EXPORTACIÓN (Excel + PDF) ==========
+  function subActiva(){
+    const active = document.querySelector('.stats-subtab.active');
+    return active ? active.dataset.sub : 'matches';
+  }
+  function nombreSub(sub){
+    const map = { matches:'stMatches', squad:'stSquad', calls:'stCalls', minutes:'stMinutes', annual:'stAnnual' };
+    // sacamos el emoji del principio para el nombre de archivo
+    return (window.t(map[sub]) || sub).replace(/^[^\wÀ-ÿ]+/, '').trim();
+  }
+  function nombreArchivo(sub, ext){
+    const cat = catActual() || '';
+    const hoy = new Date().toISOString().slice(0,10);
+    const partes = ['Estadisticas', nombreSub(sub), cat, hoy].filter(Boolean);
+    return partes.join('_').replace(/\s+/g,'-') + '.' + ext;
+  }
+
+  // Convierte las <table> visibles de la sub-pestaña activa en hojas de cálculo.
+  function tablasDeSubActiva(){
+    const sub = subActiva();
+    const cont = document.getElementById('stats-' + sub);
+    if(!cont) return [];
+    return Array.from(cont.querySelectorAll('table'));
+  }
+
+  async function exportarExcel(){
+    const ok = window.XLSX;
+    if(!ok){ toast(window.t('mNoConn') || 'No se pudo cargar el exportador.'); return; }
+    const sub = subActiva();
+    const tablas = tablasDeSubActiva();
+    if(!tablas.length){ toast(window.t('exportEmpty')); return; }
+    toast(window.t('exportReady'));
+    try{
+      const wb = window.XLSX.utils.book_new();
+      let idx = 0;
+      tablas.forEach(tabla => {
+        const ws = window.XLSX.utils.table_to_sheet(tabla, { raw:true });
+        idx++;
+        // nombre de hoja: buscamos un título cercano o usamos un genérico
+        let titulo = 'Hoja' + idx;
+        const prev = tabla.closest('[data-sheet]');
+        if(prev && prev.dataset.sheet) titulo = prev.dataset.sheet;
+        titulo = titulo.substring(0,31).replace(/[\\\/\?\*\[\]:]/g,'');
+        window.XLSX.utils.book_append_sheet(wb, ws, titulo || ('Hoja'+idx));
+      });
+      window.XLSX.writeFile(wb, nombreArchivo(sub, 'xlsx'));
+    }catch(e){
+      console.error('export excel', e);
+      toast(window.t('mSaveErr') || 'Error al exportar.');
+    }
+  }
+
+  // PDF vía impresión del navegador. modo 'graph' agrega gráficos (ya visibles en anuales).
+  function exportarPdf(modo){
+    const sub = subActiva();
+    const tablas = tablasDeSubActiva();
+    const hayGraficos = document.querySelectorAll('#stats-annual svg').length > 0;
+    if(!tablas.length && !(modo==='graph' && hayGraficos)){
+      toast(window.t('exportEmpty')); return;
+    }
+    // Para el PDF con gráficos conviene estar en la pestaña anual
+    document.body.classList.toggle('print-graphs', modo==='graph');
+    // recordamos qué <details> estaban abiertos para restaurarlos después
+    let detalles = [];
+    if(modo==='graph'){
+      // aseguramos que los gráficos estén calculados
+      if(typeof renderAnnual === 'function') renderAnnual();
+      detalles = Array.from(document.querySelectorAll('#stats-annual details'));
+      detalles.forEach(d => { d._prev = d.open; d.open = true; });
+    }
+    toast(window.t('exportPdfReady'));
+    setTimeout(()=>{
+      window.print();
+      document.body.classList.remove('print-graphs');
+      detalles.forEach(d => { d.open = d._prev; });
+    }, 400);
+  }
+
+  const btnXls = document.getElementById('exportExcelBtn');
+  const btnPdf = document.getElementById('exportPdfBtn');
+  const btnPdfG = document.getElementById('exportPdfGraphBtn');
+  if(btnXls) btnXls.addEventListener('click', exportarExcel);
+  if(btnPdf) btnPdf.addEventListener('click', ()=>exportarPdf('simple'));
+  if(btnPdfG) btnPdfG.addEventListener('click', ()=>exportarPdf('graph'));
 
   // ========== PLANTEL ==========
   function renderSquad(){
