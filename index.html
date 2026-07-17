@@ -2,7 +2,12 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#10161C">
+<meta name="format-detection" content="telephone=no">
 <title>Cancha·Edit — Editor de video para futsal</title>
 <style>
 /* ====================== ESTILOS LOGIN ====================== */
@@ -23,8 +28,9 @@
   --success:#4CAF6D;
 }
 *{box-sizing:border-box;}
-html,body{margin:0;padding:0;height:100%;} 
-body{background-color:var(--bg);}
+html,body{margin:0;padding:0;height:100%;}
+html{background-color:var(--bg);}
+body{background-color:var(--bg);-webkit-tap-highlight-color:transparent;}
 #screen-login{
   background-color:transparent;
   color:var(--chalk);
@@ -1139,8 +1145,29 @@ body.editor-active #screen-editor{ display:block; }
 @media (max-width: 720px){
   /* REGLA CLAVE: que nada sea más ancho que la pantalla */
   html, body{overflow-x:hidden;max-width:100%;}
-  .app{padding:12px 12px 40px;max-width:100%;overflow-x:hidden;}
+
+  /* ===== SAFE AREAS iPhone (notch arriba, barra de gestos abajo, bordes) =====
+     Usamos max() para que en Android/otros (inset 0) quede el padding normal. */
+  .app{
+    padding-top: max(12px, env(safe-area-inset-top));
+    padding-bottom: max(40px, calc(env(safe-area-inset-bottom) + 24px));
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+    max-width:100%;overflow-x:hidden;
+  }
   .app *{max-width:100%;}
+
+  /* El cartel de vencimiento es sticky arriba: que no se meta bajo el notch */
+  .sub-banner{padding-top: max(11px, calc(env(safe-area-inset-top) + 6px));}
+
+  /* El toast avisa abajo: que no lo tape la barra de gestos */
+  .toast{bottom: max(20px, calc(env(safe-area-inset-bottom) + 14px));}
+
+  /* Overlays y modales a pantalla completa: respetar bordes seguros */
+  .cloud-modal-overlay,.plans-overlay,.export-overlay{
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
 
   /* Los elementos anchos van en un contenedor con scroll propio, no empujan la página */
   .board-wrap{min-width:0 !important;max-width:100% !important;}
