@@ -941,10 +941,24 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .plan-card:hover{border-color:var(--accent);transform:translateY(-2px);}
 .plan-label{font-family:'Oswald',sans-serif;font-size:16px;font-weight:600;}
 .plan-price{font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;color:var(--chalk);}
+.plan-permonth{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);}
+.plan-note{font-size:10.5px;color:var(--success);font-weight:600;}
 .plan-go{font-size:12px;color:var(--accent);font-weight:600;}
+.plan-card{position:relative;}
+.plan-badge{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;padding:2px 8px;border-radius:20px;white-space:nowrap;}
+.plan-featured{border-color:var(--accent);background:linear-gradient(180deg,rgba(229,52,42,0.08),var(--panel-2));}
+.plan-featured .plan-badge{background:var(--success);}
 @media (max-width:480px){.plans-grid-3{grid-template-columns:1fr;}}
 .plans-contact{text-align:center;margin:18px 0 0;font-size:13px;color:var(--muted);}
 .plans-contact a{color:var(--accent-2);}
+.plans-legal{text-align:center;margin:10px 0 0;font-size:11px;color:var(--muted);}
+.plans-legal a{color:var(--accent-2);cursor:pointer;}
+.legal-body h3{font-family:'Oswald',sans-serif;font-size:15px;margin:18px 0 6px;color:var(--chalk);}
+.legal-body p{font-size:13px;line-height:1.55;color:var(--muted);margin:0 0 10px;}
+.legal-body b{color:var(--chalk);}
+.legal-consent{display:flex;align-items:flex-start;gap:8px;margin-top:4px;font-size:12px;color:var(--muted);line-height:1.4;}
+.legal-consent a{color:var(--accent-2);cursor:pointer;}
+.legal-consent input{margin-top:2px;flex-shrink:0;}
 
 .layout{display:grid;grid-template-columns:1fr 1.4fr;gap:20px;}
 @media (max-width:860px){.layout{grid-template-columns:1fr;}}
@@ -1355,6 +1369,10 @@ body.editor-active #screen-editor{ display:block; }
       <div class="field" id="sourceField" style="display:none;">
         <label for="coachSource">¿Cómo te enteraste de la app? <span style="color:var(--muted);font-weight:400;">(opcional)</span></label>
         <input type="text" id="coachSource" placeholder="Ej: un colega, Instagram, Google...">
+      </div>
+      <div class="field" id="consentField" style="display:none;">
+        <label class="legal-consent"><input type="checkbox" id="acceptTerms"> <span>Acepto los <a id="openLegalLink">términos y la política de privacidad</a>.</span></label>
+        <label class="legal-consent"><input type="checkbox" id="acceptMarketing"> <span>Quiero recibir novedades y promociones (opcional).</span></label>
       </div>
       <div class="field">
         <label for="email">Email</label>
@@ -2552,13 +2570,26 @@ const SUPABASE_ANON_KEY = 'sb_publishable_kSd8QnrUeB0SvHVtWlarCA_BAYas52j';
 // Editá los precios y los links cuando quieras. 'ars' = pesos, 'usd' = dólares.
 // Si un link queda vacío, el botón usa el WhatsApp de abajo como respaldo.
 window.__PAY = {
+  // ══════════════════════════════════════════════════════════════
+  //  INTERRUPTOR MAESTRO DEL SISTEMA DE COBRO
+  //  false = TODO apagado: nadie ve carteles de vencimiento, ni
+  //          precios, ni pantalla de pago. La app funciona sin límites.
+  //          (Usalo mientras estás en fase de prueba con amigos.)
+  //  true  = sistema de cobro ACTIVO: aparecen los avisos de
+  //          vencimiento y la pantalla para activar la cuenta.
+  //  Cuando quieras empezar a cobrar, cambiá SOLO esta línea a true.
+  // ══════════════════════════════════════════════════════════════
+  enabled: false,
+
   whatsapp: '',                 // ej: '5491122334455' (código país, sin + ni espacios)
   currency: 'ars',             // moneda que se MUESTRA por defecto: 'ars' (Argentina) o 'usd' (exterior)
   showPrices: false,           // ← poné true cuando quieras MOSTRAR los precios en la pantalla de planes
+  // Los planes que ve el usuario. Completá 'ars'/'usd' (precio) y 'mpLink' (link de Mercado Pago) cuando los tengas.
+  // 'badge' es una etiqueta opcional (ej: "Más elegido", "Mejor precio"). 'note' es una línea chica (ej: ahorro).
   plans: [
-    { key:'mes1',  months:1,  ars: 0,  usd: 0,  mpLink:'', stripeLink:'' },
-    { key:'mes6',  months:6,  ars: 0,  usd: 0,  mpLink:'', stripeLink:'' },
-    { key:'mes12', months:12, ars: 0,  usd: 0,  mpLink:'', stripeLink:'' }
+    { key:'mes1',  months:1,  ars: 0,  usd: 0,  mpLink:'', stripeLink:'', badge:'',            note:'' },
+    { key:'mes6',  months:6,  ars: 0,  usd: 0,  mpLink:'', stripeLink:'', badge:'Más elegido',  note:'' },
+    { key:'mes12', months:12, ars: 0,  usd: 0,  mpLink:'', stripeLink:'', badge:'Mejor precio', note:'' }
   ]
 };
 // Formatea el precio segun la moneda elegida
@@ -2582,6 +2613,49 @@ window.__payLink = (function(){
   if(p.whatsapp) return 'https://wa.me/'+p.whatsapp;
   return '#';
 })();
+// ==================================================================
+
+// ===== TEXTO LEGAL (BORRADOR — revisar con un abogado antes de vender) =====
+// Es un punto de partida razonable, NO un documento legal definitivo.
+// Editá los datos entre [corchetes] y hacelo revisar por un profesional.
+window.__LEGAL_TEXT = `
+<h3>Términos de uso</h3>
+<p>Cancha·Edit es una herramienta para cuerpos técnicos de futsal que permite gestionar planteles, estadísticas, planificación, scouting y seguimiento de partidos. Al crear una cuenta aceptás estos términos.</p>
+<p>Cada usuario es responsable de la información que carga. El servicio se ofrece "tal cual", y hacemos nuestro mejor esfuerzo por mantenerlo disponible y seguro, sin garantizar que esté libre de interrupciones.</p>
+<p>La cuenta es personal. No compartas tu contraseña. Podés dejar de usar el servicio y solicitar la baja de tu cuenta cuando quieras.</p>
+
+<h3>Privacidad y datos</h3>
+<p>Guardamos los datos que cargás (información de tu equipo y jugadores) para prestarte el servicio. También guardamos tus datos de contacto (nombre, email, WhatsApp, club) para gestionar tu cuenta y comunicarnos con vos.</p>
+<p><b>Tus datos son privados.</b> No vendemos ni compartimos con terceros la información que cargás sobre tu equipo. La usás solo vos desde tu cuenta.</p>
+<p>Si cargás datos de menores de edad (jugadores de inferiores), sos responsable de contar con el consentimiento necesario de sus padres o tutores conforme a la Ley 25.326 de Protección de Datos Personales (Argentina).</p>
+<p>Podés pedir acceder, corregir o borrar tus datos escribiéndonos a [tu-email-de-contacto].</p>
+
+<h3>Comunicaciones</h3>
+<p>Podemos enviarte mensajes sobre tu cuenta (vencimientos, novedades del servicio). Si aceptaste recibir comunicaciones de marketing, también podremos enviarte novedades y promociones; podés pedir que dejemos de hacerlo cuando quieras.</p>
+
+<h3>Pagos</h3>
+<p>El servicio puede ofrecerse con un período de prueba y luego mediante suscripción paga. Los precios y medios de pago se informan al momento de contratar. [Completar política de reembolsos si corresponde.]</p>
+
+<h3>Contacto</h3>
+<p>Ante cualquier duda: [tu-email-de-contacto] · [tu-WhatsApp].</p>
+<p style="color:#8CA2B3;font-size:11px;margin-top:16px;">Última actualización: [fecha]. Este texto es un borrador inicial y debe ser revisado por un profesional legal antes del lanzamiento comercial.</p>
+`;
+// Abre el modal con los términos y la política de privacidad.
+window.__openLegal = function(){
+  let m = document.getElementById('legalModal');
+  if(m) m.remove();
+  m = document.createElement('div');
+  m.id = 'legalModal';
+  m.className = 'plans-overlay';
+  m.innerHTML = `<div class="plans-box" style="max-width:640px;max-height:82vh;overflow-y:auto;text-align:left;">
+    <button class="plans-close" id="legalClose">✕</button>
+    <h2 style="font-size:20px;">Términos y Política de Privacidad</h2>
+    <div class="legal-body">${window.__LEGAL_TEXT || '<p>Próximamente.</p>'}</div>
+  </div>`;
+  document.body.appendChild(m);
+  document.getElementById('legalClose').addEventListener('click',()=>m.remove());
+  m.addEventListener('click',e=>{ if(e.target===m) m.remove(); });
+};
 // ==================================================================
 
 // Adaptador de storage "a prueba de sandbox": usa localStorage si está
@@ -2627,7 +2701,8 @@ const whatsappField = document.getElementById('whatsappField');
 const roleField = document.getElementById('roleField');
 const categoriesField = document.getElementById('categoriesField');
 const sourceField = document.getElementById('sourceField');
-const signupFields = [fullNameField, whatsappField, clubNameField, roleField, categoriesField, sourceField];
+const consentField = document.getElementById('consentField');
+const signupFields = [fullNameField, whatsappField, clubNameField, roleField, categoriesField, sourceField, consentField];
 
 function showError(msg){ successMsg.classList.remove('show'); errorMsg.textContent = msg; errorMsg.classList.add('show'); }
 function showSuccess(msg){ errorMsg.classList.remove('show'); successMsg.textContent = msg; successMsg.classList.add('show'); }
@@ -2651,6 +2726,11 @@ function setMode(newMode){
   }
 }
 toggleModeBtn.addEventListener('click', () => setMode(mode === 'signin' ? 'signup' : 'signin'));
+// Link "términos y política" del formulario de registro
+document.getElementById('openLegalLink')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  if(window.__openLegal) window.__openLegal();
+});
 
 // Si el club de este usuario no existe todavía (primer ingreso), lo crea.
 async function ensureMembership(userId, fallbackClubName){
@@ -2679,7 +2759,8 @@ async function guardarPerfil(userId, email, perfil){
       club_name: perfil.club_name || '',
       coach_role: perfil.coach_role || '',
       coach_categories: perfil.coach_categories || '',
-      coach_source: perfil.coach_source || ''
+      coach_source: perfil.coach_source || '',
+      accepts_marketing: !!perfil.accepts_marketing
     };
     const { error } = await sb.from('profiles').upsert(fila, { onConflict: 'id' });
     if(error) console.error('guardarPerfil', error);
@@ -2734,16 +2815,24 @@ form.addEventListener('submit', async (e) => {
     const coachRole = document.getElementById('coachRole').value.trim();
     const coachCategories = document.getElementById('coachCategories').value.trim();
     const coachSource = document.getElementById('coachSource').value.trim();
+    const acceptTerms = document.getElementById('acceptTerms').checked;
+    const acceptMarketing = document.getElementById('acceptMarketing').checked;
     // Validar obligatorios
     if(!fullName || !whatsapp || !clubName || !coachRole){
       submitBtn.disabled = false;
       showError('Completá tu nombre, WhatsApp, club y rol para crear la cuenta.');
       return;
     }
+    if(!acceptTerms){
+      submitBtn.disabled = false;
+      showError('Para crear la cuenta necesitás aceptar los términos y la política de privacidad.');
+      return;
+    }
     submitBtn.textContent = 'Creando cuenta…';
     const perfil = {
       full_name: fullName, whatsapp, club_name: clubName,
-      coach_role: coachRole, coach_categories: coachCategories, coach_source: coachSource
+      coach_role: coachRole, coach_categories: coachCategories, coach_source: coachSource,
+      accepts_marketing: acceptMarketing
     };
     const { data, error } = await sb.auth.signUp({
       email, password,
@@ -6026,6 +6115,11 @@ try{
 
   // Chequea el estado de la suscripción y muestra el cartel si corresponde
   window.__checkSubscription = async function(){
+    // Interruptor maestro: si el cobro está apagado, no mostramos NADA.
+    if(!window.__PAY || !window.__PAY.enabled){
+      const b = document.getElementById('subBanner'); if(b) b.remove();
+      return;
+    }
     try{
       const clubId = await window.__getClubId();
       if(!clubId) return;
@@ -6067,6 +6161,7 @@ try{
 
   // Modal de planes: el usuario elige período y va al pago
   function openPlansModal(){
+    if(!window.__PAY || !window.__PAY.enabled) return;   // cobro apagado: no abrir
     let modal = document.getElementById('plansModal');
     if(modal) modal.remove();
     const P = window.__PAY || {plans:[],whatsapp:''};
@@ -6082,15 +6177,22 @@ try{
     (P.plans||[]).forEach(pl=>{
       const link = window.__planLink ? window.__planLink(pl) : (waLink || '#');
       const priceHtml = (P.showPrices && window.__fmtPrice) ? `<span class="plan-price">${window.__fmtPrice(pl)}</span>` : '';
-      cards += `<a class="plan-card" href="${link}" target="_blank" rel="noopener"><span class="plan-label">${labelFor(pl)}</span>${priceHtml}<span class="plan-go">${window.t('planGo')} →</span></a>`;
+      const perMonth = (P.showPrices && pl.months>1 && pl.ars) ? `<span class="plan-permonth">$ ${Math.round(pl.ars/pl.months).toLocaleString('es-AR')}/mes</span>` : '';
+      const badge = pl.badge ? `<span class="plan-badge">${pl.badge}</span>` : '';
+      const note = pl.note ? `<span class="plan-note">${pl.note}</span>` : '';
+      const destacado = pl.badge === 'Mejor precio' ? ' plan-featured' : '';
+      cards += `<a class="plan-card${destacado}" href="${link}" target="_blank" rel="noopener">${badge}<span class="plan-label">${labelFor(pl)}</span>${priceHtml}${perMonth}${note}<span class="plan-go">${window.t('planGo')} →</span></a>`;
     });
     const contactLine = waLink ? `<p class="plans-contact">${window.t('plansContact')} <a href="${waLink}" target="_blank">WhatsApp</a></p>` : '';
+    const legalLine = `<p class="plans-legal">Al activar tu cuenta aceptás los <a href="#" id="plansTermsLink">términos y la política de privacidad</a>.</p>`;
     modal = document.createElement('div');
     modal.id = 'plansModal';
     modal.className = 'plans-overlay';
-    modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><h2>${window.t('plansTitle')}</h2><p class="plans-sub">${window.t('plansSub')}</p><div class="plans-grid plans-grid-3">${cards}</div>${contactLine}</div>`;
+    modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><h2>${window.t('plansTitle')}</h2><p class="plans-sub">${window.t('plansSub')}</p><div class="plans-grid plans-grid-3">${cards}</div>${contactLine}${legalLine}</div>`;
     document.body.appendChild(modal);
     document.getElementById('plansClose').addEventListener('click',()=>modal.remove());
+    const termsL = document.getElementById('plansTermsLink');
+    if(termsL) termsL.addEventListener('click',(e)=>{ e.preventDefault(); if(window.__openLegal) window.__openLegal(); });
     modal.addEventListener('click',e=>{ if(e.target===modal) modal.remove(); });
   }
   window.__openPlansModal = openPlansModal;
