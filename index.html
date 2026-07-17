@@ -1199,6 +1199,36 @@ body.editor-active #screen-editor{ display:block; }
 
   /* Anuales: una columna */
   .annual-grid{grid-template-columns:1fr;}
+
+  /* ===== MINUTAJE en mobile: la lista pasa de tabla a TARJETAS apiladas ===== */
+  .minutes-table{min-width:0 !important;display:block;}
+  .minutes-table thead{display:none;}
+  .minutes-table tbody{display:block;}
+  .minutes-table tbody tr{
+    display:block;background:var(--panel);border:1px solid var(--line);
+    border-radius:12px;padding:12px 14px;margin-bottom:12px;
+  }
+  .minutes-table tbody td{
+    display:flex;justify-content:space-between;align-items:center;gap:12px;
+    border:none !important;padding:4px 0 !important;text-align:right;
+  }
+  .minutes-table tbody td::before{
+    content:attr(data-label);color:var(--muted);font-family:'JetBrains Mono',monospace;
+    font-size:10px;text-transform:uppercase;letter-spacing:0.5px;text-align:left;
+  }
+  .minutes-table tbody td.mt-open{justify-content:stretch;padding-top:10px !important;margin-top:6px;border-top:1px dashed var(--line) !important;}
+  .minutes-table tbody td.mt-open::before{display:none;}
+  .minutes-table .mt-open-btn{width:100%;justify-content:center;padding:12px;font-size:14px;}
+  .minutes-table .mt-fecha{display:flex !important;}
+
+  /* Detalle de minutaje: que la grilla ancha scrollee dentro de su tarjeta, no rompa la página */
+  #minutesDetail .annual-card{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  #minutesDetail .live-totals-head,#minutesDetail .live-total-row{min-width:440px;}
+
+  /* Fichas de pizarra un poco más cómodas para el dedo ya vienen por SVG;
+     nos aseguramos que la cancha no tenga overflow que bloquee el gesto */
+  .board-wrap,.board-layout{touch-action:pan-y;}
+  #futsalBoard{touch-action:none;}
 }
 
 /* Pantallas muy chicas (celulares angostos) */
@@ -3297,32 +3327,41 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     });
   }
 
-  // ----- Arrastre (mouse y touch) -----
+  // ----- Arrastre (Pointer Events: mouse + touch unificados) -----
   function makeDraggable(el, t){
     let dragging = false;
     function toSvg(evt){
       const pt = svg.createSVGPoint();
-      const src = evt.touches ? evt.touches[0] : evt;
-      pt.x = src.clientX; pt.y = src.clientY;
+      pt.x = evt.clientX; pt.y = evt.clientY;
       const ctm = svg.getScreenCTM().inverse();
       return pt.matrixTransform(ctm);
     }
-    function start(evt){ evt.preventDefault(); dragging = true; el.style.opacity='0.85'; }
-    function move(evt){
+    function onDown(evt){
+      evt.preventDefault();
+      dragging = true;
+      el.style.opacity = '0.85';
+      // capturamos el puntero: el arrastre sigue aunque el dedo salga de la ficha
+      try{ el.setPointerCapture(evt.pointerId); }catch(e){}
+    }
+    function onMove(evt){
       if(!dragging) return;
       evt.preventDefault();
       const p = toSvg(evt);
       t.x = Math.max(8, Math.min(W-8, p.x));
       t.y = Math.max(8, Math.min(H-8, p.y));
-      el.setAttribute('transform',`translate(${t.x},${t.y})`);
+      el.setAttribute('transform', `translate(${t.x},${t.y})`);
     }
-    function end(){ dragging = false; el.style.opacity='1'; }
-    el.addEventListener('mousedown', start);
-    el.addEventListener('touchstart', start, {passive:false});
-    window.addEventListener('mousemove', move);
-    window.addEventListener('touchmove', move, {passive:false});
-    window.addEventListener('mouseup', end);
-    window.addEventListener('touchend', end);
+    function onUp(evt){
+      if(!dragging) return;
+      dragging = false;
+      el.style.opacity = '1';
+      try{ el.releasePointerCapture(evt.pointerId); }catch(e){}
+    }
+    el.style.touchAction = 'none';   // el propio elemento no hace scroll
+    el.addEventListener('pointerdown', onDown);
+    el.addEventListener('pointermove', onMove);
+    el.addEventListener('pointerup', onUp);
+    el.addEventListener('pointercancel', onUp);
   }
 
   // ----- Botones -----
@@ -5083,14 +5122,14 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     }catch(e){ list.innerHTML='<p class="rd-empty">No se pudo cargar (¿corriste live-columns.sql?).</p>'; return; }
     if(sessions.length===0){ list.innerHTML='<p class="rd-empty">Todavía no hay minutajes. Terminá un partido en 🔴 En vivo y guardalo.</p>'; return; }
     list.innerHTML='';
-    const table=document.createElement('table'); table.className='match-table';
+    const table=document.createElement('table'); table.className='match-table minutes-table';
     table.innerHTML='<thead><tr><th>Partido</th><th class="mt-fecha">Fecha</th><th>Jugadores</th><th class="mt-open"></th></tr></thead><tbody></tbody>';
     const tb=table.querySelector('tbody');
     sessions.forEach(s=>{
       const when=s.created_at?new Date(s.created_at).toLocaleDateString('es-AR'):'';
       const nJug=s.totals?Object.keys(s.totals).length:0;
       const tr=document.createElement('tr');
-      tr.innerHTML=`<td><span class="mt-fecha-badge">${escapeHtml(s.name||'Partido')}</span></td><td class="mt-fecha">${when}</td><td>${nJug} jugadores</td><td class="mt-open"><button class="btn small mt-open-btn">Ver detalle →</button></td>`;
+      tr.innerHTML=`<td data-label="Partido"><span class="mt-fecha-badge">${escapeHtml(s.name||'Partido')}</span></td><td class="mt-fecha" data-label="Fecha">${when}</td><td data-label="Jugadores">${nJug} jugadores</td><td class="mt-open"><button class="btn small mt-open-btn">Ver detalle →</button></td>`;
       tr.querySelector('.mt-open-btn').addEventListener('click',()=>showMinutesDetail(s));
       tb.appendChild(tr);
     });
