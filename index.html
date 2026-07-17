@@ -2829,6 +2829,17 @@ async function ensureMembership(userId, fallbackClubName){
   // podría ser que el club ya existe pero no lo pudimos leer. Crear uno duplicaría.
   if(error){ console.error('No se pudo leer membership (no se crea club):', error); return { ok:false, reason:'read', error }; }
   if(!memberships || memberships.length === 0){
+    // Método principal: función del servidor que crea club + membresía de forma segura.
+    try{
+      const { data, error: rpcErr } = await sb.rpc('crear_mi_espacio', { nombre_club: fallbackClubName || 'Mi club' });
+      if(!rpcErr && data){ window.__clubIdCache = data; return { ok:true, clubId: data, created:true }; }
+      if(rpcErr && !/function|does not exist|not find/i.test(rpcErr.message||'')){
+        console.error('crear_mi_espacio:', rpcErr);
+        return { ok:false, reason:'rpc', error:rpcErr };
+      }
+      // función no existe: caemos al método directo
+    }catch(e){ /* método directo */ }
+    // Fallback directo
     const { data: club, error: clubErr } = await sb.from('clubs').insert({ name: fallbackClubName || 'Mi club' }).select().single();
     if(clubErr){
       console.error('No se pudo crear el club:', clubErr);
@@ -6348,10 +6359,22 @@ try{
         const { data: mem } = await sb.from('memberships').select('club_id').eq('user_id', userId).limit(1);
         if(mem && mem.length){ window.__clubIdCache = mem[0].club_id; return { ok:true, clubId: mem[0].club_id }; }
       }catch(e){ /* seguimos e intentamos crear */ }
-      // crear club
+
+      // Método principal: función del servidor que crea club + membresía de forma segura,
+      // esquivando las políticas de lectura (evita el error de "row-level security").
+      try{
+        const { data, error } = await sb.rpc('crear_mi_espacio', { nombre_club: nombre });
+        if(!error && data){ window.__clubIdCache = data; return { ok:true, clubId: data }; }
+        if(error && !/function|does not exist|not find/i.test(error.message||'')){
+          // la función existe pero devolvió otro error: lo reportamos
+          return { ok:false, error };
+        }
+        // si la función no existe (no se corrió el SQL), caemos al método directo abajo
+      }catch(e){ /* probamos método directo */ }
+
+      // Fallback: método directo (por si la función aún no está creada en la base).
       const { data: club, error: clubErr } = await sb.from('clubs').insert({ name: nombre }).select().single();
       if(clubErr) return { ok:false, error: clubErr };
-      // crear membresía
       const { error: memErr } = await sb.from('memberships').insert({ club_id: club.id, user_id: userId, role: 'owner' });
       if(memErr) return { ok:false, error: memErr };
       window.__clubIdCache = club.id;
