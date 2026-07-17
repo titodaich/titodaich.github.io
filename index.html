@@ -4114,7 +4114,8 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     // mostrar/ocultar controles según el tipo
     const manualCtrls = document.getElementById('liveManualCtrls');
     const autoCtrls = document.getElementById('liveAutoCtrls');
-    if(manualCtrls) manualCtrls.style.display = 'none';   // en parado ya no se usa el +/− global
+    // En parado mostramos el +1'/−1' para fijar el minuto del cambio (reloj regresivo).
+    if(manualCtrls) manualCtrls.style.display = parado ? 'flex' : 'none';
     if(autoCtrls) autoCtrls.style.display = parado ? 'none' : 'flex';
     // en parado, botones de tiempo/reset propios
     const paradoCtrls = document.getElementById('liveParadoCtrls');
@@ -4267,41 +4268,18 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     renderLog();
   }
 
-  // Tocar un TITULAR (en cancha): lo saca (en parado pide minuto de salida)
+  // Tocar un TITULAR (en cancha): lo selecciona para salir (igual en parado y corrido).
   function tapOnCourt(pid){
-    if(clockType==='parado'){
-      const st=ensure(pid);
-      const entradaMin = st.lastInAt!==null ? Math.round((halfMinutes*60 - st.lastInAt)/60) : halfMinutes;
-      openTimePicker('¿En qué minuto SALIÓ?', 'Entró en '+fmtClock(st.lastInAt!==null?st.lastInAt:0)+' de juego. Poné el minuto de salida (regresivo).', Math.max(0,entradaMin-1), 0, (elapsed)=>{
-        // salida no puede ser antes que la entrada
-        const outElapsed = Math.max(st.lastInAt||0, elapsed);
-        const dt = outElapsed - (st.lastInAt||0);
-        if(currentHalf===1) st.acc1 += dt; else st.acc2 += dt;
-        st.onCourt=false; st.lastInAt=null;
-        logEvent('out', null, pid);
-        renderField(); renderBench(); renderTotals(); updateOnCourt();
-      });
-      return;
-    }
-    // corrido: selección para cambio
     if(swapOutId === pid){ swapOutId=null; updateStep(); renderField(); renderBench(); return; }
     swapOutId = pid;
-    updateStep('Sale ' + (squad.find(p=>p.id===pid)||{}).name + ' → tocá quién ENTRA del banco.');
+    const quien = (squad.find(p=>p.id===pid)||{}).name || '';
+    updateStep('Sale ' + quien + ' → tocá quién ENTRA del banco.');
     renderField(); renderBench();
   }
-  // Tocar un SUPLENTE (banco)
+  // Tocar un SUPLENTE (banco): entra. Si había uno seleccionado para salir, hace el cambio.
   function tapBench(pid){
-    if(clockType==='parado'){
-      if(countOnCourt() >= 5){ toast(window.t('mFull5')); return; }
-      openTimePicker('¿En qué minuto ENTRÓ?', 'Reloj regresivo ('+halfMinutes+' → 0).', halfMinutes, 0, (elapsed)=>{
-        const st=ensure(pid); st.onCourt=true; st.lastInAt=elapsed;
-        logEvent('in', pid, null);
-        renderField(); renderBench(); renderTotals(); updateOnCourt();
-      });
-      return;
-    }
-    // corrido
     if(swapOutId !== null){
+      // cambio: el que sale acumula su tiempo hasta AHORA, el que entra arranca AHORA.
       playerOut(swapOutId); playerIn(pid);
       logEvent('swap', pid, swapOutId);
       swapOutId=null; updateStep();
