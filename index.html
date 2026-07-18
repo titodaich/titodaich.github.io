@@ -6,9 +6,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Benchone">
+<meta name="application-name" content="Benchone">
 <meta name="theme-color" content="#10161C">
-<meta name="format-detection" content="telephone=no">
-<title>Cancha·Edit — Editor de video para futsal</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjM4IiBmaWxsPSIjMTAxNjFDIi8+PGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNDYiIGZpbGw9IiNGMkY2RjgiLz48cGF0aCBkPSJNOTAgNTIgbDE0IDEwIC01IDE3IGgtMTggbC01IC0xNyB6IiBmaWxsPSIjMTAxNjFDIi8+PHBhdGggZD0iTTkwIDEyOCBsLTE0IC0xMCA1IC0xNiBoMTggbDUgMTYgeiIgZmlsbD0iIzEwMTYxQyIvPjxwYXRoIGQ9Ik00NCA5MCBsMTYgLTggMTIgMTAgLTQgMTYgLTE1IDMgeiIgZmlsbD0iIzEwMTYxQyIgb3BhY2l0eT0iMC44NSIvPjxwYXRoIGQ9Ik0xMzYgOTAgbC0xNiAtOCAtMTIgMTAgNCAxNiAxNSAzIHoiIGZpbGw9IiMxMDE2MUMiIG9wYWNpdHk9IjAuODUiLz48Y2lyY2xlIGN4PSI5MCIgY3k9IjkwIiByPSI0NiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRTUzNDJBIiBzdHJva2Utd2lkdGg9IjUiLz48L3N2Zz4K">
+<title>Benchone</title>
 <style>
 /* ====================== ESTILOS LOGIN ====================== */
 
@@ -1231,6 +1233,16 @@ body.editor-active #screen-editor{ display:block; }
   /* El cartel de vencimiento es sticky arriba: que no se meta bajo el notch */
   .sub-banner{padding-top: max(11px, calc(env(safe-area-inset-top) + 6px));}
 
+  /* Títulos y textos sueltos de cada sección: que no se peguen al borde izquierdo.
+     Los paneles ya tienen su propio padding, así que esto es para el contenido suelto. */
+  .section-content > h2,
+  .section-content > p,
+  .section-content > .scout-title,
+  .scout-head,
+  .live-intro, .stats-intro{
+    padding-left: 6px; padding-right: 6px;
+  }
+
   /* El toast avisa abajo: que no lo tape la barra de gestos */
   .toast{bottom: max(20px, calc(env(safe-area-inset-bottom) + 14px));}
 
@@ -1437,7 +1449,7 @@ body.editor-active #screen-editor{ display:block; }
 <div class="app">
   <div class="topbar">
     <div>
-      <div class="brand">CUERPO TÉCNICO<span class="dot">·</span>GESTIÓN FUTSAL</div>
+      <div class="brand">BENCHONE<span class="dot">·</span>GESTIÓN FUTSAL</div>
       <div class="brand-sub" data-i18n="brandSub">Panel de entrenador — futsal</div>
     </div>
     <div class="topbar-right">
@@ -2701,7 +2713,7 @@ window.__payLink = (function(){
 // Editá los datos entre [corchetes] y hacelo revisar por un profesional.
 window.__LEGAL_TEXT = `
 <h3>Términos de uso</h3>
-<p>Cancha·Edit es una herramienta para cuerpos técnicos de futsal que permite gestionar planteles, estadísticas, planificación, scouting y seguimiento de partidos. Al crear una cuenta aceptás estos términos.</p>
+<p>Benchone es una herramienta para cuerpos técnicos de futsal que permite gestionar planteles, estadísticas, planificación, scouting y seguimiento de partidos. Al crear una cuenta aceptás estos términos.</p>
 <p>Cada usuario es responsable de la información que carga. El servicio se ofrece "tal cual", y hacemos nuestro mejor esfuerzo por mantenerlo disponible y seguro, sin garantizar que esté libre de interrupciones.</p>
 <p>La cuenta es personal. No compartas tu contraseña. Podés dejar de usar el servicio y solicitar la baja de tu cuenta cuando quieras.</p>
 
@@ -6791,7 +6803,7 @@ try{
     ov.innerHTML = `<div class="pay-block-box">
       <div class="pay-block-icon">🔒</div>
       <h2>Tu prueba gratis terminó</h2>
-      <p>Para seguir usando Cuerpo Técnico, elegí el pack que mejor se adapte a tu trabajo. Tus datos están guardados y te esperan.</p>
+      <p>Para seguir usando Benchone, elegí el pack que mejor se adapte a tu trabajo. Tus datos están guardados y te esperan.</p>
       <button class="btn-primary" id="payBlockBtn" style="width:100%;margin-top:6px;">Ver planes y activar</button>
       <button id="payBlockLogout" style="width:100%;margin-top:10px;background:transparent;border:none;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline;">Cerrar sesión</button>
     </div>`;
@@ -8531,6 +8543,45 @@ document.getElementById('exportEachBtn').addEventListener('click', async () => {
 });
 
 };
+</script>
+
+<script>
+// ===== APP INSTALABLE (PWA) con todo embebido en este mismo archivo =====
+// No requiere archivos externos: el manifest y el service worker se generan acá.
+(function(){
+  try{
+    var icon = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjM4IiBmaWxsPSIjMTAxNjFDIi8+PGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNDYiIGZpbGw9IiNGMkY2RjgiLz48cGF0aCBkPSJNOTAgNTIgbDE0IDEwIC01IDE3IGgtMTggbC01IC0xNyB6IiBmaWxsPSIjMTAxNjFDIi8+PHBhdGggZD0iTTkwIDEyOCBsLTE0IC0xMCA1IC0xNiBoMTggbDUgMTYgeiIgZmlsbD0iIzEwMTYxQyIvPjxwYXRoIGQ9Ik00NCA5MCBsMTYgLTggMTIgMTAgLTQgMTYgLTE1IDMgeiIgZmlsbD0iIzEwMTYxQyIgb3BhY2l0eT0iMC44NSIvPjxwYXRoIGQ9Ik0xMzYgOTAgbC0xNiAtOCAtMTIgMTAgNCAxNiAxNSAzIHoiIGZpbGw9IiMxMDE2MUMiIG9wYWNpdHk9IjAuODUiLz48Y2lyY2xlIGN4PSI5MCIgY3k9IjkwIiByPSI0NiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRTUzNDJBIiBzdHJva2Utd2lkdGg9IjUiLz48L3N2Zz4K';
+    // Manifest embebido como blob (no hace falta manifest.json aparte)
+    var manifest = {
+      name: 'Benchone',
+      short_name: 'Benchone',
+      start_url: '.',
+      display: 'standalone',
+      background_color: '#10161C',
+      theme_color: '#10161C',
+      orientation: 'any',
+      icons: [
+        { src: icon, sizes: '180x180', type: 'image/svg+xml', purpose: 'any' },
+        { src: icon, sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
+      ]
+    };
+    var mBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+    var mURL = URL.createObjectURL(mBlob);
+    var link = document.createElement('link');
+    link.rel = 'manifest'; link.href = mURL;
+    document.head.appendChild(link);
+
+    // Service worker mínimo (necesario para que sea instalable). Se registra desde un blob.
+    if('serviceWorker' in navigator){
+      var swCode = "self.addEventListener('install', function(e){ self.skipWaiting(); });" +
+                   "self.addEventListener('activate', function(e){ e.waitUntil(self.clients.claim()); });" +
+                   "self.addEventListener('fetch', function(e){ /* passthrough: la app ya maneja su propio offline */ });";
+      var swBlob = new Blob([swCode], { type: 'text/javascript' });
+      var swURL = URL.createObjectURL(swBlob);
+      navigator.serviceWorker.register(swURL).catch(function(){ /* si falla, la app sigue andando igual */ });
+    }
+  }catch(e){ /* si algo falla, no rompe la app */ }
+})();
 </script>
 
 </body>
