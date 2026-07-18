@@ -6093,8 +6093,11 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   function renderAnnual(){
     const el = document.getElementById('annualContent');
     const hayAjuste = (adjustment.scorers||[]).length > 0 || (adjustment.scored||[]).length > 0 || (adjustment.conceded||[]).length > 0;
-    if(matches.length === 0 && !hayAjuste){
+    const _s = window.__annualShots || {};
+    const hayRemates = (_s.totalFor||0) > 0 || (_s.totalAgainst||0) > 0 || Object.keys(_s.porJugador||{}).length > 0 || Object.keys(_s.golesLive||{}).length > 0 || Object.keys(_s.tarjetasLive||{}).length > 0;
+    if(matches.length === 0 && !hayAjuste && !hayRemates){
       el.innerHTML = '<div class="annual-empty">Cargá partidos (o el ajuste del primer semestre) para ver las estadísticas anuales.</div>';
+      cargarRematesAnuales();   // por si hay remates de En Vivo, recargamos y volvemos a dibujar
       return;
     }
     // Acumular
@@ -6156,6 +6159,15 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     });
     (adjustment.conceded||[]).forEach(c => {
       if(c.origin && c.count){ origenContra[c.origin] = (origenContra[c.origin]||0) + Number(c.count); totalGA += Number(c.count); }
+    });
+    // Sumar goles y tarjetas cargados en EN VIVO (solo de sesiones independientes,
+    // sin match_id; eso ya se filtró al cargar, para no duplicar con la sección Partidos).
+    const _shots = window.__annualShots || {};
+    Object.entries(_shots.golesLive || {}).forEach(([name, n]) => {
+      if(name && n){ goleadores[name] = (goleadores[name]||0) + n; totalGF += n; }
+    });
+    Object.entries(_shots.tarjetasLive || {}).forEach(([name, n]) => {
+      if(name && n){ tarjetas[name] = (tarjetas[name]||0) + n; }
     });
     const rankHTML = (obj) => {
       const arr = Object.entries(obj).sort((a,b)=>b[1]-a[1]);
@@ -6258,8 +6270,69 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
           <div class="annual-card"><h3>🥅 Detalle de goles en contra</h3><div class="goal-detail-list">${detailListHTML(golesContraDetalle, true)}</div></div>
         </div>
         <div class="annual-card"><h3>🟨 Tarjetas</h3>${rankHTML(tarjetas)}</div>
+        <div class="annual-card"><h3>🎯 Remates al arco</h3>${(function(){
+          const sh = window.__annualShots;
+          if(!sh){ return '<div class="annual-empty" style="padding:16px;">Cargando remates…</div>'; }
+          const totalFor = sh.totalFor||0, totalAgainst = sh.totalAgainst||0;
+          const rank = rankHTML(sh.porJugador||{});
+          return `<div class="record-row" style="margin-bottom:12px;">
+              <span class="rec-item" style="color:var(--success)">${totalFor} <small>nuestros</small></span>
+              <span class="rec-item" style="color:var(--danger)">${totalAgainst} <small>del rival</small></span>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:6px;">Remates por jugador</div>
+            ${rank}`;
+        })()}</div>
       </details>
     `;
+    // Cargar los remates de las sesiones de En Vivo y redibujar cuando estén.
+    cargarRematesAnuales();
+  }
+
+  // Suma los remates de todas las sesiones de En Vivo (equipo y por jugador).
+  async function cargarRematesAnuales(){
+    try{
+      const sb = window.__sb; const clubId = await window.__getClubId();
+      if(!sb || !clubId) return;
+      const cat = catActual();
+      let q = sb.from('live_sessions').select('totals, match_id').eq('club_id', clubId);
+      q = cat ? q.eq('categoria', cat) : q.is('categoria', null);
+      const { data } = await q;
+      let totalFor = 0, totalAgainst = 0; const porJugador = {};
+      // Goles y tarjetas de En Vivo, SOLO de sesiones independientes (sin match_id):
+      // si la sesión está vinculada a un partido, ese partido ya cuenta en la
+      // sección Partidos, así que NO lo sumamos de nuevo (evita duplicar).
+      const golesLive = {}, tarjetasLive = {};
+      (data||[]).forEach(s => {
+        const t = s.totals || {};
+        const rival = t.__rival || {};
+        // Remates: se suman de TODAS las sesiones (no existen en la sección Partidos).
+        totalFor += (rival.shotsFor != null ? rival.shotsFor : ((rival.shotsFor1||0)+(rival.shotsFor2||0)));
+        totalAgainst += (rival.shotsAgainst != null ? rival.shotsAgainst : ((rival.shotsAgainst1||0)+(rival.shotsAgainst2||0)));
+        Object.keys(t).forEach(name => {
+          if(name === '__rival') return;
+          const sh = t[name] && t[name].shots;
+          if(sh) porJugador[name] = (porJugador[name]||0) + sh;
+        });
+        // Goles/tarjetas: solo si la sesión NO está vinculada a un partido.
+        if(!s.match_id){
+          Object.keys(t).forEach(name => {
+            if(name === '__rival') return;
+            const g = t[name] && t[name].goals;
+            const c = t[name] && t[name].cards;
+            if(g) golesLive[name] = (golesLive[name]||0) + g;
+            if(c) tarjetasLive[name] = (tarjetasLive[name]||0) + c;
+          });
+        }
+      });
+      const nueva = { totalFor, totalAgainst, porJugador, golesLive, tarjetasLive };
+      const firma = cat + '|' + JSON.stringify(nueva);
+      if(window.__annualShotsSig === firma) return;   // sin cambios: no redibujar
+      window.__annualShotsSig = firma;
+      window.__annualShots = nueva;
+      // redibujar solo si seguimos en la pestaña anual
+      const el = document.getElementById('annualContent');
+      if(el && el.offsetParent !== null) renderAnnual();
+    }catch(e){ console.error('cargarRematesAnuales', e); }
   }
 
   // Gráfico de dona (distribución de orígenes de gol)
