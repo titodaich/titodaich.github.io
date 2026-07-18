@@ -6603,6 +6603,57 @@ try{
     }catch(e){ /* sin tabla: usamos el valor local */ }
   };
 
+  // Para usuarios VIEJOS (registrados antes de que el WhatsApp fuera obligatorio):
+  // si no tienen WhatsApp cargado, se lo pedimos con un cartel suave (una sola vez por sesión).
+  window.__ensureWhatsapp = async function(){
+    try{
+      if(sessionStorage.getItem('waAsked') === '1') return;   // no insistir en la misma sesión
+      const { data: { session } } = await sb.auth.getSession();
+      if(!session) return;
+      const { data, error } = await sb.from('profiles').select('whatsapp, full_name').eq('id', session.user.id).single();
+      if(error || !data) return;
+      const wa = (data.whatsapp || '').replace(/[^\d]/g, '');
+      if(wa.length >= 8) return;   // ya tiene WhatsApp válido: nada que pedir
+      mostrarPedidoWhatsapp(session.user.id);
+    }catch(e){ /* silencioso */ }
+  };
+
+  function mostrarPedidoWhatsapp(userId){
+    if(document.getElementById('waAskModal')) return;
+    const m = document.createElement('div');
+    m.id = 'waAskModal';
+    m.className = 'plans-overlay';
+    m.innerHTML = `<div class="plans-box" style="max-width:400px;text-align:left;">
+      <h2 style="font-size:20px;">📱 Completá tu WhatsApp</h2>
+      <p style="color:var(--muted);font-size:14px;line-height:1.5;margin:8px 0 14px;">Lo usamos solo para avisarte cosas de tu cuenta (por ejemplo, cuando esté por vencer). No se comparte con nadie.</p>
+      <input type="tel" id="waAskInput" placeholder="11 2345-6789" autocomplete="tel" style="width:100%;padding:11px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);color:var(--chalk);font-size:15px;box-sizing:border-box;">
+      <div id="waAskErr" style="color:var(--danger);font-size:12px;margin-top:6px;display:none;">Poné un número válido (al menos 8 dígitos).</div>
+      <button class="btn-primary" id="waAskSave" style="width:100%;margin-top:14px;">Guardar</button>
+      <button id="waAskLater" style="width:100%;margin-top:10px;background:transparent;border:none;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline;">Ahora no</button>
+    </div>`;
+    document.body.appendChild(m);
+    const input = document.getElementById('waAskInput');
+    input.focus();
+    document.getElementById('waAskLater').addEventListener('click', ()=>{
+      sessionStorage.setItem('waAsked', '1');   // no volver a molestar esta sesión
+      m.remove();
+    });
+    document.getElementById('waAskSave').addEventListener('click', async ()=>{
+      const val = input.value.trim();
+      const num = val.replace(/[^\d]/g, '');
+      if(num.length < 8){ document.getElementById('waAskErr').style.display='block'; return; }
+      try{
+        await sb.from('profiles').update({ whatsapp: val }).eq('id', userId);
+        sessionStorage.setItem('waAsked', '1');
+        m.remove();
+        try{ if(window.toast) window.toast('¡Gracias! WhatsApp guardado.'); }catch(_){}
+      }catch(e){
+        const errEl = document.getElementById('waAskErr');
+        if(errEl){ errEl.textContent = 'No se pudo guardar. Probá de nuevo.'; errEl.style.display='block'; }
+      }
+    });
+  }
+
   // Chequea el estado de la suscripción y muestra el cartel si corresponde
   window.__checkSubscription = async function(){
     // Interruptor maestro: si el cobro está apagado, no mostramos NADA.
@@ -6791,6 +6842,7 @@ try{
     if(window.__loadCategoriesOnce) window.__loadCategoriesOnce();
     if(window.__checkSubscription) window.__checkSubscription();
     if(window.__ensureClubOrAsk) window.__ensureClubOrAsk();
+    if(window.__ensureWhatsapp) window.__ensureWhatsapp();
   })();
 }catch(err){
   console.error('Supabase no se pudo inicializar en el editor:', err);
