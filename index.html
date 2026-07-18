@@ -663,7 +663,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .bench-empty{color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;padding:10px;}
 
 .live-totals-wrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;}
-.live-totals-head,.live-total-row{display:grid;grid-template-columns:1fr 58px 58px 64px 34px 34px 34px;gap:6px;align-items:center;}
+.live-totals-head,.live-total-row{display:grid;grid-template-columns:1fr 58px 58px 64px 34px 34px 34px 34px;gap:6px;align-items:center;}
 .live-totals-head{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line);}
 .live-totals-head span:not(:first-child),.live-total-row span:not(:first-child){text-align:center;font-family:'JetBrains Mono',monospace;}
 .live-totals{margin-top:6px;}
@@ -1312,7 +1312,7 @@ body.editor-active #screen-editor{ display:block; }
 
   /* Detalle de minutaje: que la grilla ancha scrollee dentro de su tarjeta, no rompa la página */
   #minutesDetail .annual-card{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-  #minutesDetail .live-totals-head,#minutesDetail .live-total-row{min-width:440px;}
+  #minutesDetail .live-totals-head,#minutesDetail .live-total-row{min-width:474px;}
 
   /* Fichas de pizarra un poco más cómodas para el dedo ya vienen por SVG;
      nos aseguramos que la cancha no tenga overflow que bloquee el gesto */
@@ -2114,7 +2114,7 @@ body.editor-active #screen-editor{ display:block; }
       </div>
 
       <div class="live-swap-hint" id="liveSwapHint">
-        <span data-i18n="liveSwapHintTxt">Tocá el jugador que SALE (en la cancha) y después el que ENTRA (del banco). Los botones ⚽ y 🟨 cargan gol y falta.</span>
+        <span data-i18n="liveSwapHintTxt">Tocá el jugador que SALE (en la cancha) y después el que ENTRA (del banco). Los botones ⚽ 🎯 y 🟨 cargan gol, remate y falta.</span>
         <span id="liveSwapStep"></span>
       </div>
 
@@ -2132,7 +2132,7 @@ body.editor-active #screen-editor{ display:block; }
       <div class="live-totals-wrap">
         <div class="rd-card-head"><h3 data-i18n="liveMinBy">Minutos y acciones por jugador</h3></div>
         <div class="live-totals-head">
-          <span data-i18n="livePlayer">Jugador</span><span data-i18n="liveT1">1er T</span><span data-i18n="liveT2">2do T</span><span data-i18n="liveTotal">Total</span><span title="Goles">⚽</span><span title="Faltas">⚠️</span><span title="Tarjetas">🟨</span>
+          <span data-i18n="livePlayer">Jugador</span><span data-i18n="liveT1">1er T</span><span data-i18n="liveT2">2do T</span><span data-i18n="liveTotal">Total</span><span title="Goles">⚽</span><span title="Remates">🎯</span><span title="Faltas">⚠️</span><span title="Tarjetas">🟨</span>
         </div>
         <div class="live-totals" id="liveTotals"></div>
       </div>
@@ -2256,7 +2256,7 @@ window.I18N = {
     liveOnField:'EN CANCHA', liveBench:'BANCO', liveMinBy:'Minutos y acciones por jugador',
     liveEvents:'Registro de eventos', liveStart:'▶ Iniciar', liveHalf:'⏱ Fin 1er tiempo', liveReset:'↺ Reiniciar',
     liveMinReg:'Minuto (regresivo):', liveFirstHalf:'1er tiempo', liveSecondHalf:'2do tiempo',
-    liveSwapHintTxt:'Tocá el jugador que SALE (en la cancha) y después el que ENTRA (del banco). Los botones ⚽ y 🟨 cargan gol y falta.',
+    liveSwapHintTxt:'Tocá el jugador que SALE (en la cancha) y después el que ENTRA (del banco). Los botones ⚽ 🎯 y 🟨 cargan gol, remate y falta.',
     livePlayer:'Jugador', liveT1:'1er T', liveT2:'2do T', liveTotal:'Total',
     liveNoEvents:'Todavía no hay eventos. Iniciá el reloj y armá el equipo.',
     liveClockRunning:'⏱ Reloj CORRIDO · 2×25\' (corre sin parar)', liveClockStopped:'⏱ Reloj PARADO · 2×20\' · cargá los minutos a mano',
@@ -4201,7 +4201,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     if(tpOnOk){ const fn=tpOnOk; tpOnOk=null; fn(regresivoToElapsed(tpMin,tpSec), tpMin, tpSec); }
   });
 
-  function ensure(pid){ if(!state[pid]) state[pid] = {onCourt:false, acc1:0, acc2:0, lastInAt:null, goals:0, fouls1:0, fouls2:0, cards:0}; if(state[pid].goals===undefined) state[pid].goals=0; if(state[pid].cards===undefined) state[pid].cards=0; if(state[pid].fouls1===undefined) state[pid].fouls1=0; if(state[pid].fouls2===undefined) state[pid].fouls2=0; if(state[pid].fouls!==undefined && state[pid].fouls1===0 && state[pid].fouls2===0){ /* compat: partido viejo con fouls único → lo tratamos como del 1er tiempo */ state[pid].fouls1=state[pid].fouls; } return state[pid]; }
+  function ensure(pid){ if(!state[pid]) state[pid] = {onCourt:false, acc1:0, acc2:0, lastInAt:null, goals:0, fouls1:0, fouls2:0, cards:0, shots:0}; if(state[pid].goals===undefined) state[pid].goals=0; if(state[pid].cards===undefined) state[pid].cards=0; if(state[pid].shots===undefined) state[pid].shots=0; if(state[pid].fouls1===undefined) state[pid].fouls1=0; if(state[pid].fouls2===undefined) state[pid].fouls2=0; if(state[pid].fouls!==undefined && state[pid].fouls1===0 && state[pid].fouls2===0){ /* compat: partido viejo con fouls único → lo tratamos como del 1er tiempo */ state[pid].fouls1=state[pid].fouls; } return state[pid]; }
   // faltas del tiempo que se está jugando (lo que se muestra en pantalla)
   function foulsNow(pid){ const st=ensure(pid); return currentHalf===1 ? (st.fouls1||0) : (st.fouls2||0); }
   // faltas totales del partido (para guardar en el historial)
@@ -4291,7 +4291,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     st.onCourt=false; st.lastInAt=null;
   }
   function totalsSnapshot(){
-    const o={}; squad.forEach(p=>{ const st=ensure(p.id); o[p.name]={t1:time1(p.id),t2:time2(p.id),total:timeTotal(p.id),goals:st.goals||0,fouls:foulsTotal(p.id),fouls1:st.fouls1||0,fouls2:st.fouls2||0,cards:st.cards||0,number:p.number||''}; }); return o;
+    const o={}; squad.forEach(p=>{ const st=ensure(p.id); o[p.name]={t1:time1(p.id),t2:time2(p.id),total:timeTotal(p.id),goals:st.goals||0,fouls:foulsTotal(p.id),fouls1:st.fouls1||0,fouls2:st.fouls2||0,cards:st.cards||0,shots:st.shots||0,number:p.number||''}; }); return o;
   }
   function logEvent(type, inId, outId){
     const inP=squad.find(p=>p.id===inId), outP=squad.find(p=>p.id===outId);
@@ -4415,10 +4415,11 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       d.style.top = slot.y + '%';
       const roleLabel = role==='otro' ? '' : role.charAt(0).toUpperCase()+role.slice(1);
       const st=ensure(p.id);
-      d.innerHTML=`<div class="lt-num">${escapeHtml(p.number?'#'+p.number:'')}${roleLabel?' · '+roleLabel:''}</div><div class="lt-name">${escapeHtml(p.name)}</div><div class="lt-time" data-t="${p.id}">${fmtClock(timeTotal(p.id))}</div><div class="lt-actions"><button class="lt-act lt-goal" title="Gol">⚽<span class="lt-cnt">${st.goals||0}</span></button><button class="lt-act lt-foul" title="Falta (del tiempo actual)">⚠️<span class="lt-cnt">${foulsNow(p.id)}</span></button><button class="lt-act lt-card" title="Tarjeta amarilla">🟨<span class="lt-cnt">${st.cards||0}</span></button></div>`;
+      d.innerHTML=`<div class="lt-num">${escapeHtml(p.number?'#'+p.number:'')}${roleLabel?' · '+roleLabel:''}</div><div class="lt-name">${escapeHtml(p.name)}</div><div class="lt-time" data-t="${p.id}">${fmtClock(timeTotal(p.id))}</div><div class="lt-actions"><button class="lt-act lt-goal" title="Gol">⚽<span class="lt-cnt">${st.goals||0}</span></button><button class="lt-act lt-shot" title="Remate al arco">🎯<span class="lt-cnt">${st.shots||0}</span></button><button class="lt-act lt-foul" title="Falta (del tiempo actual)">⚠️<span class="lt-cnt">${foulsNow(p.id)}</span></button><button class="lt-act lt-card" title="Tarjeta amarilla">🟨<span class="lt-cnt">${st.cards||0}</span></button></div>`;
       // click en la ficha (fuera de los botones) = cambio
       d.addEventListener('click',(e)=>{ if(e.target.closest('.lt-act')) return; tapOnCourt(p.id); });
       d.querySelector('.lt-goal').addEventListener('click',(e)=>{ e.stopPropagation(); addGoal(p.id); });
+      d.querySelector('.lt-shot').addEventListener('click',(e)=>{ e.stopPropagation(); addShot(p.id); });
       d.querySelector('.lt-foul').addEventListener('click',(e)=>{ e.stopPropagation(); addFoul(p.id); });
       d.querySelector('.lt-card').addEventListener('click',(e)=>{ e.stopPropagation(); addCard(p.id); });
       field.appendChild(d);
@@ -4477,7 +4478,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       const row=document.createElement('div');
       row.className='live-total-row'+(ensure(p.id).onCourt?' on-court':'');
       row.dataset.row=p.id;
-      row.innerHTML=`<span class="ltr-name"><small>${escapeHtml(p.number?'#'+p.number:'')}</small>${escapeHtml(p.name)}</span><span data-t1="${p.id}">${fmtClock(time1(p.id))}</span><span data-t2="${p.id}">${fmtClock(time2(p.id))}</span><span class="ltr-total" data-tt="${p.id}">${fmtClock(timeTotal(p.id))}</span><span data-g="${p.id}">${ensure(p.id).goals||0}</span><span data-f="${p.id}">${foulsTotal(p.id)}</span><span data-c="${p.id}">${ensure(p.id).cards||0}</span>`;
+      row.innerHTML=`<span class="ltr-name"><small>${escapeHtml(p.number?'#'+p.number:'')}</small>${escapeHtml(p.name)}</span><span data-t1="${p.id}">${fmtClock(time1(p.id))}</span><span data-t2="${p.id}">${fmtClock(time2(p.id))}</span><span class="ltr-total" data-tt="${p.id}">${fmtClock(timeTotal(p.id))}</span><span data-g="${p.id}">${ensure(p.id).goals||0}</span><span data-sh="${p.id}">${ensure(p.id).shots||0}</span><span data-f="${p.id}">${foulsTotal(p.id)}</span><span data-c="${p.id}">${ensure(p.id).cards||0}</span>`;
       cont.appendChild(row);
     });
   }
@@ -4500,6 +4501,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       else if(ev.type==='swap'){ desc='Cambio: sale '+escapeHtml(ev.outName)+', entra '+escapeHtml(ev.inName); cls='swap'; label='Cambio'; }
       else if(ev.type==='half'){ desc='— Fin del 1er tiempo —'; cls='half'; label='Tiempo'; }
       else if(ev.type==='goal'){ desc='⚽ Gol de '+escapeHtml(ev.inName); cls='in'; label='Gol'; }
+      else if(ev.type==='shot'){ desc='🎯 Remate de '+escapeHtml(ev.inName); cls='swap'; label='Remate'; }
       else if(ev.type==='foul'){ desc='⚠️ Falta de '+escapeHtml(ev.inName); cls='out'; label='Falta'; }
       else if(ev.type==='card'){ desc='🟨 Tarjeta a '+escapeHtml(ev.inName); cls='half'; label='Tarjeta'; }
       row.innerHTML=`<span class="llr-time">${fmtClock(ev.t)}</span><span class="llr-type ${cls}">${label}</span><span class="llr-desc">${desc}</span>`;
@@ -4709,7 +4711,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     if(conv.length<5){ toast(window.t('mPick5')); return; }
     // fijar el plantel del partido = convocados
     squad=conv.map(p=>({...p}));
-    state={}; squad.forEach(p=>{ state[p.id]={onCourt:false,acc1:0,acc2:0,lastInAt:null,goals:0,fouls1:0,fouls2:0,cards:0}; });
+    state={}; squad.forEach(p=>{ state[p.id]={onCourt:false,acc1:0,acc2:0,lastInAt:null,goals:0,fouls1:0,fouls2:0,cards:0,shots:0}; });
     events=[]; clockSeconds=0; currentHalf=1; halfSplitAt=null; swapOutId=null; manualMin=halfMinutes; liveRowId=null;
     goalsAgainstManual=0; foulsAgainst1=0; foulsAgainst2=0;
     shotsFor1=0; shotsFor2=0; shotsAgainst1=0; shotsAgainst2=0;
@@ -4749,6 +4751,14 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     renderField(); renderTotals(); renderLog(); renderScoreboard();
     toast(window.t('mFoulOf')+((squad.find(p=>p.id===pid)||{}).name||''));
   }
+  function addShot(pid){
+    const st=ensure(pid); st.shots=(st.shots||0)+1;
+    // suma también al total de remates del equipo, en el tiempo actual
+    if(currentHalf===1) shotsFor1++; else shotsFor2++;
+    events.unshift({ t:nowSeconds(), type:'shot', pid, inName:(squad.find(p=>p.id===pid)||{}).name||'', outName:'', half:currentHalf });
+    renderField(); renderTotals(); renderLog(); renderScoreboard();
+    toast('🎯 Remate de '+((squad.find(p=>p.id===pid)||{}).name||''));
+  }
   function addCard(pid){
     const st=ensure(pid); st.cards++;
     events.unshift({ t:nowSeconds(), type:'card', pid, inName:(squad.find(p=>p.id===pid)||{}).name||'', outName:'', half:currentHalf });
@@ -4761,6 +4771,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     const ev = events[0];
     let msg = '';
     if(ev.type==='goal'){ const st=ensure(ev.pid); if(st) st.goals=Math.max(0,(st.goals||0)-1); msg='Gol deshecho'; }
+    else if(ev.type==='shot'){ const st=ensure(ev.pid); if(st) st.shots=Math.max(0,(st.shots||0)-1); if(ev.half===2){ shotsFor2=Math.max(0,shotsFor2-1); } else { shotsFor1=Math.max(0,shotsFor1-1); } msg='Remate deshecho'; }
     else if(ev.type==='foul'){ const st=ensure(ev.pid); if(st){ if(ev.half===2){ st.fouls2=Math.max(0,(st.fouls2||0)-1); } else { st.fouls1=Math.max(0,(st.fouls1||0)-1); } } msg='Falta deshecha'; }
     else if(ev.type==='card'){ const st=ensure(ev.pid); if(st) st.cards=Math.max(0,(st.cards||0)-1); msg='Tarjeta deshecha'; }
     else if(ev.type==='in' || ev.type==='swap' || ev.type==='out' || ev.type==='half'){
@@ -5833,11 +5844,11 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       </div>
       <div class="annual-card">
         <div class="rd-card-head"><h3>${escapeHtml(s.name||'Partido')}</h3></div>
-        <div class="live-totals-head" style="margin-top:8px;grid-template-columns:1fr 58px 58px 64px 34px 34px 34px;"><span>Jugador</span><span>1er T</span><span>2do T</span><span>Total</span><span title="Goles">⚽</span><span title="Faltas">⚠️</span><span title="Tarjetas">🟨</span></div>
+        <div class="live-totals-head" style="margin-top:8px;grid-template-columns:1fr 58px 58px 64px 34px 34px 34px 34px;"><span>Jugador</span><span>1er T</span><span>2do T</span><span>Total</span><span title="Goles">⚽</span><span title="Remates">🎯</span><span title="Faltas">⚠️</span><span title="Tarjetas">🟨</span></div>
         <div>`;
     if(rows.length===0){ html+='<p class="rd-empty">Sin datos de minutos.</p>'; }
     rows.forEach(r=>{
-      html+=`<div class="live-total-row" style="grid-template-columns:1fr 58px 58px 64px 34px 34px 34px;"><span class="ltr-name">${escapeHtml(r.name)}</span><span>${fmtMin(r.t1)}</span><span>${fmtMin(r.t2)}</span><span class="ltr-total">${fmtMin(r.total)}</span><span>${r.goals||0}</span><span>${r.fouls||0}</span><span>${r.cards||0}</span></div>`;
+      html+=`<div class="live-total-row" style="grid-template-columns:1fr 58px 58px 64px 34px 34px 34px 34px;"><span class="ltr-name">${escapeHtml(r.name)}</span><span>${fmtMin(r.t1)}</span><span>${fmtMin(r.t2)}</span><span class="ltr-total">${fmtMin(r.total)}</span><span>${r.goals||0}</span><span>${r.shots||0}</span><span>${r.fouls||0}</span><span>${r.cards||0}</span></div>`;
     });
     html+='</div></div>';
     // eventos
