@@ -898,6 +898,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .week-grid .ex-name{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-family:'Oswald',sans-serif;font-size:13px;padding:8px 8px;font-weight:600;}
 .week-grid .ex-name:focus{outline:none;border-color:var(--accent);}
 .week-grid .day-cell{width:100%;min-width:120px;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-family:'Inter',sans-serif;font-size:12px;padding:8px 8px;resize:vertical;min-height:52px;line-height:1.45;}
+.week-grid tfoot td{border-top:2px solid var(--line);padding:8px 6px;vertical-align:top;}
+.cuartetos-head{font-family:'Oswald',sans-serif;font-size:13px;color:var(--accent-2);white-space:nowrap;}
+.cuartetos-head small{font-family:'Inter',sans-serif;font-size:10px;color:var(--muted);font-weight:400;}
+.cuartetos-cell{min-width:120px;}
+.cuarteto-item{display:flex;flex-direction:column;gap:2px;margin-bottom:6px;}
+.cuarteto-item:last-child{margin-bottom:0;}
+.cuarteto-lbl{font-family:'JetBrains Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:0.3px;color:var(--muted);}
+.cuarteto-input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-family:'Inter',sans-serif;font-size:12px;padding:6px 8px;resize:vertical;min-height:34px;line-height:1.4;box-sizing:border-box;}
+.cuarteto-input:focus{outline:none;border-color:var(--accent-2);}
 .week-grid .day-cell:focus{outline:none;border-color:var(--accent-2);}
 .week-grid .ex-del{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:14px;padding:6px;}
 .week-grid .ex-del:hover{color:var(--danger);}
@@ -1859,6 +1868,7 @@ body.editor-active #screen-editor{ display:block; }
               </tr>
             </thead>
             <tbody id="weekTableBody"></tbody>
+            <tfoot id="weekTableFoot"></tfoot>
           </table>
         </div>
       </div>
@@ -4965,6 +4975,36 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
       });
       tr.querySelector('.ex-del').addEventListener('click', () => { w.content.ejercicios.splice(idx,1); renderExercises(); flashSaved(); });
       body.appendChild(tr);
+    });
+    renderCuartetos();
+  }
+
+  // Fila al pie: los 3 cuartetos (grupos de jugadores) de cada día.
+  function renderCuartetos(){
+    const w = currentWeek(); if(!w) return;
+    const foot = document.getElementById('weekTableFoot');
+    if(!foot) return;
+    if(!w.content.cuartetos) w.content.cuartetos = {};
+    const labels = ['1er cuarteto', '2do cuarteto', '3er cuarteto'];
+    let cells = `<td class="cuartetos-head">🧩 Cuartetos<br><small>grupos de jugadores</small></td>`;
+    DIAS.forEach(dia => {
+      const vals = w.content.cuartetos[dia] || ['','',''];
+      let box = '<td class="cuartetos-cell">';
+      for(let i=0;i<3;i++){
+        box += `<div class="cuarteto-item"><span class="cuarteto-lbl">${labels[i]}</span><textarea class="cuarteto-input" data-dia="${dia}" data-idx="${i}" rows="1" placeholder="—">${escapeHtml(vals[i]||'')}</textarea></div>`;
+      }
+      box += '</td>';
+      cells += box;
+    });
+    cells += '<td></td>';
+    foot.innerHTML = `<tr>${cells}</tr>`;
+    foot.querySelectorAll('.cuarteto-input').forEach(inp => {
+      inp.addEventListener('input', e => {
+        const dia = inp.dataset.dia, i = +inp.dataset.idx;
+        if(!w.content.cuartetos[dia]) w.content.cuartetos[dia] = ['','',''];
+        w.content.cuartetos[dia][i] = e.target.value;
+        flashSaved();
+      });
     });
   }
 
