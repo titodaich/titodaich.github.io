@@ -946,12 +946,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .plans-sub{color:var(--muted);font-size:14px;margin:0 0 20px;}
 .plans-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .plans-grid-3{grid-template-columns:1fr 1fr 1fr;}
-.plan-card{display:flex;flex-direction:column;gap:6px;background:var(--panel-2);border:2px solid var(--line);border-radius:12px;padding:16px;text-decoration:none;color:var(--chalk);transition:all .12s ease;text-align:center;align-items:center;}
+.plan-card{display:flex;flex-direction:column;gap:7px;background:var(--panel-2);border:2px solid var(--line);border-radius:12px;padding:20px 16px;text-decoration:none;color:var(--chalk);transition:all .12s ease;text-align:center;align-items:center;}
 .plan-card:hover{border-color:var(--accent);transform:translateY(-2px);}
 .plan-label{font-family:'Oswald',sans-serif;font-size:16px;font-weight:600;}
 .plan-price{font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;color:var(--chalk);}
 .plan-permonth{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);}
 .plan-note{font-size:10.5px;color:var(--success);font-weight:600;}
+.plan-desc{font-size:12px;line-height:1.4;color:var(--muted);margin:2px 0;}
+.plan-feature{font-size:10.5px;color:var(--accent-2);font-weight:600;line-height:1.3;}
 .plan-go{font-size:12px;color:var(--accent);font-weight:600;}
 .plan-card{position:relative;}
 .plan-badge{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;padding:2px 8px;border-radius:20px;white-space:nowrap;}
@@ -964,6 +966,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .plans-legal a{color:var(--accent-2);cursor:pointer;}
 .plans-back{background:transparent;border:none;color:var(--accent-2);font-size:12px;cursor:pointer;padding:0;margin-bottom:8px;font-family:'JetBrains Mono',monospace;}
 .plans-back:hover{text-decoration:underline;}
+.pay-block-overlay{position:fixed;inset:0;z-index:9999;background:rgba(16,22,28,0.92);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;padding:max(20px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));}
+.pay-block-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;max-width:420px;width:100%;padding:32px 26px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.5);}
+.pay-block-icon{font-size:44px;margin-bottom:8px;}
+.pay-block-box h2{font-family:'Oswald',sans-serif;font-size:24px;margin:0 0 10px;color:var(--chalk);}
+.pay-block-box p{font-size:14px;line-height:1.55;color:var(--muted);margin:0 0 18px;}
+.mp-card{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:6px;}
+.mp-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:14px;color:var(--muted);border-bottom:1px solid var(--line);}
+.mp-row:last-child{border-bottom:none;}
+.mp-row b{color:var(--chalk);font-family:'Oswald',sans-serif;font-size:15px;}
 .legal-body h3{font-family:'Oswald',sans-serif;font-size:15px;margin:18px 0 6px;color:var(--chalk);}
 .legal-body p{font-size:13px;line-height:1.55;color:var(--muted);margin:0 0 10px;}
 .legal-body b{color:var(--chalk);}
@@ -1427,6 +1438,7 @@ body.editor-active #screen-editor{ display:block; }
         <option value="pt">🇧🇷 PT</option>
       </select>
       <span class="user-badge" id="userBadge"></span>
+      <button class="btn small ghost" id="myPlanBtn" style="display:none;">💳 Mi plan</button>
       <div class="project-actions" id="videoProjectActions">
         <button class="btn small primary" id="saveCloudBtn" data-i18n="saveCloud">☁ Guardar en la nube</button>
         <button class="btn small ghost" id="loadCloudBtn" data-i18n="myMatches">☁ Mis partidos</button>
@@ -2059,6 +2071,18 @@ body.editor-active #screen-editor{ display:block; }
               <button class="lsb-mini" id="sbFAplus" aria-label="+">+</button>
             </div>
           </div>
+          <div class="lsb-fouls-row">
+            <div class="lsb-fouls-manual" id="sbShotsForBox">
+              <button class="lsb-mini" id="sbSFminus" aria-label="−">−</button>
+              <span><span data-i18n="sbShots">Remates</span> <b id="sbShotsFor">0</b></span>
+              <button class="lsb-mini" id="sbSFplus" aria-label="+">+</button>
+            </div>
+            <div class="lsb-fouls-manual" id="sbShotsAgainstBox">
+              <button class="lsb-mini" id="sbSAminus" aria-label="−">−</button>
+              <span><span data-i18n="sbShots">Remates</span> <b id="sbShotsAgainst">0</b></span>
+              <button class="lsb-mini" id="sbSAplus" aria-label="+">+</button>
+            </div>
+          </div>
         </div>
 
         <button class="btn primary live-finish-top" id="liveFinishBtnTop" data-i18n="liveFinish">🏁 Finalizar partido</button>
@@ -2252,7 +2276,7 @@ window.I18N = {
     stMatchesTitle:'Partidos', stMatchesSub:'Cargá cada partido con sus goles, asistencias y tarjetas. Se suma solo en las estadísticas anuales.',
     newMatch:'+ Nuevo partido', goalsFor:'⚽ Goles a favor', addGoal:'+ Gol', assists:'🅰 Asistencias', addAssist:'+ Asistencia',
     goalsAgainst:'🥅 Goles en contra', addGoalAgainst:'+ Gol en contra', cards:'🟨 Tarjetas', addCard:'+ Tarjeta',
-    sbUs:'NOSOTROS', sbThem:'RIVAL', sbFouls:'Faltas',
+    sbUs:'NOSOTROS', sbThem:'RIVAL', sbFouls:'Faltas', sbShots:'Remates',
     delMatch:'Eliminar partido', editTags:'⚙ Editar tags de gol',
     squadTitle:'Plantel', squadSub:'Los jugadores de esta categoría. Se usan para cargar goleadores y asistencias.', addPlayer:'+ Agregar jugador',
     callsTitle:'Convocatorias', callsSub:'Marcá quién estuvo convocado en cada partido. Tocá una vez para ✓ convocado, otra para ✕ no disponible, otra para vaciar.',
@@ -2332,7 +2356,7 @@ window.I18N = {
     stMatchesTitle:'Matches', stMatchesSub:'Log each match with its goals, assists and cards. It adds up in the season stats.',
     newMatch:'+ New match', goalsFor:'⚽ Goals for', addGoal:'+ Goal', assists:'🅰 Assists', addAssist:'+ Assist',
     goalsAgainst:'🥅 Goals against', addGoalAgainst:'+ Goal against', cards:'🟨 Cards', addCard:'+ Card',
-    sbUs:'US', sbThem:'RIVAL', sbFouls:'Fouls',
+    sbUs:'US', sbThem:'RIVAL', sbFouls:'Fouls', sbShots:'Shots',
     delMatch:'Delete match', editTags:'⚙ Edit goal tags',
     squadTitle:'Roster', squadSub:'The players of this category. Used to log scorers and assists.', addPlayer:'+ Add player',
     callsTitle:'Call-ups', callsSub:'Mark who was called up for each match. Tap once for ✓ called, again for ✕ unavailable, again to clear.',
@@ -2407,7 +2431,7 @@ window.I18N = {
     stMatchesTitle:'Jogos', stMatchesSub:'Registre cada jogo com seus gols, assistências e cartões. Soma nas estatísticas anuais.',
     newMatch:'+ Novo jogo', goalsFor:'⚽ Gols a favor', addGoal:'+ Gol', assists:'🅰 Assistências', addAssist:'+ Assistência',
     goalsAgainst:'🥅 Gols contra', addGoalAgainst:'+ Gol contra', cards:'🟨 Cartões', addCard:'+ Cartão',
-    sbUs:'NÓS', sbThem:'RIVAL', sbFouls:'Faltas',
+    sbUs:'NÓS', sbThem:'RIVAL', sbFouls:'Faltas', sbShots:'Remates',
     delMatch:'Excluir jogo', editTags:'⚙ Editar tags de gol',
     squadTitle:'Elenco', squadSub:'Os jogadores desta categoria. Usados para registrar artilheiros e assistências.', addPlayer:'+ Adicionar jogador',
     callsTitle:'Convocações', callsSub:'Marque quem foi convocado em cada jogo. Toque uma vez para ✓ convocado, outra para ✕ indisponível, outra para limpar.',
@@ -2603,6 +2627,8 @@ window.__PAY = {
   packs: {
     entrenador: {
       name:'Entrenador', maxCategories:2, badge:'', note:'Hasta 2 categorías',
+      desc:'Para el DT que dirige una o dos categorías.',
+      feature:'Todas las herramientas incluidas.',
       durations: [
         { months:1,  ars:0, usd:0, mpLink:'', stripeLink:'' },
         { months:6,  ars:0, usd:0, mpLink:'', stripeLink:'' },
@@ -2611,6 +2637,8 @@ window.__PAY = {
     },
     multi: {
       name:'Multi', maxCategories:4, badge:'Más elegido', note:'Hasta 4 categorías',
+      desc:'Para quien maneja varias divisiones a la vez.',
+      feature:'Todas las herramientas incluidas.',
       durations: [
         { months:1,  ars:0, usd:0, mpLink:'', stripeLink:'' },
         { months:6,  ars:0, usd:0, mpLink:'', stripeLink:'' },
@@ -2619,6 +2647,8 @@ window.__PAY = {
     },
     club: {
       name:'Club', maxCategories:8, badge:'Mejor precio', note:'Todas las categorías',
+      desc:'Para coordinadores o clubes que gestionan todas las inferiores.',
+      feature:'Todas las herramientas incluidas.',
       durations: [
         { months:1,  ars:0, usd:0, mpLink:'', stripeLink:'' },
         { months:6,  ars:0, usd:0, mpLink:'', stripeLink:'' },
@@ -4094,6 +4124,8 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   let goalsAgainstManual = 0;    // goles en contra (se cargan a mano) — NO se resetean
   let foulsAgainst1 = 0;         // faltas del rival en el 1er tiempo (manual)
   let foulsAgainst2 = 0;         // faltas del rival en el 2do tiempo (manual)
+  let shotsFor1 = 0, shotsFor2 = 0;         // remates nuestros por tiempo (manual)
+  let shotsAgainst1 = 0, shotsAgainst2 = 0; // remates del rival por tiempo (manual)
 
   const fmtClock = (s) => {
     s = Math.max(0, Math.round(s));
@@ -4429,6 +4461,8 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     set('sbFoulsFor', ff);
     set('sbGoalsAgainst', goalsAgainstManual);
     set('sbFoulsAgainst', faManual);
+    set('sbShotsFor', shotsFor1 + shotsFor2);
+    set('sbShotsAgainst', shotsAgainst1 + shotsAgainst2);
     // resaltar cuando se llega al límite de faltas
     const boxFor = document.getElementById('sbFoulsForBox');
     const boxAg = document.getElementById('sbFoulsAgainstBox');
@@ -4508,6 +4542,10 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
   bindMini('sbGAminus',()=>{ goalsAgainstManual=Math.max(0,goalsAgainstManual-1); renderScoreboard(); });
   bindMini('sbFAplus', ()=>{ if(currentHalf===1) foulsAgainst1++; else foulsAgainst2++; renderScoreboard(); });
   bindMini('sbFAminus',()=>{ if(currentHalf===1) foulsAgainst1=Math.max(0,foulsAgainst1-1); else foulsAgainst2=Math.max(0,foulsAgainst2-1); renderScoreboard(); });
+  bindMini('sbSFplus', ()=>{ if(currentHalf===1) shotsFor1++; else shotsFor2++; renderScoreboard(); });
+  bindMini('sbSFminus',()=>{ if(currentHalf===1) shotsFor1=Math.max(0,shotsFor1-1); else shotsFor2=Math.max(0,shotsFor2-1); renderScoreboard(); });
+  bindMini('sbSAplus', ()=>{ if(currentHalf===1) shotsAgainst1++; else shotsAgainst2++; renderScoreboard(); });
+  bindMini('sbSAminus',()=>{ if(currentHalf===1) shotsAgainst1=Math.max(0,shotsAgainst1-1); else shotsAgainst2=Math.max(0,shotsAgainst2-1); renderScoreboard(); });
 
   // ===== Cola local de sesiones pendientes (a prueba de cortes de señal) =====
   const PENDING_KEY = 'ce_live_pending';
@@ -4556,7 +4594,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     const cat = (window.__getActiveCategory && window.__getActiveCategory()) || null;
     const totals = totalsSnapshot();
     // Guardamos el marcador del rival dentro de totals, sin tocar el esquema de la BD.
-    totals.__rival = { goalsAgainst: goalsAgainstManual, foulsAgainst: foulsAgainst1 + foulsAgainst2, foulsAgainst1: foulsAgainst1, foulsAgainst2: foulsAgainst2 };
+    totals.__rival = { goalsAgainst: goalsAgainstManual, foulsAgainst: foulsAgainst1 + foulsAgainst2, foulsAgainst1: foulsAgainst1, foulsAgainst2: foulsAgainst2, shotsFor: shotsFor1 + shotsFor2, shotsAgainst: shotsAgainst1 + shotsAgainst2, shotsFor1: shotsFor1, shotsFor2: shotsFor2, shotsAgainst1: shotsAgainst1, shotsAgainst2: shotsAgainst2 };
     const payload = {
       club_id: clubId, categoria: cat, name: rivalName,
       match_id: matchId || null, half_minutes: halfMinutes,
@@ -4675,6 +4713,7 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     state={}; squad.forEach(p=>{ state[p.id]={onCourt:false,acc1:0,acc2:0,lastInAt:null,goals:0,fouls1:0,fouls2:0,cards:0}; });
     events=[]; clockSeconds=0; currentHalf=1; halfSplitAt=null; swapOutId=null; manualMin=halfMinutes; liveRowId=null;
     goalsAgainstManual=0; foulsAgainst1=0; foulsAgainst2=0;
+    shotsFor1=0; shotsFor2=0; shotsAgainst1=0; shotsAgainst2=0;
     inSetup=false;
     document.getElementById('liveSetup').style.display='none';
     document.getElementById('liveActive').style.display='block';
@@ -5395,7 +5434,16 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
     if(!sb || !clubId){ toast(window.t('mNoConn')); return; }
     try{
       const { data, error } = await sb.from('players').insert({ club_id:clubId, categoria:catActual(), name:name.trim(), number, position }).select().single();
-      if(error){ toast(window.t('mAddErr')); return; }
+      if(error){
+        // Si el candado del servidor rechazó por límite de pack, avisamos claro.
+        if(error.message && /límite de tu pack|categoría fuera/i.test(error.message)){
+          toast('Esa categoría está fuera del límite de tu pack. Mejorá tu plan o liberá una.');
+          if(window.__openPackLimit) window.__openPackLimit(catActual());
+        } else {
+          toast(window.t('mAddErr'));
+        }
+        return;
+      }
       squad.push({ id:data.id, name:data.name, number:data.number||'', position:data.position||'' });
       renderSquad();
     }catch(e){ console.error(e); }
@@ -5777,6 +5825,12 @@ Sé concreto y práctico, como hablándole a los jugadores. Si falta informació
         <div class="rd-card-head"><h3>${escapeHtml(s.name||'Partido')}</h3></div>
         <div class="mins-scoreline"><span class="msl-team">Nosotros</span><span class="msl-score">${golesFavor} - ${rival.goalsAgainst||0}</span><span class="msl-team">${escapeHtml(s.name||'Rival')}</span></div>
         <div class="mins-fouls">Faltas: <b>${faltasFavor}</b> — ${rival.foulsAgainst||0}</div>
+        ${(function(){
+          const sf1=rival.shotsFor1||0, sf2=rival.shotsFor2||0, sa1=rival.shotsAgainst1||0, sa2=rival.shotsAgainst2||0;
+          const sfT=(rival.shotsFor!=null?rival.shotsFor:sf1+sf2), saT=(rival.shotsAgainst!=null?rival.shotsAgainst:sa1+sa2);
+          if(sfT===0 && saT===0 && sf1===0 && sf2===0 && sa1===0 && sa2===0) return '';
+          return `<div class="mins-fouls">Remates: <b>${sfT}</b> — ${saT} <span style="color:var(--muted);font-size:11px;">(1T: ${sf1}-${sa1} · 2T: ${sf2}-${sa2})</span></div>`;
+        })()}
       </div>
       <div class="annual-card">
         <div class="rd-card-head"><h3>${escapeHtml(s.name||'Partido')}</h3></div>
@@ -6453,20 +6507,38 @@ try{
     input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') crear(); });
   };
 
+  // Lee el estado REAL del cobro desde la base (app_config.billing_enabled).
+  // Así el interruptor no depende solo del navegador (que se podría manipular).
+  // Si la tabla no existe todavía, se queda con el valor local de __PAY.enabled.
+  window.__syncBillingState = async function(){
+    try{
+      const { data, error } = await sb.from('app_config').select('billing_enabled').eq('id', 1).single();
+      if(!error && data && typeof data.billing_enabled === 'boolean'){
+        window.__PAY.enabled = data.billing_enabled;
+        window.__billingFromServer = true;
+      }
+    }catch(e){ /* sin tabla: usamos el valor local */ }
+  };
+
   // Chequea el estado de la suscripción y muestra el cartel si corresponde
   window.__checkSubscription = async function(){
     // Interruptor maestro: si el cobro está apagado, no mostramos NADA.
     if(!window.__PAY || !window.__PAY.enabled){
       const b = document.getElementById('subBanner'); if(b) b.remove();
+      const mp = document.getElementById('myPlanBtn'); if(mp) mp.style.display = 'none';
       return;
     }
+    // Cobro activo: mostramos el botón "Mi plan".
+    const mp = document.getElementById('myPlanBtn');
+    if(mp){ mp.style.display = ''; mp.onclick = () => window.__openMyPlan(); }
     try{
       const clubId = await window.__getClubId();
       if(!clubId) return;
       const { data, error } = await sb.from('clubs')
-        .select('subscription_status, trial_ends_at, subscription_ends_at')
+        .select('subscription_status, trial_ends_at, subscription_ends_at, pack')
         .eq('id', clubId).single();
       if(error || !data) return;
+      window.__myPlanData = data;
       const st = data.subscription_status;
       let end = null;
       if(st === 'active') end = data.subscription_ends_at;
@@ -6476,27 +6548,85 @@ try{
     }catch(e){ /* silencioso */ }
   };
 
+  // Modal "Mi plan": muestra el pack actual y permite mejorarlo en cualquier momento.
+  window.__openMyPlan = function(){
+    const P = window.__PAY || {};
+    const data = window.__myPlanData || {};
+    const packKey = data.pack || P.defaultPack || 'entrenador';
+    const pk = (P.packs && P.packs[packKey]) || {name:'—', maxCategories:'—'};
+    const st = data.subscription_status;
+    let end = st === 'active' ? data.subscription_ends_at : data.trial_ends_at;
+    const endTxt = end ? new Date(end).toLocaleDateString('es-AR') : '—';
+    const estadoTxt = st === 'active' ? ('Activo hasta el ' + endTxt) : (st === 'trial' ? ('Prueba gratis hasta el ' + endTxt) : 'Vencido');
+    const usadas = window.__getOcupadas ? window.__getOcupadas().length : 0;
+    let m = document.getElementById('myPlanModal');
+    if(m) m.remove();
+    m = document.createElement('div');
+    m.id = 'myPlanModal';
+    m.className = 'plans-overlay';
+    m.innerHTML = `<div class="plans-box" style="max-width:400px;text-align:left;">
+      <button class="plans-close" id="mpClose">✕</button>
+      <h2 style="font-size:20px;">Mi plan</h2>
+      <div class="mp-card">
+        <div class="mp-row"><span>Pack</span><b>${pk.name}</b></div>
+        <div class="mp-row"><span>Categorías</span><b>${usadas} de ${pk.maxCategories}</b></div>
+        <div class="mp-row"><span>Estado</span><b>${estadoTxt}</b></div>
+      </div>
+      <button class="btn-primary" id="mpUpgrade" style="width:100%;margin-top:14px;">Mejorar mi pack</button>
+    </div>`;
+    document.body.appendChild(m);
+    document.getElementById('mpClose').addEventListener('click', ()=>m.remove());
+    m.addEventListener('click', e=>{ if(e.target===m) m.remove(); });
+    document.getElementById('mpUpgrade').addEventListener('click', ()=>{ m.remove(); openPlansModal(); });
+  };
+
   function renderSubBanner(status, daysLeft){
     let banner = document.getElementById('subBanner');
     // vencido: estado expired, o prueba/activo con días negativos
     const vencido = status === 'expired' || (daysLeft !== null && daysLeft < 0);
     const porVencer = !vencido && daysLeft !== null && daysLeft <= 7;
-    if(!vencido && !porVencer){ if(banner) banner.remove(); return; }
+    // Si está vencido, mostramos la PANTALLA BLOQUEANTE (no puede usar nada hasta elegir pack).
+    if(vencido){
+      if(banner) banner.remove();
+      mostrarBloqueoPago();
+      return;
+    }
+    // Si no está vencido, quitamos cualquier bloqueo previo.
+    const bloqueo = document.getElementById('payBlockOverlay');
+    if(bloqueo) bloqueo.remove();
+    if(!porVencer){ if(banner) banner.remove(); return; }
+    // Por vencer (<=7 días): solo el banner de aviso, no bloquea.
     if(!banner){
       banner = document.createElement('div');
       banner.id = 'subBanner';
       document.body.insertBefore(banner, document.body.firstChild);
     }
-    if(vencido){
-      banner.className = 'sub-banner expired';
-      banner.innerHTML = `<span class="sb-icon">🔒</span><span class="sb-text"><b>${window.t('subExpiredTitle')}</b> ${window.t('subExpiredMsg')}</span><button class="sb-btn" id="sbPayBtn">${window.t('subPayBtn')}</button>`;
-    } else {
-      banner.className = 'sub-banner warning';
-      const msg = window.t('subEndingMsg').replace('{d}', daysLeft);
-      banner.innerHTML = `<span class="sb-icon">⏳</span><span class="sb-text"><b>${window.t('subEndingTitle')}</b> ${msg}</span><button class="sb-btn" id="sbPayBtn">${window.t('subPayBtn')}</button>`;
-    }
+    banner.className = 'sub-banner warning';
+    const msg = window.t('subEndingMsg').replace('{d}', daysLeft);
+    banner.innerHTML = `<span class="sb-icon">⏳</span><span class="sb-text"><b>${window.t('subEndingTitle')}</b> ${msg}</span><button class="sb-btn" id="sbPayBtn">${window.t('subPayBtn')}</button>`;
     const payBtn = document.getElementById('sbPayBtn');
     if(payBtn) payBtn.addEventListener('click', openPlansModal);
+  }
+
+  // Pantalla que tapa todo cuando la prueba venció: obliga a elegir un pack.
+  function mostrarBloqueoPago(){
+    if(document.getElementById('payBlockOverlay')) return;
+    const ov = document.createElement('div');
+    ov.id = 'payBlockOverlay';
+    ov.className = 'pay-block-overlay';
+    ov.innerHTML = `<div class="pay-block-box">
+      <div class="pay-block-icon">🔒</div>
+      <h2>Tu prueba gratis terminó</h2>
+      <p>Para seguir usando Cuerpo Técnico, elegí el pack que mejor se adapte a tu trabajo. Tus datos están guardados y te esperan.</p>
+      <button class="btn-primary" id="payBlockBtn" style="width:100%;margin-top:6px;">Ver planes y activar</button>
+      <button id="payBlockLogout" style="width:100%;margin-top:10px;background:transparent;border:none;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline;">Cerrar sesión</button>
+    </div>`;
+    document.body.appendChild(ov);
+    document.getElementById('payBlockBtn').addEventListener('click', ()=> openPlansModal());
+    document.getElementById('payBlockLogout').addEventListener('click', async ()=>{
+      try{ await sb.auth.signOut(); }catch(e){}
+      location.reload();
+    });
   }
 
   // Modal de planes: el usuario elige período y va al pago
@@ -6531,7 +6661,9 @@ try{
             desde = `<span class="plan-permonth">desde $ ${Math.round(min.ars/min.months).toLocaleString('es-AR')}/mes</span>`;
           }
         }
-        cards += `<div class="plan-card${destacado}" data-pack="${key}">${badge}<span class="plan-label">${pk.name}</span><span class="plan-note">${pk.note||''}</span>${desde}<span class="plan-go">Elegir →</span></div>`;
+        const descHtml = pk.desc ? `<span class="plan-desc">${pk.desc}</span>` : '';
+        const featHtml = pk.feature ? `<span class="plan-feature">✓ ${pk.feature}</span>` : '';
+        cards += `<div class="plan-card${destacado}" data-pack="${key}">${badge}<span class="plan-label">${pk.name}</span><span class="plan-note">${pk.note||''}</span>${descHtml}${featHtml}${desde}<span class="plan-go">Elegir →</span></div>`;
       });
       modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><h2>${window.t('plansTitle')}</h2><p class="plans-sub">Elegí el pack según cuántas categorías necesitás.</p><div class="plans-grid plans-grid-3">${cards}</div>${contactLine}${legalLine}</div>`;
       wire();
@@ -6569,12 +6701,14 @@ try{
   }
   window.__openPlansModal = openPlansModal;
 
-  // Cargar las categorías del club apenas hay conexión.
-  if(window.__loadCategoriesOnce) window.__loadCategoriesOnce();
-  // Revisar el estado de la suscripción y mostrar cartel si corresponde
-  if(window.__checkSubscription) window.__checkSubscription();
-  // Si el usuario no tiene club (nuevo, o quedó sin él), pedírselo de forma obligatoria.
-  if(window.__ensureClubOrAsk) window.__ensureClubOrAsk();
+  // Primero, sincronizar el estado del cobro con la base (fuente de verdad).
+  // Luego cargar categorías, suscripción y verificación de club con el estado correcto.
+  (async ()=>{
+    if(window.__syncBillingState) await window.__syncBillingState();
+    if(window.__loadCategoriesOnce) window.__loadCategoriesOnce();
+    if(window.__checkSubscription) window.__checkSubscription();
+    if(window.__ensureClubOrAsk) window.__ensureClubOrAsk();
+  })();
 }catch(err){
   console.error('Supabase no se pudo inicializar en el editor:', err);
   const badge = document.getElementById('userBadge');
