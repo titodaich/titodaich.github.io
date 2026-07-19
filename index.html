@@ -835,6 +835,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .mt-date-in:focus{outline:none;border-color:var(--accent-2);}
 .match-table .mt-open-btn{padding:5px 10px;font-size:11px;}
 .mt-open-btn{white-space:nowrap;}
+.match-table th.mt-del{width:38px;}
+.mt-del-btn{background:transparent;border:none;cursor:pointer;font-size:15px;padding:5px 7px;border-radius:6px;opacity:0.55;transition:all .12s ease;}
+.mt-del-btn:hover{opacity:1;background:rgba(240,85,63,0.15);}
 .match-empty{text-align:center;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:13px;padding:40px;border:1px dashed var(--line);border-radius:12px;}
 
 .squad-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;}
@@ -918,15 +921,16 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 
 /* Convocatorias */
 .calls-wrap{overflow-x:auto;}
-.calls-table{border-collapse:collapse;min-width:100%;}
+.calls-table{border-collapse:collapse;width:auto;}
+.calls-table .total-col{min-width:70px;}
 .calls-table th,.calls-table td{border:1px solid var(--line);padding:0;text-align:center;}
 .calls-table thead th{background:var(--panel-2);font-family:'Oswald',sans-serif;padding:8px 10px;white-space:nowrap;color:var(--chalk);}
 .calls-table thead th.match-col{font-size:11px;min-width:80px;}
 .calls-table thead th.match-col .mc-rival{font-size:12px;}
 .calls-table thead th.match-col .mc-sub{font-family:'Inter',sans-serif;font-weight:400;font-size:11px;color:var(--accent-2);}
 .calls-table thead th.match-col .mc-date{font-family:'JetBrains Mono',monospace;font-weight:400;font-size:9px;color:var(--muted);}
-.calls-table .player-name-cell{text-align:left;padding:8px 12px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;white-space:nowrap;background:var(--panel);position:sticky;left:0;z-index:1;min-width:150px;}
-.calls-table .player-name-cell .pn-num{display:inline-block;min-width:22px;color:var(--accent-2);font-family:'JetBrains Mono',monospace;font-size:11px;}
+.calls-table .player-name-cell{text-align:left;padding:8px 8px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;white-space:nowrap;background:var(--panel);position:sticky;left:0;z-index:1;min-width:90px;max-width:120px;overflow:hidden;text-overflow:ellipsis;}
+.calls-table .player-name-cell .pn-num{display:inline-block;min-width:16px;color:var(--accent-2);font-family:'JetBrains Mono',monospace;font-size:10px;}
 .calls-table thead th.player-name-cell{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);}
 .calls-table thead th.total-col, .calls-table td.total-col{background:var(--panel-2);font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;color:var(--accent-2);min-width:50px;}
 .calls-table thead th.total-col{font-size:10px;text-transform:uppercase;color:var(--muted);}
@@ -5885,14 +5889,25 @@ window.__initEditor = function(){
     if(sessions.length===0){ list.innerHTML='<p class="rd-empty">Todavía no hay minutajes. Terminá un partido en 🔴 En vivo y guardalo.</p>'; return; }
     list.innerHTML='';
     const table=document.createElement('table'); table.className='match-table minutes-table';
-    table.innerHTML='<thead><tr><th>Partido</th><th class="mt-fecha">Fecha</th><th>Jugadores</th><th class="mt-open"></th></tr></thead><tbody></tbody>';
+    table.innerHTML='<thead><tr><th>Partido</th><th class="mt-fecha">Fecha</th><th>Jugadores</th><th class="mt-open"></th><th class="mt-del"></th></tr></thead><tbody></tbody>';
     const tb=table.querySelector('tbody');
     sessions.forEach(s=>{
       const when=s.created_at?new Date(s.created_at).toLocaleDateString('es-AR'):'';
       const nJug=s.totals?Object.keys(s.totals).filter(k=>k!=='__rival').length:0;
       const tr=document.createElement('tr');
-      tr.innerHTML=`<td data-label="Partido"><span class="mt-fecha-badge">${escapeHtml(s.name||'Partido')}</span></td><td class="mt-fecha" data-label="Fecha">${when}</td><td data-label="Jugadores">${nJug} jugadores</td><td class="mt-open"><button class="btn small mt-open-btn">Ver detalle →</button></td>`;
+      tr.innerHTML=`<td data-label="Partido"><span class="mt-fecha-badge">${escapeHtml(s.name||'Partido')}</span></td><td class="mt-fecha" data-label="Fecha">${when}</td><td data-label="Jugadores">${nJug} jugadores</td><td class="mt-open"><button class="btn small mt-open-btn">Ver detalle →</button></td><td class="mt-del"><button class="mt-del-btn" title="Borrar este partido">🗑</button></td>`;
       tr.querySelector('.mt-open-btn').addEventListener('click',()=>showMinutesDetail(s));
+      tr.querySelector('.mt-del-btn').addEventListener('click',async()=>{
+        if(!confirm('¿Borrar el minutaje de "'+(s.name||'Partido')+'"? Esta acción no se puede deshacer.')) return;
+        const sbx=window.__sb;
+        if(!sbx||!s.id){ toast('Sin conexión'); return; }
+        try{
+          const { error }=await sbx.from('live_sessions').delete().eq('id', s.id);
+          if(error){ toast('No se pudo borrar'); return; }
+          toast('Partido borrado');
+          renderMinutes();
+        }catch(e){ console.error('del minutes lista', e); toast('No se pudo borrar'); }
+      });
       tb.appendChild(tr);
     });
     list.appendChild(table);
