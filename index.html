@@ -4845,6 +4845,20 @@ window.__initEditor = function(){
 (function initTraining(){
   const MAX_SEMANAS = 50;
   const DIAS = ['lunes','martes','miercoles','jueves','viernes','sabado','domingo'];
+  // Número de semana del año actual (ISO 8601): así una cuenta nueva
+  // arranca en la semana en curso, no en la 1 de enero.
+  function semanaActualDelAnio(){
+    const hoy = new Date();
+    const d = new Date(Date.UTC(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()));
+    const dayNum = (d.getUTCDay() + 6) % 7;   // lunes=0 ... domingo=6
+    d.setUTCDate(d.getUTCDate() - dayNum + 3); // jueves de esta semana
+    const firstThursday = new Date(Date.UTC(d.getUTCFullYear(), 0, 4));
+    const firstDayNum = (firstThursday.getUTCDay() + 6) % 7;
+    firstThursday.setUTCDate(firstThursday.getUTCDate() - firstDayNum + 3);
+    const semana = 1 + Math.round((d - firstThursday) / (7 * 24 * 3600 * 1000));
+    return Math.min(Math.max(semana, 1), 53);
+  }
+
   function makeWeek(n){
     return {
       id:'w'+n, semana:n, name:'', from:'', to:'',
@@ -4860,7 +4874,7 @@ window.__initEditor = function(){
       }
     };
   }
-  let weeks = [ makeWeek(1) ];
+  let weeks = [ makeWeek(semanaActualDelAnio()) ];
   let currentWeekId = null;
   let clubId = null;
   const saveTimers = {};
@@ -4882,8 +4896,8 @@ window.__initEditor = function(){
     clubId = await window.__getClubId();
     if(!clubId) return;
     const cat = catActual();
-    // Reset a 1 semana vacía antes de cargar (por si cambiamos de categoría)
-    weeks = [ makeWeek(1) ];
+    // Reset a la semana actual del año antes de cargar (por si cambiamos de categoría)
+    weeks = [ makeWeek(semanaActualDelAnio()) ];
     currentWeekId = null;
     try{
       let q = sb.from('training_weeks').select('*').eq('club_id', clubId);
@@ -4891,17 +4905,17 @@ window.__initEditor = function(){
       const { data, error } = await q;
       if(error){ console.error('training load', error); return; }
       if(data && data.length){
-        const maxSem = Math.max(...data.map(r => r.semana), 1);
-        weeks = [];
-        for(let i=1;i<=maxSem;i++) weeks.push(makeWeek(i));
-        data.forEach(row => {
-          const w = weeks.find(x => x.semana === row.semana);
-          if(!w) return;
+        // Mostrar SOLO las semanas realmente creadas (no rellenar el hueco desde la 1).
+        weeks = data.map(row => {
+          const w = makeWeek(row.semana);
           w.name = row.name || '';
           w.from = row.date_from || '';
           w.to = row.date_to || '';
-          w.content = row.content || {};
+          w.content = row.content || w.content;
+          return w;
         });
+        // Ordenar por número de semana ascendente
+        weeks.sort((a,b) => a.semana - b.semana);
       }
       // si estábamos en la ficha, volver a la lista al cambiar de categoría
       detailView.style.display = 'none';
