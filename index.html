@@ -663,8 +663,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .live-token:hover{background:rgba(16,22,28,0.75);}
 .live-token.swap-out{border-color:var(--danger);background:rgba(240,85,63,0.5);}
 .live-token .lt-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,0.8);}
-.live-token .lt-avatar{display:flex;justify-content:center;margin-bottom:3px;}
-.live-token .lt-avatar .pl-avatar{border-width:1.5px;border-color:rgba(255,255,255,0.6);}
+.live-token .lt-avatar{display:flex;justify-content:center;margin-bottom:5px;}
+.live-token .lt-avatar .pl-avatar{border-width:2px;border-color:rgba(255,255,255,0.85);box-shadow:0 2px 6px rgba(0,0,0,0.4);}
 .live-token .lt-name{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;color:#fff;margin:1px 0 4px;}
 .live-token .lt-time{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;color:#fff;}
 .live-token .lt-actions{display:flex;gap:5px;justify-content:center;margin-top:8px;}
@@ -677,8 +677,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   .live-token{width:96px;padding:6px 4px;border-width:1.5px;border-radius:9px;}
   .live-token .lt-num{font-size:9px;}
   .live-token .lt-name{font-size:11px;margin:1px 0 2px;line-height:1.1;}
-  .live-token .lt-avatar{margin-bottom:2px;}
-  .live-token .lt-avatar .pl-avatar{width:24px !important;height:24px !important;font-size:10px !important;}
+  .live-token .lt-avatar{margin-bottom:3px;}
+  .live-token .lt-avatar .pl-avatar{width:34px !important;height:34px !important;font-size:13px !important;}
   .live-token .lt-time{font-size:13px;}
   .live-token .lt-actions{gap:2px;margin-top:5px;}
   .live-token .lt-act{padding:2px 3px;font-size:10px;border-radius:5px;gap:1px;}
@@ -4434,31 +4434,59 @@ window.__initEditor = function(){
     if(/ala|lateral|wing|carril/.test(s)) return 'ala';
     return 'otro';
   }
-  // Coordenadas (%) por rol. Cancha vertical: arco abajo (y alto), pivot arriba (y bajo).
+  // Coordenadas (%) por rol. Cancha vertical: arco propio abajo (y alto), arco rival arriba (y bajo).
+  // Formación futsal 1-2-1: arquero abajo, cierre delante, dos alas en los laterales, pivot arriba.
   function slotsForField(enCancha){
-    // Formaciones fijas por cantidad de jugadores en cancha.
-    // Pensadas para que los recuadros NO se superpongan, con aire entre cada uno.
-    // y va de 8 (arriba) a 92 (abajo). El arquero siempre abajo.
-    const FORMACIONES = {
-      1: [{x:50,y:82}],
-      2: [{x:50,y:22},{x:50,y:82}],
-      3: [{x:50,y:20},{x:28,y:55},{x:72,y:55}],
-      4: [{x:28,y:22},{x:72,y:22},{x:28,y:78},{x:72,y:78}],
-      5: [{x:50,y:14},{x:24,y:44},{x:76,y:44},{x:38,y:78},{x:62,y:78}]
+    // Posiciones "ideales" por rol en la cancha
+    const POS = {
+      arquero: {x:50, y:90},   // en el arco (abajo)
+      cierre:  {x:50, y:70},   // delante del arquero
+      alaIzq:  {x:22, y:46},   // lateral izquierdo
+      alaDer:  {x:78, y:46},   // lateral derecho
+      pivot:   {x:50, y:15}    // cerca del arco rival (arriba)
     };
-    const n = Math.min(enCancha.length, 5);
-    const posiciones = FORMACIONES[n] || FORMACIONES[5];
+    // Posiciones de reserva para cuando hay más jugadores de un rol de lo esperado
+    const EXTRAS = [{x:35,y:58},{x:65,y:58},{x:35,y:30},{x:65,y:30},{x:50,y:44}];
 
-    // Ordenar por rol para que el arquero quede abajo y el pivot arriba,
-    // pero usando SIEMPRE las posiciones separadas de la formación.
-    const ordenRol = { pivot:0, ala:1, cierre:2, otro:2, arquero:3 };
     const conRol = enCancha.map(p => ({ p, role: roleOf(p) }));
-    conRol.sort((a,b) => (ordenRol[a.role] ?? 2) - (ordenRol[b.role] ?? 2));
+    const usados = { alas:0 };       // para repartir alas izq/der
+    const ocupadas = [];             // posiciones ya tomadas (para detectar choques)
+    let extraIdx = 0;
+
+    function libre(pos){
+      // ¿esta posición ya está ocupada por otro?
+      return !ocupadas.some(o => Math.abs(o.x-pos.x)<8 && Math.abs(o.y-pos.y)<8);
+    }
+    function tomar(pos){
+      // si está ocupada, buscar una posición extra libre
+      let p = pos;
+      if(!libre(p)){
+        while(extraIdx < EXTRAS.length && !libre(EXTRAS[extraIdx])) extraIdx++;
+        p = EXTRAS[extraIdx] || EXTRAS[EXTRAS.length-1];
+        extraIdx++;
+      }
+      ocupadas.push(p);
+      return p;
+    }
 
     const result = [];
-    conRol.forEach((item, i) => {
-      const slot = posiciones[i] || posiciones[posiciones.length - 1];
-      result.push({ p: item.p, slot, role: item.role });
+    conRol.forEach(({p, role}) => {
+      let pos;
+      if(role === 'arquero') pos = tomar(POS.arquero);
+      else if(role === 'cierre') pos = tomar(POS.cierre);
+      else if(role === 'pivot') pos = tomar(POS.pivot);
+      else if(role === 'ala'){
+        // primer ala a la izquierda, segundo a la derecha
+        pos = tomar(usados.alas === 0 ? POS.alaIzq : POS.alaDer);
+        usados.alas++;
+      } else {
+        // rol 'otro': ubicar en una posición extra
+        while(extraIdx < EXTRAS.length && !libre(EXTRAS[extraIdx])) extraIdx++;
+        pos = EXTRAS[extraIdx] || EXTRAS[EXTRAS.length-1];
+        extraIdx++;
+        ocupadas.push(pos);
+      }
+      result.push({ p, slot: pos, role });
     });
     return result;
   }
@@ -4480,7 +4508,7 @@ window.__initEditor = function(){
       d.style.top = slot.y + '%';
       const roleLabel = role==='otro' ? '' : role.charAt(0).toUpperCase()+role.slice(1);
       const st=ensure(p.id);
-      d.innerHTML=`<div class="lt-avatar">${(window.__avatarHTML?window.__avatarHTML(p,30):"")}</div><div class="lt-num">${escapeHtml(p.number?'#'+p.number:'')}${roleLabel?' · '+roleLabel:''}</div><div class="lt-name">${escapeHtml(p.name)}</div><div class="lt-time" data-t="${p.id}">${fmtClock(timeTotal(p.id))}</div><div class="lt-actions"><button class="lt-act lt-goal" title="Gol">⚽<span class="lt-cnt">${st.goals||0}</span></button><button class="lt-act lt-shot" title="Remate al arco">🎯<span class="lt-cnt">${st.shots||0}</span></button><button class="lt-act lt-foul" title="Falta (del tiempo actual)">⚠️<span class="lt-cnt">${foulsNow(p.id)}</span></button><button class="lt-act lt-card" title="Tarjeta amarilla">🟨<span class="lt-cnt">${st.cards||0}</span></button></div>`;
+      d.innerHTML=`<div class="lt-avatar">${(window.__avatarHTML?window.__avatarHTML(p,44):"")}</div><div class="lt-num">${escapeHtml(p.number?'#'+p.number:'')}${roleLabel?' · '+roleLabel:''}</div><div class="lt-name">${escapeHtml(p.name)}</div><div class="lt-time" data-t="${p.id}">${fmtClock(timeTotal(p.id))}</div><div class="lt-actions"><button class="lt-act lt-goal" title="Gol">⚽<span class="lt-cnt">${st.goals||0}</span></button><button class="lt-act lt-shot" title="Remate al arco">🎯<span class="lt-cnt">${st.shots||0}</span></button><button class="lt-act lt-foul" title="Falta (del tiempo actual)">⚠️<span class="lt-cnt">${foulsNow(p.id)}</span></button><button class="lt-act lt-card" title="Tarjeta amarilla">🟨<span class="lt-cnt">${st.cards||0}</span></button></div>`;
       // click en la ficha (fuera de los botones) = cambio
       d.addEventListener('click',(e)=>{ if(e.target.closest('.lt-act')) return; tapOnCourt(p.id); });
       d.querySelector('.lt-goal').addEventListener('click',(e)=>{ e.stopPropagation(); addGoal(p.id); });
