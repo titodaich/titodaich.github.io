@@ -644,16 +644,16 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .live-field .field-goal{position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:120px;height:8px;background:rgba(255,255,255,0.85);border-radius:2px;}
 .live-field .field-area{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:200px;height:90px;border:2px solid rgba(255,255,255,0.4);border-bottom:none;border-radius:100px 100px 0 0;}
 .live-field .field-empty{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,0.9);font-family:'JetBrains Mono',monospace;font-size:12px;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,0.5);width:80%;}
-.live-token{position:absolute;z-index:2;transform:translate(-50%,-50%);background:rgba(16,22,28,0.72);border:2px solid #fff;border-radius:12px;padding:8px 6px;width:112px;text-align:center;cursor:pointer;transition:all .12s ease;box-shadow:0 3px 10px rgba(0,0,0,0.4);}
+.live-token{position:absolute;z-index:2;transform:translate(-50%,-50%);background:rgba(16,22,28,0.72);border:2px solid #fff;border-radius:12px;padding:10px 9px;width:134px;text-align:center;cursor:pointer;transition:all .12s ease;box-shadow:0 3px 10px rgba(0,0,0,0.4);}
 .live-token:hover{background:rgba(16,22,28,0.75);}
 .live-token.swap-out{border-color:var(--danger);background:rgba(240,85,63,0.5);}
 .live-token .lt-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,0.8);}
 .live-token .lt-name{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;color:#fff;margin:1px 0 4px;}
 .live-token .lt-time{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;color:#fff;}
-.live-token .lt-actions{display:flex;gap:4px;justify-content:center;margin-top:6px;}
-.live-token .lt-act{border:1px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.1);border-radius:6px;padding:2px 7px;font-size:12px;cursor:pointer;color:#fff;display:flex;align-items:center;gap:2px;}
+.live-token .lt-actions{display:flex;gap:5px;justify-content:center;margin-top:8px;}
+.live-token .lt-act{border:1px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.1);border-radius:7px;padding:3px 6px;font-size:13px;cursor:pointer;color:#fff;display:flex;align-items:center;gap:3px;}
 .live-token .lt-act:hover{background:rgba(255,255,255,0.25);}
-.live-token .lt-act .lt-cnt{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;}
+.live-token .lt-act .lt-cnt{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;}
 
 .live-bench{display:flex;flex-direction:column;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;min-height:100px;}
 .bench-player{background:var(--panel-2);border:2px solid var(--line);border-radius:10px;padding:8px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .12s ease;}
@@ -6422,7 +6422,7 @@ window.__initEditor = function(){
       const g = (m.goalsFor||[]).filter(x => x.player_id === playerId).length;
       const a = (m.assists||[]).filter(x => x.player_id === playerId).length;
       const c = (m.cards||[]).filter(x => x.player_id === playerId).length;
-      const wasCalled = !!(m.calls && m.calls[playerId]);
+      const wasCalled = !!(m.calls && m.calls[playerId] === 'yes');
       totGoals += g; totAssists += a; totCards += c;
       if(wasCalled) called++;
       if(g > 0 || a > 0 || c > 0 || wasCalled) played++;
@@ -6442,7 +6442,7 @@ window.__initEditor = function(){
         <div class="pc-stat"><div class="pc-stat-num" style="color:var(--success)">${totGoals}</div><div class="pc-stat-lbl">Goles</div></div>
         <div class="pc-stat"><div class="pc-stat-num" style="color:var(--accent-2)">${totAssists}</div><div class="pc-stat-lbl">Asistencias</div></div>
         <div class="pc-stat"><div class="pc-stat-num" style="color:var(--danger)">${totCards}</div><div class="pc-stat-lbl">Tarjetas</div></div>
-        <div class="pc-stat"><div class="pc-stat-num">${called}</div><div class="pc-stat-lbl">Convocado</div></div>
+        <div class="pc-stat"><div class="pc-stat-num">${called}</div><div class="pc-stat-lbl">Citado</div></div>
       </div>`;
 
     // ---- Gráfico de barras: goles por partido ----
@@ -6555,18 +6555,20 @@ window.__initEditor = function(){
       (m.goalsFor||[]).forEach(g => { const nm = byId[g.player_id]; if(nm && stat[nm]) stat[nm].goles++; });
     });
 
-    // Convocatorias: últimos partidos (para detectar quién no viene siendo convocado)
+    // Convocatorias: últimos partidos QUE TENGAN convocatorias cargadas
+    // (si no cargaste convocatorias de un partido, no lo podemos juzgar)
     const ms = matches.slice().sort((a,b) => {
       const da=a.date||'', db=b.date||'';
       if(da&&db) return db.localeCompare(da);   // más recientes primero
       if(da) return -1; if(db) return 1;
       return (b.createdAt||'').localeCompare(a.createdAt||'');
     });
-    const ultimos = ms.slice(0, 3);   // los últimos 3 partidos
+    const conCitaciones = ms.filter(m => m.calls && Object.values(m.calls).some(v => v === 'yes' || v === 'no'));
+    const ultimos = conCitaciones.slice(0, 3);   // los últimos 3 partidos con citaciones cargadas
     const sinConvocar = [];
     if(ultimos.length >= 2){
       squad.forEach(p => {
-        const convocadoEnAlguno = ultimos.some(m => m.calls && m.calls[p.id]);
+        const convocadoEnAlguno = ultimos.some(m => m.calls && m.calls[p.id] === 'yes');
         if(!convocadoEnAlguno) sinConvocar.push(p.name);
       });
     }
@@ -6598,7 +6600,7 @@ window.__initEditor = function(){
       if(pocos.length > 0){
         let body = '';
         pocos.forEach(n => { const min = Math.round(stat[n].minutos/60); body += `<div class="health-item"><span class="health-badge info">${min}′</span> <strong>${escapeHtml(n)}</strong> — viene jugando poco</div>`; });
-        body += `<div class="health-note">Promedio del plantel: ${Math.round(promedio/60)}′. Ojo con la motivación de estos jugadores.</div>`;
+        body += `<div class="health-note">Promedio del plantel: ${Math.round(promedio/60)}′ (según minutajes de En Vivo). Ojo con la motivación de estos jugadores.</div>`;
         cards.push({ icon:'⏱', title:'Pocos minutos', body, tone:'info' });
       }
     }
@@ -6606,8 +6608,35 @@ window.__initEditor = function(){
     // 3) Sin convocar en los últimos partidos
     if(sinConvocar.length > 0){
       let body = '';
-      sinConvocar.forEach(n => { body += `<div class="health-item"><strong>${escapeHtml(n)}</strong> — no fue convocado en los últimos ${ultimos.length} partidos</div>`; });
-      cards.push({ icon:'📋', title:'Sin convocar últimamente', body, tone:'info' });
+      sinConvocar.forEach(n => { body += `<div class="health-item"><strong>${escapeHtml(n)}</strong> — no fue citado en los últimos ${ultimos.length} partidos</div>`; });
+      cards.push({ icon:'📋', title:'Sin citar últimamente', body, tone:'info' });
+    }
+
+    // 3b) Citado seguido pero sin sumar (señal de que va al banco y no entra)
+    //     Solo usa partidos con citaciones cargadas. No depende de En Vivo.
+    if(conCitaciones.length >= 3){
+      const ultimosCit = conCitaciones.slice(0, 5);   // ventana de los últimos 5 con citaciones
+      const sinSumar = [];
+      squad.forEach(p => {
+        // veces que fue citado (yes) en esa ventana
+        const citado = ultimosCit.filter(m => m.calls && m.calls[p.id] === 'yes').length;
+        if(citado < 3) return;   // solo miramos a los que fueron citados al menos 3 veces
+        // ¿sumó algo (gol o tarjeta) en esos partidos citados?
+        const sumoAlgo = ultimosCit.some(m => {
+          if(!(m.calls && m.calls[p.id] === 'yes')) return false;
+          const hizoGol = (m.goalsFor||[]).some(g => g.player_id === p.id);
+          const hizoTarjeta = (m.cards||[]).some(c => c.player_id === p.id);
+          const hizoAsist = (m.assists||[]).some(a => a.player_id === p.id);
+          return hizoGol || hizoTarjeta || hizoAsist;
+        });
+        if(!sumoAlgo) sinSumar.push({ name:p.name, citado });
+      });
+      if(sinSumar.length > 0){
+        let body = '';
+        sinSumar.sort((a,b)=>b.citado-a.citado).forEach(x => { body += `<div class="health-item"><span class="health-badge warn">${x.citado}×</span> <strong>${escapeHtml(x.name)}</strong> — citado pero sin sumar en cancha</div>`; });
+        body += `<div class="health-note">Fueron citados varias veces pero no registran goles, asistencias ni tarjetas. Puede que estén yendo al banco sin entrar.</div>`;
+        cards.push({ icon:'🪑', title:'Citados sin jugar', body, tone:'warn' });
+      }
     }
 
     // 4) Goleadores en racha (positivo)
@@ -6622,7 +6651,7 @@ window.__initEditor = function(){
 
     // ---- Render ----
     if(cards.length === 0){
-      cont.innerHTML = '<div class="health-allgood">✅ Todo en orden. No hay alertas en el plantel por ahora.<div class="health-note" style="margin-top:8px;">A medida que cargues partidos y minutajes, van a aparecer avisos útiles acá.</div></div>';
+      cont.innerHTML = '<div class="health-allgood">✅ Todo en orden. No hay alertas en el plantel por ahora.<div class="health-note" style="margin-top:8px;">A medida que cargues partidos, citaciones y minutajes, van a aparecer avisos útiles acá.</div></div>';
       return;
     }
     cont.innerHTML = '<div class="health-grid">' + cards.map(c => `
