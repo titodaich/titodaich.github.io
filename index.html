@@ -655,6 +655,22 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .live-token .lt-act:hover{background:rgba(255,255,255,0.25);}
 .live-token .lt-act .lt-cnt{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;}
 
+/* En teléfono: achicar los recuadros para que los 5 jugadores entren en la cancha */
+@media (max-width:600px){
+  .live-token{width:96px;padding:6px 4px;border-width:1.5px;border-radius:9px;}
+  .live-token .lt-num{font-size:9px;}
+  .live-token .lt-name{font-size:11px;margin:1px 0 2px;line-height:1.1;}
+  .live-token .lt-time{font-size:13px;}
+  .live-token .lt-actions{gap:2px;margin-top:5px;}
+  .live-token .lt-act{padding:2px 3px;font-size:10px;border-radius:5px;gap:1px;}
+  .live-token .lt-act .lt-cnt{font-size:9px;}
+}
+@media (max-width:380px){
+  .live-token{width:86px;padding:5px 3px;}
+  .live-token .lt-name{font-size:10px;}
+  .live-token .lt-act{padding:2px;font-size:9px;}
+}
+
 .live-bench{display:flex;flex-direction:column;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;min-height:100px;}
 .bench-player{background:var(--panel-2);border:2px solid var(--line);border-radius:10px;padding:8px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .12s ease;}
 .bench-player:hover{border-color:var(--accent-2);}
@@ -6400,39 +6416,82 @@ window.__initEditor = function(){
   }
 
   // Dibuja la ficha del jugador elegido
-  function drawPlayerCard(playerId){
-    const cont = document.getElementById('playerCardContent');
-    if(!cont) return;
+  async function drawPlayerCard(playerId){
+    const cont2 = document.getElementById('playerCardContent');
+    if(!cont2) return;
     const player = squad.find(p => p.id === playerId);
-    if(!player){ cont.innerHTML = ''; return; }
+    if(!player){ cont2.innerHTML = ''; return; }
+    const playerName = player.name;
 
-    // Partidos ordenados por fecha (los que tienen fecha primero, luego por orden de carga)
-    const ms = matches.slice().sort((a,b) => {
-      const da = a.date || '', db = b.date || '';
-      if(da && db) return da.localeCompare(db);
-      if(da) return -1; if(db) return 1;
-      return (a.createdAt||'').localeCompare(b.createdAt||'');
+    // Cargar sesiones de En Vivo INDEPENDIENTES (sin match_id) para sumar sin duplicar.
+    // Las sesiones vinculadas a un partido (match_id) NO se suman: ya cuentan por la sección Partidos.
+    let liveIndep = [];
+    try{
+      const sb = window.__sb; const clubId = await window.__getClubId();
+      const cat = catActual();
+      if(sb && clubId){
+        let q = sb.from('live_sessions').select('totals, match_id, name, created_at').eq('club_id', clubId);
+        q = cat ? q.eq('categoria', cat) : q.is('categoria', null);
+        const { data } = await q;
+        liveIndep = (data || []).filter(s => !s.match_id);
+      }
+    }catch(e){ liveIndep = []; }
+
+    // Serie unificada: partidos (sección Partidos) + sesiones En Vivo independientes.
+    // Cada entrada: {fecha, label, goals, assists, cards, wasCalled, origen}
+    const serie = [];
+    matches.forEach(m => {
+      serie.push({
+        fecha: m.date || '',
+        orden: m.createdAt || '',
+        label: m.rival || 'Partido',
+        goals: (m.goalsFor||[]).filter(x => x.player_id === playerId).length,
+        assists: (m.assists||[]).filter(x => x.player_id === playerId).length,
+        cards: (m.cards||[]).filter(x => x.player_id === playerId).length,
+        wasCalled: !!(m.calls && m.calls[playerId] === 'yes'),
+        origen: 'partido'
+      });
+    });
+    liveIndep.forEach(s => {
+      const t = (s.totals && s.totals[playerName]) || null;
+      if(!t) return;   // ese jugador no estuvo en esa sesión
+      serie.push({
+        fecha: s.created_at ? s.created_at.slice(0,10) : '',
+        orden: s.created_at || '',
+        label: s.name || 'En vivo',
+        goals: t.goals || 0,
+        assists: 0,               // En Vivo no registra asistencias
+        cards: t.cards || 0,
+        wasCalled: (t.total || 0) > 0,   // si jugó minutos, cuenta como que estuvo
+        origen: 'envivo'
+      });
     });
 
-    // Recorrer partidos y armar la serie del jugador
+    // Ordenar por fecha (y luego por orden de carga)
+    const ms = serie.sort((a,b) => {
+      const da = a.fecha || '', db = b.fecha || '';
+      if(da && db) return da.localeCompare(db);
+      if(da) return -1; if(db) return 1;
+      return (a.orden||'').localeCompare(b.orden||'');
+    });
+
+    // Recorrer y armar los totales del jugador
     let totGoals = 0, totAssists = 0, totCards = 0, called = 0, played = 0;
     let acc = 0;
     const perMatch = [];   // {label, goals, assists, cards, acc, wasCalled}
     ms.forEach((m, i) => {
-      const g = (m.goalsFor||[]).filter(x => x.player_id === playerId).length;
-      const a = (m.assists||[]).filter(x => x.player_id === playerId).length;
-      const c = (m.cards||[]).filter(x => x.player_id === playerId).length;
-      const wasCalled = !!(m.calls && m.calls[playerId] === 'yes');
+      const g = m.goals, a = m.assists, c = m.cards;
+      const wasCalled = m.wasCalled;
       totGoals += g; totAssists += a; totCards += c;
       if(wasCalled) called++;
       if(g > 0 || a > 0 || c > 0 || wasCalled) played++;
       acc += g;
-      const rivalTxt = m.rival ? m.rival : ('P' + (i+1));
+      const rivalTxt = m.label ? m.label : ('P' + (i+1));
       perMatch.push({ label: rivalTxt, goals:g, assists:a, cards:c, acc, wasCalled });
     });
 
     if(ms.length === 0){
-      cont.innerHTML = '<div class="annual-empty">Todavía no cargaste partidos en esta categoría. Cargalos en ⚽ Partidos para ver la evolución.</div>';
+      cont2.innerHTML = '<div class="annual-empty">Todavía no cargaste partidos ni sesiones de En Vivo en esta categoría. Cargalos en ⚽ Partidos o llevá un partido en En Vivo para ver la evolución.</div>';
       return;
     }
 
@@ -6503,7 +6562,7 @@ window.__initEditor = function(){
         <div class="pc-chart-foot">Terminó el año con <strong>${totGoals}</strong> gol(es) en ${played} partido(s) con participación.</div>
       </div>`;
 
-    cont.innerHTML = resumen + barsChart + lineChart;
+    cont2.innerHTML = resumen + barsChart + lineChart;
   }
 
   // ===== TABLERO DE SALUD DEL PLANTEL: alertas automáticas =====
