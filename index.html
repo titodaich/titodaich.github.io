@@ -760,6 +760,22 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .player-card-select{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;color:var(--chalk);font-family:'Inter',sans-serif;font-size:14px;padding:9px 12px;min-width:200px;cursor:pointer;}
 .player-card-select:focus{outline:none;border-color:var(--accent-2);}
 .pc-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+/* Avatares de jugador */
+.pl-avatar{border-radius:50%;background-size:cover;background-position:center;background-color:var(--panel-2);border:2px solid var(--line);flex-shrink:0;}
+.pl-avatar-ini{display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:600;color:var(--muted);}
+/* Avatar en el plantel */
+.sq-avatar-btn{position:relative;background:none;border:none;padding:0;cursor:pointer;flex-shrink:0;line-height:0;}
+.sq-avatar-btn .sq-avatar-cam{position:absolute;bottom:-2px;right:-2px;font-size:12px;background:var(--panel);border-radius:50%;padding:1px 2px;line-height:1;opacity:0;transition:opacity .12s ease;}
+.sq-avatar-btn:hover .sq-avatar-cam{opacity:1;}
+.sq-avatar-btn:hover .pl-avatar{border-color:var(--accent-2);}
+/* Cabecera de la ficha del jugador */
+.pc-header{display:flex;align-items:center;gap:16px;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;}
+.pc-photo-btn{position:relative;background:none;border:none;padding:0;cursor:pointer;line-height:0;flex-shrink:0;}
+.pc-photo-btn .pl-avatar{border-width:3px;}
+.pc-photo-btn .pc-photo-cam{position:absolute;bottom:0;right:0;font-size:16px;background:var(--panel);border-radius:50%;padding:2px 3px;line-height:1;border:1px solid var(--line);}
+.pc-photo-btn:hover .pl-avatar{border-color:var(--accent-2);}
+.pc-header-name{font-family:'Oswald',sans-serif;font-size:24px;font-weight:600;color:var(--chalk);line-height:1.1;}
+.pc-header-sub{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent-2);margin-top:4px;}
 .pc-stat{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:16px 10px;text-align:center;}
 .pc-stat-num{font-family:'Oswald',sans-serif;font-size:34px;font-weight:600;line-height:1;color:var(--chalk);}
 .pc-stat-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-top:6px;}
@@ -5344,7 +5360,7 @@ window.__initEditor = function(){
       let pq = sb.from('players').select('*').eq('club_id', clubId);
       pq = cat ? pq.eq('categoria', cat) : pq.is('categoria', null);
       const pRes = await pq;
-      squad = (pRes.data||[]).map(p => ({ id:p.id, name:p.name, number:p.number||'', position:p.position||'' }));
+      squad = (pRes.data||[]).map(p => ({ id:p.id, name:p.name, number:p.number||'', position:p.position||'', photo:p.photo||'' }));
 
       // Orígenes de gol (guardados como una fila JSON por categoría)
       let oq = sb.from('goal_origins').select('*').eq('club_id', clubId);
@@ -5500,6 +5516,66 @@ window.__initEditor = function(){
   if(btnPdfG) btnPdfG.addEventListener('click', ()=>exportarPdf('graph'));
 
   // ========== PLANTEL ==========
+  // Procesa un archivo de imagen: lo achica a máx 200px y devuelve un data-url liviano (JPEG)
+  function procesarFoto(file){
+    return new Promise((resolve, reject) => {
+      if(!file || !file.type || !file.type.startsWith('image/')){ reject('No es una imagen'); return; }
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          const MAX = 200;
+          let w = img.width, h = img.height;
+          // recorte cuadrado centrado
+          const side = Math.min(w, h);
+          const sx = (w - side) / 2, sy = (h - side) / 2;
+          const canvas = document.createElement('canvas');
+          canvas.width = MAX; canvas.height = MAX;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, sx, sy, side, side, 0, 0, MAX, MAX);
+          resolve(canvas.toDataURL('image/jpeg', 0.72));
+        };
+        img.onerror = () => reject('No se pudo leer la imagen');
+        img.src = e.target.result;
+      };
+      reader.onerror = () => reject('No se pudo leer el archivo');
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Devuelve el HTML de un avatar: foto si hay, o iniciales del nombre
+  function avatarHTML(p, size){
+    const s = size || 44;
+    if(p.photo){
+      return `<div class="pl-avatar" style="width:${s}px;height:${s}px;background-image:url('${p.photo}');"></div>`;
+    }
+    const ini = (p.name||'?').trim().split(/\s+/).map(x=>x[0]).slice(0,2).join('').toUpperCase();
+    return `<div class="pl-avatar pl-avatar-ini" style="width:${s}px;height:${s}px;font-size:${Math.round(s*0.4)}px;">${escapeHtml(ini)}</div>`;
+  }
+
+  // Abre el selector de archivo para subir/cambiar la foto de un jugador
+  function subirFotoJugador(p, onDone){
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = 'image/*';
+    input.addEventListener('change', async () => {
+      const file = input.files && input.files[0];
+      if(!file) return;
+      try{
+        toast('Procesando foto…');
+        const dataUrl = await procesarFoto(file);
+        const sb = window.__sb;
+        if(sb && !String(p.id).startsWith('tmp')){
+          const { error } = await sb.from('players').update({ photo: dataUrl }).eq('id', p.id);
+          if(error){ toast('No se pudo guardar la foto'); return; }
+        }
+        p.photo = dataUrl;
+        toast('Foto actualizada');
+        if(onDone) onDone();
+      }catch(err){ console.error('foto', err); toast('No se pudo procesar la foto'); }
+    });
+    input.click();
+  }
+
   function renderSquad(){
     const el = document.getElementById('squadList');
     if(squad.length === 0){
@@ -5511,11 +5587,15 @@ window.__initEditor = function(){
       const card = document.createElement('div');
       card.className = 'squad-card';
       card.innerHTML = `
+        <button class="sq-avatar-btn" title="Cambiar foto">${avatarHTML(p, 44)}<span class="sq-avatar-cam">📷</span></button>
         <div class="sq-num">${escapeHtml(p.number||'—')}</div>
         <div class="sq-info"><div class="sq-name">${escapeHtml(p.name)}</div><div class="sq-pos">${escapeHtml(p.position||'')}</div></div>
         <button class="sq-edit" title="Editar">✎</button>
         <button class="sq-del" title="Quitar">✕</button>
       `;
+      card.querySelector('.sq-avatar-btn').addEventListener('click', () => {
+        subirFotoJugador(p, () => renderSquad());
+      });
       card.querySelector('.sq-edit').addEventListener('click', async () => {
         const name = prompt(window.t('mPlayerName'), p.name || '');
         if(name === null) return;                       // canceló
@@ -6568,6 +6648,16 @@ window.__initEditor = function(){
       return;
     }
 
+    // ---- Cabecera con foto ----
+    const cabecera = `
+      <div class="pc-header">
+        <button class="pc-photo-btn" title="Cambiar foto">${avatarHTML(player, 84)}<span class="pc-photo-cam">📷</span></button>
+        <div class="pc-header-info">
+          <div class="pc-header-name">${escapeHtml(player.name || 'Jugador')}</div>
+          <div class="pc-header-sub">${escapeHtml((player.number ? '#'+player.number : '') + (player.position ? ' · '+player.position : ''))}</div>
+        </div>
+      </div>`;
+
     // ---- Tarjetas de resumen ----
     const resumen = `
       <div class="pc-summary">
@@ -6635,7 +6725,14 @@ window.__initEditor = function(){
         <div class="pc-chart-foot">Terminó el año con <strong>${totGoals}</strong> gol(es) en ${played} partido(s) con participación.</div>
       </div>`;
 
-    cont2.innerHTML = resumen + barsChart + lineChart;
+    cont2.innerHTML = cabecera + resumen + barsChart + lineChart;
+    // Enganchar el botón de foto de la ficha
+    const photoBtn = cont2.querySelector('.pc-photo-btn');
+    if(photoBtn){
+      photoBtn.addEventListener('click', () => {
+        subirFotoJugador(player, () => drawPlayerCard(playerId));
+      });
+    }
   }
 
   // ===== TABLERO DE SALUD DEL PLANTEL: alertas automáticas =====
