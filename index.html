@@ -934,6 +934,19 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .calls-cell:hover{background:var(--panel-2);}
 .calls-cell.yes{background:rgba(76,175,109,0.18);color:var(--success);}
 .calls-cell.no{background:rgba(240,85,63,0.15);color:var(--danger);}
+.calls-cell.reason{background:rgba(140,162,179,0.12);}
+.calls-cell.reason-lesion{background:rgba(224,169,59,0.16);}
+.calls-cell.reason-enfermedad{background:rgba(155,111,203,0.16);}
+.calls-cell.reason-viaje{background:rgba(47,143,203,0.14);}
+.calls-cell.reason-suspension{background:rgba(240,85,63,0.22);}
+.calls-legend{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.9;}
+.calls-legend .cl-i{display:inline-block;padding:2px 8px;border-radius:6px;margin:0 3px;white-space:nowrap;}
+.calls-legend .cl-yes{background:rgba(76,175,109,0.18);color:var(--success);}
+.calls-legend .cl-no{background:rgba(240,85,63,0.15);color:var(--danger);}
+.calls-legend .cl-les{background:rgba(224,169,59,0.16);color:#E0A93B;}
+.calls-legend .cl-enf{background:rgba(155,111,203,0.16);color:#9B6FCB;}
+.calls-legend .cl-via{background:rgba(47,143,203,0.14);color:var(--accent-2);}
+.calls-legend .cl-sus{background:rgba(240,85,63,0.22);color:var(--danger);}
 .calls-empty{text-align:center;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:13px;padding:40px;border:1px dashed var(--line);border-radius:12px;}
 .annual-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 @media (max-width:820px){.annual-grid{grid-template-columns:1fr;}}
@@ -6002,9 +6015,10 @@ window.__initEditor = function(){
       tbody += `<tr><td class="player-name-cell"><span class="pn-num">${escapeHtml(p.number||'')}</span> ${escapeHtml(p.name)}</td>`;
       ordered.forEach(m => {
         const st = (m.calls && m.calls[p.id]) || '';
-        const cls = st==='yes'?'yes':(st==='no'?'no':'');
-        const icon = st==='yes'?'✓':(st==='no'?'✕':'');
-        tbody += `<td class="calls-cell ${cls}" data-match="${m.id}" data-player="${p.id}">${icon}</td>`;
+        const cls = st==='yes'?'yes':(st==='no'?'no':(st?'reason reason-'+st:''));
+        const icon = st==='yes'?'✓':(st==='no'?'✕':(st==='lesion'?'🚑':(st==='enfermedad'?'🤒':(st==='viaje'?'✈️':(st==='suspension'?'🟥':'')))));
+        const title = st==='yes'?'Citado':(st==='no'?'No citado (decisión técnica)':(st==='lesion'?'Ausente por lesión':(st==='enfermedad'?'Ausente por enfermedad':(st==='viaje'?'Ausente por viaje':(st==='suspension'?'Ausente por suspensión':'Sin marcar')))));
+        tbody += `<td class="calls-cell ${cls}" data-match="${m.id}" data-player="${p.id}" title="${title}">${icon}</td>`;
       });
       const total = matches.reduce((acc,m) => acc + ((m.calls && m.calls[p.id]==='yes')?1:0), 0);
       tbody += `<td class="total-col">${total}</td></tr>`;
@@ -6012,9 +6026,15 @@ window.__initEditor = function(){
     tbody += '</tbody>';
     table.innerHTML = thead + tbody;
     wrap.innerHTML = '';
+    const legend = document.createElement('div');
+    legend.className = 'calls-legend';
+    legend.innerHTML = 'Tocá una celda para cambiar: <span class="cl-i cl-yes">✓ Citado</span> <span class="cl-i cl-no">✕ No citado (decisión)</span> <span class="cl-i cl-les">🚑 Lesión</span> <span class="cl-i cl-enf">🤒 Enfermedad</span> <span class="cl-i cl-via">✈️ Viaje</span> <span class="cl-i cl-sus">🟥 Suspensión</span>';
+    wrap.appendChild(legend);
     wrap.appendChild(table);
 
-    // Click en cada celda: cicla vacío → sí → no → vacío
+    // Click en cada celda: cicla por todos los estados
+    // vacío → sí → no(decisión) → lesión → enfermedad → viaje → suspensión → vacío
+    const CICLO = ['', 'yes', 'no', 'lesion', 'enfermedad', 'viaje', 'suspension'];
     wrap.querySelectorAll('.calls-cell').forEach(cell => {
       cell.addEventListener('click', () => {
         const m = matches.find(x => x.id === cell.dataset.match);
@@ -6022,7 +6042,8 @@ window.__initEditor = function(){
         if(!m.calls) m.calls = {};
         const pid = cell.dataset.player;
         const cur = m.calls[pid] || '';
-        const next = cur==='' ? 'yes' : (cur==='yes' ? 'no' : '');
+        const idx = CICLO.indexOf(cur);
+        const next = CICLO[(idx + 1) % CICLO.length];
         if(next==='') delete m.calls[pid]; else m.calls[pid] = next;
         saveCalls(m);
         renderCalls();
@@ -6614,21 +6635,29 @@ window.__initEditor = function(){
       (m.goalsFor||[]).forEach(g => { const nm = byId[g.player_id]; if(nm && stat[nm]) stat[nm].goles++; });
     });
 
-    // Convocatorias: últimos partidos QUE TENGAN convocatorias cargadas
-    // (si no cargaste convocatorias de un partido, no lo podemos juzgar)
+    // Convocatorias: últimos partidos QUE TENGAN citaciones cargadas.
+    // Motivos justificados (no dependen de decisión del DT) no generan alerta.
+    const JUSTIFICADOS = ['lesion', 'enfermedad', 'viaje', 'suspension'];
     const ms = matches.slice().sort((a,b) => {
       const da=a.date||'', db=b.date||'';
       if(da&&db) return db.localeCompare(da);   // más recientes primero
       if(da) return -1; if(db) return 1;
       return (b.createdAt||'').localeCompare(a.createdAt||'');
     });
-    const conCitaciones = ms.filter(m => m.calls && Object.values(m.calls).some(v => v === 'yes' || v === 'no'));
+    const conCitaciones = ms.filter(m => m.calls && Object.values(m.calls).some(v => v));
     const ultimos = conCitaciones.slice(0, 3);   // los últimos 3 partidos con citaciones cargadas
     const sinConvocar = [];
     if(ultimos.length >= 2){
       squad.forEach(p => {
-        const convocadoEnAlguno = ultimos.some(m => m.calls && m.calls[p.id] === 'yes');
-        if(!convocadoEnAlguno) sinConvocar.push(p.name);
+        const citadoEnAlguno = ultimos.some(m => m.calls && m.calls[p.id] === 'yes');
+        if(citadoEnAlguno) return;   // fue citado al menos una vez: no hay alerta
+        // No fue citado en ninguno. ¿Fue por decisión técnica (o sin marcar), o todo justificado?
+        // Si TODAS sus ausencias en la ventana fueron por motivo justificado, no alertamos.
+        const todasJustificadas = ultimos.every(m => {
+          const st = m.calls ? m.calls[p.id] : undefined;
+          return JUSTIFICADOS.includes(st);   // lesión/enfermedad/viaje/suspensión
+        });
+        if(!todasJustificadas) sinConvocar.push(p.name);
       });
     }
 
