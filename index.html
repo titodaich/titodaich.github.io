@@ -713,6 +713,43 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .stats-subtab{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:9px 18px;font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;cursor:pointer;transition:all .15s ease;}
 .stats-subtab:hover{color:var(--chalk);border-color:var(--muted);}
 .stats-subtab.active{background:var(--accent);border-color:var(--accent);color:#10161C;}
+.player-picker-bar{display:flex;align-items:center;gap:10px;margin:16px 0 20px;flex-wrap:wrap;}
+.summary-textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;color:var(--chalk);font-family:'Inter',sans-serif;font-size:14px;line-height:1.6;padding:12px 14px;resize:vertical;box-sizing:border-box;}
+.summary-textarea:focus{outline:none;border-color:var(--accent-2);}
+.summary-actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;}
+.summary-actions .btn{flex:1;min-width:130px;text-align:center;}
+.health-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+@media (max-width:720px){.health-grid{grid-template-columns:1fr;}}
+.health-card{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:16px;border-left-width:4px;}
+.health-card.tone-crit{border-left-color:var(--danger);}
+.health-card.tone-warn{border-left-color:#E0A93B;}
+.health-card.tone-info{border-left-color:var(--accent-2);}
+.health-card.tone-good{border-left-color:var(--success);}
+.health-card-title{font-family:'Oswald',sans-serif;font-size:16px;color:var(--chalk);margin:0 0 12px;}
+.health-item{font-family:'Inter',sans-serif;font-size:13.5px;color:var(--chalk);padding:6px 0;line-height:1.4;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid rgba(255,255,255,0.04);}
+.health-item:last-child{border-bottom:none;}
+.health-item strong{color:var(--chalk);font-weight:600;}
+.health-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;flex-shrink:0;}
+.health-badge.crit{background:rgba(240,85,63,0.18);color:var(--danger);}
+.health-badge.warn{background:rgba(224,169,59,0.18);color:#E0A93B;}
+.health-badge.info{background:rgba(47,143,203,0.18);color:var(--accent-2);}
+.health-badge.good{background:rgba(76,175,109,0.18);color:var(--success);}
+.health-note{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5;}
+.health-allgood{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:22px;text-align:center;font-family:'Inter',sans-serif;font-size:15px;color:var(--chalk);}
+.player-picker-label{font-family:'Oswald',sans-serif;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);}
+.player-card-select{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;color:var(--chalk);font-family:'Inter',sans-serif;font-size:14px;padding:9px 12px;min-width:200px;cursor:pointer;}
+.player-card-select:focus{outline:none;border-color:var(--accent-2);}
+.pc-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.pc-stat{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:16px 10px;text-align:center;}
+.pc-stat-num{font-family:'Oswald',sans-serif;font-size:34px;font-weight:600;line-height:1;color:var(--chalk);}
+.pc-stat-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-top:6px;}
+.pc-chart-card{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;}
+.pc-chart-title{font-family:'Oswald',sans-serif;font-size:16px;color:var(--chalk);margin:0 0 12px;}
+.pc-chart-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.pc-svg{display:block;max-width:100%;height:auto;}
+.pc-chart-foot{font-family:'Inter',sans-serif;font-size:13px;color:var(--muted);margin-top:10px;line-height:1.5;}
+.pc-chart-foot strong{color:var(--chalk);}
+@media (max-width:720px){.pc-summary{grid-template-columns:repeat(2,1fr);}}
 .stats-sub{display:none;}
 .stats-sub.active{display:block;}
 
@@ -1563,6 +1600,8 @@ body.editor-active #screen-editor{ display:block; }
       <button class="stats-subtab" data-sub="calls" data-i18n="stCalls">✅ Convocatorias</button>
       <button class="stats-subtab" data-sub="minutes" data-i18n="stMinutes">⏱ Minutaje</button>
       <button class="stats-subtab" data-sub="annual" data-i18n="stAnnual">📈 Estadísticas anuales</button>
+      <button class="stats-subtab" data-sub="player" data-i18n="stPlayer">🎯 Ficha del jugador</button>
+      <button class="stats-subtab" data-sub="health" data-i18n="stHealth">🚦 Semáforo del Plantel</button>
     </div>
 
     <!-- Barra de exportación -->
@@ -1688,6 +1727,30 @@ body.editor-active #screen-editor{ display:block; }
         <button class="btn small" id="openAdjBtn" data-i18n="openAdj">＋ Ajuste primer semestre</button>
       </div>
       <div id="annualContent"></div>
+    </div>
+
+    <div class="stats-sub" id="stats-player">
+      <div class="scout-head">
+        <div>
+          <h2 class="scout-title" data-i18n="playerTitle">Ficha del jugador</h2>
+          <p class="scout-sub" data-i18n="playerSub">Elegí un jugador y mirá su evolución partido a partido.</p>
+        </div>
+      </div>
+      <div class="player-picker-bar">
+        <label class="player-picker-label" data-i18n="playerPick">Jugador:</label>
+        <select id="playerCardSelect" class="player-card-select"></select>
+      </div>
+      <div id="playerCardContent"></div>
+    </div>
+
+    <div class="stats-sub" id="stats-health">
+      <div class="scout-head">
+        <div>
+          <h2 class="scout-title" data-i18n="healthTitle">Semáforo del Plantel</h2>
+          <p class="scout-sub" data-i18n="healthSub">Alertas automáticas según tus datos: tarjetas, minutos y convocatorias.</p>
+        </div>
+      </div>
+      <div id="healthContent"></div>
     </div>
   </div>
 
@@ -2123,6 +2186,24 @@ body.editor-active #screen-editor{ display:block; }
   </div>
 </div>
 
+<!-- Modal resumen del partido para compartir -->
+<div class="cloud-modal-overlay" id="matchSummaryModal" style="display:none;">
+  <div class="cloud-modal" style="max-width:440px;">
+    <div class="cloud-modal-head">
+      <h3>📋 Resumen del partido</h3>
+      <button class="cloud-close" id="summaryClose">✕</button>
+    </div>
+    <div style="padding:4px 2px;">
+      <p class="rd-empty" style="margin-bottom:12px;">Listo para copiar y mandar al grupo del equipo.</p>
+      <textarea id="summaryText" class="summary-textarea" rows="10" readonly></textarea>
+      <div class="summary-actions">
+        <button class="btn small primary" id="summaryCopyBtn">📋 Copiar</button>
+        <a class="btn small" id="summaryWaBtn" target="_blank" style="text-decoration:none;background:#25D36622;color:#25D366;border:1px solid #25D366;">💬 Compartir por WhatsApp</a>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Modal cargar minuto:segundo (reloj parado) -->
 <div class="cloud-modal-overlay" id="liveTimeModal" style="display:none;">
   <div class="cloud-modal" style="max-width:340px;">
@@ -2227,7 +2308,7 @@ window.I18N = {
     aiTitle:'Análisis automático con IA', aiSub:'La IA recorre el video y sugiere jugadas con tus tags (córners, laterales, 3-1, 4-0, defensas, 5vs4...). Vos revisás y aceptás. Los recortes aceptados aparecen en la pestaña Video como los manuales.',
     aiAnalyze:'⚡ Analizar', aiCancel:'Cancelar',
     // Estadísticas subtabs
-    stMatches:'⚽ Partidos', stSquad:'👥 Plantel', stCalls:'✅ Convocatorias', stMinutes:'⏱ Minutaje', stAnnual:'📈 Estadísticas anuales',
+    stMatches:'⚽ Partidos', stSquad:'👥 Plantel', stCalls:'✅ Convocatorias', stMinutes:'⏱ Minutaje', stAnnual:'📈 Estadísticas anuales', stPlayer:'🎯 Ficha del jugador', playerTitle:'Ficha del jugador', playerSub:'Elegí un jugador y mirá su evolución partido a partido.', playerPick:'Jugador:', stHealth:'🚦 Semáforo del Plantel', healthTitle:'Semáforo del Plantel', healthSub:'Alertas automáticas según tus datos: tarjetas, minutos y convocatorias.',
     exportLbl:'Exportar:', exportExcel:'⬇ Excel', exportPdf:'⬇ PDF', exportPdfGraph:'⬇ PDF con gráficos', exportEmpty:'No hay datos para exportar en esta pestaña.', exportReady:'Preparando la descarga…', exportPdfReady:'Se abrirá el diálogo de impresión. Elegí "Guardar como PDF".',
     stMatchesTitle:'Partidos', stMatchesSub:'Cargá cada partido con sus goles, asistencias y tarjetas. Se suma solo en las estadísticas anuales.',
     newMatch:'+ Nuevo partido', goalsFor:'⚽ Goles a favor', addGoal:'+ Gol', assists:'🅰 Asistencias', addAssist:'+ Asistencia',
@@ -2307,7 +2388,7 @@ window.I18N = {
     vExportJson:'Download data (.json)', vExportEach:'Export clips separately', vExportSeq:'Export full sequence',
     aiTitle:'Automatic AI analysis', aiSub:'The AI scans the video and suggests plays with your tags (corners, sidelines, 3-1, 4-0, defenses, 5v4...). You review and accept. Accepted clips appear in the Video tab like manual ones.',
     aiAnalyze:'⚡ Analyze', aiCancel:'Cancel',
-    stMatches:'⚽ Matches', stSquad:'👥 Roster', stCalls:'✅ Call-ups', stMinutes:'⏱ Minutes', stAnnual:'📈 Season stats',
+    stMatches:'⚽ Matches', stSquad:'👥 Roster', stCalls:'✅ Call-ups', stMinutes:'⏱ Minutes', stAnnual:'📈 Season stats', stPlayer:'🎯 Player card', playerTitle:'Player card', playerSub:'Pick a player and see their match-by-match evolution.', playerPick:'Player:', stHealth:'🚦 Squad Traffic Light', healthTitle:'Squad Traffic Light', healthSub:'Automatic alerts from your data: cards, minutes and call-ups.',
     exportLbl:'Export:', exportExcel:'⬇ Excel', exportPdf:'⬇ PDF', exportPdfGraph:'⬇ PDF with charts', exportEmpty:'No data to export in this tab.', exportReady:'Preparing download…', exportPdfReady:'The print dialog will open. Choose "Save as PDF".',
     stMatchesTitle:'Matches', stMatchesSub:'Log each match with its goals, assists and cards. It adds up in the season stats.',
     newMatch:'+ New match', goalsFor:'⚽ Goals for', addGoal:'+ Goal', assists:'🅰 Assists', addAssist:'+ Assist',
@@ -2382,7 +2463,7 @@ window.I18N = {
     vExportJson:'Baixar dados (.json)', vExportEach:'Exportar clipes separados', vExportSeq:'Exportar sequência completa',
     aiTitle:'Análise automática com IA', aiSub:'A IA percorre o vídeo e sugere jogadas com suas tags (escanteios, laterais, 3-1, 4-0, defesas, 5x4...). Você revisa e aceita. Os cortes aceitos aparecem na aba Vídeo como os manuais.',
     aiAnalyze:'⚡ Analisar', aiCancel:'Cancelar',
-    stMatches:'⚽ Jogos', stSquad:'👥 Elenco', stCalls:'✅ Convocações', stMinutes:'⏱ Minutagem', stAnnual:'📈 Estatísticas anuais',
+    stMatches:'⚽ Jogos', stSquad:'👥 Elenco', stCalls:'✅ Convocações', stMinutes:'⏱ Minutagem', stAnnual:'📈 Estatísticas anuais', stPlayer:'🎯 Ficha do jogador', playerTitle:'Ficha do jogador', playerSub:'Escolha um jogador e veja sua evolução jogo a jogo.', playerPick:'Jogador:', stHealth:'🚦 Semáforo do Elenco', healthTitle:'Semáforo do Elenco', healthSub:'Alertas automáticos dos seus dados: cartões, minutos e convocações.',
     exportLbl:'Exportar:', exportExcel:'⬇ Excel', exportPdf:'⬇ PDF', exportPdfGraph:'⬇ PDF com gráficos', exportEmpty:'Não há dados para exportar nesta aba.', exportReady:'Preparando o download…', exportPdfReady:'A janela de impressão será aberta. Escolha "Salvar como PDF".',
     stMatchesTitle:'Jogos', stMatchesSub:'Registre cada jogo com seus gols, assistências e cartões. Soma nas estatísticas anuais.',
     newMatch:'+ Novo jogo', goalsFor:'⚽ Gols a favor', addGoal:'+ Gol', assists:'🅰 Assistências', addAssist:'+ Assistência',
@@ -4393,6 +4474,19 @@ window.__initEditor = function(){
   document.getElementById('liveUndoBtn').addEventListener('click', undoLastEvent);
   document.getElementById('liveSaveClose').addEventListener('click',()=>{ document.getElementById('liveSaveModal').style.display='none'; });
   document.getElementById('liveSaveModal').addEventListener('click',e=>{ if(e.target.id==='liveSaveModal') e.target.style.display='none'; });
+  // Modal resumen del partido
+  const _sumClose = document.getElementById('summaryClose');
+  if(_sumClose) _sumClose.addEventListener('click',()=>{ document.getElementById('matchSummaryModal').style.display='none'; });
+  const _sumModal = document.getElementById('matchSummaryModal');
+  if(_sumModal) _sumModal.addEventListener('click',e=>{ if(e.target.id==='matchSummaryModal') e.target.style.display='none'; });
+  const _sumCopy = document.getElementById('summaryCopyBtn');
+  if(_sumCopy) _sumCopy.addEventListener('click',()=>{
+    const ta = document.getElementById('summaryText');
+    if(!ta) return;
+    navigator.clipboard.writeText(ta.value).then(()=>toast('¡Resumen copiado!')).catch(()=>{
+      ta.select(); try{ document.execCommand('copy'); toast('¡Resumen copiado!'); }catch(_){ toast('No se pudo copiar'); }
+    });
+  });
 
   // ----- Marcador: contadores MANUALES (goles y faltas en contra) -----
   function bindMini(id, fn){ const b=document.getElementById(id); if(b) b.addEventListener('click', fn); }
@@ -4453,6 +4547,8 @@ window.__initEditor = function(){
     const totals = totalsSnapshot();
     // Guardamos el marcador del rival dentro de totals, sin tocar el esquema de la BD.
     totals.__rival = { goalsAgainst: goalsAgainstManual, foulsAgainst: foulsAgainst1 + foulsAgainst2, foulsAgainst1: foulsAgainst1, foulsAgainst2: foulsAgainst2, shotsFor: shotsFor1 + shotsFor2, shotsAgainst: shotsAgainst1 + shotsAgainst2, shotsFor1: shotsFor1, shotsFor2: shotsFor2, shotsAgainst1: shotsAgainst1, shotsAgainst2: shotsAgainst2 };
+    // Generar el resumen para compartir ANTES de limpiar el estado.
+    const resumen = generarResumenPartido(totals, rivalName);
     const payload = {
       club_id: clubId, categoria: cat, name: rivalName,
       match_id: matchId || null, half_minutes: halfMinutes,
@@ -4484,6 +4580,63 @@ window.__initEditor = function(){
     // En ambos casos volvemos al setup: el partido está a salvo (local o nube)
     setupCalled = {}; matchRival = ''; matchLinkId = null;
     backToSetup();
+    // Ofrecer el resumen para compartir
+    mostrarResumenPartido(resumen);
+  }
+
+  // Arma el texto del resumen del partido con plantilla (sin IA)
+  function generarResumenPartido(totals, rivalName){
+    const nombreEquipo = 'Benchone';
+    // Goles a favor: sumar goles por jugador
+    let golesFavor = 0;
+    const goleadores = [];
+    Object.keys(totals).forEach(name => {
+      if(name === '__rival') return;
+      const g = totals[name] && totals[name].goals;
+      if(g > 0){ golesFavor += g; goleadores.push({ name, g }); }
+    });
+    goleadores.sort((a,b) => b.g - a.g);
+    const golesContra = (totals.__rival && totals.__rival.goalsAgainst) || 0;
+    const rival = rivalName && rivalName !== 'Partido' ? rivalName : 'Rival';
+
+    // Encabezado con resultado
+    let txt = `⚽ ${nombreEquipo} ${golesFavor} - ${golesContra} ${rival}\n`;
+    // Resultado en palabras
+    if(golesFavor > golesContra) txt += `✅ ¡Ganamos!\n`;
+    else if(golesFavor < golesContra) txt += `Perdimos, a seguir trabajando.\n`;
+    else txt += `Empatamos.\n`;
+
+    // Goleadores
+    if(goleadores.length > 0){
+      txt += `\n🥅 Goles:\n`;
+      goleadores.forEach(x => { txt += `  • ${x.name}${x.g > 1 ? ' (' + x.g + ')' : ''}\n`; });
+    }
+
+    // Figura: el que más goles hizo (si hubo goles)
+    if(goleadores.length > 0 && goleadores[0].g >= 1){
+      txt += `\n⭐ Figura: ${goleadores[0].name}\n`;
+    }
+
+    // Remates (si se cargaron)
+    const rf = totals.__rival ? (totals.__rival.shotsFor || 0) : 0;
+    const ra = totals.__rival ? (totals.__rival.shotsAgainst || 0) : 0;
+    if(rf > 0 || ra > 0){
+      txt += `\n🎯 Remates al arco: ${rf} - ${ra}\n`;
+    }
+
+    txt += `\n— vía Benchone`;
+    return txt;
+  }
+
+  // Muestra el modal con el resumen y los botones de copiar / WhatsApp
+  function mostrarResumenPartido(texto){
+    const modal = document.getElementById('matchSummaryModal');
+    const ta = document.getElementById('summaryText');
+    const wa = document.getElementById('summaryWaBtn');
+    if(!modal || !ta) return;
+    ta.value = texto;
+    if(wa) wa.href = 'https://wa.me/?text=' + encodeURIComponent(texto);
+    modal.style.display = 'flex';
   }
 
   // Reintentar subir pendientes cuando vuelve la conexión o al iniciar
@@ -5104,6 +5257,8 @@ window.__initEditor = function(){
       if(sub === 'matches') renderMatchList();
       if(sub === 'calls') renderCalls();
       if(sub === 'minutes') renderMinutes();
+      if(sub === 'player') renderPlayerCard();
+      if(sub === 'health') renderHealth();
     });
   });
 
@@ -6220,6 +6375,261 @@ window.__initEditor = function(){
       const el = document.getElementById('annualContent');
       if(el && el.offsetParent !== null) renderAnnual();
     }catch(e){ console.error('cargarRematesAnuales', e); }
+  }
+
+  // ===== FICHA DEL JUGADOR: evolución partido a partido =====
+  function renderPlayerCard(){
+    const sel = document.getElementById('playerCardSelect');
+    const cont = document.getElementById('playerCardContent');
+    if(!sel || !cont) return;
+    if(!squad || squad.length === 0){
+      sel.innerHTML = '';
+      cont.innerHTML = '<div class="annual-empty">Todavía no cargaste jugadores en esta categoría. Andá a la pestaña 👥 Plantel para agregarlos.</div>';
+      return;
+    }
+    // Poblar el selector (conservando la selección previa)
+    const prev = sel.value;
+    sel.innerHTML = squad.map(p => `<option value="${p.id}">${escapeHtml((p.number? '#'+p.number+' ' : '') + (p.name||'Sin nombre'))}</option>`).join('');
+    if(prev && squad.some(p => p.id === prev)) sel.value = prev;
+    // Enganchar el cambio una sola vez
+    if(!sel.__wired){
+      sel.addEventListener('change', () => drawPlayerCard(sel.value));
+      sel.__wired = true;
+    }
+    drawPlayerCard(sel.value);
+  }
+
+  // Dibuja la ficha del jugador elegido
+  function drawPlayerCard(playerId){
+    const cont = document.getElementById('playerCardContent');
+    if(!cont) return;
+    const player = squad.find(p => p.id === playerId);
+    if(!player){ cont.innerHTML = ''; return; }
+
+    // Partidos ordenados por fecha (los que tienen fecha primero, luego por orden de carga)
+    const ms = matches.slice().sort((a,b) => {
+      const da = a.date || '', db = b.date || '';
+      if(da && db) return da.localeCompare(db);
+      if(da) return -1; if(db) return 1;
+      return (a.createdAt||'').localeCompare(b.createdAt||'');
+    });
+
+    // Recorrer partidos y armar la serie del jugador
+    let totGoals = 0, totAssists = 0, totCards = 0, called = 0, played = 0;
+    let acc = 0;
+    const perMatch = [];   // {label, goals, assists, cards, acc, wasCalled}
+    ms.forEach((m, i) => {
+      const g = (m.goalsFor||[]).filter(x => x.player_id === playerId).length;
+      const a = (m.assists||[]).filter(x => x.player_id === playerId).length;
+      const c = (m.cards||[]).filter(x => x.player_id === playerId).length;
+      const wasCalled = !!(m.calls && m.calls[playerId]);
+      totGoals += g; totAssists += a; totCards += c;
+      if(wasCalled) called++;
+      if(g > 0 || a > 0 || c > 0 || wasCalled) played++;
+      acc += g;
+      const rivalTxt = m.rival ? m.rival : ('P' + (i+1));
+      perMatch.push({ label: rivalTxt, goals:g, assists:a, cards:c, acc, wasCalled });
+    });
+
+    if(ms.length === 0){
+      cont.innerHTML = '<div class="annual-empty">Todavía no cargaste partidos en esta categoría. Cargalos en ⚽ Partidos para ver la evolución.</div>';
+      return;
+    }
+
+    // ---- Tarjetas de resumen ----
+    const resumen = `
+      <div class="pc-summary">
+        <div class="pc-stat"><div class="pc-stat-num" style="color:var(--success)">${totGoals}</div><div class="pc-stat-lbl">Goles</div></div>
+        <div class="pc-stat"><div class="pc-stat-num" style="color:var(--accent-2)">${totAssists}</div><div class="pc-stat-lbl">Asistencias</div></div>
+        <div class="pc-stat"><div class="pc-stat-num" style="color:var(--danger)">${totCards}</div><div class="pc-stat-lbl">Tarjetas</div></div>
+        <div class="pc-stat"><div class="pc-stat-num">${called}</div><div class="pc-stat-lbl">Convocado</div></div>
+      </div>`;
+
+    // ---- Gráfico de barras: goles por partido ----
+    const maxG = Math.max(1, ...perMatch.map(p => p.goals));
+    const barsW = Math.max(perMatch.length * 42, 300);
+    const chartH = 150, padB = 34, padT = 10;
+    let bars = '';
+    perMatch.forEach((p, i) => {
+      const x = i * 42 + 8;
+      const h = p.goals > 0 ? (p.goals / maxG) * (chartH - padB - padT) : 0;
+      const y = chartH - padB - h;
+      const col = p.goals > 0 ? 'var(--success)' : 'var(--line)';
+      const barH = p.goals > 0 ? h : 2;
+      const barY = p.goals > 0 ? y : (chartH - padB - 2);
+      bars += `<rect x="${x}" y="${barY}" width="26" height="${barH}" rx="3" fill="${col}"><title>${escapeHtml(p.label)}: ${p.goals} gol(es)</title></rect>`;
+      if(p.goals > 0) bars += `<text x="${x+13}" y="${y-4}" text-anchor="middle" font-size="11" fill="var(--chalk)" font-family="'JetBrains Mono',monospace">${p.goals}</text>`;
+      // etiqueta rival (recortada)
+      const lbl = p.label.length > 6 ? p.label.slice(0,5)+'…' : p.label;
+      bars += `<text x="${x+13}" y="${chartH-padB+16}" text-anchor="middle" font-size="9" fill="var(--muted)" font-family="'Inter',sans-serif" transform="rotate(0 ${x+13} ${chartH-padB+16})">${escapeHtml(lbl)}</text>`;
+    });
+    const barsChart = `
+      <div class="pc-chart-card">
+        <h3 class="pc-chart-title">⚽ Goles por partido</h3>
+        <div class="pc-chart-scroll">
+          <svg viewBox="0 0 ${barsW} ${chartH}" width="${barsW}" height="${chartH}" class="pc-svg">
+            <line x1="0" y1="${chartH-padB}" x2="${barsW}" y2="${chartH-padB}" stroke="var(--line)" stroke-width="1"/>
+            ${bars}
+          </svg>
+        </div>
+      </div>`;
+
+    // ---- Gráfico de línea: goles acumulados en el año ----
+    const maxAcc = Math.max(1, acc);
+    const lineW = Math.max(perMatch.length * 42, 300);
+    const lineH = 150, lpadB = 34, lpadT = 12, lpadL = 4;
+    const stepX = perMatch.length > 1 ? (lineW - lpadL - 8) / (perMatch.length - 1) : 0;
+    let pts = [];
+    perMatch.forEach((p, i) => {
+      const x = lpadL + i * stepX + 4;
+      const y = (lineH - lpadB) - (p.acc / maxAcc) * (lineH - lpadB - lpadT);
+      pts.push([x, y, p]);
+    });
+    const polyline = pts.map(pt => `${pt[0].toFixed(1)},${pt[1].toFixed(1)}`).join(' ');
+    let dots = '';
+    pts.forEach(pt => {
+      dots += `<circle cx="${pt[0].toFixed(1)}" cy="${pt[1].toFixed(1)}" r="3.5" fill="var(--accent-2)"><title>${escapeHtml(pt[2].label)}: ${pt[2].acc} gol(es) acumulados</title></circle>`;
+    });
+    const lineChart = `
+      <div class="pc-chart-card">
+        <h3 class="pc-chart-title">📈 Goles acumulados en el año</h3>
+        <div class="pc-chart-scroll">
+          <svg viewBox="0 0 ${lineW} ${lineH}" width="${lineW}" height="${lineH}" class="pc-svg">
+            <line x1="0" y1="${lineH-lpadB}" x2="${lineW}" y2="${lineH-lpadB}" stroke="var(--line)" stroke-width="1"/>
+            <polyline points="${polyline}" fill="none" stroke="var(--accent-2)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+            ${dots}
+          </svg>
+        </div>
+        <div class="pc-chart-foot">Terminó el año con <strong>${totGoals}</strong> gol(es) en ${played} partido(s) con participación.</div>
+      </div>`;
+
+    cont.innerHTML = resumen + barsChart + lineChart;
+  }
+
+  // ===== TABLERO DE SALUD DEL PLANTEL: alertas automáticas =====
+  async function renderHealth(){
+    const cont = document.getElementById('healthContent');
+    if(!cont) return;
+    if(!squad || squad.length === 0){
+      cont.innerHTML = '<div class="annual-empty">Todavía no cargaste jugadores en esta categoría. Andá a 👥 Plantel para agregarlos.</div>';
+      return;
+    }
+    cont.innerHTML = '<div class="annual-empty">Analizando el plantel…</div>';
+
+    // Cargar sesiones de En Vivo (minutos y tarjetas)
+    let sessions = [];
+    try{
+      const sb = window.__sb; const clubId = await window.__getClubId();
+      const cat = catActual();
+      if(sb && clubId){
+        let q = sb.from('live_sessions').select('totals, match_id').eq('club_id', clubId);
+        q = cat ? q.eq('categoria', cat) : q.is('categoria', null);
+        const { data } = await q;
+        sessions = data || [];
+      }
+    }catch(e){ sessions = []; }
+
+    // Acumular datos por jugador (por nombre, que es la clave común entre fuentes)
+    const stat = {};   // name -> {tarjetas, minutos, sesiones, goles}
+    squad.forEach(p => { stat[p.name] = { tarjetas:0, minutos:0, sesiones:0, goles:0, number:p.number||'' }; });
+
+    // De las sesiones de En Vivo: minutos (todas) y tarjetas/goles (solo independientes, sin match_id)
+    sessions.forEach(s => {
+      const t = s.totals || {};
+      Object.keys(t).forEach(name => {
+        if(name === '__rival') return;
+        if(!stat[name]) return;   // jugador que ya no está en el plantel
+        const tot = t[name].total || 0;
+        if(tot > 0){ stat[name].minutos += tot; stat[name].sesiones++; }
+        if(!s.match_id){
+          stat[name].tarjetas += (t[name].cards || 0);
+          stat[name].goles += (t[name].goals || 0);
+        }
+      });
+    });
+
+    // De los partidos (matches): tarjetas (todas) y goles, por player_id
+    const byId = {}; squad.forEach(p => byId[p.id] = p.name);
+    matches.forEach(m => {
+      (m.cards||[]).forEach(c => { const nm = byId[c.player_id]; if(nm && stat[nm]) stat[nm].tarjetas++; });
+      (m.goalsFor||[]).forEach(g => { const nm = byId[g.player_id]; if(nm && stat[nm]) stat[nm].goles++; });
+    });
+
+    // Convocatorias: últimos partidos (para detectar quién no viene siendo convocado)
+    const ms = matches.slice().sort((a,b) => {
+      const da=a.date||'', db=b.date||'';
+      if(da&&db) return db.localeCompare(da);   // más recientes primero
+      if(da) return -1; if(db) return 1;
+      return (b.createdAt||'').localeCompare(a.createdAt||'');
+    });
+    const ultimos = ms.slice(0, 3);   // los últimos 3 partidos
+    const sinConvocar = [];
+    if(ultimos.length >= 2){
+      squad.forEach(p => {
+        const convocadoEnAlguno = ultimos.some(m => m.calls && m.calls[p.id]);
+        if(!convocadoEnAlguno) sinConvocar.push(p.name);
+      });
+    }
+
+    // ---- Armar las alertas ----
+    const cards = [];
+
+    // 1) Suspensión por tarjetas (3 = atención, 4 = al límite)
+    const alLimite = [], atencion = [];
+    Object.keys(stat).forEach(name => {
+      const tj = stat[name].tarjetas;
+      if(tj >= 4) alLimite.push({ name, tj });
+      else if(tj === 3) atencion.push({ name, tj });
+    });
+    if(alLimite.length > 0 || atencion.length > 0){
+      let body = '';
+      alLimite.sort((a,b)=>b.tj-a.tj).forEach(x => { body += `<div class="health-item"><span class="health-badge crit">${x.tj} 🟨</span> <strong>${escapeHtml(x.name)}</strong> — a una de la suspensión</div>`; });
+      atencion.forEach(x => { body += `<div class="health-item"><span class="health-badge warn">${x.tj} 🟨</span> <strong>${escapeHtml(x.name)}</strong> — atención, se acerca al límite</div>`; });
+      cards.push({ icon:'🟨', title:'Riesgo de suspensión', body, tone: alLimite.length>0?'crit':'warn' });
+    }
+
+    // 2) Pocos minutos (jugadores del plantel con muy pocos minutos acumulados)
+    const conMin = Object.keys(stat).filter(n => stat[n].sesiones > 0);
+    if(conMin.length >= 3){
+      const totalMin = conMin.reduce((a,n)=>a+stat[n].minutos,0);
+      const promedio = totalMin / conMin.length;
+      const pocos = conMin.filter(n => stat[n].minutos < promedio * 0.4)
+        .sort((a,b)=>stat[a].minutos-stat[b].minutos);
+      if(pocos.length > 0){
+        let body = '';
+        pocos.forEach(n => { const min = Math.round(stat[n].minutos/60); body += `<div class="health-item"><span class="health-badge info">${min}′</span> <strong>${escapeHtml(n)}</strong> — viene jugando poco</div>`; });
+        body += `<div class="health-note">Promedio del plantel: ${Math.round(promedio/60)}′. Ojo con la motivación de estos jugadores.</div>`;
+        cards.push({ icon:'⏱', title:'Pocos minutos', body, tone:'info' });
+      }
+    }
+
+    // 3) Sin convocar en los últimos partidos
+    if(sinConvocar.length > 0){
+      let body = '';
+      sinConvocar.forEach(n => { body += `<div class="health-item"><strong>${escapeHtml(n)}</strong> — no fue convocado en los últimos ${ultimos.length} partidos</div>`; });
+      cards.push({ icon:'📋', title:'Sin convocar últimamente', body, tone:'info' });
+    }
+
+    // 4) Goleadores en racha (positivo)
+    const goleadores = Object.keys(stat).filter(n => stat[n].goles > 0)
+      .map(n => ({ name:n, g:stat[n].goles }))
+      .sort((a,b)=>b.g-a.g).slice(0,3);
+    if(goleadores.length > 0){
+      let body = '';
+      goleadores.forEach(x => { body += `<div class="health-item"><span class="health-badge good">${x.g} ⚽</span> <strong>${escapeHtml(x.name)}</strong></div>`; });
+      cards.push({ icon:'⭐', title:'En racha goleadora', body, tone:'good' });
+    }
+
+    // ---- Render ----
+    if(cards.length === 0){
+      cont.innerHTML = '<div class="health-allgood">✅ Todo en orden. No hay alertas en el plantel por ahora.<div class="health-note" style="margin-top:8px;">A medida que cargues partidos y minutajes, van a aparecer avisos útiles acá.</div></div>';
+      return;
+    }
+    cont.innerHTML = '<div class="health-grid">' + cards.map(c => `
+      <div class="health-card tone-${c.tone}">
+        <h3 class="health-card-title">${c.icon} ${c.title}</h3>
+        ${c.body}
+      </div>`).join('') + '</div>';
   }
 
   // Gráfico de dona (distribución de orígenes de gol)
