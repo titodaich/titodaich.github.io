@@ -32,7 +32,7 @@
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;height:100%;}
 html{background-color:var(--bg);}
-body{background-color:var(--bg);-webkit-tap-highlight-color:transparent;}
+body{background-color:var(--bg);-webkit-tap-highlight-color:transparent;overflow-x:hidden;}
 #screen-login{
   background-color:transparent;
   color:var(--chalk);
@@ -335,9 +335,20 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   outline-offset:2px;
 }
 .app{max-width:1180px;margin:0 auto;padding:20px 20px 60px;}
+@media (max-width:600px){
+  .app{padding:16px 14px 60px;}
+  .panel{padding:14px;}
+  .tag-grid{gap:7px;}
+  .tag-chip{padding:9px 8px;}
+}
 
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 2px 20px;border-bottom:1px solid var(--line);margin-bottom:0;flex-wrap:wrap;}
 .brand{font-family:'Oswald',sans-serif;font-weight:700;font-size:21px;letter-spacing:0.5px;text-transform:uppercase;display:flex;align-items:baseline;gap:8px;line-height:1.1;}
+.brand-wrap{display:flex;align-items:center;gap:12px;}
+.club-escudo-btn{background:none;border:none;padding:0;cursor:pointer;line-height:0;flex-shrink:0;position:relative;}
+.club-escudo{width:46px;height:46px;border-radius:10px;background-size:cover;background-position:center;background-color:var(--panel-2);border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;transition:border-color .12s ease;}
+.club-escudo-btn:hover .club-escudo{border-color:var(--accent-2);}
+.club-escudo-ph{font-size:22px;opacity:0.5;}
 .brand .dot{color:var(--accent);}
 .brand-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:3px;}
 
@@ -642,7 +653,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 @media (max-width:820px){.live-field-layout{grid-template-columns:1fr;}}
 .live-field-label{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:8px;}
 .live-field-wrap{}
-.live-field{position:relative;background:repeating-linear-gradient(0deg,#cd9860 0px,#cd9860 26px,#c28a52 26px,#c28a52 52px);border:2px solid rgba(255,255,255,0.5);border-radius:14px;height:520px;overflow:hidden;}
+.live-field{position:relative;background:repeating-linear-gradient(0deg,#cd9860 0px,#cd9860 26px,#c28a52 26px,#c28a52 52px);border:2px solid rgba(255,255,255,0.5);border-radius:14px;height:560px;overflow:hidden;}
 .live-field::before{content:'';position:absolute;top:50%;left:8px;right:8px;height:2px;background:rgba(255,255,255,0.55);}
 .live-field::after{content:'';position:absolute;left:50%;top:50%;width:80px;height:80px;border:2px solid rgba(255,255,255,0.55);border-radius:50%;transform:translate(-50%,-50%);}
 .live-field .field-goal{position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:120px;height:8px;background:rgba(255,255,255,0.85);border-radius:2px;}
@@ -652,6 +663,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .live-token:hover{background:rgba(16,22,28,0.75);}
 .live-token.swap-out{border-color:var(--danger);background:rgba(240,85,63,0.5);}
 .live-token .lt-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,0.8);}
+.live-token .lt-avatar{display:flex;justify-content:center;margin-bottom:3px;}
+.live-token .lt-avatar .pl-avatar{border-width:1.5px;border-color:rgba(255,255,255,0.6);}
 .live-token .lt-name{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;color:#fff;margin:1px 0 4px;}
 .live-token .lt-time{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;color:#fff;}
 .live-token .lt-actions{display:flex;gap:5px;justify-content:center;margin-top:8px;}
@@ -664,6 +677,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   .live-token{width:96px;padding:6px 4px;border-width:1.5px;border-radius:9px;}
   .live-token .lt-num{font-size:9px;}
   .live-token .lt-name{font-size:11px;margin:1px 0 2px;line-height:1.1;}
+  .live-token .lt-avatar{margin-bottom:2px;}
+  .live-token .lt-avatar .pl-avatar{width:24px !important;height:24px !important;font-size:10px !important;}
   .live-token .lt-time{font-size:13px;}
   .live-token .lt-actions{gap:2px;margin-top:5px;}
   .live-token .lt-act{padding:2px 3px;font-size:10px;border-radius:5px;gap:1px;}
@@ -677,6 +692,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 
 .live-bench{display:flex;flex-direction:column;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;min-height:100px;}
 .bench-player{background:var(--panel-2);border:2px solid var(--line);border-radius:10px;padding:8px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .12s ease;}
+.bench-player .bp-avatar{line-height:0;flex-shrink:0;}
 .bench-player:hover{border-color:var(--accent-2);}
 .bench-player.swap-in-ready{border-color:var(--success);}
 .bench-player .bp-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);min-width:22px;}
@@ -776,6 +792,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .pc-photo-btn:hover .pl-avatar{border-color:var(--accent-2);}
 .pc-header-name{font-family:'Oswald',sans-serif;font-size:24px;font-weight:600;color:var(--chalk);line-height:1.1;}
 .pc-header-sub{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent-2);margin-top:4px;}
+/* Editor de recorte de foto */
+.crop-stage{position:relative;width:100%;max-width:260px;aspect-ratio:1/1;margin:0 auto 14px;background:var(--bg);border-radius:12px;overflow:hidden;cursor:grab;touch-action:none;user-select:none;}
+.crop-stage:active{cursor:grabbing;}
+.crop-stage #cropImg{position:absolute;top:0;left:0;max-width:none;pointer-events:none;}
+.crop-frame{position:absolute;inset:0;border:2px solid rgba(255,255,255,0.9);border-radius:50%;box-shadow:0 0 0 2000px rgba(16,22,28,0.55);pointer-events:none;}
+.crop-zoom-row{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:0 4px;}
+.crop-zoom{flex:1;accent-color:var(--accent-2);cursor:pointer;}
+.crop-zoom-lbl{font-size:15px;}
 .pc-stat{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:16px 10px;text-align:center;}
 .pc-stat-num{font-family:'Oswald',sans-serif;font-size:34px;font-weight:600;line-height:1;color:var(--chalk);}
 .pc-stat-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-top:6px;}
@@ -1086,7 +1110,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .layout{display:grid;grid-template-columns:1fr 1.4fr;gap:20px;}
 @media (max-width:860px){.layout{grid-template-columns:1fr;}}
 
-.panel{background:rgba(42,36,25,0.86);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);border:1px solid var(--line);border-radius:var(--radius);padding:18px;}
+.panel{background:rgba(42,36,25,0.86);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);border:1px solid var(--line);border-radius:var(--radius);padding:18px;min-width:0;max-width:100%;}
 .panel h2{font-family:'Oswald',sans-serif;font-size:14px;text-transform:uppercase;letter-spacing:1px;margin:0 0 14px;color:var(--muted);display:flex;align-items:center;gap:8px;}
 .panel h2 .n{font-family:'JetBrains Mono',monospace;color:var(--accent);}
 
@@ -1216,7 +1240,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 
 .tag-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
 .tag-grid.locked{opacity:0.5;pointer-events:none;}
-.tag-chip{position:relative;display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:9px 10px;cursor:pointer;transition:border-color .15s ease, background .15s ease;}
+.tag-chip{position:relative;display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:9px 10px;cursor:pointer;transition:border-color .15s ease, background .15s ease;min-width:0;overflow:hidden;}
 .tag-chip:hover{border-color:var(--muted);}
 .tag-chip.active{border-color:var(--tag-color);background:color-mix(in srgb, var(--tag-color) 16%, var(--bg));}
 .tag-chip.recording{
@@ -1538,9 +1562,14 @@ body.editor-active #screen-editor{ display:block; }
 
 <div class="app">
   <div class="topbar">
-    <div>
-      <div class="brand">BENCHONE<span class="dot">·</span>GESTIÓN FUTSAL</div>
-      <div class="brand-sub" data-i18n="brandSub">Panel de entrenador — futsal</div>
+    <div class="brand-wrap">
+      <button class="club-escudo-btn" id="clubEscudoBtn" title="Escudo del club">
+        <div class="club-escudo" id="clubEscudo"><span class="club-escudo-ph">🛡️</span></div>
+      </button>
+      <div>
+        <div class="brand">BENCHONE<span class="dot">·</span>GESTIÓN FUTSAL</div>
+        <div class="brand-sub" data-i18n="brandSub">Panel de entrenador — futsal</div>
+      </div>
     </div>
     <div class="topbar-right">
       <select id="langSelect" class="lang-select" title="Idioma / Language / Idioma">
@@ -2257,6 +2286,32 @@ body.editor-active #screen-editor{ display:block; }
   </div>
 </div>
 
+<!-- Modal recorte de foto del jugador -->
+<div class="cloud-modal-overlay" id="photoCropModal" style="display:none;">
+  <div class="cloud-modal" style="max-width:360px;">
+    <div class="cloud-modal-head">
+      <h3>📷 Ajustá la foto</h3>
+      <button class="cloud-close" id="photoCropClose">✕</button>
+    </div>
+    <div style="padding:6px 2px;">
+      <p class="rd-empty" style="margin-bottom:12px;">Arrastrá la foto para moverla y usá el control para el zoom.</p>
+      <div class="crop-stage" id="cropStage">
+        <img id="cropImg" alt="" draggable="false">
+        <div class="crop-frame"></div>
+      </div>
+      <div class="crop-zoom-row">
+        <span class="crop-zoom-lbl">➖</span>
+        <input type="range" id="cropZoom" min="1" max="3" step="0.01" value="1" class="crop-zoom">
+        <span class="crop-zoom-lbl">➕</span>
+      </div>
+      <div class="summary-actions">
+        <button class="btn small" id="photoCropCancel">Cancelar</button>
+        <button class="btn small primary" id="photoCropSave">Guardar foto</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Modal cargar minuto:segundo (reloj parado) -->
 <div class="cloud-modal-overlay" id="liveTimeModal" style="display:none;">
   <div class="cloud-modal" style="max-width:340px;">
@@ -2674,6 +2729,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
     if(window.__currentUserEmail && window.__setEditorUser){
       window.__setEditorUser(window.__currentUserEmail);
     }
+    // cargar el escudo del club (si lo hay)
+    if(window.__cargarEscudoClub){ setTimeout(()=>window.__cargarEscudoClub(), 400); }
   }
   function showLogin(){
     document.body.classList.remove('editor-active');
@@ -4094,6 +4151,7 @@ window.__initEditor = function(){
   let clockSeconds = 0;
   let clockRunning = false;
   let clockTimer = null;
+  let clockAnchor = null;        // hora real (Date.now) en que empezó a correr, menos lo ya acumulado
   let swapOutId = null;          // titular seleccionado para salir
   let allSquad = [];             // TODO el plantel de la categoría
   let squad = [];                // solo los convocados (los que juegan este partido)
@@ -4213,9 +4271,14 @@ window.__initEditor = function(){
 
   // ----- Reloj -----
   function tickClock(){
-    clockSeconds++;
+    if(!clockRunning || clockAnchor === null) return;
+    // Calculamos los segundos reales transcurridos desde el arranque (a prueba de pausas del navegador)
+    const real = Math.floor((Date.now() - clockAnchor) / 1000);
+    if(real === clockSeconds) return;   // sin cambios
+    const cruzabaFin = clockSeconds < halfMinutes*60;
+    clockSeconds = real;
     updateClockUI(); updateTimes();
-    if(clockSeconds === halfMinutes*60){ toast('⏱ Se cumplieron '+halfMinutes+':00. Tocá "Fin 1er tiempo" si terminó.'); }
+    if(cruzabaFin && clockSeconds >= halfMinutes*60){ toast('⏱ Se cumplieron '+halfMinutes+':00. Tocá "Fin 1er tiempo" si terminó.'); }
   }
   function updateClockUI(){
     const el = document.getElementById('liveClock'); if(!el) return;
@@ -4234,14 +4297,21 @@ window.__initEditor = function(){
     if(mm) mm.textContent = manualMin + "'";
   }
   function startClock(){
-    if(clockRunning){ clockRunning=false; clearInterval(clockTimer); updateClockUI(); return; }
+    if(clockRunning){
+      // Pausar: congelamos los segundos actuales
+      clockRunning=false; clearInterval(clockTimer); clockTimer=null; clockAnchor=null;
+      updateClockUI(); return;
+    }
     clockRunning = true;
+    // Anclamos el arranque a la hora real, descontando lo ya acumulado
+    clockAnchor = Date.now() - clockSeconds*1000;
+    clearInterval(clockTimer);
     clockTimer = setInterval(tickClock, 1000);
     updateClockUI();
   }
   function resetClock(){
     if(!confirm(window.t('mResetAll'))) return;
-    clockRunning=false; clearInterval(clockTimer);
+    clockRunning=false; clearInterval(clockTimer); clockTimer=null; clockAnchor=null;
     clockSeconds=0; currentHalf=1; halfSplitAt=null; swapOutId=null; manualMin=halfMinutes;
     events=[]; liveRowId=null;
     Object.keys(state).forEach(pid => { state[pid]={onCourt:false,acc1:0,acc2:0,lastInAt:null}; });
@@ -4260,7 +4330,7 @@ window.__initEditor = function(){
     });
     halfSplitAt = clockSeconds;
     currentHalf = 2;
-    clockRunning=false; clearInterval(clockTimer);
+    clockRunning=false; clearInterval(clockTimer); clockTimer=null; clockAnchor=null;
     events.unshift({ t:now, type:'half', inName:'', outName:'' });
     // en parado, el 2do tiempo arranca de nuevo en 20'
     if(clockType==='parado'){ manualMin = halfMinutes; Object.keys(state).forEach(pid=>{ if(state[pid].onCourt) state[pid].lastInAt = manualElapsed(); }); }
@@ -4366,25 +4436,29 @@ window.__initEditor = function(){
   }
   // Coordenadas (%) por rol. Cancha vertical: arco abajo (y alto), pivot arriba (y bajo).
   function slotsForField(enCancha){
-    // Posiciones base por rol
-    const base = {
-      arquero: [{x:50,y:90}],
-      cierre:  [{x:50,y:68}],
-      ala:     [{x:22,y:48},{x:78,y:48}],
-      pivot:   [{x:50,y:20}],
-      otro:    [{x:35,y:58},{x:65,y:58},{x:50,y:38},{x:30,y:32},{x:70,y:32}]
+    // Formaciones fijas por cantidad de jugadores en cancha.
+    // Pensadas para que los recuadros NO se superpongan, con aire entre cada uno.
+    // y va de 8 (arriba) a 92 (abajo). El arquero siempre abajo.
+    const FORMACIONES = {
+      1: [{x:50,y:82}],
+      2: [{x:50,y:22},{x:50,y:82}],
+      3: [{x:50,y:20},{x:28,y:55},{x:72,y:55}],
+      4: [{x:28,y:22},{x:72,y:22},{x:28,y:78},{x:72,y:78}],
+      5: [{x:50,y:14},{x:24,y:44},{x:76,y:44},{x:38,y:78},{x:62,y:78}]
     };
-    const used = { arquero:0, ala:0, cierre:0, pivot:0, otro:0 };
+    const n = Math.min(enCancha.length, 5);
+    const posiciones = FORMACIONES[n] || FORMACIONES[5];
+
+    // Ordenar por rol para que el arquero quede abajo y el pivot arriba,
+    // pero usando SIEMPRE las posiciones separadas de la formación.
+    const ordenRol = { pivot:0, ala:1, cierre:2, otro:2, arquero:3 };
+    const conRol = enCancha.map(p => ({ p, role: roleOf(p) }));
+    conRol.sort((a,b) => (ordenRol[a.role] ?? 2) - (ordenRol[b.role] ?? 2));
+
     const result = [];
-    enCancha.forEach(p => {
-      let role = roleOf(p);
-      let slot;
-      const arr = base[role];
-      if(arr && used[role] < arr.length){ slot = arr[used[role]]; used[role]++; }
-      else { // si el rol está lleno o es 'otro', usar posiciones libres de 'otro'
-        slot = base.otro[used.otro % base.otro.length]; used.otro++;
-      }
-      result.push({ p, slot, role });
+    conRol.forEach((item, i) => {
+      const slot = posiciones[i] || posiciones[posiciones.length - 1];
+      result.push({ p: item.p, slot, role: item.role });
     });
     return result;
   }
@@ -4406,7 +4480,7 @@ window.__initEditor = function(){
       d.style.top = slot.y + '%';
       const roleLabel = role==='otro' ? '' : role.charAt(0).toUpperCase()+role.slice(1);
       const st=ensure(p.id);
-      d.innerHTML=`<div class="lt-num">${escapeHtml(p.number?'#'+p.number:'')}${roleLabel?' · '+roleLabel:''}</div><div class="lt-name">${escapeHtml(p.name)}</div><div class="lt-time" data-t="${p.id}">${fmtClock(timeTotal(p.id))}</div><div class="lt-actions"><button class="lt-act lt-goal" title="Gol">⚽<span class="lt-cnt">${st.goals||0}</span></button><button class="lt-act lt-shot" title="Remate al arco">🎯<span class="lt-cnt">${st.shots||0}</span></button><button class="lt-act lt-foul" title="Falta (del tiempo actual)">⚠️<span class="lt-cnt">${foulsNow(p.id)}</span></button><button class="lt-act lt-card" title="Tarjeta amarilla">🟨<span class="lt-cnt">${st.cards||0}</span></button></div>`;
+      d.innerHTML=`<div class="lt-avatar">${(window.__avatarHTML?window.__avatarHTML(p,30):"")}</div><div class="lt-num">${escapeHtml(p.number?'#'+p.number:'')}${roleLabel?' · '+roleLabel:''}</div><div class="lt-name">${escapeHtml(p.name)}</div><div class="lt-time" data-t="${p.id}">${fmtClock(timeTotal(p.id))}</div><div class="lt-actions"><button class="lt-act lt-goal" title="Gol">⚽<span class="lt-cnt">${st.goals||0}</span></button><button class="lt-act lt-shot" title="Remate al arco">🎯<span class="lt-cnt">${st.shots||0}</span></button><button class="lt-act lt-foul" title="Falta (del tiempo actual)">⚠️<span class="lt-cnt">${foulsNow(p.id)}</span></button><button class="lt-act lt-card" title="Tarjeta amarilla">🟨<span class="lt-cnt">${st.cards||0}</span></button></div>`;
       // click en la ficha (fuera de los botones) = cambio
       d.addEventListener('click',(e)=>{ if(e.target.closest('.lt-act')) return; tapOnCourt(p.id); });
       d.querySelector('.lt-goal').addEventListener('click',(e)=>{ e.stopPropagation(); addGoal(p.id); });
@@ -4425,7 +4499,7 @@ window.__initEditor = function(){
     suplentes.forEach(p=>{
       const d=document.createElement('div');
       d.className='bench-player'+(swapOutId!==null?' swap-in-ready':'');
-      d.innerHTML=`<span class="bp-num">${escapeHtml(p.number?'#'+p.number:'')}</span><span class="bp-name">${escapeHtml(p.name)}</span><span class="bp-time" data-t="${p.id}">${fmtClock(timeTotal(p.id))}</span>`;
+      d.innerHTML=`<div class="bp-avatar">${(window.__avatarHTML?window.__avatarHTML(p,24):"")}</div><span class="bp-num">${escapeHtml(p.number?'#'+p.number:'')}</span><span class="bp-name">${escapeHtml(p.name)}</span><span class="bp-time" data-t="${p.id}">${fmtClock(timeTotal(p.id))}</span>`;
       d.addEventListener('click',()=>tapBench(p.id));
       bench.appendChild(d);
     });
@@ -4694,6 +4768,16 @@ window.__initEditor = function(){
 
   // Reintentar subir pendientes cuando vuelve la conexión o al iniciar
   window.addEventListener('online', () => { flushPending(false); });
+  // Cuando la app vuelve del segundo plano (fin de una llamada, desbloqueo del teléfono),
+  // recalculamos el reloj al toque, así no queda atrasado por la pausa del navegador.
+  document.addEventListener('visibilitychange', () => {
+    if(!document.hidden && clockRunning && clockType!=='parado' && clockAnchor !== null){
+      tickClock();
+    }
+  });
+  window.addEventListener('focus', () => {
+    if(clockRunning && clockType!=='parado' && clockAnchor !== null){ tickClock(); }
+  });
 
   // ===== SETUP: cargar plantel y partidos para elegir =====
   async function loadSquad(){
@@ -4776,6 +4860,7 @@ window.__initEditor = function(){
     squad=conv.map(p=>({...p}));
     state={}; squad.forEach(p=>{ state[p.id]={onCourt:false,acc1:0,acc2:0,lastInAt:null,goals:0,fouls1:0,fouls2:0,cards:0,shots:0}; });
     events=[]; clockSeconds=0; currentHalf=1; halfSplitAt=null; swapOutId=null; manualMin=halfMinutes; liveRowId=null;
+    clockRunning=false; clearInterval(clockTimer); clockTimer=null; clockAnchor=null;
     goalsAgainstManual=0; foulsAgainst1=0; foulsAgainst2=0;
     shotsFor1=0; shotsFor2=0; shotsAgainst1=0; shotsAgainst2=0;
     inSetup=false;
@@ -5552,29 +5637,216 @@ window.__initEditor = function(){
     const ini = (p.name||'?').trim().split(/\s+/).map(x=>x[0]).slice(0,2).join('').toUpperCase();
     return `<div class="pl-avatar pl-avatar-ini" style="width:${s}px;height:${s}px;font-size:${Math.round(s*0.4)}px;">${escapeHtml(ini)}</div>`;
   }
+  // Exponer para que En Vivo (otro scope) pueda usarla
+  window.__avatarHTML = avatarHTML;
 
-  // Abre el selector de archivo para subir/cambiar la foto de un jugador
+  // Abre el selector de archivo y luego el editor de recorte
   function subirFotoJugador(p, onDone){
     const input = document.createElement('input');
     input.type = 'file'; input.accept = 'image/*';
-    input.addEventListener('change', async () => {
+    input.addEventListener('change', () => {
       const file = input.files && input.files[0];
       if(!file) return;
-      try{
-        toast('Procesando foto…');
-        const dataUrl = await procesarFoto(file);
-        const sb = window.__sb;
-        if(sb && !String(p.id).startsWith('tmp')){
-          const { error } = await sb.from('players').update({ photo: dataUrl }).eq('id', p.id);
-          if(error){ toast('No se pudo guardar la foto'); return; }
-        }
-        p.photo = dataUrl;
-        toast('Foto actualizada');
-        if(onDone) onDone();
-      }catch(err){ console.error('foto', err); toast('No se pudo procesar la foto'); }
+      if(!file.type || !file.type.startsWith('image/')){ toast('No es una imagen'); return; }
+      const reader = new FileReader();
+      reader.onload = e => abrirRecorteFoto(e.target.result, p, onDone);
+      reader.onerror = () => toast('No se pudo leer el archivo');
+      reader.readAsDataURL(file);
     });
     input.click();
   }
+
+  // Estado del editor de recorte
+  let cropState = { img:null, natW:0, natH:0, scale:1, minScale:1, x:0, y:0, dragging:false, lastX:0, lastY:0, player:null, onDone:null, stageSize:260 };
+
+  function abrirRecorteFoto(dataUrl, player, onDone, saveFn){
+    const modal = document.getElementById('photoCropModal');
+    const imgEl = document.getElementById('cropImg');
+    const stage = document.getElementById('cropStage');
+    const zoom = document.getElementById('cropZoom');
+    if(!modal || !imgEl || !stage) return;
+    cropState.player = player;
+    cropState.onDone = onDone;
+    cropState.saveFn = saveFn || null;
+    const probe = new Image();
+    probe.onload = () => {
+      cropState.img = probe;
+      cropState.natW = probe.width;
+      cropState.natH = probe.height;
+      const stageSize = stage.clientWidth || 260;
+      cropState.stageSize = stageSize;
+      // escala mínima: que la imagen cubra todo el marco cuadrado
+      cropState.minScale = Math.max(stageSize / probe.width, stageSize / probe.height);
+      cropState.scale = cropState.minScale;
+      // centrar
+      cropState.x = (stageSize - probe.width * cropState.scale) / 2;
+      cropState.y = (stageSize - probe.height * cropState.scale) / 2;
+      imgEl.src = dataUrl;
+      if(zoom){ zoom.min = '1'; zoom.max = '3'; zoom.value = '1'; }
+      aplicarCropTransform();
+      modal.style.display = 'flex';
+    };
+    probe.src = dataUrl;
+  }
+
+  function aplicarCropTransform(){
+    const imgEl = document.getElementById('cropImg');
+    if(!imgEl || !cropState.img) return;
+    const w = cropState.natW * cropState.scale;
+    const h = cropState.natH * cropState.scale;
+    // limitar para que no queden huecos en el marco
+    const S = cropState.stageSize;
+    if(cropState.x > 0) cropState.x = 0;
+    if(cropState.y > 0) cropState.y = 0;
+    if(cropState.x < S - w) cropState.x = S - w;
+    if(cropState.y < S - h) cropState.y = S - h;
+    imgEl.style.width = w + 'px';
+    imgEl.style.height = h + 'px';
+    imgEl.style.transform = `translate(${cropState.x}px, ${cropState.y}px)`;
+  }
+
+  // Genera el recorte final (200px) a partir del estado del editor
+  function generarRecorteFinal(){
+    const MAX = 200;
+    const S = cropState.stageSize;
+    const canvas = document.createElement('canvas');
+    canvas.width = MAX; canvas.height = MAX;
+    const ctx = canvas.getContext('2d');
+    // qué porción de la imagen original está dentro del marco
+    const scale = cropState.scale;
+    const sx = -cropState.x / scale;
+    const sy = -cropState.y / scale;
+    const sSide = S / scale;
+    ctx.drawImage(cropState.img, sx, sy, sSide, sSide, 0, 0, MAX, MAX);
+    return canvas.toDataURL('image/jpeg', 0.72);
+  }
+
+  // Enganchar los controles del editor de recorte (una sola vez)
+  (function wireCropModal(){
+    const modal = document.getElementById('photoCropModal');
+    const stage = document.getElementById('cropStage');
+    const zoom = document.getElementById('cropZoom');
+    if(!modal || !stage) return;
+
+    function cerrar(){ modal.style.display = 'none'; cropState.img = null; }
+
+    // Arrastrar (mouse y touch)
+    function startDrag(x, y){ cropState.dragging = true; cropState.lastX = x; cropState.lastY = y; }
+    function moveDrag(x, y){
+      if(!cropState.dragging) return;
+      cropState.x += (x - cropState.lastX);
+      cropState.y += (y - cropState.lastY);
+      cropState.lastX = x; cropState.lastY = y;
+      aplicarCropTransform();
+    }
+    function endDrag(){ cropState.dragging = false; }
+
+    stage.addEventListener('mousedown', e => { e.preventDefault(); startDrag(e.clientX, e.clientY); });
+    window.addEventListener('mousemove', e => moveDrag(e.clientX, e.clientY));
+    window.addEventListener('mouseup', endDrag);
+    stage.addEventListener('touchstart', e => { if(e.touches[0]) startDrag(e.touches[0].clientX, e.touches[0].clientY); }, {passive:true});
+    stage.addEventListener('touchmove', e => { if(e.touches[0]){ e.preventDefault(); moveDrag(e.touches[0].clientX, e.touches[0].clientY); } }, {passive:false});
+    stage.addEventListener('touchend', endDrag);
+
+    // Zoom con el slider: 1 = ajustado, 3 = 3x sobre el mínimo
+    if(zoom) zoom.addEventListener('input', () => {
+      const factor = parseFloat(zoom.value) || 1;
+      const nuevaScale = cropState.minScale * factor;
+      // hacer zoom hacia el centro del marco
+      const S = cropState.stageSize;
+      const cx = S/2, cy = S/2;
+      const ratio = nuevaScale / cropState.scale;
+      cropState.x = cx - (cx - cropState.x) * ratio;
+      cropState.y = cy - (cy - cropState.y) * ratio;
+      cropState.scale = nuevaScale;
+      aplicarCropTransform();
+    });
+
+    // Guardar
+    const btnSave = document.getElementById('photoCropSave');
+    if(btnSave) btnSave.addEventListener('click', async () => {
+      if(!cropState.img){ cerrar(); return; }
+      const onDone = cropState.onDone;
+      try{
+        const dataUrl = generarRecorteFinal();
+        // Si hay una función de guardado custom (ej: escudo del club), la usamos
+        if(typeof cropState.saveFn === 'function'){
+          const ok = await cropState.saveFn(dataUrl);
+          if(ok === false){ toast('No se pudo guardar'); return; }
+          cerrar();
+          if(onDone) onDone(dataUrl);
+          return;
+        }
+        // Guardado por defecto: foto de jugador
+        const p = cropState.player;
+        const sb = window.__sb;
+        if(sb && p && !String(p.id).startsWith('tmp')){
+          const { error } = await sb.from('players').update({ photo: dataUrl }).eq('id', p.id);
+          if(error){ toast('No se pudo guardar la foto'); return; }
+        }
+        if(p) p.photo = dataUrl;
+        toast('Foto actualizada');
+        cerrar();
+        if(onDone) onDone();
+      }catch(err){ console.error('recorte', err); toast('No se pudo guardar la foto'); }
+    });
+
+    document.getElementById('photoCropClose')?.addEventListener('click', cerrar);
+    document.getElementById('photoCropCancel')?.addEventListener('click', cerrar);
+    modal.addEventListener('click', e => { if(e.target === modal) cerrar(); });
+  })();
+
+  // ===== ESCUDO DEL CLUB =====
+  function pintarEscudo(dataUrl){
+    const el = document.getElementById('clubEscudo');
+    if(!el) return;
+    if(dataUrl){
+      el.style.backgroundImage = `url('${dataUrl}')`;
+      el.innerHTML = '';
+    } else {
+      el.style.backgroundImage = '';
+      el.innerHTML = '<span class="club-escudo-ph">🛡️</span>';
+    }
+  }
+
+  async function cargarEscudoClub(){
+    try{
+      const sb = window.__sb; const clubId = await window.__getClubId();
+      if(!sb || !clubId) return;
+      const { data } = await sb.from('clubs').select('escudo').eq('id', clubId).single();
+      if(data && data.escudo){ window.__clubEscudo = data.escudo; pintarEscudo(data.escudo); }
+    }catch(e){ /* silencioso: si no hay columna o conexión, queda el placeholder */ }
+  }
+
+  function subirEscudoClub(){
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = 'image/*';
+    input.addEventListener('change', () => {
+      const file = input.files && input.files[0];
+      if(!file || !file.type || !file.type.startsWith('image/')){ if(file) toast('No es una imagen'); return; }
+      const reader = new FileReader();
+      reader.onload = e => {
+        abrirRecorteFoto(e.target.result, null, (dataUrl)=>{ if(dataUrl){ window.__clubEscudo = dataUrl; pintarEscudo(dataUrl); } }, async (dataUrl)=>{
+          // función de guardado custom: guarda en clubs.escudo
+          try{
+            const sb = window.__sb; const clubId = await window.__getClubId();
+            if(sb && clubId){
+              const { error } = await sb.from('clubs').update({ escudo: dataUrl }).eq('id', clubId);
+              if(error){ console.error('escudo', error); return false; }
+            }
+            toast('Escudo actualizado');
+            return true;
+          }catch(err){ console.error('escudo', err); return false; }
+        });
+      };
+      reader.onerror = () => toast('No se pudo leer el archivo');
+      reader.readAsDataURL(file);
+    });
+    input.click();
+  }
+  // enganchar el botón del escudo
+  document.getElementById('clubEscudoBtn')?.addEventListener('click', subirEscudoClub);
+  window.__cargarEscudoClub = cargarEscudoClub;
 
   function renderSquad(){
     const el = document.getElementById('squadList');
