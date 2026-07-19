@@ -391,6 +391,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .rc-week-edit{display:flex;align-items:center;gap:6px;}
 .rc-week-in{width:52px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;padding:3px 6px;text-align:center;}
 .rc-week-in:focus{outline:none;border-color:var(--accent);}
+.rc-week-actions{display:flex;align-items:center;gap:8px;}
+.rc-week-actions .rc-open{flex:1;}
+.rc-del-btn{background:transparent;border:1px solid var(--line);color:var(--muted);cursor:pointer;font-size:14px;padding:6px 9px;border-radius:7px;opacity:0.7;transition:all .12s ease;flex-shrink:0;}
+.rc-del-btn:hover{opacity:1;border-color:var(--danger);background:rgba(240,85,63,0.12);}
 .rival-card .rc-name-in{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:7px;color:var(--chalk);font-family:'Oswald',sans-serif;font-size:16px;text-transform:uppercase;letter-spacing:0.3px;padding:8px 10px;margin-bottom:10px;}
 .rival-card .rc-name-in:focus{outline:none;border-color:var(--accent);}
 .rival-card .rc-name-in::placeholder{color:var(--muted);font-size:13px;}
@@ -1927,7 +1931,7 @@ body.editor-active #screen-editor{ display:block; }
       </div>
 
       <div class="rd-footer">
-        <button class="btn danger-outline" id="deleteWeekBtn" data-i18n="emptyWeek">Vaciar semana</button>
+        <button class="btn danger-outline" id="deleteWeekBtn" data-i18n="emptyWeek">🗑 Eliminar semana</button>
         <span class="rd-saved" id="wkSaved">Los cambios se guardan solos</span>
       </div>
     </div>
@@ -2355,7 +2359,7 @@ window.I18N = {
     adjScorers:'⚽ Goleadores', adjAddScorer:'+ Goleador', adjScored:'🎯 Cómo hacemos los goles', adjConceded:'🥅 Cómo nos hicieron los goles', adjAddOrigin:'+ Origen', adjSave:'Guardar ajuste',
     // Planificación
     trainTitle:'Planificación de entrenamientos', trainSub:'Una ficha por semana. Editá el nombre y las fechas desde cada recuadro, o abrí la semana para planificar en detalle.',
-    addWeek:'+ Agregar semana', addExercise:'+ Agregar ejercicio', emptyWeek:'Vaciar semana', calTitle:'📅 Calendario de la temporada', calMatch:'Partido', calTrain:'Entrenamiento', calConcept:'Concepto', calType:'Tipo', calText:'Texto', calTextPh:'Ej. Copa Argentina - Fecha 1', calSave:'Guardar', calDelete:'Borrar', calEmpty:'Escribí algún texto.',
+    addWeek:'+ Agregar semana', addExercise:'+ Agregar ejercicio', emptyWeek:'🗑 Eliminar semana', calTitle:'📅 Calendario de la temporada', calMatch:'Partido', calTrain:'Entrenamiento', calConcept:'Concepto', calType:'Tipo', calText:'Texto', calTextPh:'Ej. Copa Argentina - Fecha 1', calSave:'Guardar', calDelete:'Borrar', calEmpty:'Escribí algún texto.',
     // Scouting
     scoutTitle:'Scouting de rivales', scoutSub:'Editá el rival y la fecha del partido desde cada recuadro, o abrí la ficha para el análisis completo.',
     addFecha:'+ Agregar partido', addKeyPlayer:'+ Agregar', addPhoto:'+ Foto', addVideo:'+ Video', genReport:'Generar informe',
@@ -2434,7 +2438,7 @@ window.I18N = {
     annualTitle:'Season stats', annualSub:'Total of all matches, plus the first-half adjustment.', openAdj:'＋ First-half adjustment',
     adjScorers:'⚽ Scorers', adjAddScorer:'+ Scorer', adjScored:'🎯 How we score', adjConceded:'🥅 How we concede', adjAddOrigin:'+ Origin', adjSave:'Save adjustment',
     trainTitle:'Training planning', trainSub:'One card per week. Edit the name and dates in each box, or open the week to plan in detail.',
-    addWeek:'+ Add week', addExercise:'+ Add exercise', emptyWeek:'Clear week', calTitle:'📅 Season calendar', calMatch:'Match', calTrain:'Training', calConcept:'Concept', calType:'Type', calText:'Text', calTextPh:'e.g. Copa Argentina - Round 1', calSave:'Save', calDelete:'Delete', calEmpty:'Write some text.',
+    addWeek:'+ Add week', addExercise:'+ Add exercise', emptyWeek:'🗑 Delete week', calTitle:'📅 Season calendar', calMatch:'Match', calTrain:'Training', calConcept:'Concept', calType:'Type', calText:'Text', calTextPh:'e.g. Copa Argentina - Round 1', calSave:'Save', calDelete:'Delete', calEmpty:'Write some text.',
     scoutTitle:'Opponent scouting', scoutSub:'Edit the opponent and match date in each box, or open the card for full analysis.',
     addFecha:'+ Add match', addKeyPlayer:'+ Add', addPhoto:'+ Photo', addVideo:'+ Video', genReport:'Generate report',
     boardTitle:'Tactic board', boardSub:'Move the pieces and record animated plays for your team.', boardDescPh:'Play description (optional): e.g. 3-1 build-up on the right, pivot screen...',
@@ -2509,7 +2513,7 @@ window.I18N = {
     annualTitle:'Estatísticas anuais', annualSub:'Total de todos os jogos, mais o ajuste do primeiro semestre.', openAdj:'＋ Ajuste primeiro semestre',
     adjScorers:'⚽ Artilheiros', adjAddScorer:'+ Artilheiro', adjScored:'🎯 Como fazemos os gols', adjConceded:'🥅 Como sofremos os gols', adjAddOrigin:'+ Origem', adjSave:'Salvar ajuste',
     trainTitle:'Planejamento de treinos', trainSub:'Um cartão por semana. Edite o nome e as datas em cada caixa, ou abra a semana para planejar em detalhe.',
-    addWeek:'+ Adicionar semana', addExercise:'+ Adicionar exercício', emptyWeek:'Limpar semana', calTitle:'📅 Calendário da temporada', calMatch:'Jogo', calTrain:'Treino', calConcept:'Conceito', calType:'Tipo', calText:'Texto', calTextPh:'Ex. Copa Argentina - Rodada 1', calSave:'Salvar', calDelete:'Excluir', calEmpty:'Escreva algum texto.',
+    addWeek:'+ Adicionar semana', addExercise:'+ Adicionar exercício', emptyWeek:'🗑 Excluir semana', calTitle:'📅 Calendário da temporada', calMatch:'Jogo', calTrain:'Treino', calConcept:'Conceito', calType:'Tipo', calText:'Texto', calTextPh:'Ex. Copa Argentina - Rodada 1', calSave:'Salvar', calDelete:'Excluir', calEmpty:'Escreva algum texto.',
     scoutTitle:'Scouting de adversários', scoutSub:'Edite o adversário e a data do jogo em cada caixa, ou abra o cartão para a análise completa.',
     addFecha:'+ Adicionar jogo', addKeyPlayer:'+ Adicionar', addPhoto:'+ Foto', addVideo:'+ Vídeo', genReport:'Gerar relatório',
     boardTitle:'Prancheta tática', boardSub:'Mova as peças e grave jogadas animadas para seu time.', boardDescPh:'Descrição da jogada (opcional): ex. Saída 3-1 pela direita, bloqueio do pivô...',
@@ -4961,7 +4965,10 @@ window.__initEditor = function(){
         <label class="rc-date-label">Hasta
           <input type="date" class="rc-to-in" value="${escapeHtml(w.to||'')}">
         </label>
-        <button class="btn small rc-open">Abrir semana →</button>
+        <div class="rc-week-actions">
+          <button class="btn small rc-open">Abrir semana →</button>
+          <button class="rc-del-btn" title="Eliminar esta semana">🗑</button>
+        </div>
       `;
       const nameIn = card.querySelector('.rc-name-in');
       const fromIn = card.querySelector('.rc-from-in');
@@ -4973,8 +4980,30 @@ window.__initEditor = function(){
       fromIn.addEventListener('input', e => { w.from = e.target.value; saveToCloud(w); });
       toIn.addEventListener('input', e => { w.to = e.target.value; saveToCloud(w); });
       card.querySelector('.rc-open').addEventListener('click', (e) => { e.stopPropagation(); openWeek(w.id); });
+      card.querySelector('.rc-del-btn').addEventListener('click', (e) => { e.stopPropagation(); eliminarSemana(w); });
       grid.appendChild(card);
     });
+  }
+
+  // Elimina una semana de la base de datos y de la lista
+  async function eliminarSemana(w){
+    if(!w) return;
+    if(!confirm(`¿Eliminar la Semana ${w.semana}? Se borra esta semana y su planificación. Esta acción no se puede deshacer.`)) return;
+    const sb = window.__sb;
+    const cat = catActual();
+    if(sb && clubId){
+      try{
+        let dq = sb.from('training_weeks').delete().eq('club_id', clubId).eq('semana', w.semana);
+        dq = cat ? dq.eq('categoria', cat) : dq.is('categoria', null);
+        const { error } = await dq;
+        if(error){ console.error('delete week', error); toast('No se pudo eliminar'); return; }
+      }catch(e){ console.error('delete week', e); toast('No se pudo eliminar'); return; }
+    }
+    weeks = weeks.filter(x => x.id !== w.id);
+    if(weeks.length === 0){ weeks = [ makeWeek(semanaActualDelAnio()) ]; }
+    if(currentWeekId === w.id) currentWeekId = null;
+    renderList();
+    toast('Semana eliminada');
   }
 
   function currentWeek(){ return weeks.find(x => x.id === currentWeekId); }
@@ -5117,16 +5146,10 @@ window.__initEditor = function(){
     window.scrollTo(0,0);
   });
 
-  document.getElementById('deleteWeekBtn').addEventListener('click', () => {
+  document.getElementById('deleteWeekBtn').addEventListener('click', async () => {
     const w = currentWeek(); if(!w) return;
-    if(!confirm(`¿Vaciar la Semana ${w.semana}?`)) return;
-    const semana = w.semana;
-    const idx = weeks.findIndex(x => x.id === currentWeekId);
-    weeks[idx] = makeWeek(semana);
-    saveToCloud(weeks[idx], true);
-    detailView.style.display = 'none';
-    listView.style.display = 'block';
-    renderList();
+    await eliminarSemana(w);
+    if(!currentWeek()){ detailView.style.display = 'none'; listView.style.display = 'block'; }
   });
 
   let loadedOnce = false;
