@@ -9,7 +9,8 @@
 <meta name="apple-mobile-web-app-title" content="Benchone">
 <meta name="application-name" content="Benchone">
 <meta name="theme-color" content="#10161C">
-<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjM4IiBmaWxsPSIjMTAxNjFDIi8+PGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNDYiIGZpbGw9IiNGMkY2RjgiLz48cGF0aCBkPSJNOTAgNTIgbDE0IDEwIC01IDE3IGgtMTggbC01IC0xNyB6IiBmaWxsPSIjMTAxNjFDIi8+PHBhdGggZD0iTTkwIDEyOCBsLTE0IC0xMCA1IC0xNiBoMTggbDUgMTYgeiIgZmlsbD0iIzEwMTYxQyIvPjxwYXRoIGQ9Ik00NCA5MCBsMTYgLTggMTIgMTAgLTQgMTYgLTE1IDMgeiIgZmlsbD0iIzEwMTYxQyIgb3BhY2l0eT0iMC44NSIvPjxwYXRoIGQ9Ik0xMzYgOTAgbC0xNiAtOCAtMTIgMTAgNCAxNiAxNSAzIHoiIGZpbGw9IiMxMDE2MUMiIG9wYWNpdHk9IjAuODUiLz48Y2lyY2xlIGN4PSI5MCIgY3k9IjkwIiByPSI0NiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRTUzNDJBIiBzdHJva2Utd2lkdGg9IjUiLz48L3N2Zz4K">
+<link rel="apple-touch-icon" href="logo.png">
+<link rel="icon" type="image/png" href="logo.png">
 <title>Benchone</title>
 <style>
 /* ====================== ESTILOS LOGIN ====================== */
@@ -349,6 +350,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .club-escudo{width:46px;height:46px;border-radius:10px;background-size:cover;background-position:center;background-color:var(--panel-2);border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;transition:border-color .12s ease;}
 .club-escudo-btn:hover .club-escudo{border-color:var(--accent-2);}
 .club-escudo-ph{font-size:22px;opacity:0.5;}
+.brand-logo{width:40px;height:40px;border-radius:9px;object-fit:cover;vertical-align:middle;margin-right:10px;}
+.brand-logo-sm{width:26px;height:26px;border-radius:6px;object-fit:cover;vertical-align:middle;margin-right:8px;position:relative;top:-2px;}
 .brand .dot{color:var(--accent);}
 .brand-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:3px;}
 
@@ -1488,7 +1491,8 @@ body.editor-active #screen-editor{ display:block; }
 
 
 <div class="corner-tag">
-  <span class="brand">Cancha<span class="dot">·</span>Edit</span>
+  <img src="logo.png" alt="Benchone" class="brand-logo" onerror="this.style.display='none'">
+  <span class="brand">BENCHONE</span>
 </div>
 <div class="scoreboard">Panel de <span>entrenador</span></div>
 
@@ -1571,7 +1575,7 @@ body.editor-active #screen-editor{ display:block; }
         <div class="club-escudo" id="clubEscudo"><span class="club-escudo-ph">🛡️</span></div>
       </button>
       <div>
-        <div class="brand">BENCHONE<span class="dot">·</span>GESTIÓN FUTSAL</div>
+        <div class="brand"><img src="logo.png" alt="" class="brand-logo-sm" onerror="this.style.display='none'">BENCHONE<span class="dot">·</span>LA PLATAFORMA DEL ENTRENADOR</div>
         <div class="brand-sub" data-i18n="brandSub">Panel de entrenador — futsal</div>
       </div>
     </div>
@@ -8996,7 +9000,8 @@ document.getElementById('exportEachBtn').addEventListener('click', async () => {
 // No requiere archivos externos: el manifest y el service worker se generan acá.
 (function(){
   try{
-    var icon = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjM4IiBmaWxsPSIjMTAxNjFDIi8+PGNpcmNsZSBjeD0iOTAiIGN5PSI5MCIgcj0iNDYiIGZpbGw9IiNGMkY2RjgiLz48cGF0aCBkPSJNOTAgNTIgbDE0IDEwIC01IDE3IGgtMTggbC01IC0xNyB6IiBmaWxsPSIjMTAxNjFDIi8+PHBhdGggZD0iTTkwIDEyOCBsLTE0IC0xMCA1IC0xNiBoMTggbDUgMTYgeiIgZmlsbD0iIzEwMTYxQyIvPjxwYXRoIGQ9Ik00NCA5MCBsMTYgLTggMTIgMTAgLTQgMTYgLTE1IDMgeiIgZmlsbD0iIzEwMTYxQyIgb3BhY2l0eT0iMC44NSIvPjxwYXRoIGQ9Ik0xMzYgOTAgbC0xNiAtOCAtMTIgMTAgNCAxNiAxNSAzIHoiIGZpbGw9IiMxMDE2MUMiIG9wYWNpdHk9IjAuODUiLz48Y2lyY2xlIGN4PSI5MCIgY3k9IjkwIiByPSI0NiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRTUzNDJBIiBzdHJva2Utd2lkdGg9IjUiLz48L3N2Zz4K';
+    // Usa logo.png si está subido; la ruta se arma desde la ubicación actual de la app
+    var icon = new URL('logo.png', window.location.href).href;
     // Manifest embebido como blob (no hace falta manifest.json aparte)
     var manifest = {
       name: 'Benchone',
@@ -9007,8 +9012,8 @@ document.getElementById('exportEachBtn').addEventListener('click', async () => {
       theme_color: '#10161C',
       orientation: 'any',
       icons: [
-        { src: icon, sizes: '180x180', type: 'image/svg+xml', purpose: 'any' },
-        { src: icon, sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
+        { src: icon, sizes: '180x180', type: 'image/png', purpose: 'any' },
+        { src: icon, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
       ]
     };
     var mBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
