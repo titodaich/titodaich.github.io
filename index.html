@@ -392,6 +392,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 /* ===== SCOUTING ===== */
 .scout-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:22px;flex-wrap:wrap;}.scout-title{font-family:'Oswald',sans-serif;font-size:22px;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 4px;}
 .scout-sub{color:var(--muted);font-size:13px;margin:0;}
+.squad-info-card{display:flex;align-items:flex-start;gap:9px;background:rgba(47,143,203,0.10);border:1px solid rgba(47,143,203,0.35);border-radius:10px;padding:11px 13px;margin-top:6px;font-family:'Inter',sans-serif;font-size:13px;line-height:1.5;color:var(--chalk);max-width:640px;}
+.squad-info-ico{flex-shrink:0;font-size:15px;line-height:1.3;}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:#10161C;}
 .btn.primary:hover{background:#ff473a;}
 
@@ -1771,7 +1773,7 @@ body.editor-active #screen-editor{ display:block; }
       <div class="scout-head">
         <div>
           <h2 class="scout-title" data-i18n="squadTitle">Plantel</h2>
-          <p class="scout-sub" data-i18n="squadSub">Los jugadores de esta categoría. Se usan para cargar goleadores y asistencias.</p>
+          <div class="squad-info-card"><span class="squad-info-ico">ℹ️</span><span data-i18n="squadSub">Los jugadores de esta categoría se usan para convocatorias, cargar goleadores y asistencias, y usar la sección En Vivo. Podés agregarles una foto tocando el círculo.</span></div>
         </div>
         <button class="btn primary" id="addPlayerToSquadBtn" data-i18n="addPlayer">+ Agregar jugador</button>
       </div>
@@ -2425,7 +2427,7 @@ window.I18N = {
     goalsAgainst:'🥅 Goles en contra', addGoalAgainst:'+ Gol en contra', cards:'🟨 Tarjetas', addCard:'+ Tarjeta',
     sbUs:'NOSOTROS', sbThem:'RIVAL', sbFouls:'Faltas', sbShots:'Remates',
     delMatch:'Eliminar partido', editTags:'⚙ Editar tags de gol',
-    squadTitle:'Plantel', squadSub:'Los jugadores de esta categoría. Se usan para cargar goleadores y asistencias.', addPlayer:'+ Agregar jugador',
+    squadTitle:'Plantel', squadSub:'Los jugadores de esta categoría se usan para convocatorias, cargar goleadores y asistencias, y usar la sección En Vivo. Podés agregarles una foto tocando el círculo.', addPlayer:'+ Agregar jugador',
     callsTitle:'Convocatorias', callsSub:'Marcá quién estuvo convocado en cada partido. Tocá una vez para ✓ convocado, otra para ✕ no disponible, otra para vaciar.',
     minutesTitle:'Minutaje', minutesSub:'Minutos jugados por partido. Se cargan solos al guardar desde 🔴 En vivo.',
     annualTitle:'Estadísticas anuales', annualSub:'Acumulado de todos los partidos, más el ajuste del primer semestre.', openAdj:'＋ Ajuste primer semestre',
@@ -2505,7 +2507,7 @@ window.I18N = {
     goalsAgainst:'🥅 Goals against', addGoalAgainst:'+ Goal against', cards:'🟨 Cards', addCard:'+ Card',
     sbUs:'US', sbThem:'RIVAL', sbFouls:'Fouls', sbShots:'Shots',
     delMatch:'Delete match', editTags:'⚙ Edit goal tags',
-    squadTitle:'Roster', squadSub:'The players of this category. Used to log scorers and assists.', addPlayer:'+ Add player',
+    squadTitle:'Roster', squadSub:'The players of this category are used for call-ups, logging scorers and assists, and the Live section. You can add a photo by tapping the circle.', addPlayer:'+ Add player',
     callsTitle:'Call-ups', callsSub:'Mark who was called up for each match. Tap once for ✓ called, again for ✕ unavailable, again to clear.',
     minutesTitle:'Minutes', minutesSub:'Minutes played per match. Loaded automatically when saving from 🔴 Live.',
     annualTitle:'Season stats', annualSub:'Total of all matches, plus the first-half adjustment.', openAdj:'＋ First-half adjustment',
@@ -2580,7 +2582,7 @@ window.I18N = {
     goalsAgainst:'🥅 Gols contra', addGoalAgainst:'+ Gol contra', cards:'🟨 Cartões', addCard:'+ Cartão',
     sbUs:'NÓS', sbThem:'RIVAL', sbFouls:'Faltas', sbShots:'Remates',
     delMatch:'Excluir jogo', editTags:'⚙ Editar tags de gol',
-    squadTitle:'Elenco', squadSub:'Os jogadores desta categoria. Usados para registrar artilheiros e assistências.', addPlayer:'+ Adicionar jogador',
+    squadTitle:'Elenco', squadSub:'Os jogadores desta categoria são usados para convocações, registrar artilheiros e assistências, e a seção Ao Vivo. Você pode adicionar uma foto tocando no círculo.', addPlayer:'+ Adicionar jogador',
     callsTitle:'Convocações', callsSub:'Marque quem foi convocado em cada jogo. Toque uma vez para ✓ convocado, outra para ✕ indisponível, outra para limpar.',
     minutesTitle:'Minutagem', minutesSub:'Minutos jogados por partida. Carregam sozinhos ao salvar em 🔴 Ao vivo.',
     annualTitle:'Estatísticas anuais', annualSub:'Total de todos os jogos, mais o ajuste do primeiro semestre.', openAdj:'＋ Ajuste primeiro semestre',
