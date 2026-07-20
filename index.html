@@ -799,7 +799,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .crop-frame{position:absolute;inset:0;border:2px solid rgba(255,255,255,0.9);border-radius:50%;box-shadow:0 0 0 2000px rgba(16,22,28,0.55);pointer-events:none;}
 .crop-zoom-row{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:0 4px;}
 .crop-zoom{flex:1;accent-color:var(--accent-2);cursor:pointer;}
-.crop-zoom-lbl{font-size:15px;}
+.crop-zoom-btn{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;font-size:16px;width:38px;height:34px;cursor:pointer;color:var(--chalk);display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;line-height:1;}
+.crop-zoom-btn:hover{border-color:var(--accent-2);background:var(--panel);}
+.crop-zoom-btn:active{transform:scale(0.94);}
 .pc-stat{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:16px 10px;text-align:center;}
 .pc-stat-num{font-family:'Oswald',sans-serif;font-size:34px;font-weight:600;line-height:1;color:var(--chalk);}
 .pc-stat-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-top:6px;}
@@ -2300,9 +2302,9 @@ body.editor-active #screen-editor{ display:block; }
         <div class="crop-frame"></div>
       </div>
       <div class="crop-zoom-row">
-        <span class="crop-zoom-lbl">➖</span>
+        <button type="button" class="crop-zoom-btn" id="cropZoomOut" title="Alejar">➖</button>
         <input type="range" id="cropZoom" min="1" max="3" step="0.01" value="1" class="crop-zoom">
-        <span class="crop-zoom-lbl">➕</span>
+        <button type="button" class="crop-zoom-btn" id="cropZoomIn" title="Acercar">➕</button>
       </div>
       <div class="summary-actions">
         <button class="btn small" id="photoCropCancel">Cancelar</button>
@@ -5779,17 +5781,28 @@ window.__initEditor = function(){
     stage.addEventListener('touchend', endDrag);
 
     // Zoom con el slider: 1 = ajustado, 3 = 3x sobre el mínimo
-    if(zoom) zoom.addEventListener('input', () => {
-      const factor = parseFloat(zoom.value) || 1;
+    // Aplica un nuevo factor de zoom (1 = ajustado al marco, 3 = máximo)
+    function aplicarZoom(factor){
+      factor = Math.min(3, Math.max(1, factor));
       const nuevaScale = cropState.minScale * factor;
-      // hacer zoom hacia el centro del marco
       const S = cropState.stageSize;
       const cx = S/2, cy = S/2;
       const ratio = nuevaScale / cropState.scale;
       cropState.x = cx - (cx - cropState.x) * ratio;
       cropState.y = cy - (cy - cropState.y) * ratio;
       cropState.scale = nuevaScale;
+      if(zoom) zoom.value = String(factor);
       aplicarCropTransform();
+    }
+    if(zoom) zoom.addEventListener('input', () => {
+      aplicarZoom(parseFloat(zoom.value) || 1);
+    });
+    // Botones + y - (además de la barra)
+    document.getElementById('cropZoomIn')?.addEventListener('click', () => {
+      aplicarZoom((parseFloat(zoom.value) || 1) + 0.3);
+    });
+    document.getElementById('cropZoomOut')?.addEventListener('click', () => {
+      aplicarZoom((parseFloat(zoom.value) || 1) - 0.3);
     });
 
     // Guardar
