@@ -5659,8 +5659,10 @@ window.__initEditor = function(){
   // Devuelve el HTML de un avatar: foto si hay, o iniciales del nombre
   function avatarHTML(p, size){
     const s = size || 44;
-    if(p.photo){
-      return `<div class="pl-avatar" style="width:${s}px;height:${s}px;background-image:url('${p.photo}');"></div>`;
+    // Solo aceptamos data-urls de imagen (defensa: evita inyectar valores raros en el CSS)
+    const fotoOk = p.photo && /^data:image\//.test(p.photo) ? p.photo.replace(/['"\\]/g,'') : '';
+    if(fotoOk){
+      return `<div class="pl-avatar" style="width:${s}px;height:${s}px;background-image:url('${fotoOk}');"></div>`;
     }
     const ini = (p.name||'?').trim().split(/\s+/).map(x=>x[0]).slice(0,2).join('').toUpperCase();
     return `<div class="pl-avatar pl-avatar-ini" style="width:${s}px;height:${s}px;font-size:${Math.round(s*0.4)}px;">${escapeHtml(ini)}</div>`;
@@ -5810,7 +5812,16 @@ window.__initEditor = function(){
         const sb = window.__sb;
         if(sb && p && !String(p.id).startsWith('tmp')){
           const { error } = await sb.from('players').update({ photo: dataUrl }).eq('id', p.id);
-          if(error){ toast('No se pudo guardar la foto'); return; }
+          if(error){
+            console.error('foto', error);
+            const msg = (error.message||'').toLowerCase();
+            if(msg.includes('photo') || msg.includes('column') || error.code==='PGRST204' || error.code==='42703'){
+              toast('Falta preparar la base: corré el SQL de la foto en Supabase');
+            } else {
+              toast('No se pudo guardar la foto');
+            }
+            return;
+          }
         }
         if(p) p.photo = dataUrl;
         toast('Foto actualizada');
@@ -5828,8 +5839,9 @@ window.__initEditor = function(){
   function pintarEscudo(dataUrl){
     const el = document.getElementById('clubEscudo');
     if(!el) return;
-    if(dataUrl){
-      el.style.backgroundImage = `url('${dataUrl}')`;
+    const ok = dataUrl && /^data:image\//.test(dataUrl) ? dataUrl.replace(/['"\\]/g,'') : '';
+    if(ok){
+      el.style.backgroundImage = `url('${ok}')`;
       el.innerHTML = '';
     } else {
       el.style.backgroundImage = '';
@@ -5860,11 +5872,21 @@ window.__initEditor = function(){
             const sb = window.__sb; const clubId = await window.__getClubId();
             if(sb && clubId){
               const { error } = await sb.from('clubs').update({ escudo: dataUrl }).eq('id', clubId);
-              if(error){ console.error('escudo', error); return false; }
+              if(error){
+                console.error('escudo', error);
+                // Detectar el caso típico: la columna 'escudo' no existe todavía en la base
+                const msg = (error.message||'').toLowerCase();
+                if(msg.includes('escudo') || msg.includes('column') || error.code==='PGRST204' || error.code==='42703'){
+                  toast('Falta preparar la base: corré el SQL del escudo en Supabase');
+                } else {
+                  toast('No se pudo guardar el escudo');
+                }
+                return false;
+              }
             }
             toast('Escudo actualizado');
             return true;
-          }catch(err){ console.error('escudo', err); return false; }
+          }catch(err){ console.error('escudo', err); toast('No se pudo guardar el escudo'); return false; }
         });
       };
       reader.onerror = () => toast('No se pudo leer el archivo');
