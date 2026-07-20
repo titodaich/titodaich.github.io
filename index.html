@@ -4439,11 +4439,11 @@ window.__initEditor = function(){
   function slotsForField(enCancha){
     // Posiciones "ideales" por rol en la cancha
     const POS = {
-      arquero: {x:50, y:90},   // en el arco (abajo)
-      cierre:  {x:50, y:70},   // delante del arquero
-      alaIzq:  {x:22, y:46},   // lateral izquierdo
-      alaDer:  {x:78, y:46},   // lateral derecho
-      pivot:   {x:50, y:15}    // cerca del arco rival (arriba)
+      arquero: {x:50, y:92},   // en el arco (abajo del todo)
+      cierre:  {x:50, y:64},   // delante del arquero, con más aire
+      alaIzq:  {x:22, y:42},   // lateral izquierdo
+      alaDer:  {x:78, y:42},   // lateral derecho
+      pivot:   {x:50, y:14}    // cerca del arco rival (arriba)
     };
     // Posiciones de reserva para cuando hay más jugadores de un rol de lo esperado
     const EXTRAS = [{x:35,y:58},{x:65,y:58},{x:35,y:30},{x:65,y:30},{x:50,y:44}];
