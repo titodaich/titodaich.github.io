@@ -33,7 +33,7 @@
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;height:100%;}
 html{background-color:var(--bg);}
-body{background-color:var(--bg);-webkit-tap-highlight-color:transparent;overflow-x:hidden;}
+body{background-color:var(--bg);-webkit-tap-highlight-color:transparent;overflow-x:clip;}
 #screen-login{
   background-color:transparent;
   color:var(--chalk);
@@ -1123,7 +1123,12 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .legal-consent input{margin-top:2px;flex-shrink:0;}
 
 .layout{display:grid;grid-template-columns:1fr 1.4fr;gap:20px;}
-@media (max-width:860px){.layout{grid-template-columns:1fr;}}
+@media (max-width:860px){.layout{grid-template-columns:1fr;}
+  /* En celular mostramos primero el reproductor + tags (panel 02), y debajo subir video y registro (panel 01) */
+  #section-video .layout{display:flex;flex-direction:column;}
+  #section-video .layout > .panel:nth-child(1){order:2;}
+  #section-video .layout > .panel:nth-child(2){order:1;}
+}
 
 .panel{background:rgba(42,36,25,0.86);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);border:1px solid var(--line);border-radius:var(--radius);padding:18px;min-width:0;max-width:100%;}
 .panel h2{font-family:'Oswald',sans-serif;font-size:14px;text-transform:uppercase;letter-spacing:1px;margin:0 0 14px;color:var(--muted);display:flex;align-items:center;gap:8px;}
@@ -1145,6 +1150,21 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .file-input{display:none;}
 
 .video-frame{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:8px;overflow:hidden;border:1px solid var(--line);margin-bottom:16px;}
+/* En celular: el video queda fijo arriba mientras scrolleás los tags, para ver y editar a la vez */
+@media (max-width:860px){
+  .video-frame{
+    position:sticky;
+    top:6px;
+    z-index:30;
+    margin-bottom:10px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.55);
+  }
+  /* el panel de edición necesita permitir el sticky */
+  .layout > .panel{overflow:visible;}
+  .timecode{font-size:11px;}
+  .record-status{font-size:12px;}
+  .mark-hint{font-size:10px;}
+}
 .video-frame video{width:100%;height:100%;display:block;background:#000;}
 .video-placeholder{
   position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
@@ -1193,6 +1213,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .log-preview-video{width:100%;max-width:320px;border-radius:8px;background:#000;display:block;}
 .log-preview-msg{font-size:11px;color:var(--muted);font-style:italic;}
 .bench.drop-target{outline:2px dashed var(--accent-2);outline-offset:4px;border-radius:10px;}
+/* Editor de tags del video */
+.tag-grid-actions{display:flex;justify-content:flex-end;margin-top:8px;}
+.vtags-list{display:flex;flex-direction:column;gap:7px;max-height:340px;overflow-y:auto;}
+.vtag-row{display:flex;align-items:center;gap:8px;}
+.vtag-color{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+.vtag-input{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:7px;color:var(--chalk);font-family:'Inter',sans-serif;font-size:13px;padding:7px 9px;}
+.vtag-input:focus{outline:none;border-color:var(--accent-2);}
+.vtag-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:4px 6px;border-radius:5px;flex-shrink:0;}
+.vtag-del:hover{color:var(--danger);background:rgba(240,85,63,0.12);}
 @media (max-width:600px){ .clip-log-row .log-actions{opacity:1;} }
 .log-btn{
   border:1px solid var(--line);background:transparent;color:var(--muted);
@@ -1292,30 +1321,30 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .caption-toggle{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:12px;}
 .caption-toggle input{accent-color:var(--accent);}
 
-.bench{position:relative;min-height:150px;border:1px dashed var(--line);border-radius:8px;padding:14px;display:flex;gap:10px;overflow-x:auto;align-items:stretch;}
+.bench{position:relative;min-height:110px;border:1px dashed var(--line);border-radius:8px;padding:10px;display:flex;gap:8px;overflow-x:auto;align-items:stretch;}
 .bench::before{content:'';position:absolute;left:14px;right:14px;top:50%;height:1px;background:var(--line);z-index:0;}
 .bench-empty{position:relative;z-index:1;margin:auto;color:var(--muted);font-size:13px;text-align:center;font-family:'JetBrains Mono',monospace;padding:26px;cursor:pointer;border-radius:8px;transition:color .15s ease;max-width:420px;}
 .bench-empty:hover{color:var(--accent-2);}
 .bench-empty .big{font-family:'Oswald',sans-serif;font-size:16px;text-transform:uppercase;letter-spacing:0.5px;color:var(--chalk);margin-bottom:6px;}
 .bench-empty .small{font-size:12px;line-height:1.5;}
 
-.item-card{position:relative;z-index:1;flex:0 0 208px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:10px 10px 8px;cursor:grab;transition:transform .12s ease, border-color .12s ease;display:flex;flex-direction:column;}
+.item-card{position:relative;z-index:1;flex:0 0 132px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:7px 7px 6px;cursor:grab;transition:transform .12s ease, border-color .12s ease;display:flex;flex-direction:column;}
 .item-card:active{cursor:grabbing;}
 .item-card.dragging{opacity:0.4;}
 .item-card.playing{border-color:var(--accent-2);box-shadow:0 0 0 1px var(--accent-2);}
 .item-card.clip-card{border-left:4px solid var(--tag-color);}
 .item-card.separator-card{border-left:4px dashed var(--accent-2);background:#2E2717;}
-.clip-thumb-wrap{width:100%;aspect-ratio:16/9;border-radius:5px;overflow:hidden;margin-bottom:6px;background:var(--bg);border:1px solid var(--line);}
+.clip-thumb-wrap{width:100%;aspect-ratio:16/9;border-radius:4px;overflow:hidden;margin-bottom:4px;background:var(--bg);border:1px solid var(--line);}
 .clip-thumb{width:100%;height:100%;object-fit:cover;display:block;}
 .clip-thumb-empty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;font-family:'JetBrains Mono',monospace;}
 .clip-order{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);}
-.clip-tag{font-family:'Oswald',sans-serif;font-size:12.5px;font-weight:600;margin:2px 0 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.clip-times{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:6px;}
+.clip-tag{font-family:'Oswald',sans-serif;font-size:11px;font-weight:600;margin:1px 0 3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.clip-times{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--muted);margin-bottom:4px;}
 .clip-actions{display:flex;gap:6px;margin-top:auto;}
 .clip-export-btn{
-  margin-top:6px;width:100%;
+  margin-top:4px;width:100%;
   background:transparent;border:1px solid var(--accent-2);color:var(--accent-2);
-  border-radius:6px;padding:5px 4px;font-size:10.5px;font-family:'JetBrains Mono',monospace;
+  border-radius:5px;padding:4px 3px;font-size:9px;font-family:'JetBrains Mono',monospace;
   cursor:pointer;transition:background .12s ease;
 }
 .clip-export-btn:hover{background:rgba(47,143,203,0.12);}
@@ -1358,7 +1387,7 @@ body.editor-active #screen-editor{ display:block; }
 /* ============ RESPONSIVE / CELULAR ============ */
 @media (max-width: 720px){
   /* REGLA CLAVE: que nada sea más ancho que la pantalla */
-  html, body{overflow-x:hidden;max-width:100%;}
+  html, body{overflow-x:clip;max-width:100%;}
 
   /* ===== SAFE AREAS iPhone (notch arriba, barra de gestos abajo, bordes) =====
      Usamos max() para que en Android/otros (inset 0) quede el padding normal. */
@@ -1367,7 +1396,7 @@ body.editor-active #screen-editor{ display:block; }
     padding-bottom: max(40px, calc(env(safe-area-inset-bottom) + 24px));
     padding-left: max(12px, env(safe-area-inset-left));
     padding-right: max(12px, env(safe-area-inset-right));
-    max-width:100%;overflow-x:hidden;
+    max-width:100%;
   }
   .app *{max-width:100%;}
 
@@ -1665,6 +1694,7 @@ body.editor-active #screen-editor{ display:block; }
       <div class="record-status" id="recordStatus">Tocá un tag para iniciar la jugada</div>
       <div class="mark-hint">Tocá el mismo tag de nuevo para cortar · Atajo: <kbd>espacio</kbd></div>
       <div class="tag-grid" id="tagGrid"></div>
+      <div class="tag-grid-actions"><button class="btn small" id="editVideoTagsBtn">🏷️ Mis tags</button></div>
       <div class="clip-counter" id="clipCounter">0 recortes guardados</div>
     </section>
   </div>
@@ -2316,6 +2346,25 @@ body.editor-active #screen-editor{ display:block; }
 </div>
 
 <!-- Modal recorte de foto del jugador -->
+<!-- Modal editar tags del video -->
+<div class="cloud-modal-overlay" id="videoTagsModal" style="display:none;">
+  <div class="cloud-modal" style="max-width:440px;">
+    <div class="cloud-modal-head">
+      <h3>🏷️ Mis tags</h3>
+      <button class="cloud-close" id="videoTagsClose">✕</button>
+    </div>
+    <div style="padding:4px 2px;">
+      <p class="rd-empty" style="margin-bottom:12px;">Renombrá tus tags o creá nuevos. Son solo tuyos: no afectan a otros entrenadores.</p>
+      <div id="videoTagsList" class="vtags-list"></div>
+      <button class="btn small" id="videoTagAdd" style="margin-top:10px;">+ Agregar tag</button>
+      <div class="summary-actions" style="margin-top:14px;">
+        <button class="btn small" id="videoTagsReset">Volver a los originales</button>
+        <button class="btn small primary" id="videoTagsSave">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="cloud-modal-overlay" id="photoCropModal" style="display:none;">
   <div class="cloud-modal" style="max-width:360px;">
     <div class="cloud-modal-head">
@@ -7797,6 +7846,106 @@ const DEFAULT_TAG_NAMES = [
 let tags = DEFAULT_TAG_NAMES.map((name, i) => ({ id: 'tag' + i, name, color: TAG_PALETTE[i] }));
 let activeTagId = tags[0].id;
 
+// ---------- TAGS PERSONALIZADOS (por club, guardados en la base) ----------
+async function cargarTagsGuardados(){
+  try{
+    const sb = window.__sb; const clubId = window.__getClubId ? await window.__getClubId() : null;
+    if(!sb || !clubId) return;
+    const { data, error } = await sb.from('clubs').select('video_tags').eq('id', clubId).single();
+    if(error || !data || !Array.isArray(data.video_tags) || data.video_tags.length === 0) return;
+    tags = data.video_tags.map((t, i) => ({
+      id: t.id || ('tag' + i),
+      name: t.name || ('Tag ' + (i+1)),
+      color: t.color || TAG_PALETTE[i % TAG_PALETTE.length]
+    }));
+    if(!tags.some(t => t.id === activeTagId)) activeTagId = tags[0] ? tags[0].id : null;
+    renderTags();
+  }catch(e){ console.error('cargar tags', e); }
+}
+
+async function guardarTagsEnBase(){
+  try{
+    const sb = window.__sb; const clubId = window.__getClubId ? await window.__getClubId() : null;
+    if(!sb || !clubId) return false;
+    const payload = tags.map(t => ({ id:t.id, name:t.name, color:t.color }));
+    const { error } = await sb.from('clubs').update({ video_tags: payload }).eq('id', clubId);
+    if(error){
+      console.error('guardar tags', error);
+      const msg = (error.message||'').toLowerCase();
+      if(msg.includes('video_tags') || msg.includes('column') || error.code==='PGRST204' || error.code==='42703'){
+        toast('Falta preparar la base: corré el SQL de tags en Supabase');
+      } else {
+        toast('No se pudieron guardar los tags');
+      }
+      return false;
+    }
+    return true;
+  }catch(e){ console.error('guardar tags', e); return false; }
+}
+
+// Editor de tags (modal)
+(function wireVideoTagsEditor(){
+  const modal = document.getElementById('videoTagsModal');
+  const lista = document.getElementById('videoTagsList');
+  const btnOpen = document.getElementById('editVideoTagsBtn');
+  if(!modal || !lista || !btnOpen) return;
+  let borrador = [];
+
+  function pintar(){
+    lista.innerHTML = borrador.map((t, i) => `
+      <div class="vtag-row" data-i="${i}">
+        <span class="vtag-color" style="background:${t.color}"></span>
+        <input class="vtag-input" value="${escapeHtml(t.name)}" maxlength="28" placeholder="Nombre del tag">
+        <button class="vtag-del" title="Eliminar">✕</button>
+      </div>`).join('');
+    lista.querySelectorAll('.vtag-row').forEach(row => {
+      const i = parseInt(row.dataset.i, 10);
+      row.querySelector('.vtag-input').addEventListener('input', e => { borrador[i].name = e.target.value; });
+      row.querySelector('.vtag-del').addEventListener('click', () => {
+        if(borrador.length <= 1){ toast('Tiene que quedar al menos un tag'); return; }
+        borrador.splice(i, 1); pintar();
+      });
+    });
+  }
+
+  btnOpen.addEventListener('click', () => {
+    borrador = tags.map(t => ({ ...t }));
+    pintar();
+    modal.style.display = 'flex';
+  });
+  function cerrar(){ modal.style.display = 'none'; }
+  document.getElementById('videoTagsClose').addEventListener('click', cerrar);
+  modal.addEventListener('click', e => { if(e.target === modal) cerrar(); });
+
+  document.getElementById('videoTagAdd').addEventListener('click', () => {
+    const i = borrador.length;
+    borrador.push({ id: 'tag' + Date.now() + i, name: 'Nuevo tag', color: TAG_PALETTE[i % TAG_PALETTE.length] });
+    pintar();
+    const ultimo = lista.querySelector('.vtag-row:last-child .vtag-input');
+    if(ultimo){ ultimo.focus(); ultimo.select(); }
+  });
+
+  document.getElementById('videoTagsReset').addEventListener('click', () => {
+    if(!confirm('¿Volver a los tags originales? Se pierden los tuyos.')) return;
+    borrador = DEFAULT_TAG_NAMES.map((name, i) => ({ id:'tag'+i, name, color: TAG_PALETTE[i] }));
+    pintar();
+  });
+
+  document.getElementById('videoTagsSave').addEventListener('click', async () => {
+    const limpios = borrador
+      .map(t => ({ ...t, name: (t.name||'').trim() }))
+      .filter(t => t.name);
+    if(limpios.length === 0){ toast('Poné al menos un tag con nombre'); return; }
+    tags = limpios;
+    if(!tags.some(t => t.id === activeTagId)) activeTagId = tags[0].id;
+    renderTags();
+    renderItems();
+    const ok = await guardarTagsEnBase();
+    if(ok) toast('Tags guardados');
+    cerrar();
+  });
+})();
+
 // items = timeline entries, in sequence order. type: 'clip' | 'separator'
 let items = [];
 let itemCounter = 0;
@@ -8042,7 +8191,7 @@ function renderTags(){
       input.style.setProperty('--tag-color', tag.color);
       chip.replaceChild(input, nameEl);
       input.focus(); input.select();
-      function commit(){ tag.name = input.value.trim() || tag.name; renderTags(); renderItems(); }
+      function commit(){ tag.name = input.value.trim() || tag.name; renderTags(); renderItems(); guardarTagsEnBase(); }
       input.addEventListener('blur', commit);
       input.addEventListener('keydown', ev => { if(ev.key==='Enter') commit(); });
     });
@@ -8050,6 +8199,8 @@ function renderTags(){
   });
 }
 renderTags();
+// Cargar los tags personalizados del club (si los hay)
+if(window.__sb) setTimeout(cargarTagsGuardados, 600);
 
 // ---------------- GUARDAR / CARGAR PROYECTO ----------------
 document.getElementById('saveProjectBtn').addEventListener('click', () => {
