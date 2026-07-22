@@ -430,6 +430,41 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 /* ===== Secciones ===== */
 .section-content{display:none;position:relative;z-index:1;}
 .section-content.active{display:block;}
+/* ===== GUÍA ===== */
+.guide-title{font-family:'Oswald',sans-serif;font-size:26px;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 6px;}
+.guide-sub{font-family:'Inter',sans-serif;font-size:14px;color:var(--muted);margin:0 0 22px;}
+.guide-circuit{background:rgba(47,143,203,0.07);border:1px solid rgba(47,143,203,0.28);border-radius:12px;padding:20px;margin-bottom:28px;}
+.gc-title{font-family:'Oswald',sans-serif;font-size:14px;text-transform:uppercase;letter-spacing:0.8px;color:var(--accent-2);margin-bottom:14px;}
+.gc-steps{display:flex;align-items:stretch;gap:6px;overflow-x:auto;padding-bottom:6px;}
+.gc-step{flex:1 1 0;min-width:135px;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:11px 10px;}
+.gc-ico{font-size:19px;display:block;margin-bottom:5px;}
+.gc-step b{font-family:'Oswald',sans-serif;font-size:11.5px;text-transform:uppercase;letter-spacing:0.4px;color:var(--chalk);display:block;margin-bottom:4px;}
+.gc-step p{font-family:'Inter',sans-serif;font-size:11.5px;line-height:1.45;color:var(--muted);margin:0;}
+.gc-arrow{align-self:center;color:var(--accent-2);font-size:16px;flex-shrink:0;}
+.gc-loop{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--accent-2);text-align:center;margin-top:12px;}
+.guide-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;}
+.guide-card{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:15px;}
+.gcard-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.gcard-head span{font-size:20px;}
+.gcard-head h3{font-family:'Oswald',sans-serif;font-size:15px;text-transform:uppercase;letter-spacing:0.5px;margin:0;}
+.guide-card > p{font-family:'Inter',sans-serif;font-size:13px;line-height:1.55;color:var(--chalk);opacity:0.9;margin:0 0 10px;}
+.gcard-ex{background:var(--bg);border-left:3px solid var(--accent);border-radius:0 7px 7px 0;padding:10px 12px;font-family:'Inter',sans-serif;font-size:12px;line-height:1.55;color:var(--muted);}
+.gcard-ex b{color:var(--accent);}
+.guide-links{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:18px 20px;margin-bottom:20px;}
+.gl-title{font-family:'Oswald',sans-serif;font-size:15px;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:14px;color:var(--chalk);}
+.guide-links ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;}
+.guide-links li{display:flex;align-items:flex-start;gap:11px;font-family:'Inter',sans-serif;font-size:13px;line-height:1.6;color:var(--chalk);opacity:0.92;}
+.gl-ico{font-size:17px;line-height:1.35;flex-shrink:0;width:22px;text-align:center;}
+.guide-links li b{color:var(--accent-2);}
+.guide-tip{background:rgba(76,175,109,0.10);border:1px solid rgba(76,175,109,0.35);border-radius:10px;padding:15px 17px;font-family:'Inter',sans-serif;font-size:13.5px;line-height:1.6;color:var(--chalk);}
+@media (max-width:900px){ .guide-grid{grid-template-columns:repeat(2,1fr);} }
+@media (max-width:620px){
+  .guide-grid{grid-template-columns:1fr;}
+  .guide-title{font-size:21px;}
+  .gc-steps{flex-direction:column;}
+  .gc-arrow{transform:rotate(90deg);align-self:center;}
+  .gc-step{min-width:0;}
+}
 
 /* ===== Placeholder "próximamente" ===== */
 .coming-soon{text-align:center;max-width:520px;margin:60px auto;padding:40px 24px;background:rgba(21,34,48,0.7);border:1px solid var(--line);border-radius:14px;}
@@ -1716,6 +1751,7 @@ body.editor-active #screen-editor{ display:block; }
     <button class="nav-tab" data-section="scouting" data-icon="🔍"><span data-i18n="navScouting">Scouting</span></button>
     <button class="nav-tab" data-section="board" data-icon="✏️"><span data-i18n="navBoard">Pizarra</span></button>
     <button class="nav-tab" data-section="live" data-icon="🔴"><span data-i18n="navLive">En vivo</span></button>
+    <button class="nav-tab" data-section="guide" data-icon="📖"><span data-i18n="navGuide">Guía</span></button>
   </nav>
 
   <!-- ===== SECCIÓN: VIDEO ===== -->
@@ -2397,6 +2433,90 @@ body.editor-active #screen-editor{ display:block; }
     </div>
   </div>
 
+  <!-- ===== SECCIÓN: GUÍA ===== -->
+  <div class="section-content" id="section-guide">
+    <h2 class="guide-title">📖 Cómo funciona Benchone</h2>
+    <p class="guide-sub">Seis herramientas que trabajan juntas. Lo que cargás en una, aparece en las otras.</p>
+
+    <!-- El circuito -->
+    <div class="guide-circuit">
+      <div class="gc-title">El circuito de una semana</div>
+      <div class="gc-steps">
+        <div class="gc-step"><span class="gc-ico">📋</span><b>Lunes a viernes</b><p>Planificás los entrenamientos de la semana.</p></div>
+        <div class="gc-arrow">→</div>
+        <div class="gc-step"><span class="gc-ico">✅</span><b>Antes del partido</b><p>Marcás la convocatoria: quién va, quién no y por qué.</p></div>
+        <div class="gc-arrow">→</div>
+        <div class="gc-step"><span class="gc-ico">🔴</span><b>Durante el partido</b><p>Con En Vivo llevás minutos, goles y tarjetas desde el celular.</p></div>
+        <div class="gc-arrow">→</div>
+        <div class="gc-step"><span class="gc-ico">📊</span><b>Al terminar</b><p>Los minutos caen solos desde En Vivo. Cargás los goles con su autor y cómo fue cada uno.</p></div>
+        <div class="gc-arrow">→</div>
+        <div class="gc-step"><span class="gc-ico">🎬</span><b>Después</b><p>Mirás el video, marcás jugadas y armás el resumen.</p></div>
+        <div class="gc-arrow">→</div>
+        <div class="gc-step"><span class="gc-ico">🚦</span><b>Antes de volver a planificar</b><p>El Semáforo te avisa quién jugó poco, quién está al límite de tarjetas.</p></div>
+      </div>
+      <div class="gc-loop">↻ Y volvés a empezar, ahora con datos reales.</div>
+    </div>
+
+    <!-- Módulos -->
+    <div class="guide-grid">
+
+      <div class="guide-card">
+        <div class="gcard-head"><span>🎬</span><h3>Video</h3></div>
+        <p>Subís el partido y marcás las jugadas con un toque. Armás el video final arrastrando los recortes.</p>
+        <div class="gcard-ex"><b>💡 Ejemplo:</b> el domingo grabaste el partido. El lunes marcás los 6 córners en contra, los exportás juntos y se los mostrás al equipo antes del entrenamiento.</div>
+      </div>
+
+      <div class="guide-card">
+        <div class="gcard-head"><span>📊</span><h3>Estadísticas</h3></div>
+        <p>Plantel, partidos, convocatorias, minutaje y la ficha de cada jugador. Cargás cada partido con sus goleadores, asistencias y tarjetas, y podés anotar cómo fue cada gol: ataque posicional, transición, robo alto, estrategia, 5 vs 4. Todo se suma al acumulado del año.</p>
+        <div class="gcard-ex"><b>💡 Ejemplo:</b> cargás la fecha contra River: dos goles de tu pivot, uno de transición y otro de córner. A fin de mes ves que la mitad de tus goles salen de pelota parada, y decidís entrenar más ataque posicional.</div>
+      </div>
+
+      <div class="guide-card">
+        <div class="gcard-head"><span>📋</span><h3>Planificación</h3></div>
+        <p>Una ficha por semana con los ejercicios de cada día y el objetivo. Con calendario de la temporada.</p>
+        <div class="gcard-ex"><b>💡 Ejemplo:</b> viene una semana con dos partidos. Planificás carga liviana el jueves y dejás anotado el objetivo: "recuperación y pelota parada".</div>
+      </div>
+
+      <div class="guide-card">
+        <div class="gcard-head"><span>🔍</span><h3>Scouting</h3></div>
+        <p>Fichás rivales y jugadores a seguir, con notas, fotos y enlaces de video.</p>
+        <div class="gcard-ex"><b>💡 Ejemplo:</b> el sábado jugás contra un equipo que ya enfrentaste. Abrís su ficha y releés lo que anotaste: "sacan rápido de arco, pivot zurdo peligroso".</div>
+      </div>
+
+      <div class="guide-card">
+        <div class="gcard-head"><span>✏️</span><h3>Pizarra</h3></div>
+        <p>Movés las fichas y grabás la jugada animada para mostrarla al equipo.</p>
+        <div class="gcard-ex"><b>💡 Ejemplo:</b> viste en el video que perdés la marca en el 3-1. Armás la corrección en la pizarra, la grabás y se la mandás al grupo.</div>
+      </div>
+
+      <div class="guide-card">
+        <div class="gcard-head"><span>🔴</span><h3>En Vivo</h3></div>
+        <p>Llevás el partido desde el celular: minutos por jugador, goles, remates, faltas y cambios.</p>
+        <div class="gcard-ex"><b>💡 Ejemplo:</b> en pleno partido tocás la carita del jugador que entra y la del que sale. Al final tenés los minutos exactos de cada uno, sin anotar nada en papel.</div>
+      </div>
+
+    </div>
+
+    <!-- Cómo se conecta -->
+    <div class="guide-links">
+      <div class="gl-title">🔗 Todo conectado</div>
+      <ul>
+        <li><span class="gl-ico">👥</span><div><b>El Plantel es la base.</b> Los jugadores que cargás ahí aparecen en convocatorias, En Vivo, goleadores y fichas.</div></li>
+        <li><span class="gl-ico">⚽</span><div><b>Los Partidos son el corazón de las estadísticas.</b> Cada gol que cargás con su goleador suma en la ficha de ese jugador, en la tabla de goleadores y en el acumulado anual.</div></li>
+        <li><span class="gl-ico">🎯</span><div><b>El origen de cada gol arma tu diagnóstico.</b> Si anotás cómo llegó cada gol (transición, córner, robo alto), la app te muestra de dónde vive tu equipo y por dónde te lastiman.</div></li>
+        <li><span class="gl-ico">⏱</span><div><b>En Vivo alimenta Estadísticas.</b> Los minutos y goles del partido caen solos, no los cargás dos veces.</div></li>
+        <li><span class="gl-ico">🚦</span><div><b>Las convocatorias alimentan el Semáforo.</b> Si marcás una ausencia por lesión, el Semáforo no lo cuenta como decisión técnica.</div></li>
+        <li><span class="gl-ico">📸</span><div><b>La foto que cargás una vez</b> se ve en el plantel, en la ficha y en la cancha de En Vivo.</div></li>
+        <li><span class="gl-ico">🏷️</span><div><b>Todo se guarda por categoría.</b> Cambiás de 5ta a 1era y todo cambia con vos.</div></li>
+      </ul>
+    </div>
+
+    <div class="guide-tip">
+      <b>💡 Para empezar:</b> cargá tu plantel en Estadísticas → Plantel. Con eso solo, ya podés usar convocatorias y En Vivo el próximo partido.
+    </div>
+  </div>
+
 <div class="toast" id="toast"></div>
 
 <!-- Modal linkear minutaje a partido -->
@@ -2554,7 +2674,7 @@ window.I18N = {
     saveCloud:'☁ Guardar en la nube', myMatches:'☁ Mis partidos', loadFile:'Cargar archivo', saveFile:'Guardar archivo',
     logout:'Cerrar sesión', category:'Categoría:',
     navVideo:'Video', navVideoAI:'Video IA', navStats:'Estadísticas', navTraining:'Planificación',
-    navScouting:'Scouting', navBoard:'Pizarra', navLive:'En vivo',
+    navScouting:'Scouting', navBoard:'Pizarra', navLive:'En vivo', navGuide:'Guía',
     brandSub:'Todas las herramientas de tu cuerpo técnico, conectadas entre sí.',
     // Login
     loginTitle:'Ingresá a tu panel', loginEmail:'Email', loginPass:'Contraseña', loginBtn:'Ingresar',
@@ -2640,7 +2760,7 @@ window.I18N = {
     saveCloud:'☁ Save to cloud', myMatches:'☁ My matches', loadFile:'Load file', saveFile:'Save file',
     logout:'Log out', category:'Category:',
     navVideo:'Video', navVideoAI:'AI Video', navStats:'Statistics', navTraining:'Planning',
-    navScouting:'Scouting', navBoard:'Board', navLive:'Live',
+    navScouting:'Scouting', navBoard:'Board', navLive:'Live', navGuide:'Guide',
     brandSub:'All your coaching staff tools, connected.',
     loginTitle:'Sign in to your panel', loginEmail:'Email', loginPass:'Password', loginBtn:'Sign in',
     liveTitle:'Live — minutes control', liveSetupSub:'Pick the opponent and called-up players to start.',
@@ -2715,7 +2835,7 @@ window.I18N = {
     saveCloud:'☁ Salvar na nuvem', myMatches:'☁ Meus jogos', loadFile:'Carregar arquivo', saveFile:'Salvar arquivo',
     logout:'Sair', category:'Categoria:',
     navVideo:'Vídeo', navVideoAI:'Vídeo IA', navStats:'Estatísticas', navTraining:'Planejamento',
-    navScouting:'Scouting', navBoard:'Prancheta', navLive:'Ao vivo',
+    navScouting:'Scouting', navBoard:'Prancheta', navLive:'Ao vivo', navGuide:'Guia',
     brandSub:'Todas as ferramentas da sua comissão técnica, conectadas.',
     loginTitle:'Entre no seu painel', loginEmail:'E-mail', loginPass:'Senha', loginBtn:'Entrar',
     liveTitle:'Ao vivo — controle de minutos', liveSetupSub:'Escolha o adversário e os convocados para começar.',
