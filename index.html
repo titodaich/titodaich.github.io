@@ -1182,6 +1182,18 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .clip-log-row .logtime{color:var(--muted);white-space:nowrap;}
 .clip-log-row .log-actions{display:flex;gap:3px;margin-left:auto;flex-shrink:0;opacity:0;transition:opacity .12s ease;}
 .clip-log-row:hover .log-actions{opacity:1;}
+/* Registro de recortes: flecha, agregar a la línea, preview */
+.clip-log-row{position:relative;flex-wrap:wrap;cursor:grab;}
+.clip-log-row.dragging{opacity:0.45;}
+.clip-log-row.en-linea{border-left:3px solid var(--success);}
+.log-arrow{background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;padding:0 3px;flex-shrink:0;line-height:1;}
+.log-arrow:hover{color:var(--chalk);}
+.log-add.is-in{color:var(--success);border-color:var(--success);}
+.log-preview{flex-basis:100%;margin-top:8px;}
+.log-preview-video{width:100%;max-width:320px;border-radius:8px;background:#000;display:block;}
+.log-preview-msg{font-size:11px;color:var(--muted);font-style:italic;}
+.bench.drop-target{outline:2px dashed var(--accent-2);outline-offset:4px;border-radius:10px;}
+@media (max-width:600px){ .clip-log-row .log-actions{opacity:1;} }
 .log-btn{
   border:1px solid var(--line);background:transparent;color:var(--muted);
   border-radius:4px;width:22px;height:22px;font-size:10px;
@@ -8049,7 +8061,7 @@ document.getElementById('saveProjectBtn').addEventListener('click', () => {
     showCaptions: document.getElementById('captionsToggle').checked,
     items: items.map(it => {
       if(it.type === 'clip'){
-        return { type:'clip', id:it.id, tagId:it.tagId, videoId:it.videoId, start:it.start, end:it.end, note:it.note||'', thumbnail: (it.thumbnail && it.thumbnail !== 'pending') ? it.thumbnail : null };
+        return { type:'clip', id:it.id, tagId:it.tagId, videoId:it.videoId, start:it.start, end:it.end, note:it.note||'', inTimeline: it.inTimeline !== false, name: it.name||'', thumbnail: (it.thumbnail && it.thumbnail !== 'pending') ? it.thumbnail : null };
       }
       return { type:'separator', id:it.id, title:it.title, note:it.note||'', image:it.image||null, duration:it.duration||3 };
     })
@@ -8070,7 +8082,7 @@ function buildProjectPayload(){
     tags: tags,
     items: items.map(it => {
       if(it.type === 'clip'){
-        return { type:'clip', id:it.id, tagId:it.tagId, videoId:it.videoId, start:it.start, end:it.end, note:it.note||'', thumbnail: (it.thumbnail && it.thumbnail !== 'pending') ? it.thumbnail : null };
+        return { type:'clip', id:it.id, tagId:it.tagId, videoId:it.videoId, start:it.start, end:it.end, note:it.note||'', inTimeline: it.inTimeline !== false, name: it.name||'', thumbnail: (it.thumbnail && it.thumbnail !== 'pending') ? it.thumbnail : null };
       }
       return { type:'separator', id:it.id, title:it.title, note:it.note||'', image:it.image||null, duration:it.duration||3 };
     })
@@ -8283,7 +8295,7 @@ function handleTagClick(tagId){
   const start = Math.min(markStartTime, end);
   const finish = Math.max(markStartTime, end);
   itemCounter++;
-  items.push({ id:'item'+itemCounter, type:'clip', tagId: activeTagId, videoId: activeVideoId, start, end: finish, note:'' });
+  items.push({ id:'item'+itemCounter, type:'clip', tagId: activeTagId, videoId: activeVideoId, start, end: finish, note:'', inTimeline:false, name:'' });
   renderItems();
   renderTags();
   updateRecordStatus();
@@ -8336,7 +8348,7 @@ bulkClipInput.addEventListener('change', async (e) => {
     const video = { id:'vid'+videoCounter, name: cleanName, file, url, duration, missing:false };
     videos.push(video);
     itemCounter++;
-    items.push({ id:'item'+itemCounter, type:'clip', tagId: activeTagId, videoId: video.id, start:0, end:duration, note:'' });
+    items.push({ id:'item'+itemCounter, type:'clip', tagId: activeTagId, videoId: video.id, start:0, end:duration, note:'', inTimeline:true, name: cleanName });
     loaded++;
   }
   renderVideoList();
@@ -8407,46 +8419,110 @@ function updateClipLog(){
   }
   log.innerHTML = clips.map((it, idx) => {
     const tag = tags.find(t => t.id === it.tagId);
-    return `<div class="clip-log-row" data-log-id="${it.id}" style="--tag-color:${tag ? tag.color : '#888'}">
+    const nombre = it.name || (tag ? tag.name : '?');
+    const yaEsta = !!it.inTimeline;
+    return `<div class="clip-log-row${yaEsta?' en-linea':''}" data-log-id="${it.id}" draggable="true" style="--tag-color:${tag ? tag.color : '#888'}">
+      <button class="log-arrow" data-log-action="toggle" title="Ver el recorte">▸</button>
       <span class="dot"></span>
       <span class="lognum">${idx+1}.</span>
-      <span class="logtag" data-log-tag>${escapeHtml(tag ? tag.name : '?')}</span>
+      <span class="logtag" data-log-tag>${escapeHtml(nombre)}</span>
       <span class="logtime">minuto ${fmt(it.start)} a ${fmt(it.end)}</span>
       <span class="log-actions">
-        <button class="log-btn" data-log-action="play" title="Reproducir">▶</button>
-        <button class="log-btn" data-log-action="rename" title="Renombrar el tag">✎</button>
+        <button class="log-btn log-add${yaEsta?' is-in':''}" data-log-action="add" title="${yaEsta?'Quitar de la línea de tiempo':'Agregar a la línea de tiempo'}">${yaEsta?'✓':'＋'}</button>
+        <button class="log-btn" data-log-action="rename" title="Renombrar este recorte">✎</button>
         <button class="log-btn" data-log-action="export" title="Exportar este clip">⬇</button>
+        <button class="log-btn" data-log-action="del" title="Borrar del registro">✕</button>
       </span>
+      <div class="log-preview" data-log-preview hidden></div>
     </div>`;
   }).join('');
   log.querySelectorAll('.clip-log-row').forEach(row => {
     const item = items.find(x => x.id === row.dataset.logId);
     if(!item) return;
-    row.querySelector('[data-log-action="play"]').addEventListener('click', (e) => { e.stopPropagation(); previewClip(item); });
+
+    // Arrastrar hacia la línea de tiempo
+    row.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', 'fromlog:'+item.id);
+      e.dataTransfer.effectAllowed = 'copy';
+      row.classList.add('dragging');
+    });
+    row.addEventListener('dragend', () => row.classList.remove('dragging'));
+
+    // Flecha: mostrar/ocultar la vista previa dentro del registro
+    row.querySelector('[data-log-action="toggle"]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const box = row.querySelector('[data-log-preview]');
+      const arrow = row.querySelector('[data-log-action="toggle"]');
+      if(box.hasAttribute('hidden')){
+        box.removeAttribute('hidden');
+        arrow.textContent = '▾';
+        montarPreviewEnRegistro(item, box);
+      } else {
+        box.setAttribute('hidden','');
+        arrow.textContent = '▸';
+        box.innerHTML = '';
+      }
+    });
+
+    // Agregar / quitar de la línea de tiempo
+    row.querySelector('[data-log-action="add"]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      item.inTimeline = !item.inTimeline;
+      renderItems();
+      toast(item.inTimeline ? 'Agregado a la línea de tiempo' : 'Quitado de la línea de tiempo');
+    });
+
     row.querySelector('[data-log-action="export"]').addEventListener('click', (e) => { e.stopPropagation(); exportSingleClip(item); });
+
+    // Borrar del registro (y de la línea si estaba)
+    row.querySelector('[data-log-action="del"]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if(!confirm('¿Borrar este recorte del registro? También se quita de la línea de tiempo.')) return;
+      const i = items.findIndex(x => x.id === item.id);
+      if(i >= 0) items.splice(i, 1);
+      renderItems();
+      toast('Recorte borrado');
+    });
+
+    // Renombrar SOLO este recorte (nunca el tag original)
     row.querySelector('[data-log-action="rename"]').addEventListener('click', (e) => {
       e.stopPropagation();
       const tag = tags.find(t => t.id === item.tagId);
-      if(!tag) return;
       const tagEl = row.querySelector('[data-log-tag]');
+      const actual = item.name || (tag ? tag.name : '');
       const input = document.createElement('input');
       input.className = 'log-tag-input';
-      input.value = tag.name;
+      input.value = actual;
       tagEl.replaceWith(input);
       input.focus(); input.select();
       let committed = false;
       function commit(){
         if(committed) return;
         committed = true;
-        tag.name = input.value.trim() || tag.name;
-        renderTags();
+        const v = input.value.trim();
+        item.name = v || '';   // vacío = vuelve a usar el nombre del tag
         renderItems();
       }
       input.addEventListener('blur', commit);
-      input.addEventListener('keydown', ev => { if(ev.key==='Enter'){ input.blur(); } if(ev.key==='Escape'){ input.value=tag.name; input.blur(); } });
+      input.addEventListener('keydown', ev => { if(ev.key==='Enter'){ input.blur(); } if(ev.key==='Escape'){ committed=true; renderItems(); } });
     });
+
     row.addEventListener('click', () => previewClip(item));
   });
+}
+
+// Muestra un mini reproductor del recorte dentro del registro
+function montarPreviewEnRegistro(item, box){
+  const video = videos.find(v => v.id === item.videoId);
+  if(!video){ box.innerHTML = '<div class="log-preview-msg">No se encuentra el video de este recorte.</div>'; return; }
+  box.innerHTML = '<video class="log-preview-video" playsinline controls muted></video>';
+  const v = box.querySelector('video');
+  v.src = video.url;
+  v.currentTime = item.start;
+  const stopAt = item.end;
+  v.addEventListener('loadedmetadata', () => { v.currentTime = item.start; });
+  v.addEventListener('timeupdate', () => { if(v.currentTime >= stopAt){ v.pause(); v.currentTime = item.start; } });
+  v.play().catch(()=>{});
 }
 
 function renderItems(){
@@ -8454,8 +8530,10 @@ function renderItems(){
   renderTags();
   updateClipLog();
   bench.innerHTML = '';
-  const hasItems = items.length > 0;
-  const hasClips = items.some(i => i.type === 'clip');
+  // En la línea de tiempo van los separadores y solo los clips que el usuario agregó
+  const enLinea = items.filter(it => it.type !== 'clip' || it.inTimeline);
+  const hasItems = enLinea.length > 0;
+  const hasClips = enLinea.some(i => i.type === 'clip');
   document.getElementById('playSeqBtn').disabled = !hasItems;
   document.getElementById('exportJsonBtn').disabled = !hasItems;
   document.getElementById('exportEachBtn').disabled = !hasClips;
@@ -8464,13 +8542,13 @@ function renderItems(){
   if(!hasItems){
     bench.innerHTML = `<div class="bench-empty" id="benchEmpty">
       <div class="big">Línea de tiempo vacía</div>
-      <div class="small">Hacé clic acá para cargar tus clips ya hechos (podés elegir varios a la vez, ~50 archivos) — o marcá jugadas arriba.</div>
+      <div class="small">Arrastrá recortes desde el Registro de recortes, o hacé clic acá para cargar clips ya hechos.</div>
     </div>`;
     document.getElementById('benchEmpty').addEventListener('click', () => document.getElementById('bulkClipInput').click());
     return;
   }
 
-  items.forEach((item, i) => {
+  enLinea.forEach((item, i) => {
     const card = document.createElement('div');
     card.draggable = true;
     card.dataset.id = item.id;
@@ -8484,7 +8562,7 @@ function renderItems(){
       card.innerHTML = `
         <div class="clip-thumb-wrap">${item.thumbnail && item.thumbnail !== 'pending' ? `<img class="clip-thumb" src="${item.thumbnail}">` : `<div class="clip-thumb-empty">···</div>`}</div>
         <div class="clip-order">#${(i+1).toString().padStart(2,'0')}${videos.length > 1 ? ' · '+escapeHtml(srcVideo ? srcVideo.name : '?') : ''}</div>
-        <div class="clip-tag">${escapeHtml(tag.name)}</div>
+        <div class="clip-tag">${escapeHtml(item.name || tag.name)}</div>
         <div class="clip-times">${fmt(item.start)} → ${fmt(item.end)} · ${fmt(item.end-item.start)}</div>
         <div class="clip-note-view ${item.note ? '' : 'empty'}" data-note-view>${item.note ? escapeHtml(item.note) : 'Sin descripción'}</div>
         <div class="clip-actions">
@@ -8587,6 +8665,25 @@ function renderItems(){
     card.addEventListener('dragover', (e) => e.preventDefault());
     card.addEventListener('drop', (e) => {
       e.preventDefault();
+      // ¿viene del registro de recortes?
+      const data = e.dataTransfer.getData('text/plain') || '';
+      if(data.startsWith('fromlog:')){
+        const id = data.slice(8);
+        const clip = items.find(x => x.id === id);
+        if(clip && !clip.inTimeline){
+          clip.inTimeline = true;
+          // insertarlo justo antes de la tarjeta donde se soltó
+          const fromIdx = items.findIndex(c => c.id === id);
+          const toIdx = items.findIndex(c => c.id === item.id);
+          if(fromIdx >= 0 && toIdx >= 0){
+            const [moved] = items.splice(fromIdx, 1);
+            items.splice(items.findIndex(c => c.id === item.id), 0, moved);
+          }
+          renderItems();
+          toast('Agregado a la línea de tiempo');
+        }
+        return;
+      }
       if(!dragSrcId || dragSrcId === item.id) return;
       const fromIdx = items.findIndex(c => c.id === dragSrcId);
       const toIdx = items.findIndex(c => c.id === item.id);
@@ -8597,6 +8694,29 @@ function renderItems(){
     bench.appendChild(card);
   });
 }
+
+// Soltar en el área de la línea de tiempo (fuera de una tarjeta) = agregar al final
+(function wireBenchDrop(){
+  if(!bench) return;
+  bench.addEventListener('dragover', e => {
+    const t = e.dataTransfer.types;
+    if(t && [...t].includes('text/plain')){ e.preventDefault(); bench.classList.add('drop-target'); }
+  });
+  bench.addEventListener('dragleave', e => { if(e.target === bench) bench.classList.remove('drop-target'); });
+  bench.addEventListener('drop', e => {
+    bench.classList.remove('drop-target');
+    const data = e.dataTransfer.getData('text/plain') || '';
+    if(!data.startsWith('fromlog:')) return;
+    e.preventDefault();
+    const id = data.slice(8);
+    const clip = items.find(x => x.id === id);
+    if(clip && !clip.inTimeline){
+      clip.inTimeline = true;
+      renderItems();
+      toast('Agregado a la línea de tiempo');
+    }
+  });
+})();
 renderItems();
 
 // ---------------- PREVIEW (watch only, not export) ----------------
