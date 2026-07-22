@@ -3159,10 +3159,12 @@ async function guardarPerfil(userId, email, perfil){
       }catch(e){}
       await ensureMembership(session.user.id, nombreClub);
       window.__currentUserEmail = session.user.email;
+      window.__currentUserId = session.user.id;
       try{ await sb.rpc('touch_last_seen'); }catch(e){}
       // Latido periódico para reflejar "conectado" en el panel admin.
       setInterval(() => { try{ sb.rpc('touch_last_seen'); }catch(e){} }, 120000);
       showEditor();
+      if(window.__startMetrics) window.__startMetrics();
     }
   }catch(err){ console.error(err); }
 })();
@@ -3225,7 +3227,9 @@ form.addEventListener('submit', async (e) => {
         showError('Tu cuenta se creó, pero hubo un problema al preparar tu espacio de trabajo. Por favor, volvé a iniciar sesión en unos segundos. Si el problema sigue, avisanos.');
       }
       window.__currentUserEmail = email;
+      try{ const { data:{ user } } = await sb.auth.getUser(); if(user) window.__currentUserId = user.id; }catch(e){}
       showEditor();
+      if(window.__startMetrics) window.__startMetrics();
     } else {
       // Sin sesión (requiere confirmar email). Guardamos lo posible igual.
       try{ await guardarPerfil(data.user?.id, email, perfil); }catch(e){}
@@ -3250,7 +3254,9 @@ form.addEventListener('submit', async (e) => {
     await ensureMembership(data.user.id, 'Club de ' + email);
     try{ await sb.rpc('touch_last_seen'); }catch(e){}
     window.__currentUserEmail = email;
+    try{ const { data:{ user } } = await sb.auth.getUser(); if(user) window.__currentUserId = user.id; }catch(e){}
     showEditor();
+    if(window.__startMetrics) window.__startMetrics();
   }
 });
 
@@ -3297,9 +3303,108 @@ window.__initEditor = function(){
       if(target === 'stats' && window.__loadStatsOnce){ window.__loadStatsOnce(); }
       if(target === 'board' && window.__initBoardOnce){ window.__initBoardOnce(); }
       if(target === 'live' && window.__initLiveOnce){ window.__initLiveOnce(); }
+      if(window.__trackSection) window.__trackSection(target);
       window.scrollTo(0, 0);
     });
   });
+})();
+
+// ---------------- MÉTRICAS DE USO (para el panel de admin) ----------------
+// Mide, de forma liviana: tiempo de sesión y uso por sección.
+// Acumula en memoria y guarda cada 60 segundos (no golpea la base a cada clic).
+(function initMetrics(){
+  let sessionId = null;
+  let sessionStart = Date.now();
+  let seccionActual = 'video';
+  let seccionDesde = Date.now();
+  const acumulado = {};       // { seccion: { visits, seconds } }
+  let guardando = false;
+
+  function sumarTiempoDeSeccionActual(){
+    if(!seccionActual) return;
+    const s = Math.round((Date.now() - seccionDesde) / 1000);
+    if(s <= 0) return;
+    if(!acumulado[seccionActual]) acumulado[seccionActual] = { visits:0, seconds:0 };
+    acumulado[seccionActual].seconds += s;
+    seccionDesde = Date.now();
+  }
+
+  window.__trackSection = function(nombre){
+    sumarTiempoDeSeccionActual();
+    seccionActual = nombre;
+    seccionDesde = Date.now();
+    if(!acumulado[nombre]) acumulado[nombre] = { visits:0, seconds:0 };
+    acumulado[nombre].visits += 1;
+  };
+
+  async function abrirSesion(){
+    try{
+      const sb = window.__sb;
+      if(!sb || !window.__currentUserId) return;
+      const clubId = window.__getClubId ? await window.__getClubId() : null;
+      const { data, error } = await sb.from('app_sessions')
+        .insert({ user_id: window.__currentUserId, club_id: clubId })
+        .select('id').single();
+      if(!error && data) sessionId = data.id;
+    }catch(e){ /* si falla, no molestamos al usuario */ }
+  }
+
+  async function guardar(cerrando){
+    if(guardando) return;
+    guardando = true;
+    try{
+      sumarTiempoDeSeccionActual();
+      const sb = window.__sb;
+      if(!sb || !window.__currentUserId){ guardando = false; return; }
+      const clubId = window.__getClubId ? await window.__getClubId() : null;
+      const hoy = new Date().toISOString().slice(0,10);
+
+      // 1) Uso por sección (sumamos lo acumulado desde la última vez)
+      const pendientes = Object.entries(acumulado).filter(([, v]) => v.visits > 0 || v.seconds > 0);
+      for(const [sec, v] of pendientes){
+        // leer lo que ya había hoy para esa sección
+        const { data: prev } = await sb.from('section_usage')
+          .select('id,visits,seconds')
+          .eq('user_id', window.__currentUserId).eq('section', sec).eq('day', hoy)
+          .maybeSingle();
+        if(prev && prev.id){
+          await sb.from('section_usage').update({
+            visits: (prev.visits||0) + v.visits,
+            seconds: (prev.seconds||0) + v.seconds,
+            updated_at: new Date().toISOString()
+          }).eq('id', prev.id);
+        } else {
+          await sb.from('section_usage').insert({
+            user_id: window.__currentUserId, club_id: clubId, section: sec,
+            day: hoy, visits: v.visits, seconds: v.seconds
+          });
+        }
+        acumulado[sec] = { visits:0, seconds:0 };   // ya guardado
+      }
+
+      // 2) Duración de la sesión
+      if(sessionId){
+        const segs = Math.round((Date.now() - sessionStart) / 1000);
+        const payload = { last_ping_at: new Date().toISOString(), seconds: segs };
+        if(cerrando) payload.ended_at = new Date().toISOString();
+        await sb.from('app_sessions').update(payload).eq('id', sessionId);
+      }
+    }catch(e){ /* silencioso */ }
+    guardando = false;
+  }
+
+  // Arrancar cuando el usuario entra al panel
+  window.__startMetrics = function(){
+    sessionStart = Date.now();
+    seccionDesde = Date.now();
+    if(!acumulado['video']) acumulado['video'] = { visits:1, seconds:0 };
+    abrirSesion();
+  };
+
+  // Guardar cada 60 segundos y al salir
+  setInterval(() => guardar(false), 60000);
+  window.addEventListener('beforeunload', () => { guardar(true); });
+  document.addEventListener('visibilitychange', () => { if(document.hidden) guardar(false); });
 })();
 
 // ---------------- CATEGORÍAS ----------------
