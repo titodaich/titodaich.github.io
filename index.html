@@ -146,6 +146,14 @@ body{background-color:var(--bg);-webkit-tap-highlight-color:transparent;overflow
   margin:0;
 }
 @media (max-width:860px){ .hero-copy p{margin:0 auto;} }
+.hero-copy p.hero-tools{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11.5px;
+  color:var(--muted);
+  opacity:0.72;
+  letter-spacing:0.4px;
+  margin-top:10px;
+}
 
 .card{
   background:rgba(21,34,48,0.82);
@@ -1500,7 +1508,8 @@ body.editor-active #screen-editor{ display:block; }
   <div class="hero-copy">
     <div class="hero-eyebrow">Fútbol sala · cuerpo técnico</div>
     <h1>Gestiona<br>tu equipo</h1>
-    <p>Editá, llevá estadísticas, planificación semanal y el control de tu equipo en un solo lugar.</p>
+    <p>Todas las herramientas en un solo lugar</p>
+    <p class="hero-tools">Estadísticas • Video • Scouting • Planificación • En vivo</p>
   </div>
 
   <div class="card">
@@ -1576,7 +1585,7 @@ body.editor-active #screen-editor{ display:block; }
       </button>
       <div>
         <div class="brand"><img src="logo.png" alt="" class="brand-logo-sm" onerror="this.style.display='none'">BENCHONE<span class="dot">·</span>LA PLATAFORMA DEL ENTRENADOR</div>
-        <div class="brand-sub" data-i18n="brandSub">Panel de entrenador — futsal</div>
+        <div class="brand-sub" data-i18n="brandSub">Todas las herramientas de tu cuerpo técnico, conectadas entre sí.</div>
       </div>
     </div>
     <div class="topbar-right">
@@ -1620,15 +1629,15 @@ body.editor-active #screen-editor{ display:block; }
     <section class="panel">
       <h2><span class="n">01</span> Subí el partido</h2>
       <div class="dropzone" id="dropzone">
-        <div class="big">Soltá el video acá o hacé clic</div>
-        <div class="small">Subí el primer tiempo, el segundo, o los videos que necesites</div>
+        <div class="big">Todo empieza con un partido</div>
+        <div class="small">Soltá el video acá o hacé clic. Subí el primer tiempo, el segundo, o los videos que necesites.</div>
       </div>
       <input type="file" id="fileInput" class="file-input" accept="video/*" multiple>
       <div class="video-list" id="videoList"></div>
       <div class="clip-log-wrap">
         <div class="clip-log-title">Registro de recortes</div>
         <div class="clip-log" id="clipLog">
-          <div class="clip-log-empty">Todavía no marcaste ninguna jugada.</div>
+          <div class="clip-log-empty">Los recortes que registres aparecerán acá para que armes el video final.</div>
         </div>
       </div>
     </section>
@@ -2399,7 +2408,7 @@ window.I18N = {
     logout:'Cerrar sesión', category:'Categoría:',
     navVideo:'Video', navVideoAI:'Video IA', navStats:'Estadísticas', navTraining:'Planificación',
     navScouting:'Scouting', navBoard:'Pizarra', navLive:'En vivo',
-    brandSub:'Panel de entrenador — futsal',
+    brandSub:'Todas las herramientas de tu cuerpo técnico, conectadas entre sí.',
     // Login
     loginTitle:'Ingresá a tu panel', loginEmail:'Email', loginPass:'Contraseña', loginBtn:'Ingresar',
     // En vivo
@@ -2485,7 +2494,7 @@ window.I18N = {
     logout:'Log out', category:'Category:',
     navVideo:'Video', navVideoAI:'AI Video', navStats:'Statistics', navTraining:'Planning',
     navScouting:'Scouting', navBoard:'Board', navLive:'Live',
-    brandSub:'Coaching panel — futsal',
+    brandSub:'All your coaching staff tools, connected.',
     loginTitle:'Sign in to your panel', loginEmail:'Email', loginPass:'Password', loginBtn:'Sign in',
     liveTitle:'Live — minutes control', liveSetupSub:'Pick the opponent and called-up players to start.',
     liveStep1:'1 · Opponent', liveStep2:'2 · Called-up', liveAll:'All', liveNone:'None',
@@ -2560,7 +2569,7 @@ window.I18N = {
     logout:'Sair', category:'Categoria:',
     navVideo:'Vídeo', navVideoAI:'Vídeo IA', navStats:'Estatísticas', navTraining:'Planejamento',
     navScouting:'Scouting', navBoard:'Prancheta', navLive:'Ao vivo',
-    brandSub:'Painel do treinador — futsal',
+    brandSub:'Todas as ferramentas da sua comissão técnica, conectadas.',
     loginTitle:'Entre no seu painel', loginEmail:'E-mail', loginPass:'Senha', loginBtn:'Entrar',
     liveTitle:'Ao vivo — controle de minutos', liveSetupSub:'Escolha o adversário e os convocados para começar.',
     liveStep1:'1 · Adversário', liveStep2:'2 · Convocados', liveAll:'Todos', liveNone:'Nenhum',
@@ -8393,7 +8402,7 @@ function updateClipLog(){
   const log = document.getElementById('clipLog');
   const clips = items.filter(it => it.type === 'clip');
   if(clips.length === 0){
-    log.innerHTML = '<div class="clip-log-empty">Todavía no marcaste ninguna jugada.</div>';
+    log.innerHTML = '<div class="clip-log-empty">Los recortes que registres aparecerán acá para que armes el video final.</div>';
     return;
   }
   log.innerHTML = clips.map((it, idx) => {
