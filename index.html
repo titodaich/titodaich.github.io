@@ -1733,7 +1733,7 @@ body.editor-active #screen-editor{ display:block; }
       </select>
       <span class="user-badge" id="userBadge"></span>
       <button class="btn small ghost" id="myPlanBtn" style="display:none;">💳 Mi plan</button>
-      <div class="project-actions" id="videoProjectActions">
+      <div class="project-actions" id="videoProjectActions" style="display:none;">
         <button class="btn small primary" id="saveCloudBtn" data-i18n="saveCloud">☁ Guardar en la nube</button>
         <button class="btn small ghost" id="loadCloudBtn" data-i18n="myMatches">☁ Mis partidos</button>
         <button class="btn small ghost" id="loadProjectBtn" data-i18n="loadFile">Cargar archivo</button>
@@ -1752,17 +1752,17 @@ body.editor-active #screen-editor{ display:block; }
 
   <!-- ===== MENÚ DE NAVEGACIÓN ===== -->
   <nav class="main-nav">
-    <button class="nav-tab active" data-section="video" data-icon="🎬"><span data-i18n="navVideo">Video</span></button>
+    <button class="nav-tab active" data-section="guide" data-icon="📖"><span data-i18n="navGuide">Guía</span></button>
+    <button class="nav-tab" data-section="video" data-icon="🎬"><span data-i18n="navVideo">Video</span></button>
     <button class="nav-tab" data-section="stats" data-icon="📊"><span data-i18n="navStats">Estadísticas</span></button>
     <button class="nav-tab" data-section="training" data-icon="📋"><span data-i18n="navTraining">Planificación</span></button>
     <button class="nav-tab" data-section="scouting" data-icon="🔍"><span data-i18n="navScouting">Scouting</span></button>
     <button class="nav-tab" data-section="board" data-icon="✏️"><span data-i18n="navBoard">Pizarra</span></button>
     <button class="nav-tab" data-section="live" data-icon="🔴"><span data-i18n="navLive">En vivo</span></button>
-    <button class="nav-tab" data-section="guide" data-icon="📖"><span data-i18n="navGuide">Guía</span></button>
   </nav>
 
   <!-- ===== SECCIÓN: VIDEO ===== -->
-  <div class="section-content active" id="section-video">
+  <div class="section-content" id="section-video">
   <details class="video-help">
     <summary><span class="vh-ico">💡</span> Cómo usar el módulo de Video <span class="vh-hint">(tocá para abrir)</span></summary>
     <div class="vh-body">
@@ -2441,7 +2441,7 @@ body.editor-active #screen-editor{ display:block; }
   </div>
 
   <!-- ===== SECCIÓN: GUÍA ===== -->
-  <div class="section-content" id="section-guide">
+  <div class="section-content active" id="section-guide">
     <h2 class="guide-title">📖 Cómo funciona Benchone</h2>
     <p class="guide-sub">Seis herramientas que trabajan juntas. Lo que cargás en una, aparece en las otras.</p>
 
@@ -2494,7 +2494,7 @@ body.editor-active #screen-editor{ display:block; }
       <div class="guide-card">
         <div class="gcard-head"><span>✏️</span><h3>Pizarra</h3></div>
         <p>Movés las fichas y grabás la jugada animada para mostrarla al equipo.</p>
-        <div class="gcard-ex"><b>💡 Ejemplo:</b> viste en el video que perdés la marca en el 3-1. Armás la corrección en la pizarra, la grabás y se la mandás al grupo.</div>
+        <div class="gcard-ex"><b>💡 Ejemplo:</b> armás una jugada de estrategia de lateral, la editás hasta que quede como querés y se la mandás al grupo del equipo.</div>
       </div>
 
       <div class="guide-card">
