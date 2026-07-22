@@ -3537,7 +3537,11 @@ window.__initEditor = function(){
       if(videoActions) videoActions.style.display = (target === 'video') ? '' : 'none';
       // Al entrar a Scouting, cargar desde la nube (una vez)
       if(target === 'scouting' && window.__loadScoutingOnce){ window.__loadScoutingOnce(); }
-      if(target === 'training' && window.__loadTrainingOnce){ window.__loadTrainingOnce(); }
+      if(target === 'training' && window.__loadTrainingOnce){
+        window.__loadTrainingOnce();
+        // los partidos del calendario se refrescan siempre, por si cargaste alguno recién
+        if(window.__refrescarCalendarioPartidos) window.__refrescarCalendarioPartidos();
+      }
       if(target === 'stats' && window.__loadStatsOnce){ window.__loadStatsOnce(); }
       if(target === 'board' && window.__initBoardOnce){ window.__initBoardOnce(); }
       if(target === 'live' && window.__initLiveOnce){ window.__initLiveOnce(); }
@@ -5750,16 +5754,21 @@ window.__initEditor = function(){
   // Partidos cargados en Estadísticas, para mostrarlos en el calendario
   let calMatches = {};   // { 'YYYY-MM-DD': [{rival}] }
 
-  async function cargarPartidosDelCalendario(){
+  async function cargarPartidosDelCalendario(intento){
+    intento = intento || 0;
     try{
       const sb = window.__sb;
       const clubId = window.__clubIdCache || (window.__getClubId ? await window.__getClubId() : null);
-      if(!sb || !clubId) return;
+      if(!sb || !clubId){
+        // Todavía no está listo el club: reintentamos un par de veces
+        if(intento < 3){ setTimeout(()=>cargarPartidosDelCalendario(intento+1), 700); }
+        return;
+      }
       const cat = (window.__getActiveCategory && window.__getActiveCategory()) || null;
       let q = sb.from('stat_matches').select('rival,match_date').eq('club_id', clubId);
       q = cat ? q.eq('categoria', cat) : q.is('categoria', null);
       const { data, error } = await q;
-      if(error) return;
+      if(error){ console.error('calendario partidos', error); return; }
       calMatches = {};
       (data || []).forEach(m => {
         if(!m.match_date) return;
@@ -5768,9 +5777,9 @@ window.__initEditor = function(){
         calMatches[key].push({ rival: (m.rival || '').trim() });
       });
       renderCalendar();
-    }catch(e){ /* si falla, el calendario sigue funcionando con las notas manuales */ }
+    }catch(e){ console.error('calendario partidos', e); }
   }
-  window.__refrescarCalendarioPartidos = cargarPartidosDelCalendario;
+  window.__refrescarCalendarioPartidos = () => cargarPartidosDelCalendario(0);
 
   function renderCalendar(){
     const grid=document.getElementById('calGrid'); if(!grid) return;
