@@ -123,13 +123,13 @@ body{background-color:var(--bg);-webkit-tap-highlight-color:transparent;overflow
   .corner-tag .brand{font-size:17px;}
   .scoreboard{top:13px; right:16px; font-size:9.5px; padding:5px 10px; letter-spacing:0.6px;}
   /* el contenido arranca más abajo, para no chocar con el encabezado fijo */
-  #screen-login{padding-top:76px;}
+  #screen-login{padding-top:66px;}
   .hero-eyebrow{
     font-size:10px;
     letter-spacing:1.2px;
-    margin-bottom:16px;
+    margin-bottom:20px;
     line-height:1.7;
-    max-width:300px;
+    max-width:330px;
     margin-left:auto;
     margin-right:auto;
   }
@@ -138,7 +138,7 @@ body{background-color:var(--bg);-webkit-tap-highlight-color:transparent;overflow
 @media (max-width:400px){
   .corner-tag .brand{font-size:15px;}
   .scoreboard{font-size:8.5px; padding:4px 8px;}
-  #screen-login{padding-top:70px;}
+  #screen-login{padding-top:62px;}
 }
 
 .hero-copy{padding:0 6px;}
@@ -1639,11 +1639,10 @@ body.editor-active #screen-editor{ display:block; }
   <img src="logo.png" alt="Benchone" class="brand-logo" onerror="this.style.display='none'">
   <span class="brand">BENCHONE</span>
 </div>
-<div class="scoreboard">Panel de <span>entrenador</span></div>
 
 <div class="wrap">
   <div class="hero-copy">
-    <div class="hero-eyebrow">Creado por un entrenador · Pensado para entrenadores</div>
+    <div class="hero-eyebrow">Creado por un entrenador de futsal, para entrenadores de futsal</div>
     <h1>Gestioná<br>tu equipo</h1>
     <p class="hero-lead">Todas las herramientas en un solo lugar</p>
     <p class="hero-tools">Editor de video · Estadísticas automatizadas · Planificación semanal · Scouting · Control en vivo</p>
@@ -1651,7 +1650,7 @@ body.editor-active #screen-editor{ display:block; }
 
   <div class="card">
     <h2 id="cardTitle">Iniciar sesión</h2>
-    <p class="lead" id="cardLead">Ingresá con tu cuenta de entrenador.</p>
+    <p class="lead" id="cardLead">Ingresá con tu cuenta.</p>
 
     <div class="error-msg" id="errorMsg"></div>
     <div class="error-msg" id="successMsg" style="background:rgba(76,175,109,0.14);border-color:var(--success);"></div>
@@ -3277,7 +3276,7 @@ function setMode(newMode){
     toggleModeBtn.textContent = '¿Ya tenés cuenta? Iniciá sesión';
   } else {
     cardTitle.textContent = 'Iniciar sesión';
-    cardLead.textContent = 'Ingresá con tu cuenta de entrenador.';
+    cardLead.textContent = 'Ingresá con tu cuenta.';
     signupFields.forEach(f => { if(f) f.style.display = 'none'; });
     submitBtn.textContent = 'Entrar';
     toggleModeBtn.textContent = 'Crear una cuenta';
