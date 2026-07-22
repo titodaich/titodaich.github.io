@@ -615,6 +615,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 #futsalBoard{width:100%;height:auto;display:block;touch-action:none;border-radius:8px;}
 .board-token{cursor:grab;}
 .board-token:active{cursor:grabbing;}
+/* Área táctil invisible: hace fácil agarrar la ficha con el dedo */
+.tk-hit{pointer-events:all;}
+/* Feedback al agarrar: la ficha se agranda un toque */
+.board-token.tk-grabbing, .board-ball.tk-grabbing{
+  filter:drop-shadow(0 3px 8px rgba(0,0,0,0.5));
+}
+.board-token, .board-ball{transition:filter .1s ease;}
 .board-token .tk-circle{stroke:#0c1116;stroke-width:2;}
 .board-token .tk-label{font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;fill:#fff;text-anchor:middle;dominant-baseline:central;pointer-events:none;user-select:none;}
 .board-ball{cursor:grab;}
@@ -4218,6 +4225,11 @@ window.__initEditor = function(){
       const g = document.createElementNS(SVGNS,'g');
       g.setAttribute('class','board-ball'); g.setAttribute('data-id',t.id);
       g.setAttribute('transform',`translate(${t.x},${t.y})`);
+      // área táctil invisible para agarrarla fácil con el dedo
+      const hitB = document.createElementNS(SVGNS,'circle');
+      hitB.setAttribute('r',26); hitB.setAttribute('fill','transparent');
+      hitB.setAttribute('class','tk-hit');
+      g.appendChild(hitB);
       // sombra
       const sh = document.createElementNS(SVGNS,'ellipse');
       sh.setAttribute('cx',0); sh.setAttribute('cy',9); sh.setAttribute('rx',8); sh.setAttribute('ry',3);
@@ -4242,6 +4254,11 @@ window.__initEditor = function(){
     const g = document.createElementNS(SVGNS,'g');
     g.setAttribute('class','board-token'); g.setAttribute('data-id',t.id);
     g.setAttribute('transform',`translate(${t.x},${t.y})`);
+    // área táctil invisible: más grande que la ficha, para agarrarla fácil con el dedo
+    const hit = document.createElementNS(SVGNS,'circle');
+    hit.setAttribute('r',30); hit.setAttribute('fill','transparent');
+    hit.setAttribute('class','tk-hit');
+    g.appendChild(hit);
     // sombra bajo la ficha
     const sh = document.createElementNS(SVGNS,'ellipse');
     sh.setAttribute('cx',0); sh.setAttribute('cy',15); sh.setAttribute('rx',13); sh.setAttribute('ry',4);
@@ -4305,9 +4322,13 @@ window.__initEditor = function(){
     }
     function onDown(evt){
       evt.preventDefault();
+      evt.stopPropagation();
       dragging = true;
-      el.style.opacity = '0.85';
-      // capturamos el puntero: el arrastre sigue aunque el dedo salga de la ficha
+      // feedback inmediato: se agranda y se aclara, así se nota que la agarraste
+      el.style.opacity = '0.9';
+      el.classList.add('tk-grabbing');
+      // la ficha agarrada va al frente
+      if(el.parentNode) el.parentNode.appendChild(el);
       try{ el.setPointerCapture(evt.pointerId); }catch(e){}
     }
     function onMove(evt){
@@ -4322,13 +4343,16 @@ window.__initEditor = function(){
       if(!dragging) return;
       dragging = false;
       el.style.opacity = '1';
+      el.classList.remove('tk-grabbing');
       try{ el.releasePointerCapture(evt.pointerId); }catch(e){}
     }
     el.style.touchAction = 'none';   // el propio elemento no hace scroll
+    el.style.cursor = 'grab';
     el.addEventListener('pointerdown', onDown);
     el.addEventListener('pointermove', onMove);
     el.addEventListener('pointerup', onUp);
     el.addEventListener('pointercancel', onUp);
+    el.addEventListener('lostpointercapture', onUp);
   }
 
   // ----- Botones -----
