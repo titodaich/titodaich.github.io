@@ -845,24 +845,55 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .export-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-8px 0 20px;padding:10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;}
 .export-lbl{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-right:2px;}
 .export-btn{white-space:nowrap;}
+.train-head-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
+/* Selector de temporada */
+.season-box{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0;}
+.season-select{background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);border-radius:8px;padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;}
+.season-select:focus{outline:none;border-color:var(--accent-2);}
+.season-new{padding:5px 11px !important;font-size:15px !important;line-height:1;}
+@media (max-width:720px){
+  .season-box{margin-left:0;width:100%;margin-top:8px;}
+  .season-select{flex:1;}
+}
+/* Modal de nueva temporada */
+.season-players{max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;border:1px solid var(--line);border-radius:9px;padding:9px;}
+.season-player{display:flex;align-items:center;gap:9px;font-family:'Inter',sans-serif;font-size:13px;color:var(--chalk);cursor:pointer;padding:3px 2px;}
+.season-player input{accent-color:var(--accent-2);cursor:pointer;}
+.sp-cat{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);}
+.season-players-actions{display:flex;gap:8px;margin-top:9px;}
 .export-btn:hover{border-color:var(--success);color:var(--success);}
 @media print{
-  .export-bar,.stats-subnav,.main-nav,.topbar,.cat-bar,#subBanner,.cancha-bg,#toast{display:none !important;}
-  body,#screen-editor,#section-stats{background:#fff !important;color:#000 !important;}
-  /* Ocultamos todo salvo Estadísticas */
-  .section-content:not(#section-stats){display:none !important;}
+  .export-bar,.stats-subnav,.main-nav,.topbar,.cat-bar,#subBanner,.cancha-bg,#toast,.video-help,.print-hide{display:none !important;}
+  body,#screen-editor{background:#fff !important;color:#000 !important;}
+  /* Solo se imprime la sección que está abierta */
+  .section-content:not(.active){display:none !important;}
+  .section-content.active{display:block !important;}
   /* Modo normal: se imprime la sub-pestaña visible */
   .stats-sub:not(.active){display:none !important;}
   /* Modo "PDF con gráficos": forzamos la pestaña anual con sus gráficos */
   body.print-graphs #stats-annual{display:block !important;}
   body.print-graphs .stats-sub:not(#stats-annual){display:none !important;}
   body.print-graphs #stats-annual .annual-more{display:block !important;}
-  /* Legibilidad en papel */
-  #section-stats *{color:#000 !important;border-color:#999 !important;}
-  #section-stats table{width:100%;border-collapse:collapse;}
-  #section-stats th,#section-stats td{border:1px solid #999 !important;padding:4px 6px !important;}
-  #section-stats svg text{fill:#000 !important;}
+  /* Legibilidad en papel (para cualquier sección) */
+  .section-content *{color:#000 !important;border-color:#999 !important;}
+  .section-content table{width:100%;border-collapse:collapse;}
+  .section-content th,.section-content td{border:1px solid #999 !important;padding:4px 6px !important;}
+  .section-content svg text{fill:#000 !important;}
+  .panel,.rd-card,.week-card,.scout-card{background:#fff !important;box-shadow:none !important;page-break-inside:avoid;}
+  /* Planificación: que la semana entre bien */
+  #section-training details{display:block !important;}
+  #section-training details > summary{list-style:none;}
+  .cal-cell{min-height:auto !important;}
+  /* Pizarra: la cancha se imprime como imagen */
+  #futsalBoard{max-width:100% !important;height:auto !important;}
   @page{margin:14mm;}
+}
+/* Encabezado que solo se ve al imprimir */
+.print-header{display:none;}
+@media print{
+  .print-header{display:block !important;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #333;}
+  .print-header h1{font-family:'Oswald',sans-serif;font-size:20px;margin:0 0 3px;color:#000 !important;}
+  .print-header .ph-sub{font-family:'Inter',sans-serif;font-size:12px;color:#444 !important;}
 }
 .stats-subtab{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:9px 18px;font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;cursor:pointer;transition:all .15s ease;}
 .stats-subtab:hover{color:var(--chalk);border-color:var(--muted);}
@@ -1074,7 +1105,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .goal-detail-row .gd-rival{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);}
 .goal-detail-row .gd-detail{font-size:13px;color:var(--chalk);margin:3px 0;}
 .goal-detail-row .gd-meta{font-size:11px;color:var(--accent-2);}
-/* Ajuste primer semestre */
+/* Ajuste manual */
 .adj-row{display:flex;gap:8px;align-items:center;margin-bottom:7px;}
 .adj-row input,.adj-row select{background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-family:'Inter',sans-serif;font-size:13px;padding:7px 9px;}
 .adj-row .adj-name{flex:1;min-width:0;}
@@ -1768,10 +1799,15 @@ body.editor-active #screen-editor{ display:block; }
     </div>
   </div>
 
-  <!-- ===== BARRA DE CATEGORÍAS ===== -->
+  <!-- ===== BARRA DE CATEGORÍAS Y TEMPORADA ===== -->
   <div class="category-bar">
     <span class="cat-label" data-i18n="category">Categoría:</span>
     <div class="cat-chips" id="catChips"></div>
+    <div class="season-box">
+      <span class="cat-label">Temporada:</span>
+      <select id="seasonSelect" class="season-select" title="Temporada"></select>
+      <button class="btn small season-new" id="newSeasonBtn" title="Crear una temporada nueva">＋</button>
+    </div>
   </div>
 
   <!-- ===== MENÚ DE NAVEGACIÓN ===== -->
@@ -2016,9 +2052,9 @@ body.editor-active #screen-editor{ display:block; }
       <div class="scout-head">
         <div>
           <h2 class="scout-title" data-i18n="annualTitle">Estadísticas anuales</h2>
-          <p class="scout-sub" data-i18n="annualSub">Acumulado de todos los partidos, más el ajuste del primer semestre.</p>
+          <p class="scout-sub" data-i18n="annualSub">Acumulado de todos los partidos, más el ajuste manual.</p>
         </div>
-        <button class="btn small" id="openAdjBtn" data-i18n="openAdj">＋ Ajuste primer semestre</button>
+        <button class="btn small" id="openAdjBtn" data-i18n="openAdj">＋ Ajuste manual</button>
       </div>
       <div id="annualContent"></div>
     </div>
@@ -2048,15 +2084,15 @@ body.editor-active #screen-editor{ display:block; }
     </div>
   </div>
 
-  <!-- Modal ajuste primer semestre -->
+  <!-- Modal ajuste manual -->
   <div class="cloud-modal-overlay" id="adjModal" style="display:none;">
     <div class="cloud-modal">
       <div class="cloud-modal-head">
-        <h3>Ajuste primer semestre</h3>
+        <h3>Ajuste manual</h3>
         <button class="cloud-close" id="adjModalClose">✕</button>
       </div>
       <div class="cloud-list">
-        <p class="rd-empty" style="margin-bottom:8px;">Cargá los totales del primer semestre. Se suman a la estadística anual de esta categoría.</p>
+        <p class="rd-empty" style="margin-bottom:8px;">Cargá totales a mano (por ejemplo, del primer semestre o de partidos que no cargaste). Se suman a la estadística anual de esta categoría.</p>
         <div class="adj-section" style="margin-bottom:14px;">
           <div class="adj-row" style="align-items:center;">
             <label style="flex:1;font-size:13px;color:var(--chalk);">Partidos jugados en el 1er semestre</label>
@@ -2091,7 +2127,10 @@ body.editor-active #screen-editor{ display:block; }
           <h2 class="scout-title" data-i18n="trainTitle">Planificación de entrenamientos</h2>
           <p class="scout-sub" data-i18n="trainSub">Una ficha por semana. Editá el nombre y las fechas desde cada recuadro, o abrí la semana para planificar en detalle.</p>
         </div>
-        <button class="btn primary" id="addWeekBtn" data-i18n="addWeek">+ Agregar semana</button>
+        <div class="train-head-actions">
+          <button class="btn small export-btn print-hide" id="exportTrainingPdf">⬇ PDF</button>
+          <button class="btn primary" id="addWeekBtn" data-i18n="addWeek">+ Agregar semana</button>
+        </div>
       </div>
 
       <!-- CALENDARIO MENSUAL (desplegable, cerrado por defecto) -->
@@ -2204,7 +2243,10 @@ body.editor-active #screen-editor{ display:block; }
           <h2 class="scout-title" data-i18n="scoutTitle">Scouting de rivales</h2>
           <p class="scout-sub" data-i18n="scoutSub">Editá el rival y la fecha del partido desde cada recuadro, o abrí la ficha para el análisis completo.</p>
         </div>
-        <button class="btn primary" id="addFechaBtn" data-i18n="addFecha">+ Agregar partido</button>
+        <div class="train-head-actions">
+          <button class="btn small export-btn print-hide" id="exportScoutingPdf">⬇ PDF</button>
+          <button class="btn primary" id="addFechaBtn" data-i18n="addFecha">+ Agregar partido</button>
+        </div>
       </div>
       <div class="rival-grid" id="rivalGrid"></div>
     </div>
@@ -2293,6 +2335,7 @@ body.editor-active #screen-editor{ display:block; }
         <h2 class="scout-title">Pizarra táctica</h2>
         <p class="scout-sub">Arrastrá las fichas para armar tus jugadas. Grabá el movimiento y reproducilo.</p>
       </div>
+      <button class="btn small export-btn print-hide" id="exportBoardPdf">⬇ PDF</button>
     </div>
 
     <div class="board-toolbar">
@@ -2328,7 +2371,10 @@ body.editor-active #screen-editor{ display:block; }
         <h2 class="scout-title" data-i18n="liveTitle">En vivo — control de minutos</h2>
         <p class="scout-sub" id="liveSubtitle" data-i18n="liveSetupSub">Elegí el rival y los convocados para arrancar.</p>
       </div>
-      <button class="btn small" id="liveNewMatchBtn" data-i18n="liveNewMatch" style="display:none;">↺ Nuevo partido</button>
+      <div class="train-head-actions">
+        <button class="btn small export-btn print-hide" id="exportLivePdf">⬇ PDF</button>
+        <button class="btn small" id="liveNewMatchBtn" data-i18n="liveNewMatch" style="display:none;">↺ Nuevo partido</button>
+      </div>
     </div>
 
     <!-- PANTALLA DE SETUP -->
@@ -2540,7 +2586,7 @@ body.editor-active #screen-editor{ display:block; }
         <li><span class="gl-ico">⏱</span><div><b>En Vivo alimenta Estadísticas.</b> Los minutos y goles del partido caen solos, no los cargás dos veces.</div></li>
         <li><span class="gl-ico">🚦</span><div><b>Las convocatorias alimentan el Semáforo.</b> Si marcás una ausencia por lesión, el Semáforo no lo cuenta como decisión técnica.</div></li>
         <li><span class="gl-ico">📸</span><div><b>La foto que cargás una vez</b> se ve en el plantel, en la ficha y en la cancha de En Vivo.</div></li>
-        <li><span class="gl-ico">🏷️</span><div><b>Todo se guarda por categoría.</b> Cambiás de 5ta a 1era y todo cambia con vos.</div></li>
+        <li><span class="gl-ico">🏷️</span><div><b>Todo se guarda por categoría.</b></div></li>
       </ul>
     </div>
 
@@ -2585,6 +2631,38 @@ body.editor-active #screen-editor{ display:block; }
 
 <!-- Modal recorte de foto del jugador -->
 <!-- Modal editar tags del video -->
+<!-- Modal nueva temporada -->
+<div class="cloud-modal-overlay" id="seasonModal" style="display:none;">
+  <div class="cloud-modal" style="max-width:420px;">
+    <div class="cloud-modal-head">
+      <h3>🗓️ Nueva temporada</h3>
+      <button class="cloud-close" id="seasonModalClose">✕</button>
+    </div>
+    <div style="padding:4px 2px;">
+      <p class="rd-empty" style="margin-bottom:14px;">Cada temporada guarda su propio plantel, partidos, planificación y scouting. Lo de la temporada anterior no se pierde: podés volver a verla cuando quieras.</p>
+
+      <label class="cal-field-lbl">Año de la nueva temporada</label>
+      <input type="number" id="seasonYear" class="cuarteto-input" style="margin-bottom:16px;" min="2000" max="2100">
+
+      <div id="seasonCopyBox">
+        <label class="cal-field-lbl">¿Copiar jugadores de <span id="seasonFromLabel"></span>?</label>
+        <p class="rd-empty" style="margin:4px 0 10px;">Destildá a los que no siguen en el equipo.</p>
+        <div id="seasonPlayers" class="season-players"></div>
+        <div class="season-players-actions">
+          <button class="btn small" id="seasonAll">Todos</button>
+          <button class="btn small" id="seasonNone">Ninguno</button>
+        </div>
+      </div>
+
+      <div class="summary-actions" style="margin-top:16px;">
+        <button class="btn small" id="seasonCancel">Cancelar</button>
+        <button class="btn small primary" id="seasonCreate">Crear temporada</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal nueva temporada FIN -->
 <div class="cloud-modal-overlay" id="videoTagsModal" style="display:none;">
   <div class="cloud-modal" style="max-width:440px;">
     <div class="cloud-modal-head">
@@ -2742,7 +2820,7 @@ window.I18N = {
     squadTitle:'Plantel', squadSub:'Los jugadores de esta categoría se usan para convocatorias, cargar goleadores y asistencias, y usar la sección En Vivo. Podés agregarles una foto tocando el círculo.', addPlayer:'+ Agregar jugador',
     callsTitle:'Convocatorias', callsSub:'Marcá quién estuvo convocado en cada partido. Tocá una vez para ✓ convocado, otra para ✕ no disponible, otra para vaciar.',
     minutesTitle:'Minutaje', minutesSub:'Minutos jugados por partido. Se cargan solos al guardar desde 🔴 En vivo.',
-    annualTitle:'Estadísticas anuales', annualSub:'Acumulado de todos los partidos, más el ajuste del primer semestre.', openAdj:'＋ Ajuste primer semestre',
+    annualTitle:'Estadísticas anuales', annualSub:'Acumulado de todos los partidos, más el ajuste manual.', openAdj:'＋ Ajuste manual',
     adjScorers:'⚽ Goleadores', adjAddScorer:'+ Goleador', adjScored:'🎯 Cómo hacemos los goles', adjConceded:'🥅 Cómo nos hicieron los goles', adjAddOrigin:'+ Origen', adjSave:'Guardar ajuste',
     // Planificación
     trainTitle:'Planificación de entrenamientos', trainSub:'Una ficha por semana. Editá el nombre y las fechas desde cada recuadro, o abrí la semana para planificar en detalle.',
@@ -2822,7 +2900,7 @@ window.I18N = {
     squadTitle:'Roster', squadSub:'The players of this category are used for call-ups, logging scorers and assists, and the Live section. You can add a photo by tapping the circle.', addPlayer:'+ Add player',
     callsTitle:'Call-ups', callsSub:'Mark who was called up for each match. Tap once for ✓ called, again for ✕ unavailable, again to clear.',
     minutesTitle:'Minutes', minutesSub:'Minutes played per match. Loaded automatically when saving from 🔴 Live.',
-    annualTitle:'Season stats', annualSub:'Total of all matches, plus the first-half adjustment.', openAdj:'＋ First-half adjustment',
+    annualTitle:'Season stats', annualSub:'Total of all matches, plus the manual adjustment.', openAdj:'＋ Manual adjustment',
     adjScorers:'⚽ Scorers', adjAddScorer:'+ Scorer', adjScored:'🎯 How we score', adjConceded:'🥅 How we concede', adjAddOrigin:'+ Origin', adjSave:'Save adjustment',
     trainTitle:'Training planning', trainSub:'One card per week. Edit the name and dates in each box, or open the week to plan in detail.',
     addWeek:'+ Add week', addExercise:'+ Add exercise', emptyWeek:'🗑 Delete week', calTitle:'📅 Season calendar', calMatch:'Match', calTrain:'Training', calConcept:'Concept', calType:'Type', calText:'Text', calTextPh:'e.g. Copa Argentina - Round 1', calSave:'Save', calDelete:'Delete', calEmpty:'Write some text.',
@@ -2897,7 +2975,7 @@ window.I18N = {
     squadTitle:'Elenco', squadSub:'Os jogadores desta categoria são usados para convocações, registrar artilheiros e assistências, e a seção Ao Vivo. Você pode adicionar uma foto tocando no círculo.', addPlayer:'+ Adicionar jogador',
     callsTitle:'Convocações', callsSub:'Marque quem foi convocado em cada jogo. Toque uma vez para ✓ convocado, outra para ✕ indisponível, outra para limpar.',
     minutesTitle:'Minutagem', minutesSub:'Minutos jogados por partida. Carregam sozinhos ao salvar em 🔴 Ao vivo.',
-    annualTitle:'Estatísticas anuais', annualSub:'Total de todos os jogos, mais o ajuste do primeiro semestre.', openAdj:'＋ Ajuste primeiro semestre',
+    annualTitle:'Estatísticas anuais', annualSub:'Total de todos os jogos, mais o ajuste manual.', openAdj:'＋ Ajuste manual',
     adjScorers:'⚽ Artilheiros', adjAddScorer:'+ Artilheiro', adjScored:'🎯 Como fazemos os gols', adjConceded:'🥅 Como sofremos os gols', adjAddOrigin:'+ Origem', adjSave:'Salvar ajuste',
     trainTitle:'Planejamento de treinos', trainSub:'Um cartão por semana. Edite o nome e as datas em cada caixa, ou abra a semana para planejar em detalhe.',
     addWeek:'+ Adicionar semana', addExercise:'+ Adicionar exercício', emptyWeek:'🗑 Excluir semana', calTitle:'📅 Calendário da temporada', calMatch:'Jogo', calTrain:'Treino', calConcept:'Conceito', calType:'Tipo', calText:'Texto', calTextPh:'Ex. Copa Argentina - Rodada 1', calSave:'Salvar', calDelete:'Excluir', calEmpty:'Escreva algum texto.',
@@ -3394,6 +3472,7 @@ async function guardarPerfil(userId, email, perfil){
         const { data: prof2 } = await sb.from('profiles').select('club_name, full_name').eq('id', session.user.id).single();
         if(prof2 && prof2.club_name) nombreClub = prof2.club_name;
         else if(prof2 && prof2.full_name) nombreClub = 'Club de ' + prof2.full_name;
+        window.__clubNombre = nombreClub;
       }catch(e){}
       await ensureMembership(session.user.id, nombreClub);
       window.__currentUserEmail = session.user.email;
@@ -3403,6 +3482,7 @@ async function guardarPerfil(userId, email, perfil){
       setInterval(() => { try{ sb.rpc('touch_last_seen'); }catch(e){} }, 120000);
       showEditor();
       if(window.__startMetrics) window.__startMetrics();
+      if(window.__cargarTemporadas) setTimeout(window.__cargarTemporadas, 500);
     }
   }catch(err){ console.error(err); }
 })();
@@ -3468,6 +3548,7 @@ form.addEventListener('submit', async (e) => {
       try{ const { data:{ user } } = await sb.auth.getUser(); if(user) window.__currentUserId = user.id; }catch(e){}
       showEditor();
       if(window.__startMetrics) window.__startMetrics();
+      if(window.__cargarTemporadas) setTimeout(window.__cargarTemporadas, 500);
     } else {
       // Sin sesión (requiere confirmar email). Guardamos lo posible igual.
       try{ await guardarPerfil(data.user?.id, email, perfil); }catch(e){}
@@ -3495,6 +3576,7 @@ form.addEventListener('submit', async (e) => {
     try{ const { data:{ user } } = await sb.auth.getUser(); if(user) window.__currentUserId = user.id; }catch(e){}
     showEditor();
     if(window.__startMetrics) window.__startMetrics();
+      if(window.__cargarTemporadas) setTimeout(window.__cargarTemporadas, 500);
   }
 });
 
@@ -3649,6 +3731,173 @@ window.__initEditor = function(){
   document.addEventListener('visibilitychange', () => { if(document.hidden) guardar(false); });
 })();
 
+// ---------------- TEMPORADAS (año calendario) ----------------
+(function initSeasons(){
+  const AHORA = new Date().getFullYear();
+  let temporadaActiva = AHORA;
+  let temporadas = [AHORA];      // años que tienen datos
+  const subs = [];
+
+  // Expuesto para que todas las secciones filtren por temporada
+  window.__getTemporada = () => temporadaActiva;
+  window.__onSeasonChange = function(fn){ if(typeof fn === 'function') subs.push(fn); };
+  function avisar(){
+    subs.forEach(fn => { try{ fn(temporadaActiva); }catch(e){ console.error(e); } });
+    // recargar todas las secciones (usan el mismo mecanismo que el cambio de categoría)
+    if(window.__notifyReload) window.__notifyReload();
+    if(window.__refrescarCalendarioPartidos) window.__refrescarCalendarioPartidos();
+  }
+
+  const sel = document.getElementById('seasonSelect');
+
+  function pintarSelector(){
+    if(!sel) return;
+    const lista = [...new Set(temporadas)].sort((a,b) => b - a);
+    sel.innerHTML = lista.map(a => `<option value="${a}"${a===temporadaActiva?' selected':''}>${a}</option>`).join('');
+  }
+
+  // Carga qué temporadas tienen datos y cuál estaba activa
+  async function cargarTemporadas(){
+    try{
+      const sb = window.__sb;
+      const clubId = window.__clubIdCache || (window.__getClubId ? await window.__getClubId() : null);
+      if(!sb || !clubId){ pintarSelector(); return; }
+
+      // Temporada guardada en el club
+      try{
+        const { data: c } = await sb.from('clubs').select('temporada_activa').eq('id', clubId).single();
+        if(c && c.temporada_activa) temporadaActiva = c.temporada_activa;
+      }catch(e){}
+
+      // Años que tienen partidos o jugadores cargados
+      const años = new Set([temporadaActiva, AHORA]);
+      try{
+        const { data: m } = await sb.from('stat_matches').select('temporada').eq('club_id', clubId);
+        (m||[]).forEach(r => { if(r.temporada) años.add(r.temporada); });
+        const { data: p } = await sb.from('players').select('temporada').eq('club_id', clubId);
+        (p||[]).forEach(r => { if(r.temporada) años.add(r.temporada); });
+      }catch(e){ /* si falta el SQL, seguimos con el año actual */ }
+
+      temporadas = [...años];
+      pintarSelector();
+      avisar();
+    }catch(e){ console.error('temporadas', e); pintarSelector(); }
+  }
+  window.__cargarTemporadas = cargarTemporadas;
+
+  async function guardarTemporadaActiva(){
+    try{
+      const sb = window.__sb;
+      const clubId = window.__clubIdCache || (window.__getClubId ? await window.__getClubId() : null);
+      if(sb && clubId) await sb.from('clubs').update({ temporada_activa: temporadaActiva }).eq('id', clubId);
+    }catch(e){}
+  }
+
+  if(sel){
+    sel.addEventListener('change', () => {
+      temporadaActiva = parseInt(sel.value, 10) || AHORA;
+      guardarTemporadaActiva();
+      avisar();
+      toast('Temporada ' + temporadaActiva);
+    });
+  }
+
+  // ---- Crear temporada nueva ----
+  const modal = document.getElementById('seasonModal');
+  const btnNew = document.getElementById('newSeasonBtn');
+  let jugadoresPrevios = [];
+
+  async function abrirModal(){
+    if(!modal) return;
+    const sugerido = Math.max(...temporadas) + 1;
+    document.getElementById('seasonYear').value = sugerido;
+    document.getElementById('seasonFromLabel').textContent = temporadaActiva;
+    // cargar jugadores de la temporada actual para elegir a quién copiar
+    const cont = document.getElementById('seasonPlayers');
+    cont.innerHTML = '<p class="rd-empty">Cargando…</p>';
+    modal.style.display = 'flex';
+    try{
+      const sb = window.__sb;
+      const clubId = window.__clubIdCache || (window.__getClubId ? await window.__getClubId() : null);
+      if(!sb || !clubId){ cont.innerHTML = '<p class="rd-empty">Sin conexión.</p>'; return; }
+      let q = sb.from('players').select('*').eq('club_id', clubId).eq('temporada', temporadaActiva);
+      const { data } = await q;
+      jugadoresPrevios = data || [];
+      if(jugadoresPrevios.length === 0){
+        cont.innerHTML = '<p class="rd-empty">No hay jugadores en ' + temporadaActiva + '.</p>';
+        return;
+      }
+      cont.innerHTML = jugadoresPrevios.map((p, i) => `
+        <label class="season-player">
+          <input type="checkbox" data-i="${i}" checked>
+          <span>${escapeHtml((p.number ? '#'+p.number+' ' : '') + (p.name||'Sin nombre'))}</span>
+          <span class="sp-cat">${escapeHtml(p.categoria||'')}</span>
+        </label>`).join('');
+    }catch(e){ cont.innerHTML = '<p class="rd-empty">No se pudieron cargar los jugadores.</p>'; }
+  }
+
+  function cerrarModal(){ if(modal) modal.style.display = 'none'; }
+
+  if(btnNew) btnNew.addEventListener('click', abrirModal);
+  document.getElementById('seasonModalClose')?.addEventListener('click', cerrarModal);
+  document.getElementById('seasonCancel')?.addEventListener('click', cerrarModal);
+  modal?.addEventListener('click', e => { if(e.target === modal) cerrarModal(); });
+  document.getElementById('seasonAll')?.addEventListener('click', () => {
+    document.querySelectorAll('#seasonPlayers input[type=checkbox]').forEach(c => c.checked = true);
+  });
+  document.getElementById('seasonNone')?.addEventListener('click', () => {
+    document.querySelectorAll('#seasonPlayers input[type=checkbox]').forEach(c => c.checked = false);
+  });
+
+  document.getElementById('seasonCreate')?.addEventListener('click', async () => {
+    const año = parseInt(document.getElementById('seasonYear').value, 10);
+    if(!año || año < 2000 || año > 2100){ toast('Poné un año válido'); return; }
+    if(temporadas.includes(año)){ toast('Esa temporada ya existe'); return; }
+    const sb = window.__sb;
+    const clubId = window.__clubIdCache || (window.__getClubId ? await window.__getClubId() : null);
+    if(!sb || !clubId){ toast('Sin conexión'); return; }
+
+    // Copiar los jugadores tildados
+    const elegidos = [...document.querySelectorAll('#seasonPlayers input[type=checkbox]:checked')]
+      .map(c => jugadoresPrevios[parseInt(c.dataset.i, 10)])
+      .filter(Boolean);
+
+    try{
+      if(elegidos.length){
+        const nuevos = elegidos.map(p => ({
+          club_id: clubId,
+          categoria: p.categoria,
+          name: p.name,
+          number: p.number,
+          position: p.position,
+          photo: p.photo || null,
+          temporada: año
+        }));
+        const { error } = await sb.from('players').insert(nuevos);
+        if(error){
+          console.error('copiar jugadores', error);
+          const msg = (error.message||'').toLowerCase();
+          if(msg.includes('temporada') || msg.includes('column')){
+            toast('Falta preparar la base: corré el SQL de temporadas en Supabase');
+            return;
+          }
+          toast('No se pudieron copiar los jugadores');
+          return;
+        }
+      }
+      temporadas.push(año);
+      temporadaActiva = año;
+      pintarSelector();
+      await guardarTemporadaActiva();
+      avisar();
+      cerrarModal();
+      toast('Temporada ' + año + ' creada' + (elegidos.length ? (' con ' + elegidos.length + ' jugador(es)') : ''));
+    }catch(e){ console.error('crear temporada', e); toast('No se pudo crear la temporada'); }
+  });
+
+  pintarSelector();
+})();
+
 // ---------------- CATEGORÍAS ----------------
 (function initCategories(){
   // Categorías fijas de la institución.
@@ -3684,6 +3933,8 @@ window.__initEditor = function(){
   const subscribers = [];
   window.__onCategorySubscribe = function(fn){ if(typeof fn === 'function') subscribers.push(fn); };
   function notifyCategoryChange(cat){ subscribers.forEach(fn => { try{ fn(cat); }catch(e){ console.error(e); } }); }
+  // Al cambiar de temporada recargamos todo igual que al cambiar de categoría
+  window.__notifyReload = () => notifyCategoryChange(activeCategory);
 
   function renderChips(){
     chipsEl.innerHTML = '';
@@ -3810,6 +4061,7 @@ window.__initEditor = function(){
     try{
       let q = sb.from('scouting').select('*').eq('club_id', clubId);
       q = cat ? q.eq('categoria', cat) : q.is('categoria', null);
+      if(window.__getTemporada) q = q.eq('temporada', window.__getTemporada());
       const { data, error } = await q;
       if(error){ console.error('scouting load', error); return; }
       if(data && data.length){
@@ -3882,7 +4134,7 @@ window.__initEditor = function(){
     const doSave = async () => {
       // 1er intento: columnas propias para los campos nuevos
       const base = {
-        club_id: clubId, categoria: cat, fecha: r.fecha,
+        club_id: clubId, categoria: cat, temporada: (window.__getTemporada ? window.__getTemporada() : new Date().getFullYear()), fecha: r.fecha,
         name: r.name||'', match_date: r.date||null, tournament: r.tournament||'',
         attack: r.attack||'', defense: r.defense||'', setpieces: r.setpieces||'',
         data: r.data||'', players: r.players||[], materials: r.materials||[],
@@ -4460,7 +4712,7 @@ window.__initEditor = function(){
     try{
       const { data:{ session } } = await sb.auth.getSession();
       const payload = {
-        club_id: clubId, categoria: catActual(),
+        club_id: clubId, categoria: catActual(), temporada: (window.__getTemporada ? window.__getTemporada() : new Date().getFullYear()),
         name: play.name, frames: play.frames, tokens_snapshot: play.tokensSnapshot,
         created_by: session ? session.user.id : null
       };
@@ -4489,6 +4741,7 @@ window.__initEditor = function(){
     try{
       let q = sb.from('board_plays').select('*').eq('club_id', clubId);
       q = cat ? q.eq('categoria', cat) : q.is('categoria', null);
+      if(window.__getTemporada) q = q.eq('temporada', window.__getTemporada());
       const { data, error } = await q.order('created_at', { ascending:false });
       if(error){ console.error('board load', error); return; }
       plays = (data||[]).map(p => ({
@@ -5147,7 +5400,7 @@ window.__initEditor = function(){
     // Generar el resumen para compartir ANTES de limpiar el estado.
     const resumen = generarResumenPartido(totals, rivalName);
     const payload = {
-      club_id: clubId, categoria: cat, name: rivalName,
+      club_id: clubId, categoria: cat, temporada: (window.__getTemporada ? window.__getTemporada() : new Date().getFullYear()), name: rivalName,
       match_id: matchId || null, half_minutes: halfMinutes,
       events, totals
     };
@@ -5256,7 +5509,7 @@ window.__initEditor = function(){
     const cat=(window.__getActiveCategory && window.__getActiveCategory())||null;
     try{
       let q=sb.from('players').select('*').eq('club_id',clubId);
-      q=cat?q.eq('categoria',cat):q.is('categoria',null);
+      q=cat?q.eq('categoria',cat):q.is('categoria',null); if(window.__getTemporada) q=q.eq('temporada',window.__getTemporada());
       const {data}=await q;
       allSquad=(data||[]).map(p=>({id:p.id,name:p.name,number:p.number||'',position:p.position||'',photo:p.photo||''}));
       renderSetup();
@@ -5272,7 +5525,7 @@ window.__initEditor = function(){
         const clubId=await window.__getClubId();
         const cat=(window.__getActiveCategory && window.__getActiveCategory())||null;
         let q=sb.from('stat_matches').select('id,rival,match_date').eq('club_id',clubId);
-        q=cat?q.eq('categoria',cat):q.is('categoria',null);
+        q=cat?q.eq('categoria',cat):q.is('categoria',null); if(window.__getTemporada) q=q.eq('temporada',window.__getTemporada());
         const {data}=await q;
         const list=(data||[]).sort((a,b)=>(a.match_date||'').localeCompare(b.match_date||''));
         cont.innerHTML='';
@@ -5481,6 +5734,7 @@ window.__initEditor = function(){
     try{
       let q = sb.from('training_weeks').select('*').eq('club_id', clubId);
       q = cat ? q.eq('categoria', cat) : q.is('categoria', null);
+      if(window.__getTemporada) q = q.eq('temporada', window.__getTemporada());
       const { data, error } = await q;
       if(error){ console.error('training load', error); return; }
       if(data && data.length){
@@ -5509,7 +5763,7 @@ window.__initEditor = function(){
     const cat = catActual();
     const doSave = async () => {
       const payload = {
-        club_id: clubId, categoria: cat, semana: w.semana,
+        club_id: clubId, categoria: cat, temporada: (window.__getTemporada ? window.__getTemporada() : new Date().getFullYear()), semana: w.semana,
         name: w.name||'', date_from: w.from||null, date_to: w.to||null,
         content: w.content||{}, updated_at: new Date().toISOString()
       };
@@ -5767,6 +6021,7 @@ window.__initEditor = function(){
       const cat = (window.__getActiveCategory && window.__getActiveCategory()) || null;
       let q = sb.from('stat_matches').select('rival,match_date').eq('club_id', clubId);
       q = cat ? q.eq('categoria', cat) : q.is('categoria', null);
+      if(window.__getTemporada) q = q.eq('temporada', window.__getTemporada());
       const { data, error } = await q;
       if(error){ console.error('calendario partidos', error); return; }
       calMatches = {};
@@ -5871,7 +6126,7 @@ window.__initEditor = function(){
         await sb.from('calendar_notes').update({ type:note.type, text:note.text }).eq('id',note.dbId);
       } else {
         const cat=catActual();
-        const {data,error}=await sb.from('calendar_notes').insert({ club_id:clubId, categoria:cat, day:key, type:note.type, text:note.text }).select('id').single();
+        const {data,error}=await sb.from('calendar_notes').insert({ club_id:clubId, categoria:cat, temporada:(window.__getTemporada?window.__getTemporada():new Date().getFullYear()), day:key, type:note.type, text:note.text }).select('id').single();
         if(!error && data) note.dbId=data.id;
         else if(error) toast('No se pudo guardar (¿corriste calendar-notes.sql?).');
       }
@@ -5884,7 +6139,7 @@ window.__initEditor = function(){
     const cat=catActual();
     try{
       let q=sb.from('calendar_notes').select('*').eq('club_id',clubId);
-      q=cat?q.eq('categoria',cat):q.is('categoria',null);
+      q=cat?q.eq('categoria',cat):q.is('categoria',null); if(window.__getTemporada) q=q.eq('temporada',window.__getTemporada());
       const {data}=await q;
       calNotes={};
       (data||[]).forEach(r=>{ calNotes[r.day]={type:r.type,text:r.text,dbId:r.id}; });
@@ -6460,7 +6715,7 @@ window.__initEditor = function(){
     const sb = window.__sb;
     if(!sb || !clubId){ toast(window.t('mNoConn')); return; }
     try{
-      const { data, error } = await sb.from('players').insert({ club_id:clubId, categoria:catActual(), name:name.trim(), number, position }).select().single();
+      const { data, error } = await sb.from('players').insert({ club_id:clubId, categoria:catActual(), temporada:(window.__getTemporada?window.__getTemporada():new Date().getFullYear()), name:name.trim(), number, position }).select().single();
       if(error){
         // Si el candado del servidor rechazó por límite de pack, avisamos claro.
         if(error.message && /límite de tu pack|categoría fuera/i.test(error.message)){
@@ -6559,7 +6814,7 @@ window.__initEditor = function(){
     try{
       const { data:{ session } } = await sb.auth.getSession();
       const { data, error } = await sb.from('stat_matches').insert({
-        club_id:clubId, categoria:catActual(), rival:'', match_date:null,
+        club_id:clubId, categoria:catActual(), temporada:(window.__getTemporada?window.__getTemporada():new Date().getFullYear()), rival:'', match_date:null,
         goals_for:[], goals_against:[], assists:[], cards:[], created_by: session?session.user.id:null
       }).select().single();
       if(error){ toast(window.t('mCreateMatchErr')); return; }
@@ -6812,7 +7067,7 @@ window.__initEditor = function(){
     let sessions=[];
     try{
       let q=sb.from('live_sessions').select('*').eq('club_id',clubId);
-      q=cat?q.eq('categoria',cat):q.is('categoria',null);
+      q=cat?q.eq('categoria',cat):q.is('categoria',null); if(window.__getTemporada) q=q.eq('temporada',window.__getTemporada());
       const {data}=await q.order('created_at',{ascending:false});
       sessions=data||[];
     }catch(e){ list.innerHTML='<p class="rd-empty">No se pudo cargar (¿corriste live-columns.sql?).</p>'; return; }
@@ -7010,7 +7265,7 @@ window.__initEditor = function(){
     });
   }
 
-  // ========== AJUSTE PRIMER SEMESTRE ==========
+  // ========== AJUSTE MANUAL ==========
   const adjModal = document.getElementById('adjModal');
   document.getElementById('openAdjBtn').addEventListener('click', () => { renderAdjEditor(); adjModal.style.display='flex'; });
   document.getElementById('adjModalClose').addEventListener('click', () => { adjModal.style.display='none'; });
@@ -7093,7 +7348,7 @@ window.__initEditor = function(){
       adjustment.conceded = (adjustment.conceded||[]).filter(c => c.origin && c.count);
       const cat = catActual();
       const payload = {
-        club_id: clubId, categoria: cat,
+        club_id: clubId, categoria: cat, temporada: (window.__getTemporada ? window.__getTemporada() : new Date().getFullYear()),
         scorers: adjustment.scorers, scored: adjustment.scored, conceded: adjustment.conceded,
         matches_played: Number(adjustment.matchesPlayed)||0,
         updated_at: new Date().toISOString()
@@ -7103,6 +7358,7 @@ window.__initEditor = function(){
       if(!existing){
         let q = sb.from('stat_adjustments').select('id').eq('club_id', clubId);
         q = cat ? q.eq('categoria', cat) : q.is('categoria', null);
+      if(window.__getTemporada) q = q.eq('temporada', window.__getTemporada());
         const found = await q.limit(1);
         if(found.data && found.data.length) existing = found.data[0].id;
       }
@@ -7134,7 +7390,7 @@ window.__initEditor = function(){
     const _s = window.__annualShots || {};
     const hayRemates = (_s.totalFor||0) > 0 || (_s.totalAgainst||0) > 0 || Object.keys(_s.porJugador||{}).length > 0 || Object.keys(_s.golesLive||{}).length > 0 || Object.keys(_s.tarjetasLive||{}).length > 0;
     if(matches.length === 0 && !hayAjuste && !hayRemates){
-      el.innerHTML = '<div class="annual-empty">Cargá partidos (o el ajuste del primer semestre) para ver las estadísticas anuales.</div>';
+      el.innerHTML = '<div class="annual-empty">Cargá partidos (o un ajuste manual) para ver las estadísticas anuales.</div>';
       cargarRematesAnuales();   // por si hay remates de En Vivo, recargamos y volvemos a dibujar
       return;
     }
@@ -7334,6 +7590,7 @@ window.__initEditor = function(){
       const cat = catActual();
       let q = sb.from('live_sessions').select('totals, match_id').eq('club_id', clubId);
       q = cat ? q.eq('categoria', cat) : q.is('categoria', null);
+      if(window.__getTemporada) q = q.eq('temporada', window.__getTemporada());
       const { data } = await q;
       let totalFor = 0, totalAgainst = 0; const porJugador = {};
       // Goles y tarjetas de En Vivo, SOLO de sesiones independientes (sin match_id):
@@ -7412,6 +7669,7 @@ window.__initEditor = function(){
       if(sb && clubId){
         let q = sb.from('live_sessions').select('totals, match_id, name, created_at').eq('club_id', clubId);
         q = cat ? q.eq('categoria', cat) : q.is('categoria', null);
+      if(window.__getTemporada) q = q.eq('temporada', window.__getTemporada());
         const { data } = await q;
         liveIndep = (data || []).filter(s => !s.match_id);
       }
@@ -7580,6 +7838,7 @@ window.__initEditor = function(){
       if(sb && clubId){
         let q = sb.from('live_sessions').select('totals, match_id').eq('club_id', clubId);
         q = cat ? q.eq('categoria', cat) : q.is('categoria', null);
+      if(window.__getTemporada) q = q.eq('temporada', window.__getTemporada());
         const { data } = await q;
         sessions = data || [];
       }
@@ -8394,6 +8653,44 @@ function fmt(t){
 function escapeHtml(s){
   const d = document.createElement('div'); d.textContent = s; return d.innerHTML;
 }
+
+// ---------- Exportar a PDF cualquier sección (vía impresión del navegador) ----------
+// Agrega un encabezado con club, categoría y fecha, imprime, y limpia después.
+window.__exportarSeccionPDF = function(idSeccion, titulo){
+  const sec = document.getElementById(idSeccion);
+  if(!sec){ toast('No se pudo preparar el PDF'); return; }
+  // Encabezado temporal para el papel
+  const viejo = sec.querySelector('.print-header');
+  if(viejo) viejo.remove();
+  const cat = (window.__getActiveCategory && window.__getActiveCategory()) || '';
+  const club = (window.__clubNombre || '');
+  const hoy = new Date().toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric' });
+  const head = document.createElement('div');
+  head.className = 'print-header';
+  const sub = [club, cat ? ('Categoría ' + cat) : '', hoy].filter(Boolean).join(' · ');
+  head.innerHTML = '<h1>' + escapeHtml(titulo || 'Benchone') + '</h1><div class="ph-sub">' + escapeHtml(sub) + '</div>';
+  sec.insertBefore(head, sec.firstChild);
+  toast('Se abrirá el diálogo de impresión. Elegí "Guardar como PDF".');
+  setTimeout(() => {
+    window.print();
+    setTimeout(() => { const h = sec.querySelector('.print-header'); if(h) h.remove(); }, 500);
+  }, 350);
+};
+
+// Conectar los botones de PDF de cada sección
+(function wirePdfBotones(){
+  const mapa = [
+    ['exportTrainingPdf', 'section-training', 'Planificación de entrenamientos'],
+    ['exportScoutingPdf', 'section-scouting', 'Scouting de rivales'],
+    ['exportBoardPdf',    'section-board',    'Pizarra táctica'],
+    ['exportLivePdf',     'section-live',     'En vivo — minutos del partido']
+  ];
+  mapa.forEach(([idBtn, idSec, titulo]) => {
+    const b = document.getElementById(idBtn);
+    if(b) b.addEventListener('click', () => window.__exportarSeccionPDF(idSec, titulo));
+  });
+})();
+
 function toast(msg){
   const el = document.getElementById('toast');
   el.textContent = msg;
@@ -8672,6 +8969,7 @@ document.getElementById('saveCloudBtn').addEventListener('click', async () => {
   const row = {
     club_id: clubId,
     categoria: cat,
+    temporada: (window.__getTemporada ? window.__getTemporada() : new Date().getFullYear()),
     name: name || defaultName,
     videos: payload.videos,
     tags: payload.tags,
@@ -8708,6 +9006,7 @@ document.getElementById('loadCloudBtn').addEventListener('click', async () => {
     const cat = (window.__getActiveCategory && window.__getActiveCategory()) || null;
     let q = sb.from('video_projects').select('id, name, updated_at, items').eq('club_id', clubId);
     q = cat ? q.eq('categoria', cat) : q.is('categoria', null);
+      if(window.__getTemporada) q = q.eq('temporada', window.__getTemporada());
     const { data, error } = await q.order('updated_at', { ascending:false });
     if(error){ listEl.innerHTML = '<div class="cloud-empty">Error: '+error.message+'</div>'; return; }
     if(!data || !data.length){ listEl.innerHTML = '<div class="cloud-empty">Todavía no guardaste ningún partido en <strong>'+(cat||'esta categoría')+'</strong>.</div>'; return; }
