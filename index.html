@@ -66,8 +66,8 @@ body{background-color:var(--bg);-webkit-tap-highlight-color:transparent;overflow
   top:22px; left:26px;
   z-index:2;
   display:flex;
-  align-items:baseline;
-  gap:8px;
+  align-items:center;
+  gap:10px;
 }
 .corner-tag .brand{
   font-family:'Oswald',sans-serif;
@@ -119,26 +119,30 @@ body{background-color:var(--bg);-webkit-tap-highlight-color:transparent;overflow
 
 /* En celular: separar el encabezado fijo del contenido para que no se amontone */
 @media (max-width:720px){
-  .corner-tag{top:14px; left:16px;}
-  .corner-tag .brand{font-size:17px;}
+  .corner-tag{top:12px; left:14px; gap:9px;}
+  .corner-tag .brand{font-size:16px;}
+  .brand-logo{width:34px;height:34px;border-radius:8px;margin-right:0;}
   .scoreboard{top:13px; right:16px; font-size:9.5px; padding:5px 10px; letter-spacing:0.6px;}
   /* el contenido arranca más abajo, para no chocar con el encabezado fijo */
-  #screen-login{padding-top:66px;}
+  #screen-login{padding-top:64px;}
   .hero-eyebrow{
-    font-size:10px;
-    letter-spacing:1.2px;
-    margin-bottom:20px;
-    line-height:1.7;
-    max-width:330px;
+    font-size:9px;
+    letter-spacing:0.8px;
+    margin-bottom:14px;
+    line-height:1.6;
+    max-width:290px;
     margin-left:auto;
     margin-right:auto;
+    opacity:0.85;
   }
-  .hero-copy h1{margin-bottom:14px;}
+  .hero-copy h1{margin-bottom:12px;}
 }
 @media (max-width:400px){
-  .corner-tag .brand{font-size:15px;}
+  .corner-tag .brand{font-size:14px;}
+  .brand-logo{width:30px;height:30px;}
   .scoreboard{font-size:8.5px; padding:4px 8px;}
-  #screen-login{padding-top:62px;}
+  #screen-login{padding-top:58px;}
+  .hero-eyebrow{font-size:8.5px;max-width:265px;}
 }
 
 .hero-copy{padding:0 6px;}
@@ -149,6 +153,22 @@ body{background-color:var(--bg);-webkit-tap-highlight-color:transparent;overflow
   letter-spacing:2px;
   text-transform:uppercase;
   margin-bottom:14px;
+}
+/* En celular la frase va más chica y discreta, para no competir con el título */
+@media (max-width:720px){
+  .hero-eyebrow{
+    font-size:9px;
+    letter-spacing:0.8px;
+    line-height:1.6;
+    margin-bottom:14px;
+    max-width:290px;
+    margin-left:auto;
+    margin-right:auto;
+    opacity:0.85;
+  }
+}
+@media (max-width:400px){
+  .hero-eyebrow{font-size:8.5px;max-width:265px;letter-spacing:0.6px;}
 }
 .hero-copy h1{
   font-family:'Oswald',sans-serif;
@@ -396,7 +416,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .club-escudo{width:46px;height:46px;border-radius:10px;background-size:cover;background-position:center;background-color:var(--panel-2);border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;transition:border-color .12s ease;}
 .club-escudo-btn:hover .club-escudo{border-color:var(--accent-2);}
 .club-escudo-ph{font-size:22px;opacity:0.5;}
-.brand-logo{width:40px;height:40px;border-radius:9px;object-fit:cover;vertical-align:middle;margin-right:10px;}
+.brand-logo{width:40px;height:40px;border-radius:9px;object-fit:cover;display:block;flex-shrink:0;}
+@media (max-width:720px){ .brand-logo{width:34px;height:34px;border-radius:8px;} }
+@media (max-width:400px){ .brand-logo{width:30px;height:30px;} }
 .brand-logo-sm{width:26px;height:26px;border-radius:6px;object-fit:cover;vertical-align:middle;margin-right:8px;position:relative;top:-2px;}
 .brand .dot{color:var(--accent);}
 .brand-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:3px;}
@@ -653,6 +675,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .cal-cell.today .cal-daynum{color:var(--accent);font-weight:700;}
 .cal-note{font-size:10px;line-height:1.2;border-radius:4px;padding:2px 4px;color:#fff;word-break:break-word;overflow:hidden;max-height:32px;}
 .cal-note.match{background:var(--accent);}
+/* Partidos que vienen de Estadísticas (no editables desde el calendario) */
+.cal-note.auto{background:linear-gradient(135deg, var(--accent) 0%, #b8281f 100%);font-weight:600;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.18);}
+.cal-auto-info{background:rgba(229,52,42,0.12);border:1px solid rgba(229,52,42,0.35);border-radius:8px;padding:9px 11px;margin-bottom:12px;font-family:'Inter',sans-serif;font-size:12.5px;line-height:1.5;color:var(--chalk);}
 .cal-note.train{background:var(--accent-2);}
 .cal-note.concept{background:var(--success);}
 .cal-field-lbl{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin:10px 0 6px;}
@@ -2098,6 +2123,7 @@ body.editor-active #screen-editor{ display:block; }
           <button class="cloud-close" id="calModalClose">✕</button>
         </div>
         <div style="padding:6px 2px;">
+          <div id="calAutoInfo" class="cal-auto-info" style="display:none;"></div>
           <label class="cal-field-lbl" data-i18n="calType">Tipo</label>
           <div class="cal-type-row" id="calTypeRow">
             <button class="cal-type-btn selected" data-type="match" style="--tc:var(--accent)"><span data-i18n="calMatch">Partido</span></button>
@@ -5721,6 +5747,31 @@ window.__initEditor = function(){
 
   function calKey(y,m,d){ return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'); }
 
+  // Partidos cargados en Estadísticas, para mostrarlos en el calendario
+  let calMatches = {};   // { 'YYYY-MM-DD': [{rival}] }
+
+  async function cargarPartidosDelCalendario(){
+    try{
+      const sb = window.__sb;
+      const clubId = window.__clubIdCache || (window.__getClubId ? await window.__getClubId() : null);
+      if(!sb || !clubId) return;
+      const cat = (window.__getActiveCategory && window.__getActiveCategory()) || null;
+      let q = sb.from('stat_matches').select('rival,match_date').eq('club_id', clubId);
+      q = cat ? q.eq('categoria', cat) : q.is('categoria', null);
+      const { data, error } = await q;
+      if(error) return;
+      calMatches = {};
+      (data || []).forEach(m => {
+        if(!m.match_date) return;
+        const key = String(m.match_date).slice(0,10);
+        if(!calMatches[key]) calMatches[key] = [];
+        calMatches[key].push({ rival: (m.rival || '').trim() });
+      });
+      renderCalendar();
+    }catch(e){ /* si falla, el calendario sigue funcionando con las notas manuales */ }
+  }
+  window.__refrescarCalendarioPartidos = cargarPartidosDelCalendario;
+
   function renderCalendar(){
     const grid=document.getElementById('calGrid'); if(!grid) return;
     const lang = window.__lang || 'es';
@@ -5737,6 +5788,13 @@ window.__initEditor = function(){
       const cell=document.createElement('div');
       cell.className='cal-cell'+(key===todayKey?' today':'');
       let inner='<span class="cal-daynum">'+d+'</span>';
+      // Partidos cargados en Estadísticas (automáticos, no se editan desde acá)
+      const partidos = calMatches[key] || [];
+      partidos.forEach(p => {
+        const txt = p.rival ? ('Partido vs ' + p.rival) : 'Partido';
+        inner += `<span class="cal-note match auto" title="Cargado en Estadísticas → Partidos">⚽ ${escapeHtml(txt)}</span>`;
+      });
+      // Notas manuales del calendario
       const note=calNotes[key];
       if(note){ inner+=`<span class="cal-note ${note.type}">${escapeHtml(note.text)}</span>`; }
       cell.innerHTML=inner;
@@ -5754,6 +5812,18 @@ window.__initEditor = function(){
     document.getElementById('calText').value = note ? note.text : '';
     document.querySelectorAll('#calTypeRow .cal-type-btn').forEach(b=>b.classList.toggle('selected', b.dataset.type===calSelType));
     document.getElementById('calDelBtn').style.display = note ? 'inline-flex' : 'none';
+    // Si ese día tiene partidos cargados en Estadísticas, avisamos
+    const aviso = document.getElementById('calAutoInfo');
+    const partidos = calMatches[key] || [];
+    if(aviso){
+      if(partidos.length){
+        const lista = partidos.map(p => p.rival ? ('vs ' + p.rival) : 'sin rival').join(', ');
+        aviso.innerHTML = '⚽ <b>Partido ' + escapeHtml(lista) + '</b> — cargado en Estadísticas → Partidos. Se edita desde ahí.';
+        aviso.style.display = 'block';
+      } else {
+        aviso.style.display = 'none';
+      }
+    }
     document.getElementById('calModal').style.display='flex';
     setTimeout(()=>document.getElementById('calText').focus(),50);
   }
@@ -5810,7 +5880,8 @@ window.__initEditor = function(){
       calNotes={};
       (data||[]).forEach(r=>{ calNotes[r.day]={type:r.type,text:r.text,dbId:r.id}; });
       renderCalendar();
-    }catch(e){ console.error('cal load',e); renderCalendar(); }
+      cargarPartidosDelCalendario();
+    }catch(e){ console.error('cal load',e); renderCalendar(); cargarPartidosDelCalendario(); }
   }
 
   document.addEventListener('langchange', ()=>{ renderCalendar(); });
@@ -6451,7 +6522,7 @@ window.__initEditor = function(){
     if(!confirm('¿Borrar '+nombre+'? Se elimina el partido y sus goles. No afecta a los demás.')) return;
     const sb = window.__sb;
     if(sb && !String(m.id).startsWith('tmp')){
-      try{ await sb.from('stat_matches').delete().eq('id', m.id); }
+      try{ await sb.from('stat_matches').delete().eq('id', m.id); if(window.__refrescarCalendarioPartidos) window.__refrescarCalendarioPartidos(); }
       catch(e){ console.error(e); toast(window.t('mDelMatchErr')); return; }
     }
     matches = matches.filter(x => x.id !== m.id);
@@ -6467,6 +6538,8 @@ window.__initEditor = function(){
     saveTimers['row_'+m.id] = setTimeout(async () => {
       try{
         await sb.from('stat_matches').update({ rival:m.rival||'', match_date:m.date||null, updated_at:new Date().toISOString() }).eq('id', m.id);
+        // el calendario de Planificación muestra los partidos: lo refrescamos
+        if(window.__refrescarCalendarioPartidos) window.__refrescarCalendarioPartidos();
       }catch(e){ console.error(e); }
     }, 700);
   }
@@ -6699,7 +6772,7 @@ window.__initEditor = function(){
     if(!currentMatch) return;
     if(!confirm('¿Eliminar este partido y sus estadísticas?')) return;
     const sb = window.__sb;
-    if(sb){ try{ await sb.from('stat_matches').delete().eq('id', currentMatch.id); }catch(e){} }
+    if(sb){ try{ await sb.from('stat_matches').delete().eq('id', currentMatch.id); if(window.__refrescarCalendarioPartidos) window.__refrescarCalendarioPartidos(); }catch(e){} }
     matches = matches.filter(x => x.id !== currentMatch.id);
     currentMatch = null;
     document.getElementById('matchDetail').style.display = 'none';
