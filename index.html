@@ -117,6 +117,30 @@ body{background-color:var(--bg);-webkit-tap-highlight-color:transparent;overflow
   .hero-copy{text-align:center;}
 }
 
+/* En celular: separar el encabezado fijo del contenido para que no se amontone */
+@media (max-width:720px){
+  .corner-tag{top:14px; left:16px;}
+  .corner-tag .brand{font-size:17px;}
+  .scoreboard{top:13px; right:16px; font-size:9.5px; padding:5px 10px; letter-spacing:0.6px;}
+  /* el contenido arranca más abajo, para no chocar con el encabezado fijo */
+  #screen-login{padding-top:76px;}
+  .hero-eyebrow{
+    font-size:10px;
+    letter-spacing:1.2px;
+    margin-bottom:16px;
+    line-height:1.7;
+    max-width:300px;
+    margin-left:auto;
+    margin-right:auto;
+  }
+  .hero-copy h1{margin-bottom:14px;}
+}
+@media (max-width:400px){
+  .corner-tag .brand{font-size:15px;}
+  .scoreboard{font-size:8.5px; padding:4px 8px;}
+  #screen-login{padding-top:70px;}
+}
+
 .hero-copy{padding:0 6px;}
 .hero-eyebrow{
   font-family:'JetBrains Mono',monospace;
@@ -1580,7 +1604,7 @@ body.editor-active #screen-editor{ display:block; }
     <div class="hero-eyebrow">Creado por un entrenador · Pensado para entrenadores</div>
     <h1>Gestioná<br>tu equipo</h1>
     <p class="hero-lead">Todas las herramientas en un solo lugar</p>
-    <p class="hero-tools">Editor de video · Estadísticas automatizadas · Calendario de planificación · Planificación semanal · Scouting · Control en vivo: minutaje y estadísticas</p>
+    <p class="hero-tools">Editor de video · Estadísticas automatizadas · Planificación semanal · Scouting · Control en vivo</p>
   </div>
 
   <div class="card">
