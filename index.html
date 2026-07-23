@@ -484,6 +484,26 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .gg-title{font-family:'Oswald',sans-serif;font-size:13.5px;text-transform:uppercase;letter-spacing:0.6px;color:#E0A93B;margin-bottom:6px;}
 .guide-growth p{font-family:'Inter',sans-serif;font-size:13px;line-height:1.6;color:var(--muted);margin:0;}
 .gg-founders{margin-top:8px !important;color:#E0A93B !important;font-weight:500;}
+/* ===== CAMPANITA DE NOTIFICACIONES ===== */
+.notif-wrap{position:relative;display:inline-block;}
+.notif-bell{background:transparent;border:1px solid var(--line);border-radius:8px;color:var(--chalk);cursor:pointer;font-size:15px;padding:5px 9px;position:relative;line-height:1;transition:border-color .12s ease;}
+.notif-bell:hover{border-color:var(--accent-2);}
+.notif-dot{position:absolute;top:3px;right:3px;width:8px;height:8px;background:var(--accent);border-radius:50%;border:1.5px solid var(--panel);}
+.notif-panel{position:absolute;top:calc(100% + 8px);right:0;width:330px;max-width:calc(100vw - 32px);background:var(--panel);border:1px solid var(--line);border-radius:11px;box-shadow:0 10px 30px rgba(0,0,0,0.5);z-index:200;overflow:hidden;}
+.notif-head{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--line);font-family:'Oswald',sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:0.6px;color:var(--chalk);}
+.notif-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:2px 5px;border-radius:5px;}
+.notif-close:hover{color:var(--chalk);}
+.notif-list{max-height:340px;overflow-y:auto;}
+.notif-item{padding:12px 14px;border-bottom:1px solid var(--line);}
+.notif-item:last-child{border-bottom:none;}
+.notif-item.nueva{background:rgba(47,143,203,0.07);}
+.ni-head{display:flex;align-items:center;gap:7px;margin-bottom:5px;}
+.ni-ico{font-size:14px;}
+.ni-head b{font-family:'Oswald',sans-serif;font-size:13px;color:var(--chalk);flex:1;letter-spacing:0.2px;}
+.ni-date{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);}
+.notif-item p{font-family:'Inter',sans-serif;font-size:12.5px;line-height:1.55;color:var(--muted);margin:0;}
+.notif-empty{font-family:'Inter',sans-serif;font-size:12.5px;color:var(--muted);padding:18px 14px;margin:0;text-align:center;}
+@media (max-width:600px){ .notif-panel{width:290px;} }
 @media (max-width:900px){ .guide-grid{grid-template-columns:repeat(2,1fr);} }
 @media (max-width:620px){
   .guide-grid{grid-template-columns:1fr;}
@@ -1786,6 +1806,18 @@ body.editor-active #screen-editor{ display:block; }
       </div>
     </div>
     <div class="topbar-right">
+      <div class="notif-wrap">
+        <button class="notif-bell" id="notifBell" title="Novedades">
+          🔔<span class="notif-dot" id="notifDot" style="display:none;"></span>
+        </button>
+        <div class="notif-panel" id="notifPanel" style="display:none;">
+          <div class="notif-head">
+            <span>Novedades</span>
+            <button class="notif-close" id="notifClose">✕</button>
+          </div>
+          <div class="notif-list" id="notifList"></div>
+        </div>
+      </div>
       <select id="langSelect" class="lang-select" title="Idioma / Language / Idioma">
         <option value="es">🇪🇸 ES</option>
         <option value="en">🇬🇧 EN</option>
@@ -3494,6 +3526,7 @@ async function guardarPerfil(userId, email, perfil){
       showEditor();
       if(window.__startMetrics) window.__startMetrics();
       if(window.__cargarTemporadas) setTimeout(window.__cargarTemporadas, 500);
+      if(window.__cargarNotificaciones) setTimeout(window.__cargarNotificaciones, 800);
     }
   }catch(err){ console.error(err); }
 })();
@@ -3560,6 +3593,7 @@ form.addEventListener('submit', async (e) => {
       showEditor();
       if(window.__startMetrics) window.__startMetrics();
       if(window.__cargarTemporadas) setTimeout(window.__cargarTemporadas, 500);
+      if(window.__cargarNotificaciones) setTimeout(window.__cargarNotificaciones, 800);
     } else {
       // Sin sesión (requiere confirmar email). Guardamos lo posible igual.
       try{ await guardarPerfil(data.user?.id, email, perfil); }catch(e){}
@@ -3588,6 +3622,7 @@ form.addEventListener('submit', async (e) => {
     showEditor();
     if(window.__startMetrics) window.__startMetrics();
       if(window.__cargarTemporadas) setTimeout(window.__cargarTemporadas, 500);
+      if(window.__cargarNotificaciones) setTimeout(window.__cargarNotificaciones, 800);
   }
 });
 
@@ -3740,6 +3775,105 @@ window.__initEditor = function(){
   setInterval(() => guardar(false), 60000);
   window.addEventListener('beforeunload', () => { guardar(true); });
   document.addEventListener('visibilitychange', () => { if(document.hidden) guardar(false); });
+})();
+
+// ---------------- NOTIFICACIONES (campanita) ----------------
+(function initNotifications(){
+  const bell = document.getElementById('notifBell');
+  const panel = document.getElementById('notifPanel');
+  const lista = document.getElementById('notifList');
+  const dot = document.getElementById('notifDot');
+  if(!bell || !panel || !lista) return;
+
+  // Avisos fijos (los escribo yo en el código; siempre están)
+  const FIJAS = [
+    {
+      id: 'fija-gratuita',
+      tipo: 'aviso',
+      titulo: '🌱 Benchone está en crecimiento',
+      cuerpo: 'El uso es gratuito por el momento, mientras la plataforma está en período de crecimiento y de prueba. Más adelante habrá packs para sostener la calidad del servicio. Los amigos fundadores van a tener condiciones preferenciales cuando lancemos los planes.',
+      fecha: '2026-07-22'
+    }
+  ];
+
+  let avisos = [];
+  let leidas = new Set();
+
+  // Las leídas se recuerdan en el propio dispositivo
+  function cargarLeidas(){
+    try{
+      const raw = window.name && window.name.startsWith('bo_read:') ? window.name.slice(8) : '';
+      if(raw) leidas = new Set(raw.split(','));
+    }catch(e){}
+  }
+  function guardarLeidas(){
+    try{ window.name = 'bo_read:' + [...leidas].join(','); }catch(e){}
+  }
+
+  function iconoDe(tipo){
+    return tipo === 'novedad' ? '✨' : tipo === 'aviso' ? '📣' : tipo === 'recordatorio' ? '⏰' : 'ℹ️';
+  }
+
+  function pintar(){
+    if(avisos.length === 0){
+      lista.innerHTML = '<p class="notif-empty">No hay novedades por ahora.</p>';
+    } else {
+      lista.innerHTML = avisos.map(a => {
+        const nueva = !leidas.has(a.id);
+        const fecha = a.fecha ? new Date(a.fecha + 'T00:00:00').toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit'}) : '';
+        return `<div class="notif-item${nueva ? ' nueva' : ''}">
+          <div class="ni-head">
+            <span class="ni-ico">${iconoDe(a.tipo)}</span>
+            <b>${escapeHtml(a.titulo)}</b>
+            ${fecha ? '<span class="ni-date">'+fecha+'</span>' : ''}
+          </div>
+          <p>${escapeHtml(a.cuerpo)}</p>
+        </div>`;
+      }).join('');
+    }
+    const sinLeer = avisos.filter(a => !leidas.has(a.id)).length;
+    dot.style.display = sinLeer > 0 ? 'block' : 'none';
+  }
+
+  async function cargar(){
+    avisos = [...FIJAS];
+    try{
+      const sb = window.__sb;
+      const clubId = window.__clubIdCache || (window.__getClubId ? await window.__getClubId() : null);
+      if(sb){
+        const { data, error } = await sb.from('notifications')
+          .select('id,titulo,cuerpo,tipo,created_at')
+          .order('created_at', { ascending: false });
+        if(!error && Array.isArray(data)){
+          const deBase = data.map(n => ({
+            id: n.id, tipo: n.tipo || 'info', titulo: n.titulo, cuerpo: n.cuerpo,
+            fecha: (n.created_at || '').slice(0,10)
+          }));
+          avisos = [...deBase, ...FIJAS];
+        }
+      }
+    }catch(e){ /* si falla, quedan las fijas */ }
+    pintar();
+  }
+
+  bell.addEventListener('click', () => {
+    const abierto = panel.style.display !== 'none';
+    panel.style.display = abierto ? 'none' : 'block';
+    if(!abierto){
+      // al abrir, marcamos todo como leído
+      avisos.forEach(a => leidas.add(a.id));
+      guardarLeidas();
+      setTimeout(() => { dot.style.display = 'none'; }, 400);
+    }
+  });
+  document.getElementById('notifClose')?.addEventListener('click', () => { panel.style.display = 'none'; });
+  document.addEventListener('click', e => {
+    if(!panel.contains(e.target) && !bell.contains(e.target)) panel.style.display = 'none';
+  });
+
+  cargarLeidas();
+  pintar();
+  window.__cargarNotificaciones = cargar;
 })();
 
 // ---------------- TEMPORADAS (año calendario) ----------------
