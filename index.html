@@ -437,6 +437,22 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .pl-hint{font-size:12px;color:var(--muted);margin:0 0 10px;}
 .pl-chips{display:flex;flex-wrap:wrap;gap:8px;}
 .pl-free-chip{background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);border-radius:999px;padding:7px 14px;font-family:'Oswald',sans-serif;font-size:13px;cursor:pointer;transition:all .12s ease;}
+.pl-owned-chip{display:inline-block;background:rgba(47,143,203,0.15);border:1px solid rgba(47,143,203,0.4);color:var(--accent-2);border-radius:999px;padding:6px 14px;font-family:'Oswald',sans-serif;font-size:13px;margin:0 6px 6px 0;}
+/* Cartel de amigos fundadores en la pantalla de planes */
+.plans-founder{background:rgba(224,169,59,0.12);border:1px solid rgba(224,169,59,0.4);border-radius:10px;padding:11px 15px;margin:0 auto 16px;max-width:520px;font-family:'Inter',sans-serif;font-size:13px;line-height:1.5;color:var(--chalk);text-align:center;}
+.plans-founder b{color:#E0A93B;}
+/* Campo de código de descuento */
+.plans-code{display:flex;gap:8px;max-width:420px;margin:0 auto 16px;}
+.plans-code input{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:9px;color:var(--chalk);font-family:'Inter',sans-serif;font-size:13px;padding:10px 13px;text-transform:uppercase;}
+.plans-code input:focus{outline:none;border-color:var(--accent-2);}
+.plans-code input::placeholder{text-transform:none;color:var(--muted);}
+.pc-apply{background:transparent;border:1px solid var(--accent-2);color:var(--accent-2);border-radius:9px;padding:10px 16px;font-family:'Inter',sans-serif;font-size:13px;cursor:pointer;white-space:nowrap;transition:background .12s ease;}
+.pc-apply:hover{background:rgba(47,143,203,0.12);}
+.pc-apply:disabled{opacity:0.5;cursor:wait;}
+.plans-code.ok{background:rgba(76,175,109,0.10);border:1px solid rgba(76,175,109,0.4);border-radius:10px;padding:11px 15px;align-items:center;justify-content:space-between;font-family:'Inter',sans-serif;font-size:13px;color:var(--chalk);}
+.plans-code.ok b{color:var(--success);}
+.pc-clear{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline;padding:2px 4px;}
+.pc-clear:hover{color:var(--chalk);}
 .pl-free-chip:hover{border-color:var(--danger);}
 .pl-free-chip span{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
 
@@ -3367,10 +3383,66 @@ window.__PAY = {
   packOrder: ['entrenador','multi','club']   // orden en que se muestran
 };
 // Formatea un precio según la moneda elegida. Recibe un objeto duración {ars, usd}.
+// ── Descuento de amigos fundadores ──
+// Se carga desde la nube al entrar. Si el club es fundador, todos los precios
+// se muestran ya con el descuento aplicado.
+window.__descuentoPct = 0;
+window.__esFundador = false;
+
+// ── Códigos de descuento de vendedores ──
+// Si el club aplica un código válido, el descuento se suma al cálculo.
+// Los fundadores NO pueden usar códigos (no se acumulan descuentos).
+window.__codigoAplicado = null;   // { codigo, descuento_pct, vendedor_id, nombre }
+
+window.__validarCodigo = async function(codigo){
+  const txt = (codigo||'').trim();
+  if(!txt) return { ok:false, msg:'Escribí un código.' };
+  if(window.__esFundador) return { ok:false, msg:'Ya tenés tu descuento de fundador.' };
+  try{
+    const sb = window.__sb;
+    if(!sb) return { ok:false, msg:'Sin conexión.' };
+    const { data, error } = await sb.rpc('validar_codigo', { p_codigo: txt });
+    if(error){
+      console.error('validar codigo', error);
+      return { ok:false, msg:'No se pudo verificar el código.' };
+    }
+    const v = Array.isArray(data) ? data[0] : data;
+    if(!v) return { ok:false, msg:'Ese código no existe o ya no está activo.' };
+    window.__codigoAplicado = {
+      codigo: txt.toUpperCase(),
+      descuento_pct: Number(v.descuento_pct) || 0,
+      vendedor_id: v.id,
+      nombre: v.nombre
+    };
+    // Dejamos registrado en el club qué vendedor lo trajo (para las comisiones)
+    try{
+      const clubId = window.__clubIdCache || (window.__getClubId ? await window.__getClubId() : null);
+      if(clubId){
+        await sb.from('clubs').update({
+          vendedor_id: v.id,
+          codigo_usado: txt.toUpperCase()
+        }).eq('id', clubId);
+      }
+    }catch(e){ console.error('guardar vendedor', e); }
+    return { ok:true, descuento: window.__codigoAplicado.descuento_pct, nombre: v.nombre };
+  }catch(e){ console.error(e); return { ok:false, msg:'No se pudo verificar el código.' }; }
+};
+
+// Aplica el descuento (si corresponde) a un monto
+window.__conDescuento = function(monto){
+  if(!monto) return monto;
+  // Fundador y código NO se acumulan: si es fundador, vale el suyo.
+  const d = window.__esFundador
+    ? (Number(window.__descuentoPct) || 0)
+    : (window.__codigoAplicado ? (Number(window.__codigoAplicado.descuento_pct) || 0) : 0);
+  if(!d) return monto;
+  return Math.round(monto * (100 - d) / 100);
+};
+
 window.__fmtPrice = function(dur){
   const cur = (window.__PAY.currency === 'usd') ? 'usd' : 'ars';
-  if(cur === 'usd') return 'US$ ' + (dur.usd||0);
-  return '$ ' + Number(dur.ars||0).toLocaleString('es-AR');
+  if(cur === 'usd') return 'US$ ' + window.__conDescuento(dur.usd||0);
+  return '$ ' + Number(window.__conDescuento(dur.ars||0)).toLocaleString('es-AR');
 };
 // Etiqueta de duración: "1 mes", "6 meses", "12 meses"
 window.__durLabel = function(months){
@@ -3446,40 +3518,34 @@ window.__openPackLimit = function(catNueva){
   const P = window.__PAY || {};
   const packActual = (window.__catState && window.__catState.pack) || P.defaultPack || 'entrenador';
   const nombrePack = (P.packs && P.packs[packActual] && P.packs[packActual].name) || 'tu pack';
-  const chips = ocupadas.map(c =>
-    `<button class="pl-free-chip" data-cat="${c}">${c} <span>✕ liberar</span></button>`
-  ).join('');
+  // Qué packs tienen más categorías que el actual (para sugerir la mejora)
+  const orden = P.packOrder || ['entrenador','multi','club'];
+  const mejores = orden.filter(k => P.packs && P.packs[k] && P.packs[k].maxCategories > limite);
+  const sugerencia = mejores.length
+    ? `<p class="pl-hint" style="margin-top:8px;">Con el pack <b>${P.packs[mejores[0]].name}</b> podés usar hasta ${P.packs[mejores[0]].maxCategories} categorías.</p>`
+    : '';
+  const tuyas = ocupadas.map(c => `<span class="pl-owned-chip">${c}</span>`).join('');
   m = document.createElement('div');
   m.id = 'packLimitModal';
   m.className = 'plans-overlay';
-  m.innerHTML = `<div class="plans-box" style="max-width:460px;text-align:left;">
+  m.innerHTML = `<div class="plans-box" style="max-width:440px;text-align:left;">
     <button class="plans-close" id="plClose">✕</button>
     <h2 style="font-size:20px;">Llegaste al límite de tu pack</h2>
-    <p class="plans-sub">Tu pack <b>${nombrePack}</b> permite ${limite} categoría${limite>1?'s':''}. Para usar <b>${catNueva}</b> podés liberar una que ya tengas, o mejorar tu plan.</p>
+    <p class="plans-sub">Tu pack <b>${nombrePack}</b> permite ${limite} categoría${limite>1?'s':''}, y ya las estás usando.</p>
     <div class="pl-section">
-      <div class="pl-title">Liberar una categoría</div>
-      <p class="pl-hint">Dejás de usar esa categoría (sus datos quedan guardados, no se borran).</p>
-      <div class="pl-chips">${chips}</div>
+      <div class="pl-title">Tus categorías activas</div>
+      <div class="pl-chips">${tuyas}</div>
     </div>
     <div class="pl-section">
-      <div class="pl-title">O mejorá tu plan</div>
-      <button class="btn-primary" id="plUpgrade" style="width:100%;margin-top:6px;">Ver planes con más categorías</button>
+      <div class="pl-title">Para usar ${catNueva}</div>
+      <p class="pl-hint">Mejorá tu plan y sumá más categorías. Todo lo que ya cargaste se mantiene.</p>
+      ${sugerencia}
+      <button class="btn-primary" id="plUpgrade" style="width:100%;margin-top:10px;">Ver planes con más categorías</button>
     </div>
   </div>`;
   document.body.appendChild(m);
   document.getElementById('plClose').addEventListener('click',()=>m.remove());
   m.addEventListener('click',e=>{ if(e.target===m) m.remove(); });
-  // liberar una categoría y activar la nueva
-  m.querySelectorAll('.pl-free-chip').forEach(btn=>{
-    btn.addEventListener('click', async ()=>{
-      const cat = btn.dataset.cat;
-      if(window.__liberarCategoria) await window.__liberarCategoria(cat);
-      m.remove();
-      // ahora hay lugar: seleccionar la nueva
-      const chip = [...document.querySelectorAll('#catChips .cat-chip')].find(c => c.textContent.replace('🔒','').trim() === catNueva);
-      if(chip) chip.click();
-    });
-  });
   const up = document.getElementById('plUpgrade');
   if(up) up.addEventListener('click', ()=>{ m.remove(); if(window.__openPlansModal) window.__openPlansModal(); });
 };
@@ -8592,10 +8658,13 @@ try{
       const clubId = await window.__getClubId();
       if(!clubId) return;
       const { data, error } = await sb.from('clubs')
-        .select('subscription_status, trial_ends_at, subscription_ends_at, pack')
+        .select('subscription_status, trial_ends_at, subscription_ends_at, pack, es_fundador, descuento_pct')
         .eq('id', clubId).single();
       if(error || !data) return;
       window.__myPlanData = data;
+      // Amigos fundadores: descuento permanente
+      window.__esFundador = !!data.es_fundador;
+      window.__descuentoPct = window.__esFundador ? (Number(data.descuento_pct) || 0) : 0;
       const st = data.subscription_status;
       let end = null;
       if(st === 'active') end = data.subscription_ends_at;
@@ -8799,6 +8868,25 @@ try{
         <button class="pa-copy" id="plansAliasCopy">Copiar</button>
         <span class="pa-note">Después avisanos por WhatsApp y activamos tu cuenta.</span>
       </div>` : '';
+    // Cartel para los amigos fundadores
+    const fundadorLine = (window.__esFundador && window.__descuentoPct > 0)
+      ? `<div class="plans-founder">🌟 <b>Sos parte de los amigos fundadores.</b> Los precios que ves ya tienen tu ${window.__descuentoPct}% de descuento permanente.</div>`
+      : '';
+    // Campo de código de descuento (solo si NO es fundador: no se acumulan)
+    // Es función para que se recalcule cada vez que se redibuja la pantalla.
+    function codigoLineHTML(){
+      if(window.__esFundador) return '';
+      if(window.__codigoAplicado){
+        return `<div class="plans-code ok">
+             <span>✓ Código <b>${window.__codigoAplicado.codigo}</b> aplicado — ${window.__codigoAplicado.descuento_pct}% de descuento</span>
+             <button class="pc-clear" id="plansCodeClear">Quitar</button>
+           </div>`;
+      }
+      return `<div class="plans-code">
+             <input type="text" id="plansCodeInput" placeholder="¿Tenés un código de descuento?" maxlength="24" autocomplete="off">
+             <button class="pc-apply" id="plansCodeApply">Aplicar</button>
+           </div>`;
+    }
     const legalLine = `<p class="plans-legal">Al activar tu cuenta aceptás los <a href="#" id="plansTermsLink">términos y la política de privacidad</a>.</p>`;
 
     modal = document.createElement('div');
@@ -8825,7 +8913,7 @@ try{
               ? conPrecio.reduce((a,b) => (b.ars/b.months < a.ars/a.months ? b : a))
               : null;
             const hayDescuento = masBarato && (masBarato.ars/masBarato.months) < unMes.ars;
-            desde = `<span class="plan-permonth">$ ${Number(unMes.ars).toLocaleString('es-AR')}/mes</span>`
+            desde = `<span class="plan-permonth">$ ${Number(window.__conDescuento(unMes.ars)).toLocaleString('es-AR')}/mes</span>`
                   + (hayDescuento ? `<span class="plan-hint">(menos si pagás 6 o 12 meses)</span>` : '');
           } else if(conPrecio.length){
             const min = conPrecio.reduce((a,b)=> (b.ars/b.months < a.ars/a.months ? b : a));
@@ -8836,7 +8924,7 @@ try{
         const featHtml = pk.feature ? `<span class="plan-feature">✓ ${pk.feature}</span>` : '';
         cards += `<div class="plan-card${destacado}" data-pack="${key}">${badge}<span class="plan-label">${pk.name}</span><span class="plan-note">${pk.note||''}</span>${descHtml}${featHtml}${desde}<span class="plan-go">Elegir →</span></div>`;
       });
-      modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><h2>${window.t('plansTitle')}</h2><p class="plans-sub">Elegí el pack según cuántas categorías necesitás.</p><div class="plans-grid plans-grid-3">${cards}</div>${contactLine}${aliasLine}${legalLine}</div>`;
+      modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><h2>${window.t('plansTitle')}</h2><p class="plans-sub">Elegí el pack según cuántas categorías necesitás.</p>${fundadorLine}${codigoLineHTML()}<div class="plans-grid plans-grid-3">${cards}</div>${contactLine}${aliasLine}${legalLine}</div>`;
       wire();
       modal.querySelectorAll('.plan-card[data-pack]').forEach(c=>{
         c.addEventListener('click', ()=> renderPaso2(c.dataset.pack));
@@ -8852,17 +8940,44 @@ try{
         // En 1 mes el total y el mensual son lo mismo: mostramos "$ X" arriba y "$ X/mes" abajo
         // para que la comparación entre las tres columnas sea directa.
         const priceHtml = (P.showPrices && window.__fmtPrice) ? `<span class="plan-price">${window.__fmtPrice(dur)}</span>` : '';
-        const perMonth = (P.showPrices && dur.ars) ? `<span class="plan-permonth">$ ${Math.round(dur.ars/dur.months).toLocaleString('es-AR')}/mes</span>` : '';
+        const perMonth = (P.showPrices && dur.ars) ? `<span class="plan-permonth">$ ${Math.round(window.__conDescuento(dur.ars)/dur.months).toLocaleString('es-AR')}/mes</span>` : '';
         const destacado = dur.months === 12 ? ' plan-featured' : '';
         cards += `<a class="plan-card${destacado}" href="${link}" target="_blank" rel="noopener"><span class="plan-label">${window.__durLabel(dur.months)}</span>${priceHtml}${perMonth}<span class="plan-go">${window.t('planGo')} →</span></a>`;
       });
-      modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><button class="plans-back" id="plansBack">← Volver a los packs</button><h2>Pack ${pk.name}</h2><p class="plans-sub">${pk.note||''} · Elegí por cuánto tiempo.</p><div class="plans-grid plans-grid-3">${cards}</div>${contactLine}${aliasLine}${legalLine}</div>`;
+      modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><button class="plans-back" id="plansBack">← Volver a los packs</button><h2>Pack ${pk.name}</h2><p class="plans-sub">${pk.note||''} · Elegí por cuánto tiempo.</p>${fundadorLine}${codigoLineHTML()}<div class="plans-grid plans-grid-3">${cards}</div>${contactLine}${aliasLine}${legalLine}</div>`;
       wire();
       const back = document.getElementById('plansBack');
       if(back) back.addEventListener('click', renderPaso1);
     }
 
     function wire(){
+      // ── Código de descuento ──
+      const btnAplicar = document.getElementById('plansCodeApply');
+      if(btnAplicar){
+        const input = document.getElementById('plansCodeInput');
+        const aplicar = async () => {
+          const val = input ? input.value : '';
+          btnAplicar.disabled = true;
+          btnAplicar.textContent = 'Verificando…';
+          const r = await window.__validarCodigo(val);
+          btnAplicar.disabled = false;
+          btnAplicar.textContent = 'Aplicar';
+          if(r.ok){
+            toast('✓ Código aplicado: ' + r.descuento + '% de descuento');
+            renderPaso1();   // volver a dibujar con los precios nuevos
+          } else {
+            toast(r.msg || 'Código inválido');
+          }
+        };
+        btnAplicar.addEventListener('click', aplicar);
+        if(input) input.addEventListener('keydown', e => { if(e.key === 'Enter') aplicar(); });
+      }
+      const btnQuitar = document.getElementById('plansCodeClear');
+      if(btnQuitar) btnQuitar.addEventListener('click', () => {
+        window.__codigoAplicado = null;
+        renderPaso1();
+      });
+
       const cp = document.getElementById('plansAliasCopy');
       if(cp) cp.addEventListener('click', () => {
         const al = document.getElementById('plansAlias');
