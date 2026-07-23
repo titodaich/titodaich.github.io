@@ -1247,6 +1247,32 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .lang-select{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;color:var(--chalk);font-size:12px;padding:6px 8px;cursor:pointer;font-family:'JetBrains Mono',monospace;}
 .sub-banner{display:flex;align-items:center;gap:12px;padding:11px 18px;font-family:'Inter',sans-serif;font-size:14px;position:sticky;top:0;z-index:9999;}
 .sub-banner.warning{background:linear-gradient(90deg,#3a2d10,#4a3a12);color:#F2C94C;border-bottom:1px solid #6b5518;}
+/* Banner de licencia expirada */
+.sub-banner.expired{background:linear-gradient(90deg,#3d1512,#4d1a16);color:#FF9A8F;border-bottom:1px solid #7a2820;}
+/* Modo solo lectura: elementos bloqueados */
+.ro-locked{
+  opacity:0.45 !important;
+  cursor:not-allowed !important;
+  position:relative;
+  filter:grayscale(0.4);
+}
+.ro-locked::after{
+  content:'🔒';
+  position:absolute;
+  top:-6px; right:-6px;
+  font-size:11px;
+  background:var(--panel);
+  border-radius:50%;
+  width:17px; height:17px;
+  display:flex; align-items:center; justify-content:center;
+  border:1px solid var(--line);
+  pointer-events:none;
+}
+body.modo-lectura .section-content input:read-only,
+body.modo-lectura .section-content textarea:read-only{
+  opacity:0.7;
+  cursor:default;
+}
 .sub-banner.expired{background:linear-gradient(90deg,#3a1410,#4a1712);color:#F0553F;border-bottom:1px solid #6b2018;}
 .sub-banner .sb-icon{font-size:18px;}
 .sub-banner .sb-text{flex:1;}
@@ -1276,6 +1302,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .plan-featured .plan-badge{background:var(--success);}
 @media (max-width:480px){.plans-grid-3{grid-template-columns:1fr;}}
 .plans-contact{text-align:center;margin:18px 0 0;font-size:13px;color:var(--muted);}
+.plan-hint{display:block;font-family:'Inter',sans-serif;font-size:10.5px;color:var(--muted);opacity:0.75;margin-top:3px;line-height:1.3;}
+/* Bloque de pago por transferencia (alias de MercadoPago) */
+.plans-alias{margin:14px auto 0;max-width:420px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:13px 15px;text-align:center;}
+.pa-label{display:block;font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);margin-bottom:7px;}
+.pa-alias{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--chalk);background:var(--panel-2);border:1px solid var(--line);border-radius:7px;padding:7px 12px;letter-spacing:0.5px;vertical-align:middle;}
+.pa-copy{margin-left:8px;background:transparent;border:1px solid var(--accent-2);color:var(--accent-2);border-radius:7px;padding:7px 12px;font-size:12px;font-family:'Inter',sans-serif;cursor:pointer;vertical-align:middle;transition:background .12s ease;}
+.pa-copy:hover{background:rgba(47,143,203,0.12);}
+.pa-note{display:block;font-family:'Inter',sans-serif;font-size:11.5px;color:var(--muted);margin-top:9px;opacity:0.85;}
 .plans-contact a{color:var(--accent-2);}
 .plans-legal{text-align:center;margin:10px 0 0;font-size:11px;color:var(--muted);}
 .plans-legal a{color:var(--accent-2);cursor:pointer;}
@@ -1707,6 +1741,66 @@ body.editor-active #screen-editor{ display:block; }
   .brand{font-size:15px;}
   .cat-chip{font-size:11px;padding:5px 10px;}
   .nav-tab{font-size:12px;padding:9px 10px;}
+}
+/* ═══════════════════════════════════════════════════════
+   OPTIMIZACIÓN MÓVIL
+   Va al final para tener prioridad sobre las reglas de arriba.
+   ═══════════════════════════════════════════════════════ */
+@media (max-width:720px){
+
+  /* --- 1. Botones cómodos para el dedo (mínimo 40px de alto) --- */
+  .btn{min-height:42px; padding:10px 16px; font-size:13.5px;}
+  .btn.small{min-height:40px; padding:9px 14px; font-size:12.5px;}
+  .stats-subtab{min-height:42px; padding:10px 14px; font-size:12.5px;}
+  .cat-chip{min-height:38px; display:inline-flex; align-items:center;}
+  .nav-tab{min-height:52px;}
+
+  /* Botones chiquitos de acción (lapicito, cruz, flechas, borrar) */
+  .tag-rename-btn, .log-btn, .cal-nav, .vtag-del, .cloud-close, .notif-close,
+  .plans-close, .premove, .mremove, .bp-del, .rc-del-btn, .ex-del, .sq-del,
+  .mt-del, .mt-del-h, .mt-del-btn, .btn-del-match, .g-remove, .del-col,
+  .week-del, .scout-del, .clip-log-btn, .lt-goal, .lt-foul, .lt-card, .lt-shot{
+    min-width:36px; min-height:36px;
+    display:inline-flex; align-items:center; justify-content:center;
+  }
+
+  /* --- 2. Textos legibles (nada por debajo de 11px) --- */
+  .rd-empty, .scout-sub, .live-total-row, .live-totals-head,
+  .clip-times, .metrics-note, .sp-cat, .ni-date{font-size:11.5px !important;}
+  .lsb-team, .live-field-label, .cal-field-lbl, .ex-col{font-size:11px !important;}
+  #section-training th, #section-training .ex-col{font-size:11px !important;}
+  .cal-note{font-size:9.5px !important;}   /* excepción: el calendario necesita ser chico */
+  .hero-tools{font-size:11px !important;}
+
+  /* --- 3. Que las sub-pestañas se note que scrollean --- */
+  .stats-subnav{
+    overflow-x:auto; -webkit-overflow-scrolling:touch;
+    scrollbar-width:none; padding-bottom:4px;
+    -webkit-mask-image:linear-gradient(to right, #000 88%, transparent 100%);
+    mask-image:linear-gradient(to right, #000 88%, transparent 100%);
+  }
+  .stats-subnav::-webkit-scrollbar{display:none;}
+
+  /* --- 4. Espaciado más generoso entre elementos tocables --- */
+  .train-head-actions{gap:10px;}
+  .board-toolbar{gap:9px;}
+  .summary-actions{gap:10px;}
+
+  /* --- 5. Tablas anchas: que scrolleen dentro de su tarjeta --- */
+  .table-wrap, .annual-card{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+
+  /* --- 6. Campos de formulario cómodos --- */
+  input[type=text], input[type=number], input[type=date], input[type=email],
+  input[type=password], select, textarea{
+    min-height:42px; font-size:16px;   /* 16px evita que el iPhone haga zoom al tocar */
+  }
+  .cuarteto-input, .search{min-height:42px; font-size:16px;}
+}
+
+@media (max-width:400px){
+  .btn{padding:10px 13px; font-size:13px;}
+  .btn.small{padding:9px 11px; font-size:12px;}
+  .stats-subtab{padding:10px 11px; font-size:12px;}
 }
 </style>
 </head>
@@ -3204,6 +3298,20 @@ const SUPABASE_ANON_KEY = 'sb_publishable_kSd8QnrUeB0SvHVtWlarCA_BAYas52j';
 // Si un link queda vacío, el botón usa el WhatsApp de abajo como respaldo.
 window.__PAY = {
   // ══════════════════════════════════════════════════════════════
+  //  ▓▓▓ CÓMO ENCENDER EL COBRO (checklist) ▓▓▓
+  //
+  //  1) Completá 'whatsapp' con tu número (código país, sin + ni espacios)
+  //  2) Completá 'aliasMP' con tu alias de MercadoPago
+  //  3) Poné showPrices: true    → para que se vean los precios
+  //  4) Poné enabled: true       → ENCIENDE todo el sistema
+  //  5) En Supabase, corré:  update app_config set billing_enabled=true where id=1;
+  //
+  //  Para APAGAR todo: poné enabled: false (los datos no se pierden).
+  //
+  //  Los precios están más abajo, en 'packs'. Cambiá el número de 'ars'.
+  // ══════════════════════════════════════════════════════════════
+
+  // ══════════════════════════════════════════════════════════════
   //  INTERRUPTOR MAESTRO DEL SISTEMA DE COBRO
   //  false = TODO apagado: nadie ve carteles de vencimiento, ni
   //          precios, ni pantalla de pago. La app funciona sin límites.
@@ -3215,6 +3323,7 @@ window.__PAY = {
   enabled: false,
 
   whatsapp: '',                 // ej: '5491122334455' (código país, sin + ni espacios)
+  aliasMP: '',                  // tu alias de MercadoPago, para pagos por transferencia
   currency: 'ars',             // moneda que se MUESTRA por defecto: 'ars' (Argentina) o 'usd' (exterior)
   showPrices: false,           // ← poné true cuando quieras MOSTRAR los precios en la pantalla de planes
 
@@ -3228,9 +3337,9 @@ window.__PAY = {
       desc:'Para el DT que dirige una o dos categorías.',
       feature:'Todas las herramientas incluidas.',
       durations: [
-        { months:1,  ars:0, usd:0, mpLink:'', stripeLink:'' },
-        { months:6,  ars:0, usd:0, mpLink:'', stripeLink:'' },
-        { months:12, ars:0, usd:0, mpLink:'', stripeLink:'' }
+        { months:1, ars:18000, usd:15, mpLink:'', stripeLink:'' },
+        { months:6, ars:96000, usd:80, mpLink:'', stripeLink:'' },
+        { months:12, ars:168000, usd:140, mpLink:'', stripeLink:'' }
       ]
     },
     multi: {
@@ -3238,9 +3347,9 @@ window.__PAY = {
       desc:'Para quien maneja varias divisiones a la vez.',
       feature:'Todas las herramientas incluidas.',
       durations: [
-        { months:1,  ars:0, usd:0, mpLink:'', stripeLink:'' },
-        { months:6,  ars:0, usd:0, mpLink:'', stripeLink:'' },
-        { months:12, ars:0, usd:0, mpLink:'', stripeLink:'' }
+        { months:1, ars:22000, usd:18, mpLink:'', stripeLink:'' },
+        { months:6, ars:120000, usd:100, mpLink:'', stripeLink:'' },
+        { months:12, ars:216000, usd:180, mpLink:'', stripeLink:'' }
       ]
     },
     club: {
@@ -3248,9 +3357,9 @@ window.__PAY = {
       desc:'Para coordinadores o clubes que gestionan todas las inferiores.',
       feature:'Todas las herramientas incluidas.',
       durations: [
-        { months:1,  ars:0, usd:0, mpLink:'', stripeLink:'' },
-        { months:6,  ars:0, usd:0, mpLink:'', stripeLink:'' },
-        { months:12, ars:0, usd:0, mpLink:'', stripeLink:'' }
+        { months:1, ars:25000, usd:21, mpLink:'', stripeLink:'' },
+        { months:6, ars:132000, usd:110, mpLink:'', stripeLink:'' },
+        { months:12, ars:240000, usd:200, mpLink:'', stripeLink:'' }
       ]
     }
   },
@@ -8528,22 +8637,59 @@ try{
     document.getElementById('mpUpgrade').addEventListener('click', ()=>{ m.remove(); openPlansModal(); });
   };
 
+  // Días de gracia después del vencimiento: sigue funcionando todo, con aviso.
+  const DIAS_GRACIA = 3;
+
   function renderSubBanner(status, daysLeft){
     let banner = document.getElementById('subBanner');
-    // vencido: estado expired, o prueba/activo con días negativos
     const vencido = status === 'expired' || (daysLeft !== null && daysLeft < 0);
+    // Durante los días de gracia NO se bloquea, solo se avisa fuerte.
+    const enGracia = vencido && daysLeft !== null && daysLeft >= -DIAS_GRACIA;
+    const bloqueado = vencido && !enGracia;
     const porVencer = !vencido && daysLeft !== null && daysLeft <= 7;
-    // Si está vencido, mostramos la PANTALLA BLOQUEANTE (no puede usar nada hasta elegir pack).
-    if(vencido){
-      if(banner) banner.remove();
-      mostrarBloqueoPago();
+
+    // Limpiar estados previos
+    const bloqueoPrevio = document.getElementById('payBlockOverlay');
+    if(bloqueoPrevio) bloqueoPrevio.remove();
+    document.body.classList.remove('modo-lectura');
+
+    // ── VENCIDO Y SIN GRACIA: modo solo lectura ──
+    if(bloqueado){
+      document.body.classList.add('modo-lectura');
+      activarModoLectura();
+      if(!banner){
+        banner = document.createElement('div');
+        banner.id = 'subBanner';
+        document.body.insertBefore(banner, document.body.firstChild);
+      }
+      banner.className = 'sub-banner expired';
+      banner.innerHTML = `<span class="sb-icon">🔒</span><span class="sb-text"><b>Tu licencia expiró.</b> Podés ver y exportar todo lo que cargaste, pero no cargar datos nuevos hasta renovar.</span><button class="sb-btn" id="sbPayBtn">Renovar</button>`;
+      const pb = document.getElementById('sbPayBtn');
+      if(pb) pb.addEventListener('click', openPlansModal);
       return;
     }
-    // Si no está vencido, quitamos cualquier bloqueo previo.
-    const bloqueo = document.getElementById('payBlockOverlay');
-    if(bloqueo) bloqueo.remove();
+
+    // ── VENCIDO PERO EN DÍAS DE GRACIA: aviso fuerte, sin bloquear ──
+    if(enGracia){
+      const restantes = DIAS_GRACIA + daysLeft;   // daysLeft es negativo
+      if(!banner){
+        banner = document.createElement('div');
+        banner.id = 'subBanner';
+        document.body.insertBefore(banner, document.body.firstChild);
+      }
+      banner.className = 'sub-banner expired';
+      const txt = restantes <= 0
+        ? 'Hoy es el último día para renovar.'
+        : (restantes === 1 ? 'Te queda 1 día para renovar.' : 'Te quedan ' + restantes + ' días para renovar.');
+      banner.innerHTML = `<span class="sb-icon">⚠️</span><span class="sb-text"><b>Tu licencia expiró.</b> ${txt} Después vas a poder ver tus datos pero no cargar nuevos.</span><button class="sb-btn" id="sbPayBtn">Renovar</button>`;
+      const pb = document.getElementById('sbPayBtn');
+      if(pb) pb.addEventListener('click', openPlansModal);
+      return;
+    }
+
+    // ── AL DÍA ──
     if(!porVencer){ if(banner) banner.remove(); return; }
-    // Por vencer (<=7 días): solo el banner de aviso, no bloquea.
+    // Por vencer (<=7 días): banner de aviso suave
     if(!banner){
       banner = document.createElement('div');
       banner.id = 'subBanner';
@@ -8555,6 +8701,67 @@ try{
     const payBtn = document.getElementById('sbPayBtn');
     if(payBtn) payBtn.addEventListener('click', openPlansModal);
   }
+
+  // ─────────────────────────────────────────────────────────────
+  //  MODO SOLO LECTURA
+  //  Puede ver y exportar todo, pero no cargar ni modificar nada.
+  //  El editor de video sigue funcionando (no toca la base de datos),
+  //  salvo el guardado en la nube.
+  // ─────────────────────────────────────────────────────────────
+  function activarModoLectura(){
+    if(window.__modoLecturaActivo) return;
+    window.__modoLecturaActivo = true;
+
+    const mensaje = 'Tu licencia expiró. Renová tu plan para seguir cargando datos.';
+
+    // Selectores de todo lo que MODIFICA datos
+    const bloquear = [
+      '#addWeekBtn', '#addFechaBtn', '#openAdjBtn', '#newSeasonBtn',
+      '#saveCloudBtn', '#liveStartBtn', '#clubEscudoBtn',
+      '.btn-add-player', '.btn-new-match', '.sq-add', '.rd-add',
+      '[id^=add]', '[id^=new]', '[id^=save]',
+      '.sq-del', '.mt-del', '.week-del', '.scout-del', '.btn-del-match',
+      '.bp-del', '.rc-del-btn', '.ex-del', '.g-remove'
+    ].join(',');
+
+    function marcar(){
+      document.querySelectorAll(bloquear).forEach(el => {
+        if(el.dataset.roLock) return;
+        // No bloqueamos lo que solo exporta o navega
+        const t = (el.textContent||'').toLowerCase();
+        if(t.includes('pdf') || t.includes('excel') || t.includes('exportar')) return;
+        el.dataset.roLock = '1';
+        el.classList.add('ro-locked');
+        el.setAttribute('title', mensaje);
+      });
+      // Campos de texto en modo lectura
+      document.querySelectorAll('.section-content input, .section-content textarea, .section-content select').forEach(el => {
+        if(el.id === 'seasonSelect' || el.closest('#plansModal')) return;   // el selector de temporada sí funciona
+        el.readOnly = true;
+        if(el.tagName === 'SELECT') el.disabled = true;
+      });
+    }
+
+    // Interceptar clics en los elementos bloqueados
+    document.addEventListener('click', e => {
+      const el = e.target.closest('.ro-locked');
+      if(el){
+        e.preventDefault();
+        e.stopPropagation();
+        toast('🔒 ' + mensaje);
+      }
+    }, true);
+
+    marcar();
+    // Re-marcar cuando cambia de sección (el contenido se re-dibuja)
+    if(window.__onCategorySubscribe) window.__onCategorySubscribe(() => setTimeout(marcar, 400));
+    document.querySelectorAll('.nav-tab').forEach(t => t.addEventListener('click', () => setTimeout(marcar, 500)));
+    setInterval(marcar, 3000);   // red de seguridad para contenido que se carga después
+  }
+
+  // Expuesta para poder probar los distintos estados sin esperar a que venza de verdad.
+  // Uso desde la consola del navegador:  __probarVencimiento('active', -4)
+  window.__probarVencimiento = renderSubBanner;
 
   // Pantalla que tapa todo cuando la prueba venció: obliga a elegir un pack.
   function mostrarBloqueoPago(){
@@ -8585,6 +8792,13 @@ try{
     if(modal) modal.remove();
     const waLink = P.whatsapp ? ('https://wa.me/'+P.whatsapp+'?text='+encodeURIComponent('Hola! Quiero activar mi cuenta de Cancha Edit.')) : null;
     const contactLine = waLink ? `<p class="plans-contact">${window.t('plansContact')} <a href="${waLink}" target="_blank">WhatsApp</a></p>` : '';
+    // Si cobrás por transferencia, mostramos el alias para que puedan pagar directo
+    const aliasLine = P.aliasMP ? `<div class="plans-alias">
+        <span class="pa-label">O transferí a este alias de MercadoPago:</span>
+        <span class="pa-alias" id="plansAlias">${P.aliasMP}</span>
+        <button class="pa-copy" id="plansAliasCopy">Copiar</button>
+        <span class="pa-note">Después avisanos por WhatsApp y activamos tu cuenta.</span>
+      </div>` : '';
     const legalLine = `<p class="plans-legal">Al activar tu cuenta aceptás los <a href="#" id="plansTermsLink">términos y la política de privacidad</a>.</p>`;
 
     modal = document.createElement('div');
@@ -8600,11 +8814,20 @@ try{
         const pk = P.packs[key]; if(!pk) return;
         const badge = pk.badge ? `<span class="plan-badge">${pk.badge}</span>` : '';
         const destacado = pk.badge === 'Mejor precio' ? ' plan-featured' : '';
-        // precio "desde": el más barato de sus duraciones (si hay precios cargados)
+        // Precio de referencia: el de 1 mes (el que la gente usa para comparar),
+        // con la aclaración de que baja si paga por más tiempo.
         let desde = '';
         if(P.showPrices){
-          const conPrecio = (pk.durations||[]).filter(d=>d.ars>0);
-          if(conPrecio.length){
+          const unMes = (pk.durations||[]).find(d => d.months === 1 && d.ars > 0);
+          const conPrecio = (pk.durations||[]).filter(d => d.ars > 0);
+          if(unMes){
+            const masBarato = conPrecio.length
+              ? conPrecio.reduce((a,b) => (b.ars/b.months < a.ars/a.months ? b : a))
+              : null;
+            const hayDescuento = masBarato && (masBarato.ars/masBarato.months) < unMes.ars;
+            desde = `<span class="plan-permonth">$ ${Number(unMes.ars).toLocaleString('es-AR')}/mes</span>`
+                  + (hayDescuento ? `<span class="plan-hint">(menos si pagás 6 o 12 meses)</span>` : '');
+          } else if(conPrecio.length){
             const min = conPrecio.reduce((a,b)=> (b.ars/b.months < a.ars/a.months ? b : a));
             desde = `<span class="plan-permonth">desde $ ${Math.round(min.ars/min.months).toLocaleString('es-AR')}/mes</span>`;
           }
@@ -8613,7 +8836,7 @@ try{
         const featHtml = pk.feature ? `<span class="plan-feature">✓ ${pk.feature}</span>` : '';
         cards += `<div class="plan-card${destacado}" data-pack="${key}">${badge}<span class="plan-label">${pk.name}</span><span class="plan-note">${pk.note||''}</span>${descHtml}${featHtml}${desde}<span class="plan-go">Elegir →</span></div>`;
       });
-      modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><h2>${window.t('plansTitle')}</h2><p class="plans-sub">Elegí el pack según cuántas categorías necesitás.</p><div class="plans-grid plans-grid-3">${cards}</div>${contactLine}${legalLine}</div>`;
+      modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><h2>${window.t('plansTitle')}</h2><p class="plans-sub">Elegí el pack según cuántas categorías necesitás.</p><div class="plans-grid plans-grid-3">${cards}</div>${contactLine}${aliasLine}${legalLine}</div>`;
       wire();
       modal.querySelectorAll('.plan-card[data-pack]').forEach(c=>{
         c.addEventListener('click', ()=> renderPaso2(c.dataset.pack));
@@ -8626,18 +8849,30 @@ try{
       let cards = '';
       (pk.durations||[]).forEach(dur=>{
         const link = window.__planLink ? window.__planLink(packKey, dur) : (waLink||'#');
+        // En 1 mes el total y el mensual son lo mismo: mostramos "$ X" arriba y "$ X/mes" abajo
+        // para que la comparación entre las tres columnas sea directa.
         const priceHtml = (P.showPrices && window.__fmtPrice) ? `<span class="plan-price">${window.__fmtPrice(dur)}</span>` : '';
-        const perMonth = (P.showPrices && dur.months>1 && dur.ars) ? `<span class="plan-permonth">$ ${Math.round(dur.ars/dur.months).toLocaleString('es-AR')}/mes</span>` : '';
+        const perMonth = (P.showPrices && dur.ars) ? `<span class="plan-permonth">$ ${Math.round(dur.ars/dur.months).toLocaleString('es-AR')}/mes</span>` : '';
         const destacado = dur.months === 12 ? ' plan-featured' : '';
         cards += `<a class="plan-card${destacado}" href="${link}" target="_blank" rel="noopener"><span class="plan-label">${window.__durLabel(dur.months)}</span>${priceHtml}${perMonth}<span class="plan-go">${window.t('planGo')} →</span></a>`;
       });
-      modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><button class="plans-back" id="plansBack">← Volver a los packs</button><h2>Pack ${pk.name}</h2><p class="plans-sub">${pk.note||''} · Elegí por cuánto tiempo.</p><div class="plans-grid plans-grid-3">${cards}</div>${contactLine}${legalLine}</div>`;
+      modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><button class="plans-back" id="plansBack">← Volver a los packs</button><h2>Pack ${pk.name}</h2><p class="plans-sub">${pk.note||''} · Elegí por cuánto tiempo.</p><div class="plans-grid plans-grid-3">${cards}</div>${contactLine}${aliasLine}${legalLine}</div>`;
       wire();
       const back = document.getElementById('plansBack');
       if(back) back.addEventListener('click', renderPaso1);
     }
 
     function wire(){
+      const cp = document.getElementById('plansAliasCopy');
+      if(cp) cp.addEventListener('click', () => {
+        const al = document.getElementById('plansAlias');
+        if(!al) return;
+        try{
+          navigator.clipboard.writeText(al.textContent.trim());
+          cp.textContent = '¡Copiado!';
+          setTimeout(()=>{ cp.textContent = 'Copiar'; }, 1800);
+        }catch(e){ toast('Copiá el alias a mano: ' + al.textContent.trim()); }
+      });
       const close = document.getElementById('plansClose');
       if(close) close.addEventListener('click', ()=>modal.remove());
       const termsL = document.getElementById('plansTermsLink');
