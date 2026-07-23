@@ -504,6 +504,20 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .notif-item p{font-family:'Inter',sans-serif;font-size:12.5px;line-height:1.55;color:var(--muted);margin:0;}
 .notif-empty{font-family:'Inter',sans-serif;font-size:12.5px;color:var(--muted);padding:18px 14px;margin:0;text-align:center;}
 @media (max-width:600px){ .notif-panel{width:290px;} }
+/* En celular el panel se ancla a la pantalla, no al botón (si no, queda aplastado) */
+@media (max-width:720px){
+  .notif-wrap{position:static;}
+  .notif-panel{
+    position:fixed;
+    top:auto;
+    left:12px;
+    right:12px;
+    width:auto;
+    max-width:none;
+    margin-top:6px;
+  }
+  .notif-list{max-height:min(60vh, 380px);}
+}
 @media (max-width:900px){ .guide-grid{grid-template-columns:repeat(2,1fr);} }
 @media (max-width:620px){
   .guide-grid{grid-template-columns:1fr;}
@@ -3858,13 +3872,19 @@ window.__initEditor = function(){
 
   bell.addEventListener('click', () => {
     const abierto = panel.style.display !== 'none';
-    panel.style.display = abierto ? 'none' : 'block';
-    if(!abierto){
-      // al abrir, marcamos todo como leído
-      avisos.forEach(a => leidas.add(a.id));
-      guardarLeidas();
-      setTimeout(() => { dot.style.display = 'none'; }, 400);
+    if(abierto){ panel.style.display = 'none'; return; }
+    panel.style.display = 'block';
+    // En celular el panel es fijo: lo ubicamos justo debajo de la campanita
+    if(window.innerWidth <= 720){
+      const r = bell.getBoundingClientRect();
+      panel.style.top = Math.round(r.bottom + 6) + 'px';
+    } else {
+      panel.style.top = '';
     }
+    // al abrir, marcamos todo como leído
+    avisos.forEach(a => leidas.add(a.id));
+    guardarLeidas();
+    setTimeout(() => { dot.style.display = 'none'; }, 400);
   });
   document.getElementById('notifClose')?.addEventListener('click', () => { panel.style.display = 'none'; });
   document.addEventListener('click', e => {
