@@ -2125,6 +2125,39 @@ body.editor-active #screen-editor{ display:block; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
+   CARTEL DE ETAPA DE LANZAMIENTO (acceso gratuito) — en el login
+   Aparece debajo del título "Iniciar sesión". Usa el azul de la marca
+   (--accent-2) con un fondo suave: se lee como una novedad amable,
+   no como una alerta. Funciona igual en computadora y celular.
+   ═══════════════════════════════════════════════════════════════════════ */
+.launch-banner{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  background:rgba(47,143,203,0.12);
+  border:1px solid rgba(47,143,203,0.42);
+  border-radius:12px;
+  padding:11px 14px;
+  margin:0 0 16px;
+}
+.launch-banner-title{
+  font-weight:600;
+  font-size:14px;
+  color:var(--accent-2);
+  line-height:1.25;
+}
+.launch-banner-sub{
+  font-size:12.5px;
+  color:var(--muted);
+  line-height:1.4;
+}
+@media (max-width:720px){
+  .launch-banner{padding:10px 12px;margin-bottom:14px;}
+  .launch-banner-title{font-size:13px;}
+  .launch-banner-sub{font-size:11.5px;}
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
    ENCABEZADO Y CATEGORÍAS — SOLO CELULAR Y TABLET (hasta 1024px)
    En computadora (1025px o más) no cambia absolutamente nada.
    ═══════════════════════════════════════════════════════════════════════ */
@@ -2290,6 +2323,13 @@ body.editor-active #screen-editor{ display:block; }
 
   <div class="card">
     <h2 id="cardTitle">Iniciar sesión</h2>
+
+    <!-- Cartel de etapa de lanzamiento (acceso gratuito) -->
+    <div class="launch-banner">
+      <span class="launch-banner-title">🚀 Etapa de lanzamiento, es GRATIS!</span>
+      <span class="launch-banner-sub">Descubrí todas las herramientas. Más adelante será a un precio accesible pensado para colegas.</span>
+    </div>
+
     <p class="lead" id="cardLead">Ingresá con tu cuenta.</p>
 
     <div class="error-msg" id="errorMsg"></div>
