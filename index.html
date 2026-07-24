@@ -1065,7 +1065,19 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .item-nombre:focus,.item-grupo:focus{outline:none;border-color:var(--accent-2);}
 .item-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:6px 8px;border-radius:6px;flex-shrink:0;}
 .item-del:hover{color:var(--danger);background:rgba(240,85,63,0.12);}
-.ev-campo-grupo{font-family:'Oswald',sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--accent-2);margin:10px 0 2px;}
+.ev-campo-grupo{font-family:'Oswald',sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--accent-2);margin:14px 0 4px;}
+/* Puntuación con botones del 1 al 10 (más simple que un desplegable) */
+.ev-item-eval{margin-bottom:12px;}
+.ev-item-nombre{display:flex;align-items:center;justify-content:space-between;gap:8px;font-family:'Inter',sans-serif;font-size:13px;color:var(--chalk);margin-bottom:5px;}
+.ev-item-nota{font-family:'Oswald',sans-serif;font-size:17px;font-weight:600;color:var(--muted);min-width:22px;text-align:right;}
+.nota-botones{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;}
+.nota-btn{background:var(--bg);border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:9px 0;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;transition:all .1s ease;min-height:36px;}
+.nota-btn:hover{border-color:var(--accent-2);color:var(--chalk);}
+.nota-btn.on{background:var(--accent-2);border-color:var(--accent-2);color:#fff;font-weight:700;}
+@media (max-width:420px){
+  .nota-btn{padding:8px 0;font-size:11px;min-height:34px;}
+  .nota-botones{gap:3px;}
+}
 /* Formulario de lesiones y situaciones */
 .les-tipos{display:flex;gap:9px;}
 .les-tipo{flex:1;background:var(--bg);border:1px solid var(--line);color:var(--muted);border-radius:9px;padding:12px 10px;font-family:'Inter',sans-serif;font-size:13.5px;cursor:pointer;transition:all .15s ease;}
@@ -1359,7 +1371,17 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 
 /* Modal partidos en la nube */
 .cloud-modal-overlay{position:fixed;inset:0;background:rgba(10,15,20,0.82);display:flex;align-items:center;justify-content:center;z-index:60;padding:20px;}
-.cloud-modal{background:var(--panel);border:1px solid var(--line);border-radius:14px;width:100%;max-width:540px;max-height:80vh;display:flex;flex-direction:column;}
+.cloud-modal{background:var(--panel);border:1px solid var(--line);border-radius:14px;width:100%;max-width:540px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;}
+/* El contenido del modal scrollea; el encabezado y los botones quedan fijos */
+.cloud-modal > div:not(.cloud-modal-head){overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0;}
+.cloud-modal .summary-actions{
+  position:sticky; bottom:0;
+  background:var(--panel);
+  padding:12px 0 4px;
+  margin-top:14px !important;
+  border-top:1px solid var(--line);
+  z-index:2;
+}
 .cloud-modal-head{display:flex;justify-content:space-between;align-items:center;padding:20px 22px;border-bottom:1px solid var(--line);}
 .cloud-modal-head h3{font-family:'Oswald',sans-serif;font-size:18px;text-transform:uppercase;letter-spacing:0.5px;margin:0;}
 .cloud-close{border:none;background:transparent;color:var(--muted);font-size:20px;cursor:pointer;}
@@ -9207,12 +9229,15 @@ window.__initEditor = function(){
         grupoActual = item.grupo;
         campos += `<div class="ev-campo-grupo">${escapeHtml(grupoActual)}</div>`;
       }
-      const val = puntajes[item.id] != null ? puntajes[item.id] : '';
-      let opts = '<option value="">—</option>';
-      for(let i = 1; i <= 10; i++) opts += `<option value="${i}"${String(val)===String(i)?' selected':''}>${i}</option>`;
-      campos += `<div class="ev-campo">
-        <label>${escapeHtml(item.nombre)}</label>
-        <select data-ev="${item.id}">${opts}</select>
+      const val = puntajes[item.id] != null ? String(puntajes[item.id]) : '';
+      // Botones del 1 al 10: se toca el número, sin desplegables
+      let botones = '';
+      for(let i = 1; i <= 10; i++){
+        botones += `<button type="button" class="nota-btn${val===String(i)?' on':''}" data-item="${item.id}" data-nota="${i}">${i}</button>`;
+      }
+      campos += `<div class="ev-item-eval" data-item-id="${item.id}" data-valor="${val}">
+        <div class="ev-item-nombre">${escapeHtml(item.nombre)}<span class="ev-item-nota">${val || '—'}</span></div>
+        <div class="nota-botones">${botones}</div>
       </div>`;
     });
     m.innerHTML = `
@@ -9237,10 +9262,31 @@ window.__initEditor = function(){
     document.getElementById('evalClose').addEventListener('click', cerrar);
     m.addEventListener('click', e => { if(e.target === m) cerrar(); });
 
+    // Tocar un número lo marca; tocarlo de nuevo lo borra
+    m.querySelectorAll('.nota-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        const fila = b.closest('.ev-item-eval');
+        const nota = b.dataset.nota;
+        const yaEstaba = fila.dataset.valor === nota;
+        fila.querySelectorAll('.nota-btn').forEach(x => x.classList.remove('on'));
+        if(yaEstaba){
+          fila.dataset.valor = '';
+          fila.querySelector('.ev-item-nota').textContent = '—';
+          fila.querySelector('.ev-item-nota').style.color = '';
+        } else {
+          b.classList.add('on');
+          fila.dataset.valor = nota;
+          const el = fila.querySelector('.ev-item-nota');
+          el.textContent = nota;
+          el.style.color = colorNota(Number(nota));
+        }
+      });
+    });
+
     document.getElementById('evalSave').addEventListener('click', async () => {
       const nuevos = {};
-      m.querySelectorAll('[data-ev]').forEach(sel => {
-        if(sel.value) nuevos[sel.dataset.ev] = parseInt(sel.value, 10);
+      m.querySelectorAll('.ev-item-eval').forEach(fila => {
+        if(fila.dataset.valor) nuevos[fila.dataset.itemId] = parseInt(fila.dataset.valor, 10);
       });
       const payload = {
         club_id: await window.__getClubId(),
