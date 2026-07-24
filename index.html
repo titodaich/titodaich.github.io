@@ -436,6 +436,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .promo-group.open .promo-arrow{transform:rotate(180deg);}
 .promo-years{display:flex;flex-wrap:wrap;gap:6px;padding-left:10px;border-left:2px solid var(--line);margin-left:6px;}
 .promo-year{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0;}
+.promo-year-wrap{display:inline-flex;align-items:center;gap:2px;}
+.promo-edit{background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;padding:4px 5px;border-radius:5px;opacity:0.55;transition:opacity .12s ease, color .12s ease;}
+.promo-edit:hover{opacity:1;color:var(--accent-2);background:rgba(47,143,203,0.12);}
+@media (hover:none),(pointer:coarse){ .promo-edit{opacity:1;min-width:30px;min-height:30px;display:inline-flex;align-items:center;justify-content:center;} }
 .cat-chip:hover{border-color:var(--accent-2);color:var(--chalk);}
 .cat-chip.active{background:var(--accent-2);border-color:var(--accent-2);color:#10161C;box-shadow:0 2px 10px rgba(47,143,203,0.35);}
 .cat-chip.locked{opacity:0.55;border-style:dashed;}
@@ -3768,6 +3772,7 @@ async function guardarPerfil(userId, email, perfil){
       showEditor();
       if(window.__startMetrics) window.__startMetrics();
       if(window.__cargarTemporadas) setTimeout(window.__cargarTemporadas, 500);
+      if(window.__cargarPromoAnios) setTimeout(window.__cargarPromoAnios, 900);
       if(window.__cargarNotificaciones) setTimeout(window.__cargarNotificaciones, 800);
     }
   }catch(err){ console.error(err); }
@@ -3835,6 +3840,7 @@ form.addEventListener('submit', async (e) => {
       showEditor();
       if(window.__startMetrics) window.__startMetrics();
       if(window.__cargarTemporadas) setTimeout(window.__cargarTemporadas, 500);
+      if(window.__cargarPromoAnios) setTimeout(window.__cargarPromoAnios, 900);
       if(window.__cargarNotificaciones) setTimeout(window.__cargarNotificaciones, 800);
     } else {
       // Sin sesión (requiere confirmar email). Guardamos lo posible igual.
@@ -3864,6 +3870,7 @@ form.addEventListener('submit', async (e) => {
     showEditor();
     if(window.__startMetrics) window.__startMetrics();
       if(window.__cargarTemporadas) setTimeout(window.__cargarTemporadas, 500);
+      if(window.__cargarPromoAnios) setTimeout(window.__cargarPromoAnios, 900);
       if(window.__cargarNotificaciones) setTimeout(window.__cargarNotificaciones, 800);
   }
 });
@@ -4147,6 +4154,7 @@ window.__initEditor = function(){
   function avisar(){
     subs.forEach(fn => { try{ fn(temporadaActiva); }catch(e){ console.error(e); } });
     // recargar todas las secciones (usan el mismo mecanismo que el cambio de categoría)
+    if(window.__cargarPromoAnios) window.__cargarPromoAnios();   // cada temporada tiene sus años de Promo
     if(window.__notifyReload) window.__notifyReload();
     if(window.__refrescarCalendarioPartidos) window.__refrescarCalendarioPartidos();
   }
@@ -4307,10 +4315,71 @@ window.__initEditor = function(){
   // Categorías: las fijas más el grupo "Promo", que agrupa años de nacimiento.
   // Promo NO es una categoría en sí: es un título que despliega sus años.
   const CATEGORIAS_BASE = ['1era', '3era', '4ta', '5ta', '6ta', '7ma', '8va'];
-  const PROMO_ANIOS = ['2016', '2017', '2018', '2019'];
-  const FIXED_CATEGORIES = CATEGORIAS_BASE.concat(PROMO_ANIOS);
+  const PROMO_DEFAULT = ['2016', '2017', '2018', '2019'];
+  let PROMO_ANIOS = PROMO_DEFAULT.slice();   // se puede editar (se guarda por club y temporada)
   let promoAbierto = false;
-  let activeCategory = FIXED_CATEGORIES[0];
+  let activeCategory = CATEGORIAS_BASE[0];
+
+  // Cargar los años de Promo guardados para esta temporada
+  async function cargarPromoAnios(){
+    try{
+      const sb = window.__sb;
+      const clubId = window.__clubIdCache || (window.__getClubId ? await window.__getClubId() : null);
+      if(!sb || !clubId) return;
+      const { data } = await sb.from('clubs').select('promo_categorias').eq('id', clubId).single();
+      const temp = String(window.__getTemporada ? window.__getTemporada() : new Date().getFullYear());
+      const guardadas = data && data.promo_categorias && data.promo_categorias[temp];
+      if(Array.isArray(guardadas) && guardadas.length){
+        PROMO_ANIOS = guardadas.slice(0, 4);
+        renderChips();
+      }
+    }catch(e){ /* si falla, quedan los años por defecto */ }
+  }
+  window.__cargarPromoAnios = cargarPromoAnios;
+
+  // Guardar los años de Promo de esta temporada
+  async function guardarPromoAnios(){
+    try{
+      const sb = window.__sb;
+      const clubId = window.__clubIdCache || (window.__getClubId ? await window.__getClubId() : null);
+      if(!sb || !clubId) return false;
+      const temp = String(window.__getTemporada ? window.__getTemporada() : new Date().getFullYear());
+      const { data } = await sb.from('clubs').select('promo_categorias').eq('id', clubId).single();
+      const actual = (data && data.promo_categorias) || {};
+      actual[temp] = PROMO_ANIOS;
+      const { error } = await sb.from('clubs').update({ promo_categorias: actual }).eq('id', clubId);
+      if(error){
+        const msg = (error.message||'').toLowerCase();
+        if(msg.includes('promo_categorias') || msg.includes('column')){
+          toast('Falta preparar la base: corré el SQL de Promo en Supabase');
+        }
+        return false;
+      }
+      return true;
+    }catch(e){ console.error('guardar promo', e); return false; }
+  }
+
+  // Renombra una categoría de Promo Y todos sus datos asociados
+  async function renombrarPromo(viejo, nuevo){
+    const sb = window.__sb;
+    const clubId = window.__clubIdCache || (window.__getClubId ? await window.__getClubId() : null);
+    if(!sb || !clubId){ toast('Sin conexión'); return false; }
+    const temporada = window.__getTemporada ? window.__getTemporada() : null;
+    // Todas las tablas que guardan datos por categoría
+    const TABLAS = ['players','stat_matches','training_weeks','scouting','live_sessions',
+                    'calendar_notes','board_plays','stat_adjustments','video_projects','goal_origins'];
+    let fallos = 0;
+    for(const tabla of TABLAS){
+      try{
+        let q = sb.from(tabla).update({ categoria: nuevo }).eq('club_id', clubId).eq('categoria', viejo);
+        if(temporada && tabla !== 'goal_origins') q = q.eq('temporada', temporada);
+        const { error } = await q;
+        if(error) fallos++;
+      }catch(e){ fallos++; }
+    }
+    if(fallos > 0) console.warn('renombrarPromo: ' + fallos + ' tabla(s) sin actualizar');
+    return true;
+  }
 
   const chipsEl = document.getElementById('catChips');
 
@@ -4375,10 +4444,50 @@ window.__initEditor = function(){
     if(promoAbierto || hayPromoActiva){
       const lista = document.createElement('div');
       lista.className = 'promo-years';
-      PROMO_ANIOS.forEach(anio => lista.appendChild(crearChip(anio, 'promo-year')));
+      PROMO_ANIOS.forEach((anio, idx) => {
+        const cont = document.createElement('div');
+        cont.className = 'promo-year-wrap';
+        cont.appendChild(crearChip(anio, 'promo-year'));
+        const lapiz = document.createElement('button');
+        lapiz.className = 'promo-edit';
+        lapiz.innerHTML = '✎';
+        lapiz.title = 'Renombrar esta categoría';
+        lapiz.addEventListener('click', (e) => { e.stopPropagation(); editarPromo(idx); });
+        cont.appendChild(lapiz);
+        lista.appendChild(cont);
+      });
       grupo.appendChild(lista);
     }
     chipsEl.appendChild(grupo);
+  }
+
+  // Renombrar una categoría de Promo (y sus datos)
+  async function editarPromo(idx){
+    const viejo = PROMO_ANIOS[idx];
+    const nuevo = prompt(
+      'Renombrar la categoría "' + viejo + '"\n\n' +
+      'Los datos que tenga cargados (jugadores, partidos, planificaciones)\n' +
+      'se van a mover al nombre nuevo.',
+      viejo
+    );
+    if(nuevo === null) return;
+    const limpio = nuevo.trim();
+    if(!limpio){ toast('El nombre no puede quedar vacío'); return; }
+    if(limpio === viejo) return;
+    if(PROMO_ANIOS.includes(limpio) || CATEGORIAS_BASE.includes(limpio)){
+      toast('Ya existe una categoría con ese nombre');
+      return;
+    }
+    toast('Renombrando…');
+    await renombrarPromo(viejo, limpio);
+    PROMO_ANIOS[idx] = limpio;
+    if(activeCategory === viejo) activeCategory = limpio;
+    const ok = await guardarPromoAnios();
+    renderChips();
+    if(ok){
+      toast('Categoría renombrada a "' + limpio + '"');
+      notifyCategoryChange(activeCategory);
+    }
   }
 
   function selectCategory(cat){
