@@ -1040,6 +1040,24 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .ev-prom b{font-family:'Oswald',sans-serif;font-size:16px;}
 .ev-obs{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-family:'Inter',sans-serif;font-size:12.5px;line-height:1.6;color:var(--muted);}
 .ev-obs b{color:var(--chalk);}
+/* Selector de posiciones */
+.pos-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.pos-btn{background:var(--bg);border:1px solid var(--line);color:var(--muted);border-radius:9px;padding:14px 10px;font-family:'Oswald',sans-serif;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;cursor:pointer;transition:all .15s ease;}
+.pos-btn:hover{border-color:var(--accent-2);color:var(--chalk);}
+.pos-btn.selected{background:rgba(47,143,203,0.18);border-color:var(--accent-2);color:var(--accent-2);}
+/* Botones de pierna hábil */
+.pierna-opciones{display:flex;gap:9px;}
+.pierna-btn{flex:1;background:var(--bg);border:1px solid var(--line);color:var(--muted);border-radius:9px;padding:12px 10px;font-family:'Oswald',sans-serif;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;cursor:pointer;transition:all .15s ease;}
+.pierna-btn:hover{border-color:var(--accent-2);color:var(--chalk);}
+.pierna-btn.selected{background:rgba(47,143,203,0.18);border-color:var(--accent-2);color:var(--accent-2);}
+/* Seguimiento individual */
+.seg-bloques{display:flex;flex-direction:column;gap:11px;}
+.seg-bloque{background:var(--bg);border:1px solid var(--line);border-left:3px solid var(--line);border-radius:0 9px 9px 0;padding:12px 14px;}
+.seg-bloque.con-texto{border-left-color:var(--accent-2);}
+.seg-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px;}
+.seg-titulo{font-family:'Oswald',sans-serif;font-size:12.5px;text-transform:uppercase;letter-spacing:0.6px;color:var(--chalk);}
+.seg-texto{font-family:'Inter',sans-serif;font-size:13px;line-height:1.65;color:var(--chalk);opacity:0.92;margin:0;white-space:pre-wrap;}
+.seg-vacio{font-family:'Inter',sans-serif;font-size:12.5px;color:var(--muted);font-style:italic;margin:0;opacity:0.7;}
 /* Modal de evaluación */
 .ev-campos{display:flex;flex-direction:column;gap:9px;}
 .ev-campo{display:flex;align-items:center;gap:10px;}
@@ -4440,6 +4458,8 @@ window.__initEditor = function(){
 
   // La categoría activa se expone globalmente para que las secciones la usen.
   window.__getActiveCategory = () => activeCategory;
+  // ¿Esta categoría pertenece al grupo Promo? (los años de nacimiento)
+  window.__esCategoriaPromo = (cat) => PROMO_ANIOS.includes(cat || activeCategory);
 
   // ── Packs: qué categorías tiene "ocupadas" esta cuenta y cuál es su límite ──
   // Se llena desde la nube (tabla clubs). Mientras el cobro esté apagado, no limita.
@@ -5727,6 +5747,33 @@ window.__initEditor = function(){
   // Coordenadas (%) por rol. Cancha vertical: arco propio abajo (y alto), arco rival arriba (y bajo).
   // Formación futsal 1-2-1: arquero abajo, cierre delante, dos alas en los laterales, pivot arriba.
   function slotsForField(enCancha){
+    // ── PROMO: no hay posiciones fijas ──
+    // Los chicos rotan por todos los puestos, así que los repartimos parejo
+    // en la cancha, sin encimarse, sin importar qué posición tengan cargada.
+    const cat = (window.__getActiveCategory && window.__getActiveCategory()) || '';
+    const esPromo = window.__esCategoriaPromo ? window.__esCategoriaPromo(cat) : false;
+    if(esPromo){
+      // Repartos armados a mano para que queden bien separados según cuántos haya
+      const REPARTOS = {
+        1: [{x:50,y:52}],
+        2: [{x:32,y:52},{x:68,y:52}],
+        3: [{x:50,y:78},{x:28,y:38},{x:72,y:38}],
+        4: [{x:50,y:82},{x:26,y:52},{x:74,y:52},{x:50,y:20}],
+        5: [{x:50,y:86},{x:24,y:58},{x:76,y:58},{x:34,y:22},{x:66,y:22}],
+        6: [{x:50,y:88},{x:22,y:64},{x:78,y:64},{x:50,y:46},{x:28,y:20},{x:72,y:20}],
+        7: [{x:50,y:88},{x:20,y:68},{x:80,y:68},{x:34,y:46},{x:66,y:46},{x:28,y:18},{x:72,y:18}],
+        8: [{x:50,y:90},{x:20,y:70},{x:80,y:70},{x:32,y:50},{x:68,y:50},{x:24,y:26},{x:76,y:26},{x:50,y:12}]
+      };
+      const n = enCancha.length;
+      const base = REPARTOS[Math.min(n, 8)] || REPARTOS[8];
+      return enCancha.map((p, i) => ({
+        p,
+        slot: base[i % base.length],
+        role: 'promo'
+      }));
+    }
+
+    // ── Resto de las categorías: formación futsal por rol ──
     // Posiciones "ideales" por rol en la cancha
     const POS = {
       arquero: {x:50, y:92},   // en el arco (abajo del todo)
@@ -7251,6 +7298,71 @@ window.__initEditor = function(){
   document.getElementById('clubEscudoBtn')?.addEventListener('click', subirEscudoClub);
   window.__cargarEscudoClub = cargarEscudoClub;
 
+  // ── Selector de posiciones ──
+  // En Promo se pueden elegir varias (los chicos rotan por todos los puestos).
+  // En el resto, una sola.
+  const POSICIONES = ['Arquero', 'Cierre', 'Ala', 'Pivot'];
+
+  function elegirPosicion(actual, callback){
+    const esPromo = window.__esCategoriaPromo ? window.__esCategoriaPromo() : false;
+    const elegidas = (actual || '').split(/[,/]/).map(s => s.trim()).filter(Boolean);
+    let m = document.getElementById('posModal');
+    if(m) m.remove();
+    m = document.createElement('div');
+    m.id = 'posModal';
+    m.className = 'cloud-modal-overlay';
+    m.style.display = 'flex';
+    const botones = POSICIONES.map(pos => {
+      const on = elegidas.some(e => e.toLowerCase() === pos.toLowerCase());
+      return `<button class="pos-btn${on ? ' selected' : ''}" data-pos="${pos}">${pos}</button>`;
+    }).join('');
+    m.innerHTML = `
+      <div class="cloud-modal" style="max-width:380px;">
+        <div class="cloud-modal-head">
+          <h3>Posición</h3>
+          <button class="cloud-close" id="posClose">✕</button>
+        </div>
+        <div style="padding:4px 2px;">
+          <p class="rd-empty" style="margin-bottom:12px;">${esPromo
+            ? 'En Promo podés elegir más de una: los chicos rotan por todos los puestos.'
+            : 'Elegí la posición del jugador.'}</p>
+          <div class="pos-grid">${botones}</div>
+          <div class="summary-actions" style="margin-top:16px;">
+            <button class="btn small" id="posSkip">Sin posición</button>
+            <button class="btn small primary" id="posSave">Guardar</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(m);
+
+    let seleccion = elegidas.slice();
+    m.querySelectorAll('.pos-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        const pos = b.dataset.pos;
+        const idx = seleccion.findIndex(s => s.toLowerCase() === pos.toLowerCase());
+        if(esPromo){
+          // varias: alterna
+          if(idx >= 0){ seleccion.splice(idx, 1); b.classList.remove('selected'); }
+          else { seleccion.push(pos); b.classList.add('selected'); }
+        } else {
+          // una sola: reemplaza
+          if(idx >= 0){ seleccion = []; b.classList.remove('selected'); }
+          else {
+            seleccion = [pos];
+            m.querySelectorAll('.pos-btn').forEach(x => x.classList.remove('selected'));
+            b.classList.add('selected');
+          }
+        }
+      });
+    });
+
+    const cerrar = () => m.remove();
+    document.getElementById('posClose').addEventListener('click', () => { cerrar(); callback(null); });
+    m.addEventListener('click', e => { if(e.target === m){ cerrar(); callback(null); } });
+    document.getElementById('posSkip').addEventListener('click', () => { cerrar(); callback(''); });
+    document.getElementById('posSave').addEventListener('click', () => { cerrar(); callback(seleccion.join(', ')); });
+  }
+
   function renderSquad(){
     const el = document.getElementById('squadList');
     if(squad.length === 0){
@@ -7277,20 +7389,21 @@ window.__initEditor = function(){
         if(!name.trim()){ toast(window.t('mNameEmpty')); return; }
         const number = prompt(window.t('mNumOpt'), p.number || '');
         if(number === null) return;
-        const position = prompt(window.t('mPosOpt'), p.position || '');
-        if(position === null) return;
-        const sb = window.__sb;
-        // actualizar en la nube
-        if(sb && !String(p.id).startsWith('tmp')){
-          try{
-            const { error } = await sb.from('players').update({ name:name.trim(), number, position }).eq('id', p.id);
-            if(error){ toast(window.t('mSaveErr')); return; }
-          }catch(e){ console.error(e); toast(window.t('mSaveErr')); return; }
-        }
-        // actualizar en memoria
-        p.name = name.trim(); p.number = number; p.position = position;
-        renderSquad();
-        toast(window.t('mPlayerUpd'));
+        elegirPosicion(p.position || '', async (position) => {
+          if(position === null) return;   // canceló
+          const sb = window.__sb;
+          // actualizar en la nube
+          if(sb && !String(p.id).startsWith('tmp')){
+            try{
+              const { error } = await sb.from('players').update({ name:name.trim(), number, position }).eq('id', p.id);
+              if(error){ toast(window.t('mSaveErr')); return; }
+            }catch(e){ console.error(e); toast(window.t('mSaveErr')); return; }
+          }
+          // actualizar en memoria
+          p.name = name.trim(); p.number = number; p.position = position;
+          renderSquad();
+          toast(window.t('mPlayerUpd'));
+        });
       });
       card.querySelector('.sq-del').addEventListener('click', async () => {
         if(!confirm('¿Quitar a '+p.name+' del plantel?')) return;
@@ -7306,7 +7419,13 @@ window.__initEditor = function(){
     const name = prompt(window.t('mPlayerName'));
     if(!name || !name.trim()) return;
     const number = prompt(window.t('mNumOpt')) || '';
-    const position = prompt(window.t('mPosOpt')) || '';
+    elegirPosicion('', async (position) => {
+      if(position === null) return;   // canceló
+      await guardarNuevoJugador(name, number, position);
+    });
+  });
+
+  async function guardarNuevoJugador(name, number, position){
     const sb = window.__sb;
     if(!sb || !clubId){ toast(window.t('mNoConn')); return; }
     try{
@@ -7324,7 +7443,7 @@ window.__initEditor = function(){
       squad.push({ id:data.id, name:data.name, number:data.number||'', position:data.position||'' });
       renderSquad();
     }catch(e){ console.error(e); }
-  });
+  }
 
   // ========== PARTIDOS ==========
   function matchScore(m){ return { f:(m.goalsFor||[]).length, a:(m.goalsAgainst||[]).length }; }
@@ -8340,6 +8459,9 @@ window.__initEditor = function(){
     // Si todavía no hay partidos, igual mostramos la ficha:
     // los datos personales, lesiones y evaluaciones no dependen de haber jugado.
     const sinPartidos = ms.length === 0;
+    // Evaluaciones y seguimiento son herramientas de formativas.
+    // En Primera (plantel profesional/mayor) no se muestran.
+    const esFormativa = catActual() !== '1era';
 
     // ---- Cabecera con foto ----
     const cabecera = `
@@ -8425,16 +8547,24 @@ window.__initEditor = function(){
     const extras = `
       <div class="pc-extra" id="pcPersonal"></div>
       <div class="pc-extra" id="pcLesiones"></div>
-      <div class="pc-extra" id="pcEvals"></div>`;
+      ${esFormativa ? '<div class="pc-extra" id="pcEvals"></div>' : ''}`;
+    // El seguimiento va al final de todo (solo en formativas)
+    const seguimientoBox = esFormativa ? `<div class="pc-extra" id="pcSeguimiento"></div>` : '';
 
     const avisoSinPartidos = sinPartidos
       ? '<div class="annual-empty" style="margin-bottom:16px;">Todavía no cargaste partidos en esta categoría. Las estadísticas y los gráficos van a aparecer cuando cargues el primero.</div>'
       : '';
-    cont2.innerHTML = cabecera + (sinPartidos ? avisoSinPartidos : resumen) + extras + (sinPartidos ? '' : (barsChart + lineChart));
+    cont2.innerHTML = cabecera + (sinPartidos ? avisoSinPartidos : resumen) + extras
+                    + (sinPartidos ? '' : (barsChart + lineChart))
+                    + seguimientoBox;
     // Cargar las secciones nuevas (son asíncronas, se llenan solas)
     renderDatosPersonales(player);
     renderLesiones(player);
-    renderEvaluaciones(player);
+    // Las evaluaciones y el seguimiento son de formativas: en 1era no aplican
+    if(esFormativa){
+      renderEvaluaciones(player);
+      renderSeguimiento(player);
+    }
     // Enganchar el botón de foto de la ficha
     const photoBtn = cont2.querySelector('.pc-photo-btn');
     if(photoBtn){
@@ -8448,7 +8578,7 @@ window.__initEditor = function(){
   //  DATOS PERSONALES · LESIONES · EVALUACIONES
   // ═══════════════════════════════════════════════════════════
 
-  const PIERNAS = { derecha:'Derecha', izquierda:'Izquierda', ambas:'Ambas' };
+  const PIERNAS = { derecha:'Derecha', izquierda:'Izquierda' };
 
   function renderDatosPersonales(player){
     const box = document.getElementById('pcPersonal');
@@ -8477,35 +8607,84 @@ window.__initEditor = function(){
     document.getElementById('pcEditPersonal')?.addEventListener('click', () => editarDatosPersonales(player));
   }
 
-  async function editarDatosPersonales(player){
-    const p1 = prompt('Pierna hábil\n\nEscribí: derecha, izquierda o ambas', player.pierna || '');
-    if(p1 === null) return;
-    const pierna = p1.trim().toLowerCase();
-    if(pierna && !PIERNAS[pierna]){ toast('Escribí: derecha, izquierda o ambas'); return; }
-    const p2 = prompt('Fecha de nacimiento (formato AAAA-MM-DD)\n\nDejalo vacío si no lo sabés.', player.nacimiento || '');
-    if(p2 === null) return;
-    const nac = p2.trim();
-    if(nac && !/^\d{4}-\d{2}-\d{2}$/.test(nac)){ toast('La fecha va como 2010-05-23'); return; }
-    const p3 = prompt('Notas sobre el jugador (opcional)', player.notas || '');
-    if(p3 === null) return;
-    try{
-      const sb = window.__sb;
-      const { error } = await sb.from('players').update({
-        pierna: pierna || null,
-        nacimiento: nac || null,
-        notas: p3.trim() || null
-      }).eq('id', player.id);
-      if(error) throw error;
-      player.pierna = pierna || null;
-      player.nacimiento = nac || null;
-      player.notas = p3.trim() || null;
-      renderDatosPersonales(player);
-      toast('Datos guardados');
-    }catch(e){
-      console.error(e);
-      const msg = (e.message||'').toLowerCase();
-      toast(msg.includes('column') ? 'Falta preparar la base: corré el SQL de la ficha' : 'No se pudo guardar');
-    }
+  function editarDatosPersonales(player){
+    let m = document.getElementById('datosModal');
+    if(m) m.remove();
+    m = document.createElement('div');
+    m.id = 'datosModal';
+    m.className = 'cloud-modal-overlay';
+    m.style.display = 'flex';
+    const actual = player.pierna || '';
+    m.innerHTML = `
+      <div class="cloud-modal" style="max-width:400px;">
+        <div class="cloud-modal-head">
+          <h3>👤 ${escapeHtml(player.name || 'Jugador')}</h3>
+          <button class="cloud-close" id="datosClose">✕</button>
+        </div>
+        <div style="padding:4px 2px;">
+          <label class="cal-field-lbl">Pierna hábil</label>
+          <div class="pierna-opciones">
+            <button class="pierna-btn${actual==='derecha'?' selected':''}" data-pierna="derecha">Derecha</button>
+            <button class="pierna-btn${actual==='izquierda'?' selected':''}" data-pierna="izquierda">Izquierda</button>
+          </div>
+
+          <label class="cal-field-lbl" style="margin-top:14px;">Fecha de nacimiento</label>
+          <input type="date" id="datosNac" class="cuarteto-input" style="width:100%;" value="${player.nacimiento || ''}">
+
+          <label class="cal-field-lbl" style="margin-top:14px;">Notas</label>
+          <textarea id="datosNotas" class="cuarteto-input" rows="3" style="width:100%;resize:vertical;">${escapeHtml(player.notas || '')}</textarea>
+
+          <div class="summary-actions" style="margin-top:16px;">
+            <button class="btn small" id="datosCancel">Cancelar</button>
+            <button class="btn small primary" id="datosSave">Guardar</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(m);
+
+    let piernaElegida = actual;
+    m.querySelectorAll('.pierna-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        // Tocar la que ya está elegida la deselecciona
+        if(piernaElegida === b.dataset.pierna){
+          piernaElegida = '';
+          b.classList.remove('selected');
+          return;
+        }
+        piernaElegida = b.dataset.pierna;
+        m.querySelectorAll('.pierna-btn').forEach(x => x.classList.remove('selected'));
+        b.classList.add('selected');
+      });
+    });
+
+    const cerrar = () => m.remove();
+    document.getElementById('datosClose').addEventListener('click', cerrar);
+    document.getElementById('datosCancel').addEventListener('click', cerrar);
+    m.addEventListener('click', e => { if(e.target === m) cerrar(); });
+
+    document.getElementById('datosSave').addEventListener('click', async () => {
+      const nac = document.getElementById('datosNac').value || null;
+      const notas = document.getElementById('datosNotas').value.trim() || null;
+      try{
+        const sb = window.__sb;
+        const { error } = await sb.from('players').update({
+          pierna: piernaElegida || null,
+          nacimiento: nac,
+          notas: notas
+        }).eq('id', player.id);
+        if(error) throw error;
+        player.pierna = piernaElegida || null;
+        player.nacimiento = nac;
+        player.notas = notas;
+        cerrar();
+        renderDatosPersonales(player);
+        toast('Datos guardados');
+      }catch(e){
+        console.error(e);
+        const msg = (e.message||'').toLowerCase();
+        toast(msg.includes('column') ? 'Falta preparar la base: corré el SQL de la ficha' : 'No se pudo guardar');
+      }
+    });
   }
 
   // ---------- Lesiones y situaciones especiales ----------
@@ -8591,6 +8770,7 @@ window.__initEditor = function(){
     { key:'lectura_ofensiva',      grupo:'Táctica',      nombre:'Lectura ofensiva' },
     { key:'lectura_defensiva',     grupo:'Táctica',      nombre:'Lectura defensiva' },
     { key:'tecnica_individual',    grupo:'Táctica',      nombre:'Técnica individual' },
+    { key:'pierna_inhabil',        grupo:'Táctica',      nombre:'Pierna inhábil' },
     { key:'compromiso',            grupo:'Actitudinal',  nombre:'Compromiso' },
     { key:'actitud_entrenamiento', grupo:'Actitudinal',  nombre:'Actitud en el entrenamiento' },
     { key:'atencion',              grupo:'Actitudinal',  nombre:'Atención' },
@@ -8757,6 +8937,115 @@ window.__initEditor = function(){
         await sb.from('player_evals').delete().eq('id', actual.id);
         cerrar();
         renderEvaluaciones(player);
+      }catch(e){ toast('No se pudo borrar'); }
+    });
+  }
+
+  // ---------- Seguimiento individual (texto libre, 3 trimestres) ----------
+  async function renderSeguimiento(player){
+    const box = document.getElementById('pcSeguimiento');
+    if(!box) return;
+    box.innerHTML = `<div class="pc-card"><div class="pc-card-head"><h3>📝 Seguimiento individual</h3></div><p class="rd-empty">Cargando…</p></div>`;
+    let segs = [];
+    try{
+      const sb = window.__sb; const clubId = await window.__getClubId();
+      const temp = window.__getTemporada ? window.__getTemporada() : new Date().getFullYear();
+      const { data } = await sb.from('player_followups').select('*')
+        .eq('club_id', clubId).eq('player_id', player.id).eq('temporada', temp)
+        .order('trimestre');
+      segs = data || [];
+    }catch(e){ segs = []; }
+
+    const porTrim = {};
+    segs.forEach(s => { porTrim[s.trimestre] = s; });
+
+    const bloques = [1,2,3].map(t => {
+      const s = porTrim[t];
+      const tieneTexto = s && s.texto && s.texto.trim();
+      return `<div class="seg-bloque${tieneTexto ? ' con-texto' : ''}">
+        <div class="seg-head">
+          <span class="seg-titulo">${t}° trimestre</span>
+          <button class="btn small seg-btn" data-trim="${t}">${tieneTexto ? '✎ Editar' : '+ Escribir'}</button>
+        </div>
+        ${tieneTexto
+          ? `<p class="seg-texto">${escapeHtml(s.texto).replace(/\n/g,'<br>')}</p>`
+          : '<p class="seg-vacio">Todavía no escribiste el seguimiento de este trimestre.</p>'}
+      </div>`;
+    }).join('');
+
+    box.innerHTML = `
+      <div class="pc-card">
+        <div class="pc-card-head">
+          <h3>📝 Seguimiento individual ${window.__getTemporada ? window.__getTemporada() : ''}</h3>
+        </div>
+        <p class="rd-empty" style="margin-bottom:14px;">Anotá cómo viene el jugador: qué mejoró, qué hay que trabajar, cómo lo ves.</p>
+        <div class="seg-bloques">${bloques}</div>
+      </div>`;
+
+    box.querySelectorAll('.seg-btn').forEach(b =>
+      b.addEventListener('click', () => editarSeguimiento(player, parseInt(b.dataset.trim,10), porTrim[b.dataset.trim]))
+    );
+  }
+
+  function editarSeguimiento(player, trimestre, actual){
+    let m = document.getElementById('segModal');
+    if(m) m.remove();
+    m = document.createElement('div');
+    m.id = 'segModal';
+    m.className = 'cloud-modal-overlay';
+    m.style.display = 'flex';
+    m.innerHTML = `
+      <div class="cloud-modal" style="max-width:480px;">
+        <div class="cloud-modal-head">
+          <h3>📝 ${trimestre}° trimestre · ${escapeHtml(player.name||'')}</h3>
+          <button class="cloud-close" id="segClose">✕</button>
+        </div>
+        <div style="padding:4px 2px;">
+          <p class="rd-empty" style="margin-bottom:10px;">Escribí libremente: evolución, fortalezas, qué trabajar, objetivos.</p>
+          <textarea id="segTexto" class="cuarteto-input" rows="9" style="width:100%;resize:vertical;line-height:1.6;" placeholder="Ej: Mejoró mucho en la salida bajo presión. Sigue costándole la marca a cambio. Objetivo del trimestre: ganar en agresividad defensiva."></textarea>
+          <div class="summary-actions" style="margin-top:14px;">
+            ${actual ? '<button class="btn small" id="segDel">Borrar</button>' : ''}
+            <button class="btn small primary" id="segSave">Guardar</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(m);
+    const ta = document.getElementById('segTexto');
+    if(ta){ ta.value = actual ? (actual.texto || '') : ''; setTimeout(()=>ta.focus(), 60); }
+    const cerrar = () => m.remove();
+    document.getElementById('segClose').addEventListener('click', cerrar);
+    m.addEventListener('click', e => { if(e.target === m) cerrar(); });
+
+    document.getElementById('segSave').addEventListener('click', async () => {
+      const texto = ta ? ta.value.trim() : '';
+      try{
+        const sb = window.__sb;
+        const { error } = await sb.from('player_followups').upsert({
+          club_id: await window.__getClubId(),
+          player_id: player.id,
+          temporada: window.__getTemporada ? window.__getTemporada() : new Date().getFullYear(),
+          trimestre,
+          texto: texto || null,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'player_id,temporada,trimestre' });
+        if(error) throw error;
+        cerrar();
+        renderSeguimiento(player);
+        toast('Seguimiento guardado');
+      }catch(e){
+        console.error(e);
+        toast((e.message||'').includes('does not exist') ? 'Falta preparar la base: corré el SQL de seguimiento' : 'No se pudo guardar');
+      }
+    });
+
+    const del = document.getElementById('segDel');
+    if(del) del.addEventListener('click', async () => {
+      if(!confirm('¿Borrar el seguimiento de este trimestre?')) return;
+      try{
+        const sb = window.__sb;
+        await sb.from('player_followups').delete().eq('id', actual.id);
+        cerrar();
+        renderSeguimiento(player);
       }catch(e){ toast('No se pudo borrar'); }
     });
   }
