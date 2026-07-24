@@ -997,7 +997,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .player-picker-label{font-family:'Oswald',sans-serif;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);}
 .player-card-select{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;color:var(--chalk);font-family:'Inter',sans-serif;font-size:14px;padding:9px 12px;min-width:200px;cursor:pointer;}
 .player-card-select:focus{outline:none;border-color:var(--accent-2);}
-.pc-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.pc-summary{display:grid;grid-template-columns:repeat(7,1fr);gap:9px;margin-bottom:20px;}
+@media (max-width:1000px){ .pc-summary{grid-template-columns:repeat(4,1fr);} }
+@media (max-width:700px){ .pc-summary{grid-template-columns:repeat(3,1fr);} }
+@media (max-width:460px){ .pc-summary{grid-template-columns:repeat(2,1fr);} }
 /* ═══ FICHA DEL JUGADOR: datos, lesiones y evaluaciones ═══ */
 .pc-extra{margin-bottom:16px;}
 .pc-card{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:15px 17px;}
@@ -1077,16 +1080,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .crop-zoom-btn{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;font-size:16px;width:38px;height:34px;cursor:pointer;color:var(--chalk);display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;line-height:1;}
 .crop-zoom-btn:hover{border-color:var(--accent-2);background:var(--panel);}
 .crop-zoom-btn:active{transform:scale(0.94);}
-.pc-stat{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:16px 10px;text-align:center;}
-.pc-stat-num{font-family:'Oswald',sans-serif;font-size:34px;font-weight:600;line-height:1;color:var(--chalk);}
-.pc-stat-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-top:6px;}
+.pc-stat{background:var(--panel-2);border:1px solid var(--line);border-radius:11px;padding:13px 7px;text-align:center;min-width:0;}
+.pc-stat-num{font-family:'Oswald',sans-serif;font-size:27px;font-weight:600;line-height:1;color:var(--chalk);}
+.pc-stat-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.3px;color:var(--muted);margin-top:6px;line-height:1.3;}
 .pc-chart-card{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;}
 .pc-chart-title{font-family:'Oswald',sans-serif;font-size:16px;color:var(--chalk);margin:0 0 12px;}
 .pc-chart-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .pc-svg{display:block;max-width:100%;height:auto;}
 .pc-chart-foot{font-family:'Inter',sans-serif;font-size:13px;color:var(--muted);margin-top:10px;line-height:1.5;}
 .pc-chart-foot strong{color:var(--chalk);}
-@media (max-width:720px){.pc-summary{grid-template-columns:repeat(2,1fr);}}
 .stats-sub{display:none;}
 .stats-sub.active{display:block;}
 
@@ -8256,6 +8258,7 @@ window.__initEditor = function(){
     // Cargar sesiones de En Vivo INDEPENDIENTES (sin match_id) para sumar sin duplicar.
     // Las sesiones vinculadas a un partido (match_id) NO se suman: ya cuentan por la sección Partidos.
     let liveIndep = [];
+    let liveTodas = [];   // todas las sesiones, para sumar los minutos jugados
     try{
       const sb = window.__sb; const clubId = await window.__getClubId();
       const cat = catActual();
@@ -8264,9 +8267,22 @@ window.__initEditor = function(){
         q = cat ? q.eq('categoria', cat) : q.is('categoria', null);
       if(window.__getTemporada) q = q.eq('temporada', window.__getTemporada());
         const { data } = await q;
-        liveIndep = (data || []).filter(s => !s.match_id);
+        liveTodas = data || [];
+        liveIndep = liveTodas.filter(s => !s.match_id);
       }
-    }catch(e){ liveIndep = []; }
+    }catch(e){ liveIndep = []; liveTodas = []; }
+
+    // ---- Minutos jugados: se suman de TODAS las sesiones de En Vivo ----
+    let segundosTotales = 0;
+    let partidosConMinutos = 0;
+    liveTodas.forEach(s => {
+      const t = (s.totals && s.totals[playerName]) || null;
+      if(!t) return;
+      const seg = Number(t.total) || 0;
+      if(seg > 0){ segundosTotales += seg; partidosConMinutos++; }
+    });
+    const minutosTotales = Math.round(segundosTotales / 60);
+    const minutosPromedio = partidosConMinutos ? Math.round(minutosTotales / partidosConMinutos) : 0;
 
     // Serie unificada: partidos (sección Partidos) + sesiones En Vivo independientes.
     // Cada entrada: {fecha, label, goals, assists, cards, wasCalled, origen}
@@ -8342,6 +8358,9 @@ window.__initEditor = function(){
         <div class="pc-stat"><div class="pc-stat-num" style="color:var(--accent-2)">${totAssists}</div><div class="pc-stat-lbl">Asistencias</div></div>
         <div class="pc-stat"><div class="pc-stat-num" style="color:var(--danger)">${totCards}</div><div class="pc-stat-lbl">Tarjetas</div></div>
         <div class="pc-stat"><div class="pc-stat-num">${called}</div><div class="pc-stat-lbl">Citado</div></div>
+        <div class="pc-stat"><div class="pc-stat-num" style="color:#E0A93B">${minutosTotales}'</div><div class="pc-stat-lbl">Minutos</div></div>
+        <div class="pc-stat"><div class="pc-stat-num">${partidosConMinutos}</div><div class="pc-stat-lbl">Partidos jugados</div></div>
+        <div class="pc-stat"><div class="pc-stat-num" style="color:var(--muted)">${minutosPromedio}'</div><div class="pc-stat-lbl">Prom. x partido</div></div>
       </div>`;
 
     // ---- Gráfico de barras: goles por partido ----
