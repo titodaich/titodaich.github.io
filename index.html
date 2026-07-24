@@ -961,6 +961,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   .cal-cell{min-height:auto !important;}
   /* Pizarra: la cancha se imprime como imagen */
   #futsalBoard{max-width:100% !important;height:auto !important;}
+  /* ── Modo "imprimir todas las fichas" ── */
+  body.print-all-cards #playerCardContent{display:none !important;}
+  body.print-all-cards .player-picker-bar{display:none !important;}
+  body.print-all-cards #allCardsContent{display:block !important;}
+  body.print-all-cards #stats-player > .scout-head{display:none !important;}
+  .ficha-impresa{page-break-after:always; break-after:page; padding-bottom:10mm;}
+  .ficha-impresa:last-child{page-break-after:auto; break-after:auto;}
   @page{margin:14mm;}
 }
 /* Encabezado que solo se ve al imprimir */
@@ -2404,8 +2411,10 @@ body.editor-active #screen-editor{ display:block; }
       <div class="player-picker-bar">
         <label class="player-picker-label" data-i18n="playerPick">Jugador:</label>
         <select id="playerCardSelect" class="player-card-select"></select>
+        <button class="btn small export-btn print-hide" id="printAllCards" title="Imprimir la ficha de todos los jugadores, una debajo de la otra">🖨 Todas las fichas</button>
       </div>
       <div id="playerCardContent"></div>
+      <div id="allCardsContent" style="display:none;"></div>
     </div>
 
     <div class="stats-sub" id="stats-health">
@@ -4040,6 +4049,9 @@ window.__initEditor = function(){
       if(target === 'board' && window.__initBoardOnce){ window.__initBoardOnce(); }
       if(target === 'live' && window.__initLiveOnce){ window.__initLiveOnce(); }
       if(window.__trackSection) window.__trackSection(target);
+      // Si esta sección quedó desactualizada por un cambio de categoría o
+      // temporada, la refrescamos ahora (y no antes, para no colgar la app).
+      if(window.__refrescarSeccionSiHaceFalta) window.__refrescarSeccionSiHaceFalta(target);
       window.scrollTo(0, 0);
       // En celular, al entrar a Video bajamos directo a la zona de trabajo
       // (reproductor + tags), así no hay que scrollear a mano cada vez.
@@ -4527,9 +4539,49 @@ window.__initEditor = function(){
 
   // Sistema de suscriptores: cada sección se engancha para enterarse del cambio.
   const subscribers = [];
-  window.__onCategorySubscribe = function(fn){ if(typeof fn === 'function') subscribers.push(fn); };
-  function notifyCategoryChange(cat){ subscribers.forEach(fn => { try{ fn(cat); }catch(e){ console.error(e); } }); }
-  // Al cambiar de temporada recargamos todo igual que al cambiar de categoría
+  // Suscribirse al cambio de categoría.
+  // Si se pasa el nombre de la sección, la recarga se difiere hasta que
+  // el usuario entre a esa sección (evita colgar la app recargando todo junto).
+  window.__onCategorySubscribe = function(fn, seccion){
+    if(typeof fn !== 'function') return;
+    subscribers.push(seccion ? { fn, seccion } : fn);
+  };
+  // ── Recarga inteligente al cambiar de categoría o temporada ──
+  // Antes se recargaban TODAS las secciones a la vez (8 consultas simultáneas),
+  // lo que trababa la app unos segundos en el celular.
+  // Ahora se recarga solo la que estás viendo; las demás quedan marcadas
+  // como "pendientes" y se actualizan recién cuando entrás a ellas.
+  const pendientes = new Set();
+
+  function seccionVisible(){
+    const s = document.querySelector('.section-content.active');
+    return s ? s.id.replace('section-', '') : null;
+  }
+
+  function notifyCategoryChange(cat){
+    const actual = seccionVisible();
+    subscribers.forEach(sub => {
+      const fn = typeof sub === 'function' ? sub : sub.fn;
+      const seccion = typeof sub === 'function' ? null : sub.seccion;
+      // Si el suscriptor declaró a qué sección pertenece y no es la visible,
+      // lo dejamos pendiente para cuando el usuario entre ahí.
+      if(seccion && seccion !== actual){ pendientes.add(seccion); return; }
+      try{ fn(cat); }catch(e){ console.error(e); }
+    });
+  }
+
+  // Se llama al entrar a una sección: si quedó pendiente, la actualiza.
+  window.__refrescarSeccionSiHaceFalta = function(seccion){
+    if(!pendientes.has(seccion)) return;
+    pendientes.delete(seccion);
+    subscribers.forEach(sub => {
+      if(typeof sub === 'object' && sub.seccion === seccion){
+        try{ sub.fn(activeCategory); }catch(e){ console.error(e); }
+      }
+    });
+  };
+
+  // Al cambiar de temporada recargamos igual que al cambiar de categoría
   window.__notifyReload = () => notifyCategoryChange(activeCategory);
 
   function renderChips(){
@@ -5030,7 +5082,7 @@ window.__initEditor = function(){
 
   // Recargar cuando cambia la categoría (si ya se cargó al menos una vez)
   if(window.__onCategorySubscribe){
-    window.__onCategorySubscribe(() => { if(loadedOnce) loadFromCloud(); });
+    window.__onCategorySubscribe(() => { if(loadedOnce) loadFromCloud(); }, 'video');
   }
 
   renderList();
@@ -5496,7 +5548,7 @@ window.__initEditor = function(){
     loadPlaysFromCloud();
   };
   if(window.__onCategorySubscribe){
-    window.__onCategorySubscribe(() => { if(started) loadPlaysFromCloud(); });
+    window.__onCategorySubscribe(() => { if(started) loadPlaysFromCloud(); }, 'board');
   }
 })();
 
@@ -6355,7 +6407,7 @@ window.__initEditor = function(){
     if(typeof flushPending === 'function') flushPending(false);
   };
   if(window.__onCategorySubscribe){
-    window.__onCategorySubscribe(()=>{ if(started && inSetup){ setupCalled={}; matchRival=''; matchLinkId=null; updateClockType(); loadSquad(); } });
+    window.__onCategorySubscribe(()=>{ if(started && inSetup){ setupCalled={}; matchRival=''; matchLinkId=null; updateClockType(); loadSquad(); } }, 'live');
   }
 })();
 
@@ -6673,7 +6725,7 @@ window.__initEditor = function(){
 
   // Recargar cuando cambia la categoría (si ya se cargó al menos una vez)
   if(window.__onCategorySubscribe){
-    window.__onCategorySubscribe(() => { if(loadedOnce){ loadFromCloud(); loadCalNotes(); } });
+    window.__onCategorySubscribe(() => { if(loadedOnce){ loadFromCloud(); loadCalNotes(); } }, 'training');
   }
 
   // ==================== CALENDARIO MENSUAL ====================
@@ -8407,10 +8459,81 @@ window.__initEditor = function(){
       sel.addEventListener('change', () => drawPlayerCard(sel.value));
       sel.__wired = true;
     }
+    // Botón "todas las fichas" (una sola vez)
+    const btnAll = document.getElementById('printAllCards');
+    if(btnAll && !btnAll.__wired){
+      btnAll.addEventListener('click', imprimirTodasLasFichas);
+      btnAll.__wired = true;
+    }
     drawPlayerCard(sel.value);
   }
 
   // Dibuja la ficha del jugador elegido
+  // ─────────────────────────────────────────────────────────────
+  //  IMPRIMIR TODAS LAS FICHAS, UNA DEBAJO DE LA OTRA
+  //  Dibuja la ficha de cada jugador en un contenedor aparte y manda a imprimir.
+  // ─────────────────────────────────────────────────────────────
+  async function imprimirTodasLasFichas(){
+    const cont = document.getElementById('allCardsContent');
+    const uno = document.getElementById('playerCardContent');
+    const btn = document.getElementById('printAllCards');
+    if(!cont || !squad || squad.length === 0){ toast('No hay jugadores en esta categoría'); return; }
+
+    btn.disabled = true;
+    const textoOriginal = btn.textContent;
+    btn.textContent = 'Preparando…';
+
+    // Guardamos el jugador que estaba seleccionado para volver a él después
+    const sel = document.getElementById('playerCardSelect');
+    const elegidoAntes = sel ? sel.value : null;
+
+    cont.innerHTML = '';
+    let hechas = 0;
+
+    for(const p of squad){
+      btn.textContent = 'Preparando… ' + (hechas + 1) + '/' + squad.length;
+      // Dibujamos la ficha de este jugador en el contenedor de siempre
+      await drawPlayerCard(p.id);
+      // Esperamos a que terminen de cargar las partes asíncronas (lesiones, evaluaciones)
+      await new Promise(r => setTimeout(r, 450));
+      // La copiamos al contenedor de "todas"
+      const bloque = document.createElement('div');
+      bloque.className = 'ficha-impresa';
+      bloque.innerHTML = uno.innerHTML;
+      cont.appendChild(bloque);
+      hechas++;
+    }
+
+    // Volvemos a mostrar la ficha que estaba antes
+    if(elegidoAntes) await drawPlayerCard(elegidoAntes);
+
+    btn.disabled = false;
+    btn.textContent = textoOriginal;
+
+    // Encabezado del PDF
+    const cat = (window.__getActiveCategory && window.__getActiveCategory()) || '';
+    const club = window.__clubNombre || '';
+    const temp = window.__getTemporada ? window.__getTemporada() : '';
+    const hoy = new Date().toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric' });
+    const head = document.createElement('div');
+    head.className = 'print-header';
+    head.innerHTML = '<h1>Fichas del plantel</h1><div class="ph-sub">'
+      + escapeHtml([club, cat ? ('Categoría ' + cat) : '', temp ? ('Temporada ' + temp) : '', hoy].filter(Boolean).join(' · '))
+      + '</div>';
+    cont.insertBefore(head, cont.firstChild);
+
+    // Modo "imprimir todas": mostramos el contenedor y ocultamos la ficha individual
+    document.body.classList.add('print-all-cards');
+    toast('Se abrirá el diálogo de impresión. Elegí "Guardar como PDF".');
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => {
+        document.body.classList.remove('print-all-cards');
+        cont.innerHTML = '';
+      }, 600);
+    }, 400);
+  }
+
   async function drawPlayerCard(playerId){
     const cont2 = document.getElementById('playerCardContent');
     if(!cont2) return;
@@ -9617,7 +9740,7 @@ window.__initEditor = function(){
         // recargar todo; loadAll refresca la sub-pestaña activa al terminar
         loadAll();
       }
-    });
+    }, 'stats');
   }
 
   // Permite que el sincronizador de En Vivo refresque la lista de minutaje
