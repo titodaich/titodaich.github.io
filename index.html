@@ -1830,11 +1830,11 @@ body.editor-active #screen-editor{ display:block; }
   }
   .match-table{max-width:none;}
 
-  /* Topbar: apilar y centrar */
-  .topbar{flex-direction:column;align-items:flex-start;gap:10px;padding:8px 0 14px;}
-  .brand{font-size:17px;}
+  /* Topbar: en una sola fila (antes se apilaba, pero ahora entra compacto) */
+  .topbar{flex-direction:row;align-items:center;gap:8px;padding:8px 0 10px;flex-wrap:nowrap;}
+  .brand{font-size:13px;}
   .brand-sub{font-size:9px;}
-  .topbar-right{width:100%;justify-content:space-between;gap:8px;}
+  .topbar-right{width:auto;justify-content:flex-end;gap:6px;flex-shrink:0;}
 
   /* Barra de categorías: scroll horizontal en vez de amontonarse */
   .category-bar{padding:10px 10px;gap:8px;}
@@ -1988,6 +1988,108 @@ body.editor-active #screen-editor{ display:block; }
   .cuarteto-input, .search{min-height:42px; font-size:16px;}
 }
 
+/* ═══ ENCABEZADO Y MENÚ MÁS COMPACTOS EN CELULAR ═══ */
+@media (max-width:720px){
+  /* --- Barra de categorías: una sola fila deslizable --- */
+  .category-bar{
+    gap:8px;
+    padding:9px 12px;
+    margin-top:10px;
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    -webkit-mask-image:linear-gradient(to right, #000 92%, transparent 100%);
+    mask-image:linear-gradient(to right, #000 92%, transparent 100%);
+  }
+  .category-bar::-webkit-scrollbar{display:none;}
+  .cat-chips{flex-wrap:nowrap;}
+  .cat-label{flex-shrink:0;font-size:9.5px;}
+  .cat-chip{flex-shrink:0;padding:6px 12px;font-size:11.5px;}
+  /* El grupo Promo y el selector de temporada no se comprimen */
+  .promo-group{flex-shrink:0;}
+  .season-box{flex-shrink:0;margin-left:8px;width:auto;margin-top:0;}
+  .season-select{min-height:34px;padding:5px 8px;font-size:12px;}
+  .season-new{min-height:34px;padding:4px 9px !important;}
+
+  /* --- Encabezado: menos alto, todo en una línea --- */
+  .club-escudo{width:38px;height:38px;border-radius:9px;}
+  /* El logo chiquito de Benchone se saca en el celular:
+     choca con el escudo del club y el nombre ya está escrito al lado. */
+  .brand-logo-sm{display:none;}
+  .brand-wrap{gap:11px;align-items:center;}
+  .topbar{
+    padding:8px 2px 10px;
+    margin-bottom:0;
+    gap:8px;
+    flex-wrap:nowrap;          /* que no se parta en dos filas */
+    align-items:center;
+  }
+  .brand-wrap{gap:11px;align-items:center;flex:1;min-width:0;}
+  .topbar-right{gap:6px;flex-wrap:nowrap;flex-shrink:0;}
+  .brand{font-size:13px;line-height:1.3;}
+  /* En el celular alcanza con el nombre: el subtítulo largo del título se corta */
+  .brand .dot, .brand{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:190px;}
+  .brand .dot{margin:0 4px;}
+  /* El subtítulo largo no aporta en el celular: ocupa dos líneas y nadie lo lee */
+  .brand-sub{display:none;}
+  .topbar-left{gap:9px;}
+  /* En el celular el correo no entra: se ve tocando "Cerrar sesión" */
+  .user-badge{display:none;}
+  /* Marca más corta para dejar lugar a los botones */
+  .user-badge{
+    font-size:10px;
+    max-width:110px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .lang-select{padding:4px 4px;font-size:10.5px;min-height:32px;max-width:64px;}
+  .notif-bell{min-height:32px;padding:4px 7px;font-size:14px;}
+  #logoutBtn, .topbar-right .btn{min-height:32px;padding:5px 8px;font-size:10.5px;}
+  .brand{max-width:none;}
+
+  /* --- Menú de secciones: más compacto y con señal de que sigue --- */
+  .main-nav{
+    gap:6px;
+    -webkit-mask-image:linear-gradient(to right, #000 90%, transparent 100%);
+    mask-image:linear-gradient(to right, #000 90%, transparent 100%);
+  }
+  .nav-tab{
+    min-height:44px;
+    min-width:74px;      /* más angostas: entran 5 en pantalla */
+    flex:0 0 auto;
+    padding:6px 7px;
+    font-size:9.5px;
+    letter-spacing:0.1px;
+  }
+  .nav-tab::before{font-size:15px;margin-bottom:1px;}
+
+  /* Flechita que indica que hay más secciones deslizando */
+  .nav-wrap{position:relative;}
+  .nav-wrap::after{
+    content:'›';
+    position:absolute;
+    right:2px; top:50%;
+    transform:translateY(-50%);
+    font-size:22px;
+    color:var(--accent-2);
+    pointer-events:none;
+    opacity:0.85;
+    animation:navHint 1.6s ease-in-out infinite;
+  }
+  .nav-wrap.scrolled::after{opacity:0;}
+  @keyframes navHint{
+    0%,100%{transform:translateY(-50%) translateX(0);}
+    50%{transform:translateY(-50%) translateX(3px);}
+  }
+}
+@media (max-width:400px){
+  .nav-tab{font-size:9.5px;padding:7px 8px;}
+  .brand{font-size:12.5px;}
+  .club-escudo{width:32px;height:32px;}
+}
+
 /* ═══ MÓDULO DE VIDEO EN CELULAR: más compacto y directo ═══ */
 @media (max-width:720px){
   /* Menos aire para que entre más en pantalla */
@@ -2020,6 +2122,85 @@ body.editor-active #screen-editor{ display:block; }
   .btn{padding:10px 13px; font-size:13px;}
   .btn.small{padding:9px 11px; font-size:12px;}
   .stats-subtab{padding:10px 11px; font-size:12px;}
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   AIRE EN EL ENCABEZADO — SOLO CELULAR Y TABLET (hasta 1024px)
+   En computadora (1025px o más) no cambia absolutamente nada.
+
+   Qué arregla:
+   Las tres barras de arriba (escudo+nombre / categorías / menú de
+   secciones) venían pegadas una encima de la otra. El menú de secciones
+   no tenía ningún margen superior, así que arrancaba justo donde
+   terminaba la barra de categorías, y el escudo quedaba rozando la
+   línea divisoria del encabezado.
+   ═══════════════════════════════════════════════════════════════════════ */
+@media (max-width:1024px){
+
+  /* --- 1. Separación entre la barra de categorías y lo de arriba --- */
+  .category-bar{margin-top:16px;}
+
+  /* --- 2. El menú de secciones deja de estar pegado a las categorías.
+           Esta es la corrección principal. --- */
+  .nav-wrap{margin-top:14px;}
+
+  /* --- 3. Un poco más de respiro alrededor de las pestañas --- */
+  .main-nav{padding:7px;}
+}
+
+/* ─────────── CELULAR ─────────── */
+@media (max-width:720px){
+
+  /* El encabezado respira: el escudo ya no roza la línea de abajo */
+  .topbar{
+    padding:14px 2px 16px;   /* antes: 8px arriba / 10px abajo */
+    gap:14px;
+  }
+
+  /* El escudo se despega del nombre del club */
+  .brand-wrap{gap:14px;}
+  .club-escudo{width:42px;height:42px;border-radius:11px;}
+
+  /* Los botones de la derecha dejan de tocarse entre sí */
+  .topbar-right{gap:9px;}
+  .lang-select{min-height:34px;}
+  .notif-bell{min-height:34px;}
+  #logoutBtn, .topbar-right .btn{min-height:34px;}
+
+  /* Barra de categorías con un poco más de cuerpo */
+  .category-bar{padding:11px 14px;}
+
+  /* Pestañas más cómodas de tocar y con el ícono despegado del texto */
+  .main-nav{gap:7px;margin-bottom:22px;}
+  .nav-tab{
+    min-height:54px;
+    padding:9px 10px;
+    gap:5px;
+  }
+  .nav-tab::before{font-size:17px;margin-bottom:0;}
+}
+
+/* ─────────── CELULAR CHICO ─────────── */
+@media (max-width:400px){
+  .topbar{padding:12px 2px 14px;gap:11px;}
+  .brand-wrap{gap:12px;}
+  .club-escudo{width:37px;height:37px;border-radius:10px;}
+  .category-bar{margin-top:13px;}
+  .nav-wrap{margin-top:12px;}
+  .nav-tab{min-height:50px;}
+}
+
+/* ─────────── TABLET (721px a 1024px) ─────────── */
+@media (min-width:721px) and (max-width:1024px){
+
+  /* Más aire arriba y abajo del encabezado */
+  .topbar{padding:14px 2px 22px;row-gap:14px;}
+  .brand-wrap{gap:15px;}
+  .topbar-right{gap:12px;row-gap:10px;}
+
+  /* Que las 7 secciones entren en una sola fila sin amontonarse */
+  .main-nav{row-gap:8px;}
+  .nav-tab{min-width:88px;font-size:12px;padding:12px 8px;letter-spacing:0.3px;}
 }
 </style>
 </head>
@@ -2175,6 +2356,7 @@ body.editor-active #screen-editor{ display:block; }
   </div>
 
   <!-- ===== MENÚ DE NAVEGACIÓN ===== -->
+  <div class="nav-wrap">
   <nav class="main-nav">
     <button class="nav-tab active" data-section="guide" data-icon="📖"><span data-i18n="navGuide">Guía</span></button>
     <button class="nav-tab" data-section="video" data-icon="🎬"><span data-i18n="navVideo">Video</span></button>
@@ -2184,6 +2366,7 @@ body.editor-active #screen-editor{ display:block; }
     <button class="nav-tab" data-section="board" data-icon="✏️"><span data-i18n="navBoard">Pizarra</span></button>
     <button class="nav-tab" data-section="live" data-icon="🔴"><span data-i18n="navLive">En vivo</span></button>
   </nav>
+  </div>
 
   <!-- ===== SECCIÓN: VIDEO ===== -->
   <div class="section-content" id="section-video">
@@ -4051,6 +4234,20 @@ window.__initEditor = function(){
 // ---------------- NAVEGACIÓN ENTRE SECCIONES ----------------
 (function initNav(){
   const tabs = document.querySelectorAll('.nav-tab');
+  // La flechita de "hay más secciones" desaparece cuando el usuario ya deslizó
+  (function flechaMenu(){
+    const nav = document.querySelector('.main-nav');
+    const wrap = document.querySelector('.nav-wrap');
+    if(!nav || !wrap) return;
+    function revisar(){
+      const hayMas = nav.scrollWidth > nav.clientWidth + 4;
+      const yaScrolleo = nav.scrollLeft > 12;
+      wrap.classList.toggle('scrolled', yaScrolleo || !hayMas);
+    }
+    nav.addEventListener('scroll', revisar, { passive:true });
+    window.addEventListener('resize', revisar);
+    setTimeout(revisar, 300);
+  })();
   const sections = document.querySelectorAll('.section-content');
   const videoActions = document.getElementById('videoProjectActions');
   tabs.forEach(tab => {
