@@ -1042,6 +1042,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .ev-prom b{font-family:'Oswald',sans-serif;font-size:16px;}
 .ev-obs{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-family:'Inter',sans-serif;font-size:12.5px;line-height:1.6;color:var(--muted);}
 .ev-obs b{color:var(--chalk);}
+/* Editor de ítems de evaluación */
+.items-lista{display:flex;flex-direction:column;gap:7px;max-height:320px;overflow-y:auto;}
+.item-fila{display:flex;align-items:center;gap:7px;}
+.item-grupo{background:var(--bg);border:1px solid var(--line);border-radius:7px;color:var(--muted);font-family:'Inter',sans-serif;font-size:11.5px;padding:8px 6px;cursor:pointer;flex-shrink:0;max-width:105px;}
+.item-nombre{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:7px;color:var(--chalk);font-family:'Inter',sans-serif;font-size:13px;padding:9px 10px;}
+.item-nombre:focus,.item-grupo:focus{outline:none;border-color:var(--accent-2);}
+.item-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:6px 8px;border-radius:6px;flex-shrink:0;}
+.item-del:hover{color:var(--danger);background:rgba(240,85,63,0.12);}
+.ev-campo-grupo{font-family:'Oswald',sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--accent-2);margin:10px 0 2px;}
 /* Formulario de lesiones y situaciones */
 .les-tipos{display:flex;gap:9px;}
 .les-tipo{flex:1;background:var(--bg);border:1px solid var(--line);color:var(--muted);border-radius:9px;padding:12px 10px;font-family:'Inter',sans-serif;font-size:13.5px;cursor:pointer;transition:all .15s ease;}
@@ -8853,18 +8862,47 @@ window.__initEditor = function(){
   }
 
   // ---------- Evaluaciones por trimestre ----------
-  const EVAL_ITEMS = [
-    { key:'lectura_ofensiva',      grupo:'Táctica',      nombre:'Lectura ofensiva' },
-    { key:'lectura_defensiva',     grupo:'Táctica',      nombre:'Lectura defensiva' },
-    { key:'tecnica_individual',    grupo:'Táctica',      nombre:'Técnica individual' },
-    { key:'pierna_inhabil',        grupo:'Táctica',      nombre:'Pierna inhábil' },
-    { key:'compromiso',            grupo:'Actitudinal',  nombre:'Compromiso' },
-    { key:'actitud_entrenamiento', grupo:'Actitudinal',  nombre:'Actitud en el entrenamiento' },
-    { key:'atencion',              grupo:'Actitudinal',  nombre:'Atención' },
-    { key:'liderazgo',             grupo:'Actitudinal',  nombre:'Liderazgo' },
-    { key:'tolerancia_error',      grupo:'Actitudinal',  nombre:'Tolerancia al error' },
-    { key:'interes_deporte',       grupo:'Actitudinal',  nombre:'Interés por el deporte en general' }
+  // Ítems por defecto: se usan para armar la lista la primera vez que
+  // el entrenador entra a una categoría. Después él los edita a gusto.
+  const EVAL_ITEMS_DEFAULT = [
+    { grupo:'Táctica',      nombre:'Lectura ofensiva' },
+    { grupo:'Táctica',      nombre:'Lectura defensiva' },
+    { grupo:'Táctica',      nombre:'Técnica individual' },
+    { grupo:'Táctica',      nombre:'Pierna inhábil' },
+    { grupo:'Actitudinal',  nombre:'Compromiso' },
+    { grupo:'Actitudinal',  nombre:'Actitud en el entrenamiento' },
+    { grupo:'Actitudinal',  nombre:'Atención' },
+    { grupo:'Actitudinal',  nombre:'Liderazgo' },
+    { grupo:'Actitudinal',  nombre:'Tolerancia al error' },
+    { grupo:'Actitudinal',  nombre:'Interés por el deporte en general' }
   ];
+
+  // Ítems reales de la categoría actual (se cargan de la base)
+  let EVAL_ITEMS = [];
+
+  // Trae los ítems de esta categoría. Si no hay, crea los de por defecto.
+  async function cargarItemsEval(){
+    try{
+      const sb = window.__sb;
+      const clubId = await window.__getClubId();
+      const cat = catActual();
+      if(!sb || !clubId) { EVAL_ITEMS = []; return; }
+      let { data } = await sb.from('eval_items').select('*')
+        .eq('club_id', clubId).eq('categoria', cat).eq('activo', true)
+        .order('orden');
+      if(!data || data.length === 0){
+        // Primera vez en esta categoría: sembramos los ítems por defecto
+        const nuevos = EVAL_ITEMS_DEFAULT.map((it, i) => ({
+          club_id: clubId, categoria: cat, grupo: it.grupo, nombre: it.nombre, orden: i, activo: true
+        }));
+        const { data: creados, error } = await sb.from('eval_items').insert(nuevos).select();
+        if(error){ console.error('sembrar items', error); EVAL_ITEMS = []; return; }
+        data = creados || [];
+        data.sort((a,b) => (a.orden||0) - (b.orden||0));
+      }
+      EVAL_ITEMS = data.map(d => ({ id:d.id, key:d.id, grupo:d.grupo, nombre:d.nombre, orden:d.orden }));
+    }catch(e){ console.error('cargar items eval', e); EVAL_ITEMS = []; }
+  }
 
   function colorNota(n){
     if(n === null || n === undefined || n === '') return 'var(--line)';
@@ -8887,6 +8925,9 @@ window.__initEditor = function(){
     const box = document.getElementById('pcEvals');
     if(!box) return;
     box.innerHTML = `<div class="pc-card"><div class="pc-card-head"><h3>📈 Evaluaciones</h3></div><p class="rd-empty">Cargando…</p></div>`;
+
+    await cargarItemsEval();
+
     let evals = [];
     try{
       const sb = window.__sb; const clubId = await window.__getClubId();
@@ -8897,32 +8938,50 @@ window.__initEditor = function(){
       evals = data || [];
     }catch(e){ evals = []; }
 
-    const porTrim = {};
-    evals.forEach(e => { porTrim[e.trimestre] = e; });
+    const porCuat = {};
+    evals.forEach(e => { porCuat[e.trimestre] = e; });
+    // Los puntajes viven en el campo jsonb "puntajes": { idItem: nota }
+    const notaDe = (ev, itemId) => {
+      if(!ev) return null;
+      const p = ev.puntajes || {};
+      return p[itemId] != null ? p[itemId] : null;
+    };
 
-    // Tabla: una fila por ítem, una columna por trimestre
+    if(EVAL_ITEMS.length === 0){
+      box.innerHTML = `
+        <div class="pc-card">
+          <div class="pc-card-head">
+            <h3>📈 Evaluaciones</h3>
+            <button class="btn small" id="evEditItems">⚙ Configurar ítems</button>
+          </div>
+          <p class="rd-empty">Todavía no hay ítems de evaluación para esta categoría.</p>
+        </div>`;
+      document.getElementById('evEditItems')?.addEventListener('click', () => abrirEditorItems(player));
+      return;
+    }
+
+    // Tabla: una fila por ítem, una columna por cuatrimestre
     let filas = '';
     let grupoActual = '';
     EVAL_ITEMS.forEach(item => {
       if(item.grupo !== grupoActual){
         grupoActual = item.grupo;
-        filas += `<tr class="ev-grupo"><td colspan="5">${grupoActual}</td></tr>`;
+        filas += `<tr class="ev-grupo"><td colspan="3">${escapeHtml(grupoActual)}</td></tr>`;
       }
       let celdas = '';
-      for(let t = 1; t <= 4; t++){
-        const ev = porTrim[t];
-        const n = ev ? ev[item.key] : null;
+      for(let c = 1; c <= 2; c++){
+        const n = notaDe(porCuat[c], item.id);
         celdas += `<td class="ev-celda">${n ? `<span class="ev-nota" style="color:${colorNota(n)}">${n}</span>` : '<span class="ev-vacio">—</span>'}</td>`;
       }
-      filas += `<tr><td class="ev-item">${item.nombre}</td>${celdas}</tr>`;
+      filas += `<tr><td class="ev-item">${escapeHtml(item.nombre)}</td>${celdas}</tr>`;
     });
 
-    // Promedio por trimestre
+    // Promedio por cuatrimestre
     let promedios = '<tr class="ev-prom"><td class="ev-item"><b>Promedio</b></td>';
-    for(let t = 1; t <= 4; t++){
-      const ev = porTrim[t];
+    for(let c = 1; c <= 2; c++){
+      const ev = porCuat[c];
       if(ev){
-        const vals = EVAL_ITEMS.map(i => Number(ev[i.key])).filter(v => v > 0);
+        const vals = EVAL_ITEMS.map(i => Number(notaDe(ev, i.id))).filter(v => v > 0);
         const prom = vals.length ? (vals.reduce((a,b)=>a+b,0) / vals.length) : 0;
         promedios += `<td class="ev-celda"><b style="color:${colorNota(prom)}">${prom ? prom.toFixed(1) : '—'}</b></td>`;
       } else {
@@ -8931,48 +8990,59 @@ window.__initEditor = function(){
     }
     promedios += '</tr>';
 
-    const botones = [1,2,3,4].map(t =>
-      `<button class="btn small ev-btn${porTrim[t] ? ' hecho' : ''}" data-trim="${t}">${porTrim[t] ? '✎' : '+'} ${t}° trim.</button>`
+    const botones = [1,2].map(c =>
+      `<button class="btn small ev-btn${porCuat[c] ? ' hecho' : ''}" data-cuat="${c}">${porCuat[c] ? '✎' : '+'} ${c}° cuatrimestre</button>`
     ).join('');
 
     box.innerHTML = `
       <div class="pc-card">
         <div class="pc-card-head">
           <h3>📈 Evaluaciones ${window.__getTemporada ? window.__getTemporada() : ''}</h3>
+          <button class="btn small" id="evEditItems">⚙ Configurar ítems</button>
         </div>
         <div class="ev-botones">${botones}</div>
         <div class="ev-tabla-wrap">
           <table class="ev-tabla">
-            <thead><tr><th></th><th>1°</th><th>2°</th><th>3°</th><th>4°</th></tr></thead>
+            <thead><tr><th></th><th>1° cuat.</th><th>2° cuat.</th></tr></thead>
             <tbody>${filas}${promedios}</tbody>
           </table>
         </div>
-        ${evals.some(e => e.observaciones) ? `<div class="ev-obs">${evals.filter(e=>e.observaciones).map(e=>`<div><b>${e.trimestre}° trimestre:</b> ${escapeHtml(e.observaciones)}</div>`).join('')}</div>` : ''}
+        ${evals.some(e => e.observaciones) ? `<div class="ev-obs">${evals.filter(e=>e.observaciones).map(e=>`<div><b>${e.trimestre}° cuatrimestre:</b> ${escapeHtml(e.observaciones)}</div>`).join('')}</div>` : ''}
       </div>`;
 
-    box.querySelectorAll('.ev-btn').forEach(b => b.addEventListener('click', () => abrirEvaluacion(player, parseInt(b.dataset.trim,10), porTrim[b.dataset.trim])));
+    box.querySelectorAll('.ev-btn').forEach(b =>
+      b.addEventListener('click', () => abrirEvaluacion(player, parseInt(b.dataset.cuat,10), porCuat[b.dataset.cuat]))
+    );
+    document.getElementById('evEditItems')?.addEventListener('click', () => abrirEditorItems(player));
   }
 
-  function abrirEvaluacion(player, trimestre, actual){
+  function abrirEvaluacion(player, cuatrimestre, actual){
     let m = document.getElementById('evalModal');
     if(m) m.remove();
     m = document.createElement('div');
     m.id = 'evalModal';
     m.className = 'cloud-modal-overlay';
     m.style.display = 'flex';
-    const campos = EVAL_ITEMS.map(item => {
-      const val = actual ? (actual[item.key] || '') : '';
+    const puntajes = (actual && actual.puntajes) || {};
+    let grupoActual = '';
+    let campos = '';
+    EVAL_ITEMS.forEach(item => {
+      if(item.grupo !== grupoActual){
+        grupoActual = item.grupo;
+        campos += `<div class="ev-campo-grupo">${escapeHtml(grupoActual)}</div>`;
+      }
+      const val = puntajes[item.id] != null ? puntajes[item.id] : '';
       let opts = '<option value="">—</option>';
       for(let i = 1; i <= 10; i++) opts += `<option value="${i}"${String(val)===String(i)?' selected':''}>${i}</option>`;
-      return `<div class="ev-campo">
-        <label>${item.nombre}</label>
-        <select data-ev="${item.key}">${opts}</select>
+      campos += `<div class="ev-campo">
+        <label>${escapeHtml(item.nombre)}</label>
+        <select data-ev="${item.id}">${opts}</select>
       </div>`;
-    }).join('');
+    });
     m.innerHTML = `
       <div class="cloud-modal" style="max-width:440px;">
         <div class="cloud-modal-head">
-          <h3>📈 ${trimestre}° trimestre · ${escapeHtml(player.name||'')}</h3>
+          <h3>📈 ${cuatrimestre}° cuatrimestre · ${escapeHtml(player.name||'')}</h3>
           <button class="cloud-close" id="evalClose">✕</button>
         </div>
         <div style="padding:4px 2px;">
@@ -8992,17 +9062,19 @@ window.__initEditor = function(){
     m.addEventListener('click', e => { if(e.target === m) cerrar(); });
 
     document.getElementById('evalSave').addEventListener('click', async () => {
+      const nuevos = {};
+      m.querySelectorAll('[data-ev]').forEach(sel => {
+        if(sel.value) nuevos[sel.dataset.ev] = parseInt(sel.value, 10);
+      });
       const payload = {
         club_id: await window.__getClubId(),
         player_id: player.id,
         temporada: window.__getTemporada ? window.__getTemporada() : new Date().getFullYear(),
-        trimestre,
+        trimestre: cuatrimestre,
+        puntajes: nuevos,
         observaciones: document.getElementById('evalObs').value.trim() || null,
         updated_at: new Date().toISOString()
       };
-      m.querySelectorAll('[data-ev]').forEach(sel => {
-        payload[sel.dataset.ev] = sel.value ? parseInt(sel.value, 10) : null;
-      });
       try{
         const sb = window.__sb;
         const { error } = await sb.from('player_evals').upsert(payload, { onConflict: 'player_id,temporada,trimestre' });
@@ -9012,7 +9084,7 @@ window.__initEditor = function(){
         toast('Evaluación guardada');
       }catch(e){
         console.error(e);
-        toast((e.message||'').includes('does not exist') ? 'Falta preparar la base: corré el SQL de la ficha' : 'No se pudo guardar');
+        toast((e.message||'').includes('does not exist') ? 'Falta preparar la base: corré el SQL de evaluaciones' : 'No se pudo guardar');
       }
     });
 
@@ -9025,6 +9097,109 @@ window.__initEditor = function(){
         cerrar();
         renderEvaluaciones(player);
       }catch(e){ toast('No se pudo borrar'); }
+    });
+  }
+
+  // ---------- Editor de ítems de evaluación (por categoría) ----------
+  function abrirEditorItems(player){
+    let m = document.getElementById('itemsModal');
+    if(m) m.remove();
+    m = document.createElement('div');
+    m.id = 'itemsModal';
+    m.className = 'cloud-modal-overlay';
+    m.style.display = 'flex';
+    m.innerHTML = `
+      <div class="cloud-modal" style="max-width:460px;">
+        <div class="cloud-modal-head">
+          <h3>⚙ Ítems de evaluación · ${escapeHtml(catActual())}</h3>
+          <button class="cloud-close" id="itemsClose">✕</button>
+        </div>
+        <div style="padding:4px 2px;">
+          <p class="rd-empty" style="margin-bottom:12px;">Estos ítems son solo de la categoría <b>${escapeHtml(catActual())}</b> de tu club. Podés renombrarlos, borrarlos o agregar los que quieras.</p>
+          <div id="itemsLista" class="items-lista"></div>
+          <button class="btn small" id="itemsAdd" style="margin-top:10px;">+ Agregar ítem</button>
+          <div class="summary-actions" style="margin-top:16px;">
+            <button class="btn small" id="itemsReset">Volver a los originales</button>
+            <button class="btn small primary" id="itemsSave">Guardar</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(m);
+
+    let borrador = EVAL_ITEMS.map(i => ({ id:i.id, grupo:i.grupo, nombre:i.nombre, orden:i.orden, nuevo:false }));
+
+    function pintar(){
+      const cont = document.getElementById('itemsLista');
+      cont.innerHTML = borrador.map((it, i) => `
+        <div class="item-fila" data-i="${i}">
+          <select class="item-grupo">
+            <option value="Táctica"${it.grupo==='Táctica'?' selected':''}>Táctica</option>
+            <option value="Actitudinal"${it.grupo==='Actitudinal'?' selected':''}>Actitudinal</option>
+            <option value="Física"${it.grupo==='Física'?' selected':''}>Física</option>
+            <option value="Técnica"${it.grupo==='Técnica'?' selected':''}>Técnica</option>
+          </select>
+          <input class="item-nombre" value="${escapeHtml(it.nombre)}" maxlength="60" placeholder="Nombre del ítem">
+          <button class="item-del" title="Quitar">✕</button>
+        </div>`).join('');
+      cont.querySelectorAll('.item-fila').forEach(fila => {
+        const i = parseInt(fila.dataset.i, 10);
+        fila.querySelector('.item-nombre').addEventListener('input', e => { borrador[i].nombre = e.target.value; });
+        fila.querySelector('.item-grupo').addEventListener('change', e => { borrador[i].grupo = e.target.value; });
+        fila.querySelector('.item-del').addEventListener('click', () => { borrador.splice(i,1); pintar(); });
+      });
+    }
+    pintar();
+
+    const cerrar = () => m.remove();
+    document.getElementById('itemsClose').addEventListener('click', cerrar);
+    m.addEventListener('click', e => { if(e.target === m) cerrar(); });
+
+    document.getElementById('itemsAdd').addEventListener('click', () => {
+      borrador.push({ id:null, grupo:'Táctica', nombre:'', orden:borrador.length, nuevo:true });
+      pintar();
+      const ult = document.querySelector('#itemsLista .item-fila:last-child .item-nombre');
+      if(ult) ult.focus();
+    });
+
+    document.getElementById('itemsReset').addEventListener('click', () => {
+      if(!confirm('¿Volver a los ítems originales? Se pierden los cambios que hiciste en esta categoría.')) return;
+      borrador = EVAL_ITEMS_DEFAULT.map((it,i) => ({ id:null, grupo:it.grupo, nombre:it.nombre, orden:i, nuevo:true }));
+      pintar();
+    });
+
+    document.getElementById('itemsSave').addEventListener('click', async () => {
+      const limpios = borrador.map((it,i) => ({...it, nombre:(it.nombre||'').trim(), orden:i})).filter(it => it.nombre);
+      if(limpios.length === 0){ toast('Dejá al menos un ítem'); return; }
+      try{
+        const sb = window.__sb;
+        const clubId = await window.__getClubId();
+        const cat = catActual();
+        // Desactivamos los que ya no están (no los borramos: puede haber notas viejas)
+        const idsQueQuedan = limpios.filter(i => i.id).map(i => i.id);
+        const previos = EVAL_ITEMS.map(i => i.id);
+        const aQuitar = previos.filter(id => !idsQueQuedan.includes(id));
+        for(const id of aQuitar){
+          await sb.from('eval_items').update({ activo:false }).eq('id', id);
+        }
+        // Actualizamos los existentes
+        for(const it of limpios.filter(i => i.id)){
+          await sb.from('eval_items').update({ nombre:it.nombre, grupo:it.grupo, orden:it.orden }).eq('id', it.id);
+        }
+        // Insertamos los nuevos
+        const nuevos = limpios.filter(i => !i.id).map(it => ({
+          club_id: clubId, categoria: cat, grupo: it.grupo, nombre: it.nombre, orden: it.orden, activo: true
+        }));
+        if(nuevos.length){
+          const { error } = await sb.from('eval_items').insert(nuevos);
+          if(error) throw error;
+        }
+        cerrar();
+        renderEvaluaciones(player);
+        toast('Ítems actualizados');
+      }catch(e){
+        console.error(e);
+        toast((e.message||'').includes('does not exist') ? 'Falta preparar la base: corré el SQL de evaluaciones' : 'No se pudieron guardar');
+      }
     });
   }
 
@@ -9046,12 +9221,12 @@ window.__initEditor = function(){
     const porTrim = {};
     segs.forEach(s => { porTrim[s.trimestre] = s; });
 
-    const bloques = [1,2,3].map(t => {
+    const bloques = [1,2].map(t => {
       const s = porTrim[t];
       const tieneTexto = s && s.texto && s.texto.trim();
       return `<div class="seg-bloque${tieneTexto ? ' con-texto' : ''}">
         <div class="seg-head">
-          <span class="seg-titulo">${t}° trimestre</span>
+          <span class="seg-titulo">${t}° cuatrimestre</span>
           <button class="btn small seg-btn" data-trim="${t}">${tieneTexto ? '✎ Editar' : '+ Escribir'}</button>
         </div>
         ${tieneTexto
@@ -9084,7 +9259,7 @@ window.__initEditor = function(){
     m.innerHTML = `
       <div class="cloud-modal" style="max-width:480px;">
         <div class="cloud-modal-head">
-          <h3>📝 ${trimestre}° trimestre · ${escapeHtml(player.name||'')}</h3>
+          <h3>📝 ${trimestre}° cuatrimestre · ${escapeHtml(player.name||'')}</h3>
           <button class="cloud-close" id="segClose">✕</button>
         </div>
         <div style="padding:4px 2px;">
