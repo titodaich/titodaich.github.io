@@ -1177,7 +1177,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .match-table .mt-open-btn{padding:5px 10px;font-size:11px;}
 .mt-open-btn{white-space:nowrap;}
 .match-table th.mt-del{width:38px;}
-.mt-del-btn{background:transparent;border:none;cursor:pointer;font-size:15px;padding:5px 7px;border-radius:6px;opacity:0.55;transition:all .12s ease;}
+.mt-del-btn{background:transparent;border:1px solid transparent;cursor:pointer;font-size:15px;padding:8px 10px;border-radius:7px;opacity:0.75;transition:all .12s ease;min-width:38px;min-height:38px;display:inline-flex;align-items:center;justify-content:center;}
+.mt-del-btn:hover{opacity:1;background:rgba(240,85,63,0.14);border-color:rgba(240,85,63,0.4);}
 .mt-del-btn:hover{opacity:1;background:rgba(240,85,63,0.15);}
 .match-empty{text-align:center;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:13px;padding:40px;border:1px dashed var(--line);border-radius:12px;}
 
@@ -1830,7 +1831,23 @@ body.editor-active #screen-editor{ display:block; }
   .minutes-table tbody tr{
     display:block;background:var(--panel);border:1px solid var(--line);
     border-radius:12px;padding:12px 14px;margin-bottom:12px;
+    position:relative;
   }
+  /* La X de borrar va arriba a la derecha de cada tarjeta */
+  .minutes-table tbody td.mt-del{
+    position:absolute; top:8px; right:8px;
+    padding:0 !important; margin:0;
+    width:auto; display:block !important;
+  }
+  .minutes-table tbody td.mt-del::before{display:none;}
+  .minutes-table tbody td.mt-del .mt-del-btn{
+    min-width:34px; min-height:34px;
+    font-size:14px; opacity:0.85;
+    border:1px solid var(--line);
+    background:var(--bg);
+  }
+  /* dejamos aire arriba para que la X no tape el nombre del partido */
+  .minutes-table tbody td:first-child{padding-right:42px !important;}
   .minutes-table tbody td{
     display:flex;justify-content:space-between;align-items:center;gap:12px;
     border:none !important;padding:4px 0 !important;text-align:right;
@@ -7794,7 +7811,7 @@ window.__initEditor = function(){
       const when=s.created_at?new Date(s.created_at).toLocaleDateString('es-AR'):'';
       const nJug=s.totals?Object.keys(s.totals).filter(k=>k!=='__rival').length:0;
       const tr=document.createElement('tr');
-      tr.innerHTML=`<td data-label="Partido"><span class="mt-fecha-badge">${escapeHtml(s.name||'Partido')}</span></td><td class="mt-fecha" data-label="Fecha">${when}</td><td data-label="Jugadores">${nJug} jugadores</td><td class="mt-open"><button class="btn small mt-open-btn">Ver detalle →</button></td><td class="mt-del"><button class="mt-del-btn" title="Borrar este partido">🗑</button></td>`;
+      tr.innerHTML=`<td data-label="Partido"><span class="mt-fecha-badge">${escapeHtml(s.name||'Partido')}</span></td><td class="mt-fecha" data-label="Fecha">${when}</td><td data-label="Jugadores">${nJug} jugadores</td><td class="mt-open"><button class="btn small mt-open-btn">Ver detalle →</button></td><td class="mt-del"><button class="mt-del-btn" title="Borrar este partido" aria-label="Borrar">✕</button></td>`;
       tr.querySelector('.mt-open-btn').addEventListener('click',()=>showMinutesDetail(s));
       tr.querySelector('.mt-del-btn').addEventListener('click',async()=>{
         if(!confirm('¿Borrar el minutaje de "'+(s.name||'Partido')+'"? Esta acción no se puede deshacer.')) return;
