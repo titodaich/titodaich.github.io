@@ -428,6 +428,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .cat-label{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);}
 .cat-chips{display:flex;gap:6px;flex-wrap:wrap;}
 .cat-chip{display:inline-flex;align-items:center;gap:6px;background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:6px 15px;font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;cursor:pointer;transition:all .15s ease;}
+/* ── Grupo Promo: título que despliega los años de nacimiento ── */
+.promo-group{display:inline-flex;flex-direction:column;gap:6px;align-items:flex-start;}
+.promo-title{border-style:dashed;}
+.promo-title.has-active{border-color:var(--accent-2);color:var(--accent-2);border-style:solid;}
+.promo-arrow{font-size:10px;transition:transform .15s ease;display:inline-block;}
+.promo-group.open .promo-arrow{transform:rotate(180deg);}
+.promo-years{display:flex;flex-wrap:wrap;gap:6px;padding-left:10px;border-left:2px solid var(--line);margin-left:6px;}
+.promo-year{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0;}
 .cat-chip:hover{border-color:var(--accent-2);color:var(--chalk);}
 .cat-chip.active{background:var(--accent-2);border-color:var(--accent-2);color:#10161C;box-shadow:0 2px 10px rgba(47,143,203,0.35);}
 .cat-chip.locked{opacity:0.55;border-style:dashed;}
@@ -1355,10 +1363,15 @@ body.modo-lectura .section-content textarea:read-only{
 
 .layout{display:grid;grid-template-columns:1fr 1.4fr;gap:20px;}
 @media (max-width:860px){.layout{grid-template-columns:1fr;}
-  /* En celular mostramos primero el reproductor + tags (panel 02), y debajo subir video y registro (panel 01) */
-  #section-video .layout{display:flex;flex-direction:column;}
-  #section-video .layout > .panel:nth-child(1){order:2;}
-  #section-video .layout > .panel:nth-child(2){order:1;}
+  /* ── ORDEN EN CELULAR ──
+     Lo primero es el reproductor con los tags (donde pasás el tiempo marcando),
+     después el registro de recortes, y al final subir video y la línea de tiempo. */
+  #section-video{display:flex; flex-direction:column;}
+  #section-video > .video-help{order:0;}
+  #section-video > .layout{order:1; display:flex; flex-direction:column;}
+  #section-video .layout > .panel:nth-child(1){order:2;}   /* 01 Subí el partido */
+  #section-video .layout > .panel:nth-child(2){order:1;}   /* 02 Reproductor + tags */
+  #section-video > .timeline-panel{order:2; margin-top:14px;}
 }
 
 .panel{background:rgba(42,36,25,0.86);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);border:1px solid var(--line);border-radius:var(--radius);padding:18px;min-width:0;max-width:100%;}
@@ -1470,6 +1483,12 @@ body.modo-lectura .section-content textarea:read-only{
 .vtag-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:4px 6px;border-radius:5px;flex-shrink:0;}
 .vtag-del:hover{color:var(--danger);background:rgba(240,85,63,0.12);}
 @media (max-width:600px){ .clip-log-row .log-actions{opacity:1;} }
+/* En cualquier pantalla táctil los botones del registro están SIEMPRE visibles
+   (no existe el "pasar el mouse por encima" en un celular o tablet) */
+@media (hover:none), (pointer:coarse), (max-width:900px){
+  .clip-log-row .log-actions{opacity:1 !important;}
+  .clip-log-row .log-actions button{min-width:34px;min-height:34px;display:inline-flex;align-items:center;justify-content:center;}
+}
 .log-btn{
   border:1px solid var(--line);background:transparent;color:var(--muted);
   border-radius:4px;width:22px;height:22px;font-size:10px;
@@ -1817,6 +1836,34 @@ body.editor-active #screen-editor{ display:block; }
     min-height:42px; font-size:16px;   /* 16px evita que el iPhone haga zoom al tocar */
   }
   .cuarteto-input, .search{min-height:42px; font-size:16px;}
+}
+
+/* ═══ MÓDULO DE VIDEO EN CELULAR: más compacto y directo ═══ */
+@media (max-width:720px){
+  /* Menos aire para que entre más en pantalla */
+  #section-video .panel{padding:12px;}
+  #section-video .panel h2{font-size:12.5px;margin-bottom:10px;}
+
+  /* Tags más compactos: entran más sin scrollear */
+  #section-video .tag-grid{gap:6px;}
+  #section-video .tag-chip{padding:8px 9px;gap:6px;min-height:44px;}
+  #section-video .tag-name{font-size:12.5px;}
+
+  /* Reproductor y sus textos más ajustados */
+  #section-video .video-frame{margin-bottom:8px;}
+  #section-video .timecode{margin:6px 0;font-size:11px;}
+  #section-video .record-status{margin:8px 0 4px;font-size:12.5px;}
+  #section-video .mark-hint{font-size:10.5px;margin-bottom:8px;}
+
+  /* Zona de carga más compacta */
+  #section-video .dropzone{padding:18px 14px;}
+  #section-video .dropzone .big{font-size:15px;}
+  #section-video .dropzone .small{font-size:11.5px;}
+
+  /* Registro de recortes: filas más cómodas de tocar */
+  .clip-log-row{padding:9px 8px;flex-wrap:wrap;}
+  .clip-log-row .logtime{font-size:10.5px;width:100%;margin-top:2px;}
+  .clip-log-row .log-actions{margin-left:auto;}
 }
 
 @media (max-width:400px){
@@ -3870,6 +3917,16 @@ window.__initEditor = function(){
       if(target === 'live' && window.__initLiveOnce){ window.__initLiveOnce(); }
       if(window.__trackSection) window.__trackSection(target);
       window.scrollTo(0, 0);
+      // En celular, al entrar a Video bajamos directo a la zona de trabajo
+      // (reproductor + tags), así no hay que scrollear a mano cada vez.
+      if(target === 'video' && window.innerWidth <= 720){
+        setTimeout(() => {
+          const marco = document.querySelector('#section-video .video-frame');
+          if(!marco) return;
+          const y = marco.getBoundingClientRect().top + window.scrollY - 6;
+          window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+        }, 250);
+      }
     });
   });
 })();
@@ -4247,7 +4304,12 @@ window.__initEditor = function(){
 // ---------------- CATEGORÍAS ----------------
 (function initCategories(){
   // Categorías fijas de la institución.
-  const FIXED_CATEGORIES = ['1era', '3era', '4ta', '5ta', '6ta', '7ma', '8va', 'Promo'];
+  // Categorías: las fijas más el grupo "Promo", que agrupa años de nacimiento.
+  // Promo NO es una categoría en sí: es un título que despliega sus años.
+  const CATEGORIAS_BASE = ['1era', '3era', '4ta', '5ta', '6ta', '7ma', '8va'];
+  const PROMO_ANIOS = ['2016', '2017', '2018', '2019'];
+  const FIXED_CATEGORIES = CATEGORIAS_BASE.concat(PROMO_ANIOS);
+  let promoAbierto = false;
   let activeCategory = FIXED_CATEGORIES[0];
 
   const chipsEl = document.getElementById('catChips');
@@ -4285,15 +4347,38 @@ window.__initEditor = function(){
   function renderChips(){
     chipsEl.innerHTML = '';
     const activo = cobroActivo();
-    FIXED_CATEGORIES.forEach(cat => {
+
+    function crearChip(cat, extraClase){
       const chip = document.createElement('div');
       const bloqueada = activo && !ocupadas.includes(cat) && ocupadas.length >= limiteCategorias();
-      chip.className = 'cat-chip' + (cat === activeCategory ? ' active' : '') + (bloqueada ? ' locked' : '');
+      chip.className = 'cat-chip' + (cat === activeCategory ? ' active' : '') + (bloqueada ? ' locked' : '') + (extraClase ? ' ' + extraClase : '');
       chip.textContent = cat;
       if(bloqueada) chip.innerHTML = cat + ' <span class="chip-lock">🔒</span>';
       chip.addEventListener('click', () => selectCategory(cat));
-      chipsEl.appendChild(chip);
-    });
+      return chip;
+    }
+
+    // Categorías normales
+    CATEGORIAS_BASE.forEach(cat => chipsEl.appendChild(crearChip(cat)));
+
+    // Grupo Promo: título que despliega los años
+    const hayPromoActiva = PROMO_ANIOS.includes(activeCategory);
+    const grupo = document.createElement('div');
+    grupo.className = 'promo-group' + (promoAbierto || hayPromoActiva ? ' open' : '');
+
+    const titulo = document.createElement('div');
+    titulo.className = 'cat-chip promo-title' + (hayPromoActiva ? ' has-active' : '');
+    titulo.innerHTML = 'Promo <span class="promo-arrow">▾</span>';
+    titulo.addEventListener('click', () => { promoAbierto = !promoAbierto; renderChips(); });
+    grupo.appendChild(titulo);
+
+    if(promoAbierto || hayPromoActiva){
+      const lista = document.createElement('div');
+      lista.className = 'promo-years';
+      PROMO_ANIOS.forEach(anio => lista.appendChild(crearChip(anio, 'promo-year')));
+      grupo.appendChild(lista);
+    }
+    chipsEl.appendChild(grupo);
   }
 
   function selectCategory(cat){
@@ -9815,6 +9900,7 @@ function updateClipLog(){
       <span class="logtag" data-log-tag>${escapeHtml(nombre)}</span>
       <span class="logtime">minuto ${fmt(it.start)} a ${fmt(it.end)}</span>
       <span class="log-actions">
+        <button class="log-btn" data-log-action="toggle" title="Ver este recorte">▸</button>
         <button class="log-btn log-add${yaEsta?' is-in':''}" data-log-action="add" title="${yaEsta?'Quitar de la línea de tiempo':'Agregar a la línea de tiempo'}">${yaEsta?'✓':'＋'}</button>
         <button class="log-btn" data-log-action="rename" title="Renombrar este recorte">✎</button>
         <button class="log-btn" data-log-action="export" title="Exportar este clip">⬇</button>
@@ -9836,10 +9922,11 @@ function updateClipLog(){
     row.addEventListener('dragend', () => row.classList.remove('dragging'));
 
     // Flecha: mostrar/ocultar la vista previa dentro del registro
-    row.querySelector('[data-log-action="toggle"]').addEventListener('click', (e) => {
+    const btnToggle = row.querySelector('[data-log-action="toggle"]');
+    if(btnToggle) btnToggle.addEventListener('click', (e) => {
       e.stopPropagation();
       const box = row.querySelector('[data-log-preview]');
-      const arrow = row.querySelector('[data-log-action="toggle"]');
+      const arrow = btnToggle;
       if(box.hasAttribute('hidden')){
         box.removeAttribute('hidden');
         arrow.textContent = '▾';
