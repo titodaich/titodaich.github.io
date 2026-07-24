@@ -4457,15 +4457,19 @@ window.__initEditor = function(){
   let avisos = [];
   let leidas = new Set();
 
-  // Las leídas se recuerdan en el propio dispositivo
+  // Las leídas se recuerdan en el propio dispositivo.
+  // Se usa localStorage (persiste entre sesiones) en lugar de window.name,
+  // que se borraba al cerrar la pestaña o al abrir la app como PWA, y hacía
+  // que el punto rojo reapareciera siempre.
+  const LEIDAS_KEY = 'bo_notif_leidas';
   function cargarLeidas(){
     try{
-      const raw = window.name && window.name.startsWith('bo_read:') ? window.name.slice(8) : '';
-      if(raw) leidas = new Set(raw.split(','));
+      const raw = localStorage.getItem(LEIDAS_KEY);
+      if(raw) leidas = new Set(raw.split(',').filter(Boolean));
     }catch(e){}
   }
   function guardarLeidas(){
-    try{ window.name = 'bo_read:' + [...leidas].join(','); }catch(e){}
+    try{ localStorage.setItem(LEIDAS_KEY, [...leidas].join(',')); }catch(e){}
   }
 
   function iconoDe(tipo){
