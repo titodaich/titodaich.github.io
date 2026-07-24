@@ -478,8 +478,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .nav-tab:hover::before,.nav-tab.active::before{transform:scale(1.12);}
 
 /* ===== Secciones ===== */
-.section-content{display:none;position:relative;z-index:1;}
-.section-content.active{display:block;}
+/* Solo se ve la sección activa. El !important evita que reglas de layout
+   específicas (por ejemplo las de móvil del módulo de video) la dejen visible. */
+.section-content{display:none !important;position:relative;z-index:1;}
+.section-content.active{display:block !important;}
 /* ===== GUÍA ===== */
 .guide-title{font-family:'Oswald',sans-serif;font-size:26px;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 6px;}
 .guide-sub{font-family:'Inter',sans-serif;font-size:14px;color:var(--muted);margin:0 0 22px;}
@@ -1040,6 +1042,12 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .ev-prom b{font-family:'Oswald',sans-serif;font-size:16px;}
 .ev-obs{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-family:'Inter',sans-serif;font-size:12.5px;line-height:1.6;color:var(--muted);}
 .ev-obs b{color:var(--chalk);}
+/* Formulario de lesiones y situaciones */
+.les-tipos{display:flex;gap:9px;}
+.les-tipo{flex:1;background:var(--bg);border:1px solid var(--line);color:var(--muted);border-radius:9px;padding:12px 10px;font-family:'Inter',sans-serif;font-size:13.5px;cursor:pointer;transition:all .15s ease;}
+.les-tipo:hover{border-color:var(--accent-2);color:var(--chalk);}
+.les-tipo.selected{background:rgba(47,143,203,0.18);border-color:var(--accent-2);color:var(--accent-2);}
+.les-fechas{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
 /* Selector de posiciones */
 .pos-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
 .pos-btn{background:var(--bg);border:1px solid var(--line);color:var(--muted);border-radius:9px;padding:14px 10px;font-family:'Oswald',sans-serif;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;cursor:pointer;transition:all .15s ease;}
@@ -1443,8 +1451,10 @@ body.modo-lectura .section-content textarea:read-only{
 @media (max-width:860px){.layout{grid-template-columns:1fr;}
   /* ── ORDEN EN CELULAR ──
      Lo primero es el reproductor con los tags (donde pasás el tiempo marcando),
-     después el registro de recortes, y al final subir video y la línea de tiempo. */
-  #section-video{display:flex; flex-direction:column;}
+     después el registro de recortes, y al final subir video y la línea de tiempo.
+     OJO: solo aplicamos flex cuando la sección está ACTIVA; si no, pisaría
+     el display:none que oculta las secciones que no se están viendo. */
+  #section-video.active{display:flex !important; flex-direction:column;}
   #section-video > .video-help{order:0;}
   #section-video > .layout{order:1; display:flex; flex-direction:column;}
   #section-video .layout > .panel:nth-child(1){order:2;}   /* 01 Subí el partido */
@@ -8749,37 +8759,97 @@ window.__initEditor = function(){
     }));
   }
 
-  async function agregarLesion(player){
-    const tipoTxt = prompt('¿Qué querés registrar?\n\nEscribí "L" para una lesión o "S" para una situación especial.', 'L');
-    if(tipoTxt === null) return;
-    const tipo = tipoTxt.trim().toUpperCase() === 'S' ? 'situacion' : 'lesion';
-    const titulo = prompt(tipo === 'lesion' ? 'Tipo de lesión\n(ej: Esguince de tobillo)' : 'Situación\n(ej: Viaje familiar, examen)', '');
-    if(titulo === null || !titulo.trim()){ return; }
-    const desde = prompt('¿Desde cuándo? (AAAA-MM-DD)', new Date().toISOString().slice(0,10));
-    if(desde === null) return;
-    const hasta = prompt('¿Hasta cuándo? (AAAA-MM-DD)\n\nDejalo vacío si todavía continúa.', '');
-    if(hasta === null) return;
-    const detalle = prompt('Detalle (opcional)', '');
-    if(detalle === null) return;
-    try{
-      const sb = window.__sb; const clubId = await window.__getClubId();
-      const { error } = await sb.from('player_incidents').insert({
-        club_id: clubId,
-        player_id: player.id,
-        temporada: window.__getTemporada ? window.__getTemporada() : null,
-        tipo,
-        titulo: titulo.trim(),
-        detalle: detalle.trim() || null,
-        desde: desde.trim() || null,
-        hasta: hasta.trim() || null
+  function agregarLesion(player){
+    let m = document.getElementById('lesionModal');
+    if(m) m.remove();
+    m = document.createElement('div');
+    m.id = 'lesionModal';
+    m.className = 'cloud-modal-overlay';
+    m.style.display = 'flex';
+    const hoy = new Date().toISOString().slice(0,10);
+    m.innerHTML = `
+      <div class="cloud-modal" style="max-width:440px;">
+        <div class="cloud-modal-head">
+          <h3>🩹 Registrar</h3>
+          <button class="cloud-close" id="lesClose">✕</button>
+        </div>
+        <div style="padding:4px 2px;">
+          <label class="cal-field-lbl">¿Qué querés registrar?</label>
+          <div class="les-tipos">
+            <button class="les-tipo selected" data-tipo="lesion">🩹 Lesión</button>
+            <button class="les-tipo" data-tipo="situacion">📌 Situación</button>
+          </div>
+
+          <label class="cal-field-lbl" style="margin-top:14px;">Título</label>
+          <input type="text" id="lesTitulo" class="cuarteto-input" style="width:100%;" placeholder="Ej: Esguince de tobillo" maxlength="80">
+
+          <div class="les-fechas">
+            <div>
+              <label class="cal-field-lbl">Desde</label>
+              <input type="date" id="lesDesde" class="cuarteto-input" style="width:100%;" value="${hoy}">
+            </div>
+            <div>
+              <label class="cal-field-lbl">Hasta</label>
+              <input type="date" id="lesHasta" class="cuarteto-input" style="width:100%;">
+            </div>
+          </div>
+          <p class="rd-empty" style="margin:6px 0 0;font-size:11.5px;">Dejá "Hasta" vacío si todavía continúa.</p>
+
+          <label class="cal-field-lbl" style="margin-top:14px;">Detalle</label>
+          <textarea id="lesDetalle" class="cuarteto-input" rows="5" style="width:100%;resize:vertical;line-height:1.6;" placeholder="Escribí lo que necesites: cómo pasó, qué dijo el médico, cómo viene la recuperación, qué puede y qué no puede hacer..."></textarea>
+
+          <div class="summary-actions" style="margin-top:16px;">
+            <button class="btn small" id="lesCancel">Cancelar</button>
+            <button class="btn small primary" id="lesSave">Guardar</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(m);
+
+    let tipoElegido = 'lesion';
+    m.querySelectorAll('.les-tipo').forEach(b => {
+      b.addEventListener('click', () => {
+        tipoElegido = b.dataset.tipo;
+        m.querySelectorAll('.les-tipo').forEach(x => x.classList.remove('selected'));
+        b.classList.add('selected');
+        const inp = document.getElementById('lesTitulo');
+        if(inp) inp.placeholder = tipoElegido === 'lesion' ? 'Ej: Esguince de tobillo' : 'Ej: Viaje familiar, exámenes';
       });
-      if(error) throw error;
-      renderLesiones(player);
-      toast('Registrado');
-    }catch(e){
-      console.error(e);
-      toast((e.message||'').includes('does not exist') ? 'Falta preparar la base: corré el SQL de la ficha' : 'No se pudo guardar');
-    }
+    });
+
+    const cerrar = () => m.remove();
+    document.getElementById('lesClose').addEventListener('click', cerrar);
+    document.getElementById('lesCancel').addEventListener('click', cerrar);
+    m.addEventListener('click', e => { if(e.target === m) cerrar(); });
+    setTimeout(() => document.getElementById('lesTitulo')?.focus(), 80);
+
+    document.getElementById('lesSave').addEventListener('click', async () => {
+      const titulo = document.getElementById('lesTitulo').value.trim();
+      if(!titulo){ toast('Poné un título'); return; }
+      const desde = document.getElementById('lesDesde').value || null;
+      const hasta = document.getElementById('lesHasta').value || null;
+      const detalle = document.getElementById('lesDetalle').value.trim() || null;
+      try{
+        const sb = window.__sb; const clubId = await window.__getClubId();
+        const { error } = await sb.from('player_incidents').insert({
+          club_id: clubId,
+          player_id: player.id,
+          temporada: window.__getTemporada ? window.__getTemporada() : null,
+          tipo: tipoElegido,
+          titulo,
+          detalle,
+          desde,
+          hasta
+        });
+        if(error) throw error;
+        cerrar();
+        renderLesiones(player);
+        toast('Registrado');
+      }catch(e){
+        console.error(e);
+        toast((e.message||'').includes('does not exist') ? 'Falta preparar la base: corré el SQL de la ficha' : 'No se pudo guardar');
+      }
+    });
   }
 
   // ---------- Evaluaciones por trimestre ----------
