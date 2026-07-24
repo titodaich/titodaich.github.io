@@ -2125,75 +2125,126 @@ body.editor-active #screen-editor{ display:block; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   AIRE EN EL ENCABEZADO — SOLO CELULAR Y TABLET (hasta 1024px)
+   ENCABEZADO Y CATEGORÍAS — SOLO CELULAR Y TABLET (hasta 1024px)
    En computadora (1025px o más) no cambia absolutamente nada.
-
-   Qué arregla:
-   Las tres barras de arriba (escudo+nombre / categorías / menú de
-   secciones) venían pegadas una encima de la otra. El menú de secciones
-   no tenía ningún margen superior, así que arrancaba justo donde
-   terminaba la barra de categorías, y el escudo quedaba rozando la
-   línea divisoria del encabezado.
    ═══════════════════════════════════════════════════════════════════════ */
 @media (max-width:1024px){
-
-  /* --- 1. Separación entre la barra de categorías y lo de arriba --- */
+  /* Aire entre las tres barras de arriba, que venían pegadas */
   .category-bar{margin-top:16px;}
-
-  /* --- 2. El menú de secciones deja de estar pegado a las categorías.
-           Esta es la corrección principal. --- */
-  .nav-wrap{margin-top:14px;}
-
-  /* --- 3. Un poco más de respiro alrededor de las pestañas --- */
+  .nav-wrap{margin-top:14px;}   /* el menú no tenía ningún margen superior */
   .main-nav{padding:7px;}
 }
 
-/* ─────────── CELULAR ─────────── */
+/* ─────────────────────── CELULAR (hasta 720px) ─────────────────────── */
 @media (max-width:720px){
 
-  /* El encabezado respira: el escudo ya no roza la línea de abajo */
+  /* ===== 1. LOS DOS ESCUDOS, UNO AL LADO DEL OTRO ===== */
   .topbar{
-    padding:14px 2px 16px;   /* antes: 8px arriba / 10px abajo */
-    gap:14px;
+    padding:13px 2px 15px;
+    gap:10px;
+    flex-wrap:nowrap;
+    align-items:center;
+  }
+  .brand-wrap{gap:10px;align-items:center;flex:1 1 auto;min-width:0;}
+  /* El div sin clase que envuelve el nombre: sin esto no se achica y
+     el texto vuelve a desbordarse encima de la campanita. */
+  .brand-wrap > div{min-width:0;}
+  .club-escudo{width:38px;height:38px;border-radius:10px;}
+
+  /* El logo de Benchone vuelve a mostrarse (antes estaba en display:none) */
+  .brand-logo-sm{
+    display:inline-block;
+    width:24px;height:24px;
+    border-radius:6px;
+    margin-right:6px;
+    top:0;
+    flex-shrink:0;
   }
 
-  /* El escudo se despega del nombre del club */
-  .brand-wrap{gap:14px;}
-  .club-escudo{width:42px;height:42px;border-radius:11px;}
+  /* El eslogan largo era lo que se encimaba con la campanita.
+     En celular queda solo "BENCHONE"; en computadora sigue completo. */
+  .brand-tag{display:none;}
+  .brand .dot{display:none;}
+  .brand{
+    font-size:15px;
+    max-width:none;
+    min-width:0;
+    gap:0;
+    line-height:1.1;
+    align-items:center;
+    white-space:nowrap;
+    overflow:hidden;
+  }
 
-  /* Los botones de la derecha dejan de tocarse entre sí */
-  .topbar-right{gap:9px;}
-  .lang-select{min-height:34px;}
-  .notif-bell{min-height:34px;}
-  #logoutBtn, .topbar-right .btn{min-height:34px;}
+  /* ===== 2. BOTONES DE LA DERECHA, SIN TOCARSE ===== */
+  .topbar-right{gap:7px;flex-wrap:nowrap;flex-shrink:0;}
+  .notif-bell{min-height:34px;min-width:34px;padding:4px 6px;font-size:15px;}
+  .lang-select{min-height:34px;max-width:58px;padding:4px 3px;font-size:11px;}
+  #logoutBtn,.topbar-right .btn{min-height:34px;padding:5px 9px;font-size:10.5px;white-space:nowrap;}
 
-  /* Barra de categorías con un poco más de cuerpo */
-  .category-bar{padding:11px 14px;}
+  /* ===== 3. CATEGORÍAS: QUE SE VEAN TODAS =====
+     El problema era un scroll adentro de otro scroll: .cat-chips tenía su
+     propio overflow-x:auto y se comprimía al espacio que sobraba después
+     de "Temporada", así que solo se veía un chip. Ahora los chips se
+     acomodan en varias filas y no se esconde ninguno. */
+  .category-bar{
+    flex-wrap:wrap;
+    overflow:visible;
+    -webkit-mask-image:none;
+    mask-image:none;
+    gap:8px;
+    row-gap:9px;
+    padding:12px 13px;
+    align-items:center;
+  }
+  .cat-label{flex:0 0 100%;}          /* "CATEGORÍA:" en su propio renglón */
+  .cat-chips{
+    flex:1 1 100%;
+    flex-wrap:wrap;                   /* todas visibles, sin scroll */
+    overflow:visible;                 /* ← acá estaba el bug */
+    gap:7px;
+    padding-bottom:0;
+  }
+  .cat-chip{flex-shrink:0;padding:7px 13px;font-size:12px;}
+  .promo-group{flex-shrink:0;}
 
-  /* Pestañas más cómodas de tocar y con el ícono despegado del texto */
+  /* Temporada baja a su propio renglón, separada por una línea */
+  .season-box{
+    flex:1 1 100%;
+    margin-left:0;
+    margin-top:2px;
+    padding-top:11px;
+    border-top:1px solid var(--line);
+    gap:8px;
+    width:auto;
+  }
+  .season-box .cat-label{flex:0 0 auto;}   /* "TEMPORADA:" queda en línea */
+
+  /* ===== 4. MENÚ DE SECCIONES ===== */
   .main-nav{gap:7px;margin-bottom:22px;}
-  .nav-tab{
-    min-height:54px;
-    padding:9px 10px;
-    gap:5px;
-  }
+  .nav-tab{min-height:52px;padding:9px 10px;gap:5px;}
   .nav-tab::before{font-size:17px;margin-bottom:0;}
 }
 
-/* ─────────── CELULAR CHICO ─────────── */
+/* ─────────────────────── CELULAR CHICO (hasta 400px) ─────────────────────── */
 @media (max-width:400px){
-  .topbar{padding:12px 2px 14px;gap:11px;}
-  .brand-wrap{gap:12px;}
-  .club-escudo{width:37px;height:37px;border-radius:10px;}
-  .category-bar{margin-top:13px;}
+  .topbar{padding:11px 2px 13px;gap:8px;}
+  .brand-wrap{gap:8px;}
+  .club-escudo{width:34px;height:34px;border-radius:9px;}
+  .brand-logo-sm{width:20px;height:20px;margin-right:4px;}
+  .brand{font-size:13px;}
+  .topbar-right{gap:5px;}
+  .notif-bell{min-height:30px;min-width:30px;font-size:14px;padding:3px 5px;}
+  .lang-select{min-height:30px;max-width:50px;font-size:10px;}
+  #logoutBtn,.topbar-right .btn{min-height:30px;padding:4px 7px;font-size:9.5px;}
+  .category-bar{margin-top:13px;padding:11px;}
+  .cat-chip{font-size:11.5px;padding:6px 11px;}
   .nav-wrap{margin-top:12px;}
   .nav-tab{min-height:50px;}
 }
 
-/* ─────────── TABLET (721px a 1024px) ─────────── */
+/* ─────────────────────── TABLET (721px a 1024px) ─────────────────────── */
 @media (min-width:721px) and (max-width:1024px){
-
-  /* Más aire arriba y abajo del encabezado */
   .topbar{padding:14px 2px 22px;row-gap:14px;}
   .brand-wrap{gap:15px;}
   .topbar-right{gap:12px;row-gap:10px;}
@@ -2309,7 +2360,7 @@ body.editor-active #screen-editor{ display:block; }
         <div class="club-escudo" id="clubEscudo"><span class="club-escudo-ph">🛡️</span></div>
       </button>
       <div>
-        <div class="brand"><img src="logo.png" alt="" class="brand-logo-sm" onerror="this.style.display='none'">BENCHONE<span class="dot">·</span>LA PLATAFORMA DEL ENTRENADOR</div>
+        <div class="brand"><img src="logo.png" alt="" class="brand-logo-sm" onerror="this.style.display='none'">BENCHONE<span class="dot">·</span><span class="brand-tag">LA PLATAFORMA DEL ENTRENADOR</span></div>
         <div class="brand-sub" data-i18n="brandSub">Todas las herramientas de tu cuerpo técnico, conectadas entre sí.</div>
       </div>
     </div>
