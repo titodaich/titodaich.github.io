@@ -1026,8 +1026,16 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .pi-del:hover{color:var(--danger);background:rgba(240,85,63,0.12);}
 .pi-detalle{font-family:'Inter',sans-serif;font-size:12.5px;line-height:1.5;color:var(--muted);margin:6px 0 0;}
 /* Evaluaciones */
-.ev-botones{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.ev-botones{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+.ev-btn{flex:1;min-width:150px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:12px 14px !important;text-align:center;}
+.ev-btn .evb-ico{font-size:17px;line-height:1;}
+.ev-btn .evb-txt{font-family:'Oswald',sans-serif;font-size:12.5px;text-transform:uppercase;letter-spacing:0.5px;}
+.ev-btn .evb-est{font-family:'Inter',sans-serif;font-size:10.5px;text-transform:none;letter-spacing:0;opacity:0.75;}
+.ev-btn.pendiente{border-color:var(--accent-2);color:var(--accent-2);border-style:dashed;}
+.ev-btn.pendiente:hover{background:rgba(47,143,203,0.12);border-style:solid;}
 .ev-btn.hecho{border-color:var(--success);color:var(--success);}
+.ev-ayuda{background:rgba(47,143,203,0.09);border:1px solid rgba(47,143,203,0.3);border-radius:9px;padding:11px 14px;margin-bottom:14px;font-family:'Inter',sans-serif;font-size:12.5px;line-height:1.6;color:var(--chalk);}
+.ev-ayuda b{color:var(--accent-2);}
 .ev-tabla-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .ev-tabla{width:100%;border-collapse:collapse;font-family:'Inter',sans-serif;font-size:13px;min-width:340px;}
 .ev-tabla th{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);font-weight:400;padding:6px 4px;text-align:center;border-bottom:1px solid var(--line);}
@@ -8879,6 +8887,7 @@ window.__initEditor = function(){
 
   // Ítems reales de la categoría actual (se cargan de la base)
   let EVAL_ITEMS = [];
+  let sembrandoItems = null;   // evita sembrar dos veces al mismo tiempo
 
   // Trae los ítems de esta categoría. Si no hay, crea los de por defecto.
   async function cargarItemsEval(){
@@ -8887,21 +8896,51 @@ window.__initEditor = function(){
       const clubId = await window.__getClubId();
       const cat = catActual();
       if(!sb || !clubId) { EVAL_ITEMS = []; return; }
-      let { data } = await sb.from('eval_items').select('*')
-        .eq('club_id', clubId).eq('categoria', cat).eq('activo', true)
-        .order('orden');
-      if(!data || data.length === 0){
-        // Primera vez en esta categoría: sembramos los ítems por defecto
-        const nuevos = EVAL_ITEMS_DEFAULT.map((it, i) => ({
-          club_id: clubId, categoria: cat, grupo: it.grupo, nombre: it.nombre, orden: i, activo: true
-        }));
-        const { data: creados, error } = await sb.from('eval_items').insert(nuevos).select();
-        if(error){ console.error('sembrar items', error); EVAL_ITEMS = []; return; }
-        data = creados || [];
-        data.sort((a,b) => (a.orden||0) - (b.orden||0));
+
+      async function traer(){
+        const { data } = await sb.from('eval_items').select('*')
+          .eq('club_id', clubId).eq('categoria', cat).eq('activo', true)
+          .order('orden');
+        return data || [];
       }
-      EVAL_ITEMS = data.map(d => ({ id:d.id, key:d.id, grupo:d.grupo, nombre:d.nombre, orden:d.orden }));
-    }catch(e){ console.error('cargar items eval', e); EVAL_ITEMS = []; }
+
+      let data = await traer();
+
+      if(data.length === 0){
+        // Si ya hay una siembra en curso, esperamos a que termine en vez de duplicar
+        if(sembrandoItems){
+          await sembrandoItems;
+          data = await traer();
+        } else {
+          sembrandoItems = (async () => {
+            // Volvemos a chequear justo antes de insertar, por si otro proceso ya sembró
+            const control = await traer();
+            if(control.length > 0) return;
+            const nuevos = EVAL_ITEMS_DEFAULT.map((it, i) => ({
+              club_id: clubId, categoria: cat, grupo: it.grupo, nombre: it.nombre, orden: i, activo: true
+            }));
+            const { error } = await sb.from('eval_items').insert(nuevos);
+            if(error) console.error('sembrar items', error);
+          })();
+          await sembrandoItems;
+          sembrandoItems = null;
+          data = await traer();
+        }
+      }
+
+      // Red de seguridad: si por lo que sea quedaron duplicados, mostramos uno solo
+      const vistos = new Set();
+      const unicos = [];
+      data.sort((a,b) => (a.orden||0) - (b.orden||0));
+      data.forEach(d => {
+        const clave = (d.grupo||'') + '|' + (d.nombre||'').trim().toLowerCase();
+        if(vistos.has(clave)) return;
+        vistos.add(clave);
+        unicos.push(d);
+      });
+
+      EVAL_ITEMS = unicos.map(d => ({ id:d.id, key:d.id, grupo:d.grupo, nombre:d.nombre, orden:d.orden }));
+    }catch(e){ console.error('cargar items eval', e); EVAL_ITEMS = []; sembrandoItems = null; }
   }
 
   function colorNota(n){
@@ -8990,9 +9029,22 @@ window.__initEditor = function(){
     }
     promedios += '</tr>';
 
-    const botones = [1,2].map(c =>
-      `<button class="btn small ev-btn${porCuat[c] ? ' hecho' : ''}" data-cuat="${c}">${porCuat[c] ? '✎' : '+'} ${c}° cuatrimestre</button>`
-    ).join('');
+    const hayAlguna = Object.keys(porCuat).length > 0;
+    const botones = [1,2].map(c => {
+      const hecho = !!porCuat[c];
+      return `<button class="btn ev-btn${hecho ? ' hecho' : ' pendiente'}" data-cuat="${c}">
+        <span class="evb-ico">${hecho ? '✎' : '+'}</span>
+        <span class="evb-txt">${c}° cuatrimestre</span>
+        <span class="evb-est">${hecho ? 'Editar' : 'Calificar'}</span>
+      </button>`;
+    }).join('');
+
+    // Cartel de ayuda cuando todavía no evaluó nada
+    const ayuda = hayAlguna ? '' : `
+      <div class="ev-ayuda">
+        <b>👉 Para empezar</b>, tocá <b>“1° cuatrimestre”</b> y ponele nota del 1 al 10 a cada ítem.
+        Después, en el segundo cuatrimestre volvés a evaluarlo y ves la evolución acá abajo.
+      </div>`;
 
     box.innerHTML = `
       <div class="pc-card">
@@ -9001,6 +9053,7 @@ window.__initEditor = function(){
           <button class="btn small" id="evEditItems">⚙ Configurar ítems</button>
         </div>
         <div class="ev-botones">${botones}</div>
+        ${ayuda}
         <div class="ev-tabla-wrap">
           <table class="ev-tabla">
             <thead><tr><th></th><th>1° cuat.</th><th>2° cuat.</th></tr></thead>
@@ -9170,6 +9223,15 @@ window.__initEditor = function(){
     document.getElementById('itemsSave').addEventListener('click', async () => {
       const limpios = borrador.map((it,i) => ({...it, nombre:(it.nombre||'').trim(), orden:i})).filter(it => it.nombre);
       if(limpios.length === 0){ toast('Dejá al menos un ítem'); return; }
+      // No permitimos dos ítems con el mismo nombre en el mismo grupo
+      const claves = new Set();
+      for(const it of limpios){
+        const k = it.grupo + '|' + it.nombre.toLowerCase();
+        if(claves.has(k)){ toast('Hay dos ítems iguales: "' + it.nombre + '"'); return; }
+        claves.add(k);
+      }
+      const btn = document.getElementById('itemsSave');
+      btn.disabled = true; btn.textContent = 'Guardando…';
       try{
         const sb = window.__sb;
         const clubId = await window.__getClubId();
@@ -9200,6 +9262,7 @@ window.__initEditor = function(){
         console.error(e);
         toast((e.message||'').includes('does not exist') ? 'Falta preparar la base: corré el SQL de evaluaciones' : 'No se pudieron guardar');
       }
+      btn.disabled = false; btn.textContent = 'Guardar';
     });
   }
 
