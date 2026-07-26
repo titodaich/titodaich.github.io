@@ -7404,7 +7404,10 @@ window.__initEditor = function(){
     if(sub === 'annual') renderAnnual();
     else if(sub === 'squad') renderSquad();
     else if(sub === 'calls') renderCalls();
+    else if(sub === 'attendance') renderAttendance();
     else if(sub === 'minutes') renderMinutes();
+    else if(sub === 'player') renderPlayerCard();
+    else if(sub === 'health') renderHealth();
     else renderMatchList();
   }
 
@@ -8399,7 +8402,7 @@ window.__initEditor = function(){
   let attTrainDays = [];     // días fijos de entreno: 0=Dom..6=Sáb
   let attMonth = new Date(); // mes que se está viendo
 
-  const ATT_CICLO = ['', 'yes', 'no', 'lesion', 'enfermedad', 'viaje', 'suspension'];
+  const ATT_CICLO = ['', 'yes', 'no', 'lesion', 'enfermedad', 'viaje'];
   function attIcon(st){
     return st==='yes'?'✓':(st==='no'?'✕':(st==='lesion'?'🚑':(st==='enfermedad'?'🤒':(st==='viaje'?'✈️':(st==='suspension'?'🟥':'')))));
   }
@@ -8471,6 +8474,7 @@ window.__initEditor = function(){
   const attSaveTimers = {};
   function saveAtt(dayKey, playerId, status){
     const sb = window.__sb;
+    if(window.__invalidateAttendance) window.__invalidateAttendance();  // el % cambió: refrescar en semáforo/ficha
     const tk = dayKey+'|'+playerId;
     clearTimeout(attSaveTimers[tk]);
     attSaveTimers[tk] = setTimeout(async () => {
@@ -8526,7 +8530,26 @@ window.__initEditor = function(){
   window.__attendancePercent = function(playerId){
     return attPercentForDays(playerId, attActiveDaysYear());
   };
-  window.__loadAttendance = async () => { await loadAttData(); await loadAttMatchDays(); };
+
+  // Caché: evita reconsultar Supabase si ya cargamos esta categoría/temporada.
+  // El semáforo y la ficha llaman a esto seguido; sin caché, cada cambio de
+  // categoría disparaba varias consultas seriales y se sentía "colgado".
+  let attCacheKey = null;
+  function attCurrentKey(){
+    const cat = (window.__getActiveCategory && window.__getActiveCategory()) || 'x';
+    const temp = window.__getTemporada ? window.__getTemporada() : new Date().getFullYear();
+    return cat + '|' + temp;
+  }
+  window.__loadAttendance = async (force) => {
+    const key = attCurrentKey();
+    if(!force && key === attCacheKey) return;   // ya está cargado para esta cat/temp
+    await loadAttData();
+    await loadAttMatchDays();
+    attCacheKey = key;
+  };
+  // Invalidar la caché cuando se marca una asistencia (para que semáforo/ficha
+  // reflejen el cambio la próxima vez que se abran).
+  window.__invalidateAttendance = () => { attCacheKey = null; };
 
   function attChangeMonth(delta){
     attMonth.setMonth(attMonth.getMonth() + delta);
@@ -8545,6 +8568,7 @@ window.__initEditor = function(){
     loadTrainDays();
     await loadAttData();
     await loadAttMatchDays();
+    attCacheKey = attCurrentKey();   // marcar como cargado (evita reconsultas del semáforo/ficha)
 
     const y = attMonth.getFullYear();
     const m = attMonth.getMonth();
@@ -8616,7 +8640,7 @@ window.__initEditor = function(){
     html += '</div><div class="att-annual-note">El % se calcula sobre los días que hubo actividad (al menos una marca). Todo lo que no sea ✓ Presente baja el porcentaje.</div></div>';
 
     // ---- Leyenda ----
-    html += '<div class="calls-legend">Tocá una celda para cambiar: <span class="cl-i cl-yes">✓ Presente</span> <span class="cl-i cl-no">✕ Ausente</span> <span class="cl-i cl-les">🚑 Lesión</span> <span class="cl-i cl-enf">🤒 Enfermedad</span> <span class="cl-i cl-via">✈️ Viaje</span> <span class="cl-i cl-sus">🟥 Suspensión</span></div>';
+    html += '<div class="calls-legend">Tocá una celda para cambiar: <span class="cl-i cl-yes">✓ Presente</span> <span class="cl-i cl-no">✕ Ausente</span> <span class="cl-i cl-les">🚑 Lesión</span> <span class="cl-i cl-enf">🤒 Enfermedad</span> <span class="cl-i cl-via">✈️ Viaje</span></div>';
 
     wrap.innerHTML = html;
 
@@ -9369,7 +9393,7 @@ window.__initEditor = function(){
         <div class="pc-stat"><div class="pc-stat-num" style="color:#E0A93B">${minutosTotales}'</div><div class="pc-stat-lbl">Minutos</div></div>
         <div class="pc-stat"><div class="pc-stat-num">${partidosConMinutos}</div><div class="pc-stat-lbl">Partidos jugados</div></div>
         <div class="pc-stat"><div class="pc-stat-num" style="color:var(--muted)">${minutosPromedio}'</div><div class="pc-stat-lbl">Prom. x partido</div></div>
-        <div class="pc-stat"><div class="pc-stat-num" style="color:${asistColor}">${asistTxt}</div><div class="pc-stat-lbl">% Asistencia</div></div>
+        <div class="pc-stat"><div class="pc-stat-num" style="color:${asistColor}">${asistTxt}</div><div class="pc-stat-lbl">Asistencia al entrenamiento</div></div>
       </div>`;
 
     // ---- Gráfico de barras: goles por partido ----
