@@ -1374,6 +1374,21 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .att-bar.lo{background:var(--danger);}
 .att-an-val{font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;min-width:48px;text-align:right;}
 .att-annual-note{font-family:'Inter',sans-serif;font-size:11.5px;color:var(--muted-2);margin-top:14px;line-height:1.5;}
+
+/* Botón de excluir en cada fila */
+.att-excl-btn{background:transparent;border:none;color:var(--muted-2);font-size:13px;cursor:pointer;
+  padding:0 6px 0 0;opacity:0.45;transition:opacity .15s,color .15s;line-height:1;}
+.att-excl-btn:hover{opacity:1;color:var(--danger);}
+/* Sección de excluidos */
+.att-excluded{margin-top:18px;background:var(--bg-2);border:1px dashed var(--line);border-radius:12px;padding:14px 18px;}
+.att-excl-title{font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;color:var(--muted);letter-spacing:.4px;text-transform:uppercase;}
+.att-excl-note{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted-2);margin:4px 0 10px;line-height:1.5;}
+.att-excl-list{display:flex;flex-wrap:wrap;gap:8px;}
+.att-excl-chip{display:inline-flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line-soft);
+  border-radius:8px;padding:6px 10px;font-family:'Inter',sans-serif;font-size:13px;color:var(--chalk);}
+.att-incl-btn{background:transparent;border:1px solid var(--accent-2);color:var(--accent-2);border-radius:6px;
+  padding:2px 8px;font-size:11px;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:background .15s;}
+.att-incl-btn:hover{background:rgba(47,143,203,0.14);}
 @media (max-width:720px){
   .att-toolbar{gap:12px;}
   .att-td-lbl{width:100%;margin-bottom:2px;}
@@ -8431,6 +8446,26 @@ window.__initEditor = function(){
     try{ localStorage.setItem(attTrainKey(), JSON.stringify(attTrainDays)); }catch(e){}
   }
 
+  // Jugadores EXCLUIDOS del presentismo (juegan/cuentan en todo lo demás, pero
+  // no entrenan durante la semana: p.ej. juveniles que sólo compiten, o bajas).
+  // Se guarda solo local, por categoría/temporada. No toca el plantel ni la base.
+  let attExcluded = [];   // [player_id, ...]
+  function attExclKey(){
+    const cat = (window.__getActiveCategory && window.__getActiveCategory()) || 'x';
+    const temp = window.__getTemporada ? window.__getTemporada() : new Date().getFullYear();
+    return 'bo_att_excluded_'+cat+'_'+temp;
+  }
+  function loadExcluded(){
+    try{ const r = localStorage.getItem(attExclKey()); attExcluded = r ? JSON.parse(r) : []; }
+    catch(e){ attExcluded = []; }
+  }
+  function saveExcluded(){
+    try{ localStorage.setItem(attExclKey(), JSON.stringify(attExcluded)); }catch(e){}
+  }
+  function attIsExcluded(pid){ return attExcluded.includes(pid); }
+  function attExclude(pid){ if(!attExcluded.includes(pid)){ attExcluded.push(pid); saveExcluded(); } }
+  function attInclude(pid){ const i = attExcluded.indexOf(pid); if(i>=0){ attExcluded.splice(i,1); saveExcluded(); } }
+
   // Carga los estados guardados (de toda la temporada, para poder calcular el % anual)
   async function loadAttData(){
     const sb = window.__sb;
@@ -8528,6 +8563,8 @@ window.__initEditor = function(){
 
   // Expuesto para Semáforo y Ficha (Etapa 2)
   window.__attendancePercent = function(playerId){
+    loadExcluded();
+    if(attIsExcluded(playerId)) return null;   // excluido: no se le mide asistencia
     return attPercentForDays(playerId, attActiveDaysYear());
   };
 
@@ -8566,9 +8603,14 @@ window.__initEditor = function(){
     }
     wrap.innerHTML = '<div class="calls-empty">Cargando…</div>';
     loadTrainDays();
+    loadExcluded();
     await loadAttData();
     await loadAttMatchDays();
     attCacheKey = attCurrentKey();   // marcar como cargado (evita reconsultas del semáforo/ficha)
+
+    // Jugadores que SÍ cuentan para presentismo (los no excluidos)
+    const visibles = squad.filter(p => !attIsExcluded(p.id));
+    const excluidos = squad.filter(p => attIsExcluded(p.id));
 
     const y = attMonth.getFullYear();
     const m = attMonth.getMonth();
@@ -8607,8 +8649,8 @@ window.__initEditor = function(){
     }
     html += '<th class="total-col">% Mes</th></tr></thead><tbody>';
 
-    squad.forEach(p => {
-      html += '<tr><td class="player-name-cell"><span class="pn-num">'+escapeHtml(p.number||'')+'</span> '+escapeHtml(p.name)+'</td>';
+    visibles.forEach(p => {
+      html += '<tr><td class="player-name-cell"><button class="att-excl-btn" data-excl="'+p.id+'" title="No cuenta para presentismo">✕</button><span class="pn-num">'+escapeHtml(p.number||'')+'</span> '+escapeHtml(p.name)+'</td>';
       for(let d=1; d<=daysInMonth; d++){
         const wd = new Date(y, m, d).getDay();
         const key = attKey(y,m,d);
@@ -8628,7 +8670,7 @@ window.__initEditor = function(){
     // ---- Resumen anual ----
     const activeYear = attActiveDaysYear();
     html += '<div class="att-annual"><div class="att-annual-title">📊 Asistencia anual '+y+'</div><div class="att-annual-grid">';
-    squad.forEach(p => {
+    visibles.forEach(p => {
       const py = attPercentForDays(p.id, activeYear);
       const val = py===null ? '—' : py+'%';
       let barCls = 'att-bar';
@@ -8642,7 +8684,38 @@ window.__initEditor = function(){
     // ---- Leyenda ----
     html += '<div class="calls-legend">Tocá una celda para cambiar: <span class="cl-i cl-yes">✓ Presente</span> <span class="cl-i cl-no">✕ Ausente</span> <span class="cl-i cl-les">🚑 Lesión</span> <span class="cl-i cl-enf">🤒 Enfermedad</span> <span class="cl-i cl-via">✈️ Viaje</span></div>';
 
+    // ---- Excluidos del presentismo ----
+    if(excluidos.length > 0){
+      html += '<div class="att-excluded"><div class="att-excl-title">No cuentan para presentismo ('+excluidos.length+')</div>'
+            + '<div class="att-excl-note">Siguen en el plantel, convocatorias y estadísticas. Sólo no se les mide la asistencia a entrenamientos.</div>'
+            + '<div class="att-excl-list">';
+      excluidos.forEach(p => {
+        html += '<span class="att-excl-chip">'+escapeHtml((p.number?'#'+p.number+' ':'')+p.name)
+              + '<button class="att-incl-btn" data-incl="'+p.id+'" title="Volver a incluir">↩ incluir</button></span>';
+      });
+      html += '</div></div>';
+    }
+
     wrap.innerHTML = html;
+
+    // ---- Eventos: excluir un jugador ----
+    wrap.querySelectorAll('.att-excl-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        attExclude(btn.dataset.excl);
+        if(window.__invalidateAttendance) window.__invalidateAttendance();
+        renderAttendance();
+      });
+    });
+    // ---- Eventos: volver a incluir ----
+    wrap.querySelectorAll('.att-incl-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        attInclude(btn.dataset.incl);
+        if(window.__invalidateAttendance) window.__invalidateAttendance();
+        renderAttendance();
+      });
+    });
 
     // ---- Eventos: click en celdas ----
     wrap.querySelectorAll('.att-cell').forEach(cell => {
