@@ -1330,6 +1330,56 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .calls-cell.reason-viaje{background:rgba(47,143,203,0.14);}
 .calls-cell.reason-suspension{background:rgba(240,85,63,0.22);}
 .calls-legend{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.9;}
+
+/* ===== PRESENTISMO (planilla mensual) ===== */
+.att-toolbar{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.att-monthnav{display:flex;align-items:center;gap:12px;}
+.att-navbtn{background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);border-radius:8px;
+  width:38px;height:38px;font-size:15px;cursor:pointer;transition:border-color .15s,background .15s;}
+.att-navbtn:hover{border-color:var(--accent-2);background:rgba(47,143,203,0.1);}
+.att-monthlbl{font-family:'Oswald',sans-serif;font-size:19px;font-weight:600;min-width:150px;text-align:center;text-transform:uppercase;letter-spacing:.5px;}
+.att-traindays{display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
+.att-td-lbl{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);margin-right:4px;}
+.att-td-btn{background:var(--panel);border:1px solid var(--line-soft);color:var(--muted);border-radius:7px;
+  padding:6px 10px;font-size:12px;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif;}
+.att-td-btn.on{background:rgba(47,143,203,0.16);border-color:var(--accent-2);color:var(--accent-2);font-weight:600;}
+.att-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
+.att-table{font-size:12px;}
+.att-table th.att-daycol{min-width:30px;padding:3px 2px;vertical-align:bottom;}
+.att-table .att-match{font-size:11px;line-height:1;height:14px;}
+.att-table .att-match-empty{height:14px;}
+.att-table .att-dnum{font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;color:var(--chalk);line-height:1.2;}
+.att-table .att-dini{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;}
+.att-table th.att-daycol.train-day{background:rgba(47,143,203,0.14);}
+.att-table th.att-daycol.train-day .att-dini{color:var(--accent-2);}
+.att-table th.att-daycol.weekend{background:rgba(255,255,255,0.02);}
+.att-table td.att-cell{min-width:30px;width:30px;height:34px;cursor:pointer;font-size:13px;padding:0;}
+.att-table td.att-cell.weekend{background:rgba(255,255,255,0.015);}
+.att-table td.att-cell.train-hint{background:rgba(47,143,203,0.05);box-shadow:inset 0 0 0 1px rgba(47,143,203,0.18);}
+.att-table td.att-cell:hover{background:rgba(47,143,203,0.12);}
+.att-table td.att-cell.yes{background:rgba(76,175,109,0.22);color:var(--success);}
+.att-table td.att-cell.no{background:rgba(240,85,63,0.18);color:var(--danger);}
+.att-table td.att-cell.reason{background:rgba(224,169,59,0.14);}
+
+/* Resumen anual */
+.att-annual{margin-top:22px;background:var(--panel);border:1px solid var(--line-soft);border-radius:14px;padding:18px 20px;}
+.att-annual-title{font-family:'Oswald',sans-serif;font-size:16px;font-weight:600;margin-bottom:14px;letter-spacing:.5px;}
+.att-annual-grid{display:flex;flex-direction:column;gap:9px;}
+.att-annual-row{display:flex;align-items:center;gap:12px;}
+.att-an-name{font-family:'Inter',sans-serif;font-size:13px;min-width:120px;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.att-an-bar-wrap{flex:1;height:12px;background:var(--bg-2);border-radius:6px;overflow:hidden;}
+.att-bar{display:block;height:100%;border-radius:6px;transition:width .3s;background:var(--muted);}
+.att-bar.hi{background:var(--success);}
+.att-bar.mid{background:#E0A93B;}
+.att-bar.lo{background:var(--danger);}
+.att-an-val{font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;min-width:48px;text-align:right;}
+.att-annual-note{font-family:'Inter',sans-serif;font-size:11.5px;color:var(--muted-2);margin-top:14px;line-height:1.5;}
+@media (max-width:720px){
+  .att-toolbar{gap:12px;}
+  .att-td-lbl{width:100%;margin-bottom:2px;}
+  .att-an-name{min-width:90px;max-width:110px;}
+}
+
 .calls-legend .cl-i{display:inline-block;padding:2px 8px;border-radius:6px;margin:0 3px;white-space:nowrap;}
 .calls-legend .cl-yes{background:rgba(76,175,109,0.18);color:var(--success);}
 .calls-legend .cl-no{background:rgba(240,85,63,0.15);color:var(--danger);}
@@ -2566,6 +2616,7 @@ body.editor-active #screen-editor{ display:block; }
       <button class="stats-subtab active" data-sub="matches" data-i18n="stMatches">⚽ Partidos</button>
       <button class="stats-subtab" data-sub="squad" data-i18n="stSquad">👥 Plantel</button>
       <button class="stats-subtab" data-sub="calls" data-i18n="stCalls">✅ Convocatorias</button>
+      <button class="stats-subtab" data-sub="attendance" data-i18n="stAttendance">📅 Presentismo</button>
       <button class="stats-subtab" data-sub="minutes" data-i18n="stMinutes">⏱ Minutaje</button>
       <button class="stats-subtab" data-sub="annual" data-i18n="stAnnual">📈 Estadísticas anuales</button>
       <button class="stats-subtab" data-sub="player" data-i18n="stPlayer">🎯 Ficha del jugador</button>
@@ -2671,6 +2722,17 @@ body.editor-active #screen-editor{ display:block; }
         </div>
       </div>
       <div class="calls-wrap" id="callsWrap"></div>
+    </div>
+
+    <!-- ===== SUB: PRESENTISMO ===== -->
+    <div class="stats-sub" id="stats-attendance">
+      <div class="scout-head">
+        <div>
+          <h2 class="scout-title" data-i18n="attTitle">Presentismo</h2>
+          <p class="scout-sub" data-i18n="attSub">Marcá la asistencia de cada jugador a entrenamientos y partidos. Tocá una celda para cambiar el estado. El porcentaje se calcula solo.</p>
+        </div>
+      </div>
+      <div class="calls-wrap" id="attendanceWrap"></div>
     </div>
 
     <!-- ===== SUB: MINUTAJE ===== -->
@@ -3457,6 +3519,7 @@ window.I18N = {
     aiAnalyze:'⚡ Analizar', aiCancel:'Cancelar',
     // Estadísticas subtabs
     stMatches:'⚽ Partidos', stSquad:'👥 Plantel', stCalls:'✅ Convocatorias', stMinutes:'⏱ Minutaje', stAnnual:'📈 Estadísticas anuales', stPlayer:'🎯 Ficha del jugador', playerTitle:'Ficha del jugador', playerSub:'Elegí un jugador y mirá su evolución partido a partido.', playerPick:'Jugador:', stHealth:'🚦 Semáforo del Plantel', healthTitle:'Semáforo del Plantel', healthSub:'Alertas automáticas según tus datos: tarjetas, minutos y convocatorias.',
+    stAttendance:'📅 Presentismo', attTitle:'Presentismo', attSub:'Marcá la asistencia de cada jugador a entrenamientos y partidos. Tocá una celda para cambiar el estado. El porcentaje se calcula solo.',
     exportLbl:'Exportar:', exportExcel:'⬇ Excel', exportPdf:'⬇ PDF', exportPdfGraph:'⬇ PDF con gráficos', exportEmpty:'No hay datos para exportar en esta pestaña.', exportReady:'Preparando la descarga…', exportPdfReady:'Se abrirá el diálogo de impresión. Elegí "Guardar como PDF".',
     stMatchesTitle:'Partidos', stMatchesSub:'Cargá cada partido con sus goles, asistencias y tarjetas. Se suma solo en las estadísticas anuales.',
     newMatch:'+ Nuevo partido', goalsFor:'⚽ Goles a favor', addGoal:'+ Gol', assists:'🅰 Asistencias', addAssist:'+ Asistencia',
@@ -3537,6 +3600,7 @@ window.I18N = {
     aiTitle:'Automatic AI analysis', aiSub:'The AI scans the video and suggests plays with your tags (corners, sidelines, 3-1, 4-0, defenses, 5v4...). You review and accept. Accepted clips appear in the Video tab like manual ones.',
     aiAnalyze:'⚡ Analyze', aiCancel:'Cancel',
     stMatches:'⚽ Matches', stSquad:'👥 Roster', stCalls:'✅ Call-ups', stMinutes:'⏱ Minutes', stAnnual:'📈 Season stats', stPlayer:'🎯 Player card', playerTitle:'Player card', playerSub:'Pick a player and see their match-by-match evolution.', playerPick:'Player:', stHealth:'🚦 Squad Traffic Light', healthTitle:'Squad Traffic Light', healthSub:'Automatic alerts from your data: cards, minutes and call-ups.',
+    stAttendance:'📅 Attendance', attTitle:'Attendance', attSub:'Mark attendance for each player to trainings and matches. Tap a cell to change the status. The percentage is calculated automatically.',
     exportLbl:'Export:', exportExcel:'⬇ Excel', exportPdf:'⬇ PDF', exportPdfGraph:'⬇ PDF with charts', exportEmpty:'No data to export in this tab.', exportReady:'Preparing download…', exportPdfReady:'The print dialog will open. Choose "Save as PDF".',
     stMatchesTitle:'Matches', stMatchesSub:'Log each match with its goals, assists and cards. It adds up in the season stats.',
     newMatch:'+ New match', goalsFor:'⚽ Goals for', addGoal:'+ Goal', assists:'🅰 Assists', addAssist:'+ Assist',
@@ -3612,6 +3676,7 @@ window.I18N = {
     aiTitle:'Análise automática com IA', aiSub:'A IA percorre o vídeo e sugere jogadas com suas tags (escanteios, laterais, 3-1, 4-0, defesas, 5x4...). Você revisa e aceita. Os cortes aceitos aparecem na aba Vídeo como os manuais.',
     aiAnalyze:'⚡ Analisar', aiCancel:'Cancelar',
     stMatches:'⚽ Jogos', stSquad:'👥 Elenco', stCalls:'✅ Convocações', stMinutes:'⏱ Minutagem', stAnnual:'📈 Estatísticas anuais', stPlayer:'🎯 Ficha do jogador', playerTitle:'Ficha do jogador', playerSub:'Escolha um jogador e veja sua evolução jogo a jogo.', playerPick:'Jogador:', stHealth:'🚦 Semáforo do Elenco', healthTitle:'Semáforo do Elenco', healthSub:'Alertas automáticos dos seus dados: cartões, minutos e convocações.',
+    stAttendance:'📅 Presença', attTitle:'Presença', attSub:'Marque a presença de cada jogador em treinos e jogos. Toque numa célula para mudar o estado. A porcentagem é calculada sozinha.',
     exportLbl:'Exportar:', exportExcel:'⬇ Excel', exportPdf:'⬇ PDF', exportPdfGraph:'⬇ PDF com gráficos', exportEmpty:'Não há dados para exportar nesta aba.', exportReady:'Preparando o download…', exportPdfReady:'A janela de impressão será aberta. Escolha "Salvar como PDF".',
     stMatchesTitle:'Jogos', stMatchesSub:'Registre cada jogo com seus gols, assistências e cartões. Soma nas estatísticas anuais.',
     newMatch:'+ Novo jogo', goalsFor:'⚽ Gols a favor', addGoal:'+ Gol', assists:'🅰 Assistências', addAssist:'+ Assistência',
@@ -5828,7 +5893,7 @@ window.__initEditor = function(){
         ${play.desc ? `<div class="board-play-desc">${escapeHtml(play.desc)}</div>` : ''}
         <div class="board-play-actions">
           <button class="bp-play">▶ Ver</button>
-          <button class="bp-export">⬇ Video</button>
+          <button class="bp-export">⬇ Exportar</button>
           <button class="bp-del">🗑</button>
         </div>
       `;
@@ -5843,209 +5908,15 @@ window.__initEditor = function(){
     });
   }
 
-  // Exportar la jugada como VIDEO (.mp4 si el navegador lo soporta, si no .webm).
-  // La pizarra está hecha con SVG y MediaRecorder no graba SVG directamente,
-  // así que "filmamos" la animación redibujándola en un canvas oculto,
-  // frame a frame, mientras un MediaRecorder captura ese canvas.
+  // Exportar la jugada como archivo .json (para guardar/compartir)
   function exportPlay(play){
-    // Botón que disparó la acción (para mostrar progreso)
-    const btn = event && event.target ? event.target : null;
-    const btnTxt = btn ? btn.textContent : '';
-    const setBtn = (txt, disabled) => { if(btn){ btn.textContent = txt; btn.disabled = !!disabled; } };
-
-    // --- 1. Canvas oculto a buena resolución (2x para nitidez) ---
-    const SCALE = 2;
-    const cv = document.createElement('canvas');
-    cv.width = W * SCALE; cv.height = H * SCALE;
-    const ctx = cv.getContext('2d');
-    ctx.scale(SCALE, SCALE);
-
-    // --- 2. Funciones de dibujo en canvas que replican el look del SVG ---
-    function drawPitchCanvas(){
-      const M = 16;
-      // fondo parquet
-      const plankW = W/17;
-      for(let i=0;i<17;i++){
-        ctx.fillStyle = i%2===0 ? '#cd9860' : '#c28a52';
-        ctx.fillRect(i*plankW, 0, plankW+1, H);
-        ctx.strokeStyle = 'rgba(120,80,40,0.25)'; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(i*plankW,0); ctx.lineTo(i*plankW,H); ctx.stroke();
-      }
-      ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 2;
-      // perímetro
-      ctx.strokeRect(M, M, W-2*M, H-2*M);
-      // medio campo
-      ctx.beginPath(); ctx.moveTo(W/2, M); ctx.lineTo(W/2, H-M); ctx.stroke();
-      // círculo central
-      ctx.beginPath(); ctx.arc(W/2, H/2, 50, 0, Math.PI*2); ctx.stroke();
-      ctx.fillStyle = 'rgba(255,255,255,0.9)';
-      ctx.beginPath(); ctx.arc(W/2, H/2, 3, 0, Math.PI*2); ctx.fill();
-      // áreas (dos cuartos de círculo + recta)
-      const R = 58, postTop = 160, postBottom = 240;
-      ctx.beginPath();
-      ctx.moveTo(M, postTop);
-      ctx.arc(M, postTop+R, R, -Math.PI/2, 0);
-      ctx.lineTo(M+R, postBottom-R);
-      ctx.arc(M, postBottom-R, R, 0, Math.PI/2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(W-M, postTop);
-      ctx.arc(W-M, postTop+R, R, -Math.PI/2, Math.PI, true);
-      ctx.lineTo(W-M-R, postBottom-R);
-      ctx.arc(W-M, postBottom-R, R, Math.PI, Math.PI/2, true);
-      ctx.stroke();
-      // puntos penales
-      ctx.fillStyle = 'rgba(255,255,255,0.9)';
-      ctx.beginPath(); ctx.arc(M+52, H/2, 2.5, 0, Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(W-M-52, H/2, 2.5, 0, Math.PI*2); ctx.fill();
-      // arcos
-      ctx.fillStyle = 'rgba(255,255,255,0.95)';
-      ctx.fillRect(M-6, postTop, 6, postBottom-postTop);
-      ctx.fillRect(W-M, postTop, 6, postBottom-postTop);
-    }
-
-    function drawTokenCanvas(t){
-      ctx.save();
-      ctx.translate(t.x, t.y);
-      if(t.team === 'ball'){
-        // sombra
-        ctx.fillStyle = 'rgba(0,0,0,0.28)';
-        ctx.beginPath(); ctx.ellipse(0, 9, 8, 3, 0, 0, Math.PI*2); ctx.fill();
-        // pelota
-        const bg = ctx.createRadialGradient(-3,-3,1, 0,0,9);
-        bg.addColorStop(0,'#ffffff'); bg.addColorStop(0.7,'#eef0f2'); bg.addColorStop(1,'#cdd1d6');
-        ctx.fillStyle = bg; ctx.strokeStyle = '#c9ccd1'; ctx.lineWidth = 0.8;
-        ctx.beginPath(); ctx.arc(0,0,9,0,Math.PI*2); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = '#1a1d22';
-        ctx.beginPath(); ctx.arc(0,-1,2.6,0,Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc(4,3,1.3,0,Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.arc(-4,3,1.3,0,Math.PI*2); ctx.fill();
-        ctx.restore();
-        return;
-      }
-      // sombra
-      ctx.fillStyle = 'rgba(0,0,0,0.30)';
-      ctx.beginPath(); ctx.ellipse(0, 15, 13, 4, 0, 0, Math.PI*2); ctx.fill();
-      // cuerpo con degradado radial
-      const grad = ctx.createRadialGradient(-5,-6,2, 0,0,15);
-      if(t.team==='home'){ grad.addColorStop(0,'#5bb3e8'); grad.addColorStop(0.6,'#2F8FCB'); grad.addColorStop(1,'#1c6699'); }
-      else { grad.addColorStop(0,'#ff6a5f'); grad.addColorStop(0.6,'#E5342A'); grad.addColorStop(1,'#a81f18'); }
-      ctx.fillStyle = grad; ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill(); ctx.stroke();
-      // brillo
-      ctx.fillStyle = 'rgba(255,255,255,0.22)';
-      ctx.beginPath(); ctx.ellipse(0,-5,8,4,0,0,Math.PI*2); ctx.fill();
-      // número
-      if(t.label){
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 15px -apple-system, Segoe UI, Roboto, sans-serif';
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText(t.label, 0, 1);
-      }
-      ctx.restore();
-    }
-
-    // Devuelve la posición interpolada de cada ficha en el tiempo t (ms),
-    // para que el movimiento sea suave y no a los saltos.
-    function positionsAt(t){
-      const fr = play.frames;
-      if(t <= fr[0].t) return fr[0].positions;
-      if(t >= fr[fr.length-1].t) return fr[fr.length-1].positions;
-      let i = 0;
-      while(i < fr.length-1 && fr[i+1].t <= t) i++;
-      const a = fr[i], b = fr[i+1];
-      const span = (b.t - a.t) || 1;
-      const k = Math.max(0, Math.min(1, (t - a.t)/span));
-      const out = {};
-      play.tokensSnapshot.forEach(tok => {
-        const pa = a.positions[tok.id] || {x:tok.x,y:tok.y};
-        const pb = b.positions[tok.id] || pa;
-        out[tok.id] = { x: pa.x + (pb.x-pa.x)*k, y: pa.y + (pb.y-pa.y)*k };
-      });
-      return out;
-    }
-
-    function drawFrame(positions, descTxt){
-      drawPitchCanvas();
-      // dibujar cada ficha en su posición (según snapshot para saber equipo/label)
-      play.tokensSnapshot.forEach(tok => {
-        const p = positions[tok.id] || {x:tok.x, y:tok.y};
-        drawTokenCanvas({ x:p.x, y:p.y, team:tok.team, label:tok.label });
-      });
-      // descripción sobre la cancha
-      if(descTxt){
-        ctx.save();
-        ctx.font = '600 15px -apple-system, Segoe UI, Roboto, sans-serif';
-        const tw = ctx.measureText(descTxt).width;
-        ctx.fillStyle = 'rgba(11,18,25,0.78)';
-        const pad = 10, bx = (W - tw)/2 - pad, bw = tw + pad*2;
-        ctx.fillRect(bx, 8, bw, 26);
-        ctx.fillStyle = '#F2F6F8'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText(descTxt, W/2, 21);
-        ctx.restore();
-      }
-    }
-
-    // --- 3. Elegir el mejor formato que soporte el navegador ---
-    const tryTypes = [
-      'video/mp4;codecs=avc1',
-      'video/mp4',
-      'video/webm;codecs=vp9',
-      'video/webm;codecs=vp8',
-      'video/webm'
-    ];
-    let mime = '';
-    for(const t of tryTypes){
-      if(window.MediaRecorder && MediaRecorder.isTypeSupported(t)){ mime = t; break; }
-    }
-    if(!mime){
-      alert('Tu navegador no permite exportar video. Probá desde Chrome o Edge.');
-      return;
-    }
-    const ext = mime.startsWith('video/mp4') ? 'mp4' : 'webm';
-
-    // --- 4. Grabar el canvas mientras reproducimos la jugada ---
-    setBtn('⏺ Grabando…', true);
-    const stream = cv.captureStream(30);
-    const chunks = [];
-    let rec;
-    try{
-      rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 4_000_000 });
-    }catch(e){
-      setBtn(btnTxt, false);
-      alert('No se pudo iniciar la grabación de video.');
-      return;
-    }
-    rec.ondataavailable = e => { if(e.data && e.data.size) chunks.push(e.data); };
-    rec.onstop = () => {
-      const blob = new Blob(chunks, { type: mime });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = play.name.replace(/[^a-z0-9]/gi,'_') + '.' + ext;
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-      setBtn(btnTxt || '⬇ Exportar', false);
-    };
-
-    const frames = play.frames;
-    const total = frames[frames.length-1].t;
-    const startAt = performance.now();
-
-    // primer frame ya dibujado antes de arrancar la grabación
-    drawFrame(positionsAt(0), play.desc || '');
-    rec.start();
-
-    function tick(){
-      const elapsed = performance.now() - startAt;
-      drawFrame(positionsAt(elapsed), play.desc || '');
-      if(elapsed >= total + 300){        // un pelín extra para no cortar el final
-        rec.stop();
-        return;
-      }
-      requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
+    const data = JSON.stringify(play, null, 2);
+    const blob = new Blob([data], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = play.name.replace(/[^a-z0-9]/gi,'_') + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   // Inicializar
@@ -7448,6 +7319,7 @@ window.__initEditor = function(){
       if(sub === 'squad') renderSquad();
       if(sub === 'matches') renderMatchList();
       if(sub === 'calls') renderCalls();
+      if(sub === 'attendance') renderAttendance();
       if(sub === 'minutes') renderMinutes();
       if(sub === 'player') renderPlayerCard();
       if(sub === 'health') renderHealth();
@@ -8515,6 +8387,331 @@ window.__initEditor = function(){
     }catch(e){ console.error('showMinutesDetail', e); toast(window.t('mDetailErr')); }
   }
 
+  // ========================================================================
+  //  PRESENTISMO (Etapa 1 · planilla mensual)
+  //  Grilla de días del mes (1..28/30/31) × jugadores del plantel.
+  //  Navegación por meses. Marca cualquier día. Destaca días de entreno fijo.
+  //  Los partidos aparecen con ⚽ arriba del día. % mensual y % anual.
+  //  Guarda en la tabla 'attendance' de Supabase (event_key = 'YYYY-MM-DD').
+  // ========================================================================
+  let attData = {};          // { 'YYYY-MM-DD|player_id': status }
+  let attMatchDays = {};     // { 'YYYY-MM-DD': [rival,...] }  (para el ⚽)
+  let attTrainDays = [];     // días fijos de entreno: 0=Dom..6=Sáb
+  let attMonth = new Date(); // mes que se está viendo
+
+  const ATT_CICLO = ['', 'yes', 'no', 'lesion', 'enfermedad', 'viaje', 'suspension'];
+  function attIcon(st){
+    return st==='yes'?'✓':(st==='no'?'✕':(st==='lesion'?'🚑':(st==='enfermedad'?'🤒':(st==='viaje'?'✈️':(st==='suspension'?'🟥':'')))));
+  }
+  function attStName(st){
+    return st==='yes'?'Presente':(st==='no'?'Ausente':(st==='lesion'?'Ausente por lesión':(st==='enfermedad'?'Ausente por enfermedad':(st==='viaje'?'Ausente por viaje':(st==='suspension'?'Ausente por suspensión':'Sin marcar')))));
+  }
+  const DIAS_INI = ['D','L','M','M','J','V','S'];   // inicial por getDay()
+  const DIAS_NOM = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+  function attKey(y,m,d){ // 'YYYY-MM-DD'
+    return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+  }
+
+  // Preferencia de días fijos: se guarda por club/categoría/temporada en localStorage
+  function attTrainKey(){
+    const cat = (window.__getActiveCategory && window.__getActiveCategory()) || 'x';
+    const temp = window.__getTemporada ? window.__getTemporada() : new Date().getFullYear();
+    return 'bo_att_traindays_'+cat+'_'+temp;
+  }
+  function loadTrainDays(){
+    try{ const r = localStorage.getItem(attTrainKey()); attTrainDays = r ? JSON.parse(r) : []; }
+    catch(e){ attTrainDays = []; }
+  }
+  function saveTrainDays(){
+    try{ localStorage.setItem(attTrainKey(), JSON.stringify(attTrainDays)); }catch(e){}
+  }
+
+  // Carga los estados guardados (de toda la temporada, para poder calcular el % anual)
+  async function loadAttData(){
+    const sb = window.__sb;
+    const clubId = window.__clubIdCache || (window.__getClubId ? await window.__getClubId() : null);
+    if(!sb || !clubId){ attData = {}; return; }
+    const cat = (window.__getActiveCategory && window.__getActiveCategory()) || null;
+    const temp = window.__getTemporada ? window.__getTemporada() : new Date().getFullYear();
+    try{
+      let q = sb.from('attendance').select('event_key,player_id,status').eq('club_id', clubId).eq('temporada', temp);
+      q = cat ? q.eq('categoria', cat) : q.is('categoria', null);
+      const { data, error } = await q;
+      if(error){ console.error('attendance load', error); return; }
+      attData = {};
+      (data||[]).forEach(r => { if(r.status) attData[r.event_key+'|'+r.player_id] = r.status; });
+    }catch(e){ console.error('attendance load', e); }
+  }
+
+  // Carga los partidos (para mostrar ⚽ sobre el día)
+  async function loadAttMatchDays(){
+    const sb = window.__sb;
+    const clubId = window.__clubIdCache || (window.__getClubId ? await window.__getClubId() : null);
+    if(!sb || !clubId){ attMatchDays = {}; return; }
+    const cat = (window.__getActiveCategory && window.__getActiveCategory()) || null;
+    const temp = window.__getTemporada ? window.__getTemporada() : new Date().getFullYear();
+    try{
+      let q = sb.from('stat_matches').select('rival,match_date').eq('club_id', clubId);
+      q = cat ? q.eq('categoria', cat) : q.is('categoria', null);
+      q = q.eq('temporada', temp);
+      const { data } = await q;
+      attMatchDays = {};
+      (data||[]).forEach(m => {
+        if(!m.match_date) return;
+        const k = String(m.match_date).slice(0,10);
+        if(!attMatchDays[k]) attMatchDays[k] = [];
+        attMatchDays[k].push((m.rival||'').trim());
+      });
+    }catch(e){ console.error('att matches', e); }
+  }
+
+  // Guarda (upsert) el estado de una celda
+  const attSaveTimers = {};
+  function saveAtt(dayKey, playerId, status){
+    const sb = window.__sb;
+    const tk = dayKey+'|'+playerId;
+    clearTimeout(attSaveTimers[tk]);
+    attSaveTimers[tk] = setTimeout(async () => {
+      try{
+        const clubId = window.__clubIdCache || (window.__getClubId ? await window.__getClubId() : null);
+        if(!sb || !clubId) return;
+        const cat = (window.__getActiveCategory && window.__getActiveCategory()) || null;
+        const temp = window.__getTemporada ? window.__getTemporada() : new Date().getFullYear();
+        const et = attMatchDays[dayKey] ? 'match' : 'train';
+        const fila = {
+          club_id: clubId, categoria: cat, temporada: temp,
+          player_id: playerId, event_key: dayKey, event_date: dayKey,
+          event_type: et, status: status || '', updated_at: new Date().toISOString()
+        };
+        const { error } = await sb.from('attendance').upsert(fila, { onConflict: 'club_id,categoria,temporada,player_id,event_key' });
+        if(error){ console.error('att save', error); toast('No se pudo guardar (¿corriste presentismo.sql?).'); }
+      }catch(e){ console.error('att save', e); }
+    }, 400);
+  }
+
+  // ¿Qué días de un mes tuvieron actividad? (al menos una marca de cualquier jugador)
+  function attActiveDaysOfMonth(y, m){
+    const set = new Set();
+    const prefix = y+'-'+String(m+1).padStart(2,'0')+'-';
+    Object.keys(attData).forEach(k => {
+      const dk = k.split('|')[0];
+      if(dk.startsWith(prefix)) set.add(dk);
+    });
+    return set;
+  }
+
+  // % de asistencia de un jugador en un rango de días activos
+  function attPercentForDays(playerId, activeDays){
+    let total = 0, present = 0;
+    activeDays.forEach(dk => {
+      const st = attData[dk+'|'+playerId] || '';
+      // el día es "activo": cuenta para todos los jugadores del plantel
+      total++;
+      if(st === 'yes') present++;
+    });
+    if(total === 0) return null;
+    return Math.round(present / total * 100);
+  }
+
+  // % anual: todos los días activos de la temporada
+  function attActiveDaysYear(){
+    const set = new Set();
+    Object.keys(attData).forEach(k => set.add(k.split('|')[0]));
+    return set;
+  }
+
+  // Expuesto para Semáforo y Ficha (Etapa 2)
+  window.__attendancePercent = function(playerId){
+    return attPercentForDays(playerId, attActiveDaysYear());
+  };
+  window.__loadAttendance = async () => { await loadAttData(); await loadAttMatchDays(); };
+
+  function attChangeMonth(delta){
+    attMonth.setMonth(attMonth.getMonth() + delta);
+    renderAttendance();
+  }
+  window.__attChangeMonth = attChangeMonth;
+
+  async function renderAttendance(){
+    const wrap = document.getElementById('attendanceWrap');
+    if(!wrap) return;
+    if(squad.length === 0){
+      wrap.innerHTML = '<div class="calls-empty">Primero cargá jugadores en el Plantel.</div>';
+      return;
+    }
+    wrap.innerHTML = '<div class="calls-empty">Cargando…</div>';
+    loadTrainDays();
+    await loadAttData();
+    await loadAttMatchDays();
+
+    const y = attMonth.getFullYear();
+    const m = attMonth.getMonth();
+    const daysInMonth = new Date(y, m+1, 0).getDate();
+    const activeThisMonth = attActiveDaysOfMonth(y, m);
+
+    // ---- Barra superior: navegación de mes + selector de días de entreno ----
+    let html = '<div class="att-toolbar">';
+    html += '<div class="att-monthnav">';
+    html += '<button class="att-navbtn" onclick="window.__attChangeMonth(-1)">◀</button>';
+    html += '<span class="att-monthlbl">'+MESES[m]+' '+y+'</span>';
+    html += '<button class="att-navbtn" onclick="window.__attChangeMonth(1)">▶</button>';
+    html += '</div>';
+    html += '<div class="att-traindays"><span class="att-td-lbl">¿Qué días entrena tu equipo?</span>';
+    for(let d=1; d<=6; d++){ // Lun(1)..Sáb(6)
+      const on = attTrainDays.includes(d);
+      html += '<button class="att-td-btn'+(on?' on':'')+'" data-wd="'+d+'">'+DIAS_NOM[d]+'</button>';
+    }
+    const onDom = attTrainDays.includes(0);
+    html += '<button class="att-td-btn'+(onDom?' on':'')+'" data-wd="0">'+DIAS_NOM[0]+'</button>';
+    html += '</div></div>';
+
+    // ---- Tabla: filas jugadores, columnas días del mes ----
+    html += '<div class="att-scroll"><table class="calls-table att-table"><thead><tr>';
+    html += '<th class="player-name-cell">Jugador</th>';
+    for(let d=1; d<=daysInMonth; d++){
+      const wd = new Date(y, m, d).getDay();
+      const key = attKey(y,m,d);
+      const isTrain = attTrainDays.includes(wd);
+      const isMatch = !!attMatchDays[key];
+      let cls = 'att-daycol';
+      if(isTrain) cls += ' train-day';
+      if(wd===0 || wd===6) cls += ' weekend';
+      const matchMark = isMatch ? '<div class="att-match" title="'+escapeHtml((attMatchDays[key]||[]).join(', '))+'">⚽</div>' : '<div class="att-match-empty"></div>';
+      html += '<th class="'+cls+'">'+matchMark+'<div class="att-dnum">'+d+'</div><div class="att-dini">'+DIAS_INI[wd]+'</div></th>';
+    }
+    html += '<th class="total-col">% Mes</th></tr></thead><tbody>';
+
+    squad.forEach(p => {
+      html += '<tr><td class="player-name-cell"><span class="pn-num">'+escapeHtml(p.number||'')+'</span> '+escapeHtml(p.name)+'</td>';
+      for(let d=1; d<=daysInMonth; d++){
+        const wd = new Date(y, m, d).getDay();
+        const key = attKey(y,m,d);
+        const st = attData[key+'|'+p.id] || '';
+        const isTrain = attTrainDays.includes(wd);
+        let cls = 'calls-cell att-cell';
+        if(st==='yes') cls += ' yes'; else if(st==='no') cls += ' no'; else if(st) cls += ' reason reason-'+st;
+        if(isTrain && !st) cls += ' train-hint';
+        if(wd===0 || wd===6) cls += ' weekend';
+        html += '<td class="'+cls+'" data-key="'+key+'" data-player="'+p.id+'" title="'+attStName(st)+'">'+attIcon(st)+'</td>';
+      }
+      const pctMes = attPercentForDays(p.id, activeThisMonth);
+      html += '<td class="total-col">'+(pctMes===null?'—':pctMes+'%')+'</td></tr>';
+    });
+    html += '</tbody></table></div>';
+
+    // ---- Resumen anual ----
+    const activeYear = attActiveDaysYear();
+    html += '<div class="att-annual"><div class="att-annual-title">📊 Asistencia anual '+y+'</div><div class="att-annual-grid">';
+    squad.forEach(p => {
+      const py = attPercentForDays(p.id, activeYear);
+      const val = py===null ? '—' : py+'%';
+      let barCls = 'att-bar';
+      if(py!==null){ if(py>=80) barCls+=' hi'; else if(py>=50) barCls+=' mid'; else barCls+=' lo'; }
+      html += '<div class="att-annual-row" data-player="'+p.id+'"><span class="att-an-name">'+escapeHtml(p.name)+'</span>'
+            + '<span class="att-an-bar-wrap"><span class="'+barCls+'" style="width:'+(py===null?0:py)+'%"></span></span>'
+            + '<span class="att-an-val">'+val+'</span></div>';
+    });
+    html += '</div><div class="att-annual-note">El % se calcula sobre los días que hubo actividad (al menos una marca). Todo lo que no sea ✓ Presente baja el porcentaje.</div></div>';
+
+    // ---- Leyenda ----
+    html += '<div class="calls-legend">Tocá una celda para cambiar: <span class="cl-i cl-yes">✓ Presente</span> <span class="cl-i cl-no">✕ Ausente</span> <span class="cl-i cl-les">🚑 Lesión</span> <span class="cl-i cl-enf">🤒 Enfermedad</span> <span class="cl-i cl-via">✈️ Viaje</span> <span class="cl-i cl-sus">🟥 Suspensión</span></div>';
+
+    wrap.innerHTML = html;
+
+    // ---- Eventos: click en celdas ----
+    wrap.querySelectorAll('.att-cell').forEach(cell => {
+      cell.addEventListener('click', () => {
+        const key = cell.dataset.key;
+        const pid = cell.dataset.player;
+        const cur = attData[key+'|'+pid] || '';
+        const idx = ATT_CICLO.indexOf(cur);
+        const next = ATT_CICLO[(idx + 1) % ATT_CICLO.length];
+        if(next==='') delete attData[key+'|'+pid]; else attData[key+'|'+pid] = next;
+        saveAtt(key, pid, next);
+        // Actualizar SOLO la celda tocada (sin reconstruir la tabla, así no
+        // parpadea ni pierde el scroll).
+        cell.textContent = attIcon(next);
+        cell.title = attStName(next);
+        cell.className = 'calls-cell att-cell'
+          + (next==='yes'?' yes':(next==='no'?' no':(next?' reason reason-'+next:'')));
+        // recalcular los % (de todos, porque marcar/desmarcar cambia qué días
+        // están "activos" y eso afecta a todo el plantel) y refrescar solo esos números
+        refreshAttPercents();
+      });
+    });
+
+    // ---- Eventos: selector de días de entreno ----
+    wrap.querySelectorAll('.att-td-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const wd = parseInt(btn.dataset.wd, 10);
+        const i = attTrainDays.indexOf(wd);
+        if(i>=0) attTrainDays.splice(i,1); else attTrainDays.push(wd);
+        saveTrainDays();
+        // Actualizar solo el botón y el resaltado de columnas, sin reconstruir todo.
+        btn.classList.toggle('on');
+        refreshTrainDayHighlight();
+      });
+    });
+  }
+
+  // Refresca los porcentajes (mes y anual) sin reconstruir la tabla.
+  function refreshAttPercents(){
+    const wrap = document.getElementById('attendanceWrap');
+    if(!wrap) return;
+    const y = attMonth.getFullYear(), m = attMonth.getMonth();
+    const activeMonth = attActiveDaysOfMonth(y, m);
+    const activeYear = attActiveDaysYear();
+    // % del mes: última celda de cada fila del cuerpo
+    wrap.querySelectorAll('.att-table tbody tr').forEach(tr => {
+      const firstCell = tr.querySelector('.att-cell');
+      if(!firstCell) return;
+      const pid = firstCell.dataset.player;
+      const pctMes = attPercentForDays(pid, activeMonth);
+      const totalCell = tr.querySelector('td.total-col');
+      if(totalCell) totalCell.textContent = pctMes===null ? '—' : pctMes+'%';
+    });
+    // resumen anual: barras y valores
+    wrap.querySelectorAll('.att-annual-row').forEach(row => {
+      const pid = row.dataset.player;
+      if(!pid) return;
+      const py = attPercentForDays(pid, activeYear);
+      const bar = row.querySelector('.att-bar');
+      const val = row.querySelector('.att-an-val');
+      if(val) val.textContent = py===null ? '—' : py+'%';
+      if(bar){
+        bar.style.width = (py===null?0:py)+'%';
+        bar.className = 'att-bar' + (py===null?'':(py>=80?' hi':(py>=50?' mid':' lo')));
+      }
+    });
+  }
+
+  // Refresca el resaltado de días de entreno sin reconstruir la tabla.
+  function refreshTrainDayHighlight(){
+    const wrap = document.getElementById('attendanceWrap');
+    if(!wrap) return;
+    const y = attMonth.getFullYear(), m = attMonth.getMonth();
+    const daysInMonth = new Date(y, m+1, 0).getDate();
+    // encabezados de día
+    const headCols = wrap.querySelectorAll('.att-table thead th.att-daycol');
+    let d = 1;
+    headCols.forEach(th => {
+      const wd = new Date(y, m, d).getDay();
+      th.classList.toggle('train-day', attTrainDays.includes(wd));
+      d++;
+    });
+    // celdas del cuerpo: aplicar/quitar la pista visual en días de entreno vacíos
+    wrap.querySelectorAll('.att-table tbody tr').forEach(tr => {
+      const cells = tr.querySelectorAll('.att-cell');
+      cells.forEach((cell, i) => {
+        const wd = new Date(y, m, i+1).getDay();
+        const hasMark = cell.classList.contains('yes') || cell.classList.contains('no') || cell.classList.contains('reason');
+        cell.classList.toggle('train-hint', attTrainDays.includes(wd) && !hasMark);
+      });
+    });
+  }
+
   function renderCalls(){
     const wrap = document.getElementById('callsWrap');
     if(squad.length === 0){
@@ -9148,6 +9345,20 @@ window.__initEditor = function(){
         </div>
       </div>`;
 
+    // ---- % de asistencia (viene del módulo Presentismo) ----
+    let asistPct = null;
+    try{
+      if(window.__loadAttendance) await window.__loadAttendance();
+      if(window.__attendancePercent) asistPct = window.__attendancePercent(playerId);
+    }catch(e){ asistPct = null; }
+    // Umbrales unificados con el Semáforo: ejemplar ≥90 (verde), normal 60-89 (blanco),
+    // atención 40-59 (amarillo), crítico <40 (rojo).
+    const asistColor = asistPct===null ? 'var(--muted)'
+      : (asistPct>=90 ? 'var(--success)'
+      : (asistPct>=60 ? 'var(--chalk)'
+      : (asistPct>=40 ? '#E0A93B' : 'var(--danger)')));
+    const asistTxt = asistPct===null ? '—' : asistPct+'%';
+
     // ---- Tarjetas de resumen ----
     const resumen = `
       <div class="pc-summary">
@@ -9158,6 +9369,7 @@ window.__initEditor = function(){
         <div class="pc-stat"><div class="pc-stat-num" style="color:#E0A93B">${minutosTotales}'</div><div class="pc-stat-lbl">Minutos</div></div>
         <div class="pc-stat"><div class="pc-stat-num">${partidosConMinutos}</div><div class="pc-stat-lbl">Partidos jugados</div></div>
         <div class="pc-stat"><div class="pc-stat-num" style="color:var(--muted)">${minutosPromedio}'</div><div class="pc-stat-lbl">Prom. x partido</div></div>
+        <div class="pc-stat"><div class="pc-stat-num" style="color:${asistColor}">${asistTxt}</div><div class="pc-stat-lbl">% Asistencia</div></div>
       </div>`;
 
     // ---- Gráfico de barras: goles por partido ----
@@ -10181,6 +10393,36 @@ window.__initEditor = function(){
       goleadores.forEach(x => { body += `<div class="health-item"><span class="health-badge good">${x.g} ⚽</span> <strong>${escapeHtml(x.name)}</strong></div>`; });
       cards.push({ icon:'⭐', title:'En racha goleadora', body, tone:'good' });
     }
+
+    // 5) ASISTENCIA (viene del módulo Presentismo)
+    //    Bajo = alerta; alto = reconocimiento. Usa el % anual por jugador.
+    try{
+      if(window.__loadAttendance) await window.__loadAttendance();
+      if(window.__attendancePercent){
+        const bajos = [], altos = [];
+        squad.forEach(p => {
+          const pct = window.__attendancePercent(p.id);
+          if(pct === null) return;   // sin datos de asistencia: no opina
+          if(pct < 60) bajos.push({ name:p.name, pct });
+          else if(pct >= 90) altos.push({ name:p.name, pct });
+        });
+        if(bajos.length > 0){
+          let body = '';
+          bajos.sort((a,b)=>a.pct-b.pct).forEach(x => {
+            const tone = x.pct < 40 ? 'crit' : 'warn';
+            body += `<div class="health-item"><span class="health-badge ${tone}">${x.pct}%</span> <strong>${escapeHtml(x.name)}</strong> — asistencia baja a entrenamientos</div>`;
+          });
+          body += `<div class="health-note">Porcentaje de asistencia a los días con actividad (Presentismo). Puede afectar el rendimiento y la puesta a punto.</div>`;
+          cards.push({ icon:'📉', title:'Asistencia baja', body, tone: bajos.some(x=>x.pct<40)?'crit':'warn' });
+        }
+        if(altos.length > 0){
+          let body = '';
+          altos.sort((a,b)=>b.pct-a.pct).forEach(x => { body += `<div class="health-item"><span class="health-badge good">${x.pct}%</span> <strong>${escapeHtml(x.name)}</strong></div>`; });
+          body += `<div class="health-note">Presentismo ejemplar. Reconocer el compromiso ayuda a sostenerlo.</div>`;
+          cards.push({ icon:'💪', title:'Asistencia ejemplar', body, tone:'good' });
+        }
+      }
+    }catch(e){ console.error('health attendance', e); }
 
     // ---- Render ----
     if(cards.length === 0){
