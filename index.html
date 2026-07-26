@@ -1333,6 +1333,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 
 /* ===== PRESENTISMO (planilla mensual) ===== */
 .att-toolbar{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;margin-bottom:14px;}
+
+/* Solapas Planilla / Resumen */
+.att-viewtabs{display:flex;gap:8px;margin-bottom:16px;border-bottom:1px solid var(--line-soft);padding-bottom:0;}
+.att-viewtab{background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);
+  font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;letter-spacing:.4px;padding:10px 16px;cursor:pointer;
+  transition:color .15s,border-color .15s;margin-bottom:-1px;}
+.att-viewtab:hover{color:var(--chalk);}
+.att-viewtab.active{color:var(--accent-2);border-bottom-color:var(--accent-2);}
 .att-monthnav{display:flex;align-items:center;gap:12px;}
 .att-navbtn{background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);border-radius:8px;
   width:38px;height:38px;font-size:15px;cursor:pointer;transition:border-color .15s,background .15s;}
@@ -1340,6 +1348,35 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .att-monthlbl{font-family:'Oswald',sans-serif;font-size:19px;font-weight:600;min-width:150px;text-align:center;text-transform:uppercase;letter-spacing:.5px;}
 .att-traindays{display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
 .att-td-lbl{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);margin-right:4px;}
+
+/* Causas personalizadas */
+.att-causes{display:flex;flex-wrap:wrap;align-items:center;gap:6px;width:100%;margin-top:8px;}
+.att-cause-chip{display:inline-flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line-soft);
+  border-radius:7px;padding:5px 9px;font-family:'Inter',sans-serif;font-size:12.5px;color:var(--chalk);}
+.att-cause-del{background:transparent;border:none;color:var(--muted-2);font-size:11px;cursor:pointer;padding:0;opacity:.5;transition:opacity .15s,color .15s;}
+.att-cause-del:hover{opacity:1;color:var(--danger);}
+.att-cause-add{background:rgba(47,143,203,0.1);border:1px dashed var(--accent-2);color:var(--accent-2);
+  border-radius:7px;padding:5px 11px;font-size:12.5px;cursor:pointer;font-family:'Inter',sans-serif;transition:background .15s;}
+.att-cause-add:hover{background:rgba(47,143,203,0.18);}
+.calls-legend .cl-cust{background:rgba(155,111,203,0.16);color:#B08FDB;}
+.att-tt-item b.cust{color:#B08FDB;}
+
+/* Comparativa mes a mes */
+.att-evol{margin-top:22px;background:var(--panel);border:1px solid var(--line-soft);border-radius:14px;padding:18px 20px;}
+.att-chart{display:flex;align-items:flex-end;gap:10px;height:170px;padding:16px 4px 0;margin-bottom:6px;overflow-x:auto;}
+.att-chart-col{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:42px;flex:1;height:100%;justify-content:flex-end;}
+.att-chart-barwrap{width:100%;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative;}
+.att-chart-val{font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;color:var(--chalk);margin-bottom:4px;}
+.att-chart-bar{width:70%;max-width:40px;border-radius:5px 5px 0 0;transition:height .3s;min-height:2px;}
+.att-chart-bar.hi{background:var(--success);}
+.att-chart-bar.mid{background:#E0A93B;}
+.att-chart-bar.lo{background:var(--danger);}
+.att-chart-lbl{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;}
+.att-evol-table{font-size:13px;margin-top:8px;}
+.att-evol-table th{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;padding:8px 10px;white-space:nowrap;text-align:center;}
+.att-evol-table td{text-align:center;padding:8px 10px;font-family:'Oswald',sans-serif;}
+.att-evol-table td.player-name-cell{text-align:left;font-family:'Inter',sans-serif;font-weight:600;}
+.att-evol-table td.evol-pres{color:var(--success);font-weight:700;font-size:15px;}
 .att-td-btn{background:var(--panel);border:1px solid var(--line-soft);color:var(--muted);border-radius:7px;
   padding:6px 10px;font-size:12px;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif;}
 .att-td-btn.on{background:rgba(47,143,203,0.16);border-color:var(--accent-2);color:var(--accent-2);font-weight:600;}
@@ -8435,12 +8472,36 @@ window.__initEditor = function(){
   let attMatchDays = {};     // { 'YYYY-MM-DD': [rival,...] }  (para el ⚽)
   let attTrainDays = [];     // días fijos de entreno: 0=Dom..6=Sáb
   let attMonth = new Date(); // mes que se está viendo
+  let attView = 'planilla';  // 'planilla' | 'resumen'
 
-  const ATT_CICLO = ['', 'yes', 'no', 'lesion', 'enfermedad', 'viaje'];
+  // Causas personalizadas del entrenador (ej: 🎓 Estudio). Compartidas en toda
+  // la app (una sola lista para todas las categorías). Cada una: {id, emoji, nombre}.
+  // Cuentan como ausencia justificada (bajan el %, igual que lesión/enfermedad/viaje).
+  let attCustomCauses = [];
+  function loadCustomCauses(){
+    try{ const r = localStorage.getItem('bo_att_causes'); attCustomCauses = r ? JSON.parse(r) : []; }
+    catch(e){ attCustomCauses = []; }
+  }
+  function saveCustomCauses(){
+    try{ localStorage.setItem('bo_att_causes', JSON.stringify(attCustomCauses)); }catch(e){}
+  }
+  function attCustomById(code){
+    // code viene como 'custom:<id>'
+    const id = code.slice(7);
+    return attCustomCauses.find(c => c.id === id) || null;
+  }
+
+  // Estados fijos + las causas personalizadas al final del ciclo
+  const ATT_CICLO_FIJO = ['', 'yes', 'no', 'lesion', 'enfermedad', 'viaje'];
+  function attCiclo(){
+    return ATT_CICLO_FIJO.concat(attCustomCauses.map(c => 'custom:'+c.id));
+  }
   function attIcon(st){
+    if(st && st.startsWith('custom:')){ const c = attCustomById(st); return c ? c.emoji : '•'; }
     return st==='yes'?'✓':(st==='no'?'✕':(st==='lesion'?'🚑':(st==='enfermedad'?'🤒':(st==='viaje'?'✈️':(st==='suspension'?'🟥':'')))));
   }
   function attStName(st){
+    if(st && st.startsWith('custom:')){ const c = attCustomById(st); return c ? ('Ausente por '+c.nombre.toLowerCase()) : 'Ausente'; }
     return st==='yes'?'Presente':(st==='no'?'Ausente':(st==='lesion'?'Ausente por lesión':(st==='enfermedad'?'Ausente por enfermedad':(st==='viaje'?'Ausente por viaje':(st==='suspension'?'Ausente por suspensión':'Sin marcar')))));
   }
   const DIAS_INI = ['D','L','M','M','J','V','S'];   // inicial por getDay()
@@ -8585,6 +8646,8 @@ window.__initEditor = function(){
   // Devuelve null si no hay actividad.
   function attTeamTotals(activeDays, playersList){
     let total = 0, present = 0, lesion = 0, enfermedad = 0, viaje = 0, ausente = 0;
+    const custom = {};   // { causeId: count }
+    attCustomCauses.forEach(c => custom[c.id] = 0);
     activeDays.forEach(dk => {
       playersList.forEach(p => {
         total++;
@@ -8594,19 +8657,46 @@ window.__initEditor = function(){
         else if(st === 'enfermedad') enfermedad++;
         else if(st === 'viaje') viaje++;
         else if(st === 'no') ausente++;
+        else if(st && st.startsWith('custom:')){ const id = st.slice(7); if(id in custom) custom[id]++; }
         // celdas sin marcar en un día activo: cuentan en el total pero no en ninguna categoría
       });
     });
     if(total === 0) return null;
     const pct = n => Math.round(n / total * 100);
+    const customPct = {};
+    attCustomCauses.forEach(c => customPct[c.id] = pct(custom[c.id]));
     return {
       total,
       presentismo: pct(present),
       lesion: pct(lesion),
       enfermedad: pct(enfermedad),
       viaje: pct(viaje),
-      ausente: pct(ausente)
+      ausente: pct(ausente),
+      custom: customPct
     };
+  }
+
+  // Totales de CADA MES de la temporada que tuvo actividad.
+  // Devuelve [{ mesIdx, nombre, totals }] ordenado por mes.
+  function attMonthlyBreakdown(playersList){
+    const temp = window.__getTemporada ? window.__getTemporada() : new Date().getFullYear();
+    // agrupar los días activos por mes
+    const byMonth = {};   // { mesIdx: Set(dias) }
+    Object.keys(attData).forEach(k => {
+      const dk = k.split('|')[0];           // 'YYYY-MM-DD'
+      const [yy, mm] = dk.split('-');
+      if(parseInt(yy,10) !== temp) return;  // solo la temporada actual
+      const mi = parseInt(mm,10) - 1;
+      if(!byMonth[mi]) byMonth[mi] = new Set();
+      byMonth[mi].add(dk);
+    });
+    const out = [];
+    for(let mi=0; mi<12; mi++){
+      if(!byMonth[mi]) continue;            // meses sin actividad no aparecen
+      const totals = attTeamTotals(byMonth[mi], playersList);
+      if(totals) out.push({ mesIdx: mi, nombre: MESES[mi], totals });
+    }
+    return out;
   }
 
   // Expuesto para Semáforo y Ficha (Etapa 2)
@@ -8652,6 +8742,7 @@ window.__initEditor = function(){
     wrap.innerHTML = '<div class="calls-empty">Cargando…</div>';
     loadTrainDays();
     loadExcluded();
+    loadCustomCauses();
     await loadAttData();
     await loadAttMatchDays();
     attCacheKey = attCurrentKey();   // marcar como cargado (evita reconsultas del semáforo/ficha)
@@ -8665,8 +8756,16 @@ window.__initEditor = function(){
     const daysInMonth = new Date(y, m+1, 0).getDate();
     const activeThisMonth = attActiveDaysOfMonth(y, m);
 
+    // ---- Solapas: Planilla / Resumen presentismo ----
+    let html = '<div class="att-viewtabs">';
+    html += '<button class="att-viewtab'+(attView==='planilla'?' active':'')+'" data-view="planilla">📋 Planilla</button>';
+    html += '<button class="att-viewtab'+(attView==='resumen'?' active':'')+'" data-view="resumen">📊 Resumen presentismo</button>';
+    html += '</div>';
+
+    // ================= VISTA PLANILLA =================
+    if(attView === 'planilla'){
     // ---- Barra superior: navegación de mes + selector de días de entreno ----
-    let html = '<div class="att-toolbar">';
+    html += '<div class="att-toolbar">';
     html += '<div class="att-monthnav">';
     html += '<button class="att-navbtn" onclick="window.__attChangeMonth(-1)">◀</button>';
     html += '<span class="att-monthlbl">'+MESES[m]+' '+y+'</span>';
@@ -8679,7 +8778,15 @@ window.__initEditor = function(){
     }
     const onDom = attTrainDays.includes(0);
     html += '<button class="att-td-btn'+(onDom?' on':'')+'" data-wd="0">'+DIAS_NOM[0]+'</button>';
-    html += '</div></div>';
+    html += '</div>';
+    // Gestión de causas personalizadas
+    html += '<div class="att-causes"><span class="att-td-lbl">Causas propias:</span>';
+    attCustomCauses.forEach(c => {
+      html += '<span class="att-cause-chip">'+c.emoji+' '+escapeHtml(c.nombre)
+            + '<button class="att-cause-del" data-del="'+c.id+'" title="Borrar causa">✕</button></span>';
+    });
+    html += '<button class="att-cause-add" id="attCauseAdd">+ Causa</button></div>';
+    html += '</div>';
 
     // ---- Tabla: filas jugadores, columnas días del mes ----
     html += '<div class="att-scroll"><table class="calls-table att-table"><thead><tr>';
@@ -8715,30 +8822,26 @@ window.__initEditor = function(){
     });
     html += '</tbody></table></div>';
 
-    // ---- Resumen anual ----
     const activeYear = attActiveDaysYear();
 
-    // Tablero de totales del EQUIPO: mes y anual (presentismo + desglose de ausencias)
-    const totMes = attTeamTotals(activeThisMonth, visibles);
-    const totAnio = attTeamTotals(activeYear, visibles);
-    function tarjetaTotales(titulo, t){
-      if(!t){
-        return '<div class="att-tt-block"><div class="att-tt-head">'+titulo+'</div><div class="att-tt-empty">Sin actividad registrada</div></div>';
-      }
-      return '<div class="att-tt-block"><div class="att-tt-head">'+titulo+'</div>'
-        + '<div class="att-tt-main"><span class="att-tt-big">'+t.presentismo+'%</span><span class="att-tt-biglbl">Presentismo</span></div>'
-        + '<div class="att-tt-breakdown">'
-        +   '<span class="att-tt-item"><b class="les">'+t.lesion+'%</b> 🚑 Lesión</span>'
-        +   '<span class="att-tt-item"><b class="enf">'+t.enfermedad+'%</b> 🤒 Enfermedad</span>'
-        +   '<span class="att-tt-item"><b class="via">'+t.viaje+'%</b> ✈️ Viaje</span>'
-        +   '<span class="att-tt-item"><b class="aus">'+t.ausente+'%</b> ✕ Ausente</span>'
-        + '</div></div>';
-    }
-    html += '<div class="att-totals"><div class="att-tt-title">📈 Resumen del equipo</div><div class="att-tt-grid">'
-          + tarjetaTotales('Mes de '+MESES[m], totMes)
-          + tarjetaTotales('Año '+y+' (acumulado)', totAnio)
-          + '</div></div>';
+    // ---- Leyenda (planilla) ----
+    let legendCustom = '';
+    attCustomCauses.forEach(c => { legendCustom += ' <span class="cl-i cl-cust">'+c.emoji+' '+escapeHtml(c.nombre)+'</span>'; });
+    html += '<div class="calls-legend">Tocá una celda para cambiar: <span class="cl-i cl-yes">✓ Presente</span> <span class="cl-i cl-no">✕ Ausente</span> <span class="cl-i cl-les">🚑 Lesión</span> <span class="cl-i cl-enf">🤒 Enfermedad</span> <span class="cl-i cl-via">✈️ Viaje</span>'+legendCustom+'</div>';
 
+    // ---- Excluidos del presentismo (planilla) ----
+    if(excluidos.length > 0){
+      html += '<div class="att-excluded"><div class="att-excl-title">No cuentan para presentismo ('+excluidos.length+')</div>'
+            + '<div class="att-excl-note">Siguen en el plantel, convocatorias y estadísticas. Sólo no se les mide la asistencia a entrenamientos.</div>'
+            + '<div class="att-excl-list">';
+      excluidos.forEach(p => {
+        html += '<span class="att-excl-chip">'+escapeHtml((p.number?'#'+p.number+' ':'')+p.name)
+              + '<button class="att-incl-btn" data-incl="'+p.id+'" title="Volver a incluir">↩ incluir</button></span>';
+      });
+      html += '</div></div>';
+    }
+
+    // ---- Asistencia anual por jugador (planilla) ----
     html += '<div class="att-annual"><div class="att-annual-title">📊 Asistencia anual '+y+' (por jugador)</div><div class="att-annual-grid">';
     visibles.forEach(p => {
       const py = attPercentForDays(p.id, activeYear);
@@ -8751,22 +8854,84 @@ window.__initEditor = function(){
     });
     html += '</div><div class="att-annual-note">El % se calcula sobre los días que hubo actividad (al menos una marca). Todo lo que no sea ✓ Presente baja el porcentaje.</div></div>';
 
-    // ---- Leyenda ----
-    html += '<div class="calls-legend">Tocá una celda para cambiar: <span class="cl-i cl-yes">✓ Presente</span> <span class="cl-i cl-no">✕ Ausente</span> <span class="cl-i cl-les">🚑 Lesión</span> <span class="cl-i cl-enf">🤒 Enfermedad</span> <span class="cl-i cl-via">✈️ Viaje</span></div>';
+    } // ===== fin VISTA PLANILLA =====
 
-    // ---- Excluidos del presentismo ----
-    if(excluidos.length > 0){
-      html += '<div class="att-excluded"><div class="att-excl-title">No cuentan para presentismo ('+excluidos.length+')</div>'
-            + '<div class="att-excl-note">Siguen en el plantel, convocatorias y estadísticas. Sólo no se les mide la asistencia a entrenamientos.</div>'
-            + '<div class="att-excl-list">';
-      excluidos.forEach(p => {
-        html += '<span class="att-excl-chip">'+escapeHtml((p.number?'#'+p.number+' ':'')+p.name)
-              + '<button class="att-incl-btn" data-incl="'+p.id+'" title="Volver a incluir">↩ incluir</button></span>';
+    // ================= VISTA RESUMEN =================
+    if(attView === 'resumen'){
+    const activeYearR = attActiveDaysYear();
+
+    // Tablero de totales del EQUIPO: mes y anual (presentismo + desglose de ausencias)
+    const totMes = attTeamTotals(activeThisMonth, visibles);
+    const totAnio = attTeamTotals(activeYearR, visibles);
+    function tarjetaTotales(titulo, t){
+      if(!t){
+        return '<div class="att-tt-block"><div class="att-tt-head">'+titulo+'</div><div class="att-tt-empty">Sin actividad registrada</div></div>';
+      }
+      let customItems = '';
+      attCustomCauses.forEach(c => {
+        const v = (t.custom && t.custom[c.id]!=null) ? t.custom[c.id] : 0;
+        customItems += '<span class="att-tt-item"><b class="cust">'+v+'%</b> '+c.emoji+' '+escapeHtml(c.nombre)+'</span>';
       });
-      html += '</div></div>';
+      return '<div class="att-tt-block"><div class="att-tt-head">'+titulo+'</div>'
+        + '<div class="att-tt-main"><span class="att-tt-big">'+t.presentismo+'%</span><span class="att-tt-biglbl">Presentismo</span></div>'
+        + '<div class="att-tt-breakdown">'
+        +   '<span class="att-tt-item"><b class="les">'+t.lesion+'%</b> 🚑 Lesión</span>'
+        +   '<span class="att-tt-item"><b class="enf">'+t.enfermedad+'%</b> 🤒 Enfermedad</span>'
+        +   '<span class="att-tt-item"><b class="via">'+t.viaje+'%</b> ✈️ Viaje</span>'
+        +   '<span class="att-tt-item"><b class="aus">'+t.ausente+'%</b> ✕ Ausente</span>'
+        +   customItems
+        + '</div></div>';
     }
+    html += '<div class="att-totals"><div class="att-tt-title">📈 Resumen del equipo</div><div class="att-tt-grid">'
+          + tarjetaTotales('Mes de '+MESES[m], totMes)
+          + tarjetaTotales('Año '+y+' (acumulado)', totAnio)
+          + '</div></div>';
+
+    // ---- Comparativa mes a mes (evolución) ----
+    const monthly = attMonthlyBreakdown(visibles);
+    if(monthly.length > 0){
+      html += '<div class="att-evol"><div class="att-tt-title">📆 Evolución mes a mes</div>';
+
+      // Gráfico de barras: presentismo por mes
+      const maxBar = 100;
+      html += '<div class="att-chart">';
+      monthly.forEach(mo => {
+        const p = mo.totals.presentismo;
+        const bc = p>=80?'hi':(p>=50?'mid':'lo');
+        html += '<div class="att-chart-col">'
+              + '<div class="att-chart-barwrap"><div class="att-chart-val">'+p+'%</div>'
+              + '<div class="att-chart-bar '+bc+'" style="height:'+Math.max(2,p)+'%"></div></div>'
+              + '<div class="att-chart-lbl">'+mo.nombre.slice(0,3)+'</div></div>';
+      });
+      html += '</div>';
+
+      // Tabla: presentismo + desglose por mes
+      html += '<div class="att-scroll"><table class="calls-table att-evol-table"><thead><tr>'
+            + '<th class="player-name-cell">Mes</th>'
+            + '<th>Present.</th><th>🚑 Les.</th><th>🤒 Enf.</th><th>✈️ Viaje</th><th>✕ Aus.</th>';
+      attCustomCauses.forEach(c => { html += '<th>'+c.emoji+'</th>'; });
+      html += '</tr></thead><tbody>';
+      monthly.forEach(mo => {
+        const t = mo.totals;
+        html += '<tr><td class="player-name-cell">'+mo.nombre+'</td>'
+              + '<td class="evol-pres">'+t.presentismo+'%</td>'
+              + '<td>'+t.lesion+'%</td><td>'+t.enfermedad+'%</td><td>'+t.viaje+'%</td><td>'+t.ausente+'%</td>';
+        attCustomCauses.forEach(c => { html += '<td>'+((t.custom&&t.custom[c.id]!=null)?t.custom[c.id]:0)+'%</td>'; });
+        html += '</tr>';
+      });
+      html += '</tbody></table></div></div>';
+    }
+    } // ===== fin VISTA RESUMEN =====
 
     wrap.innerHTML = html;
+
+    // ---- Eventos: cambio de solapa (planilla / resumen) ----
+    wrap.querySelectorAll('.att-viewtab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        attView = tab.dataset.view;
+        renderAttendance();
+      });
+    });
 
     // ---- Eventos: excluir un jugador ----
     wrap.querySelectorAll('.att-excl-btn').forEach(btn => {
@@ -8793,8 +8958,9 @@ window.__initEditor = function(){
         const key = cell.dataset.key;
         const pid = cell.dataset.player;
         const cur = attData[key+'|'+pid] || '';
-        const idx = ATT_CICLO.indexOf(cur);
-        const next = ATT_CICLO[(idx + 1) % ATT_CICLO.length];
+        const ciclo = attCiclo();
+        const idx = ciclo.indexOf(cur);
+        const next = ciclo[(idx + 1) % ciclo.length];
         if(next==='') delete attData[key+'|'+pid]; else attData[key+'|'+pid] = next;
         saveAtt(key, pid, next);
         // Actualizar SOLO la celda tocada (sin reconstruir la tabla, así no
@@ -8819,6 +8985,35 @@ window.__initEditor = function(){
         // Actualizar solo el botón y el resaltado de columnas, sin reconstruir todo.
         btn.classList.toggle('on');
         refreshTrainDayHighlight();
+      });
+    });
+
+    // ---- Eventos: agregar causa personalizada ----
+    const addBtn = wrap.querySelector('#attCauseAdd');
+    if(addBtn){
+      addBtn.addEventListener('click', () => {
+        const emoji = (prompt('Emoji de la causa (ej: 🎓):') || '').trim();
+        if(!emoji) return;
+        const nombre = (prompt('Nombre corto de la causa (ej: Estudio):') || '').trim();
+        if(!nombre) return;
+        const id = 'c' + Date.now().toString(36);
+        attCustomCauses.push({ id, emoji: emoji.slice(0,4), nombre: nombre.slice(0,20) });
+        saveCustomCauses();
+        if(window.__invalidateAttendance) window.__invalidateAttendance();
+        renderAttendance();
+      });
+    }
+    // ---- Eventos: borrar causa personalizada ----
+    wrap.querySelectorAll('.att-cause-del').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.del;
+        const c = attCustomCauses.find(x => x.id === id);
+        if(!c) return;
+        if(!confirm('¿Borrar la causa "'+c.emoji+' '+c.nombre+'"?\n\nLas marcas ya puestas con esta causa quedarán como "sin marcar".')) return;
+        attCustomCauses = attCustomCauses.filter(x => x.id !== id);
+        saveCustomCauses();
+        if(window.__invalidateAttendance) window.__invalidateAttendance();
+        renderAttendance();
       });
     });
   }
@@ -8863,11 +9058,15 @@ window.__initEditor = function(){
       const items = block.querySelectorAll('.att-tt-item b');
       if(!t){ if(big) big.textContent = '—'; return; }
       if(big) big.textContent = t.presentismo+'%';
-      // orden: lesión, enfermedad, viaje, ausente
+      // orden fijo: lesión, enfermedad, viaje, ausente, luego las custom en orden
       if(items[0]) items[0].textContent = t.lesion+'%';
       if(items[1]) items[1].textContent = t.enfermedad+'%';
       if(items[2]) items[2].textContent = t.viaje+'%';
       if(items[3]) items[3].textContent = t.ausente+'%';
+      attCustomCauses.forEach((c, i) => {
+        const el = items[4+i];
+        if(el) el.textContent = ((t.custom && t.custom[c.id]!=null) ? t.custom[c.id] : 0) + '%';
+      });
     }
     pintar(blocks[0], totMes);
     pintar(blocks[1], totAnio);
