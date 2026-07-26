@@ -1375,6 +1375,25 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .att-an-val{font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;min-width:48px;text-align:right;}
 .att-annual-note{font-family:'Inter',sans-serif;font-size:11.5px;color:var(--muted-2);margin-top:14px;line-height:1.5;}
 
+/* Tablero de totales del equipo (presentismo + ausencias, mes y anual) */
+.att-totals{margin-top:22px;}
+.att-tt-title{font-family:'Oswald',sans-serif;font-size:16px;font-weight:600;margin-bottom:12px;letter-spacing:.5px;}
+.att-tt-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.att-tt-block{background:var(--panel);border:1px solid var(--line-soft);border-radius:14px;padding:18px 20px;}
+.att-tt-head{font-family:'JetBrains Mono',monospace;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px;}
+.att-tt-main{display:flex;align-items:baseline;gap:10px;margin-bottom:16px;}
+.att-tt-big{font-family:'Oswald',sans-serif;font-size:42px;font-weight:700;color:var(--success);line-height:1;}
+.att-tt-biglbl{font-family:'Inter',sans-serif;font-size:14px;color:var(--muted);}
+.att-tt-breakdown{display:flex;flex-direction:column;gap:7px;}
+.att-tt-item{font-family:'Inter',sans-serif;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;}
+.att-tt-item b{font-family:'Oswald',sans-serif;font-size:15px;min-width:44px;display:inline-block;}
+.att-tt-item b.les{color:#E0A93B;}
+.att-tt-item b.enf{color:#9B6FCB;}
+.att-tt-item b.via{color:var(--accent-2);}
+.att-tt-item b.aus{color:var(--danger);}
+.att-tt-empty{font-family:'Inter',sans-serif;font-size:13px;color:var(--muted-2);padding:12px 0;}
+@media (max-width:720px){ .att-tt-grid{grid-template-columns:1fr;} }
+
 /* Botón de excluir en cada fila */
 .att-excl-btn{background:transparent;border:none;color:var(--muted-2);font-size:13px;cursor:pointer;
   padding:0 6px 0 0;opacity:0.45;transition:opacity .15s,color .15s;line-height:1;}
@@ -8561,6 +8580,35 @@ window.__initEditor = function(){
     return set;
   }
 
+  // Totales del EQUIPO para un conjunto de días activos.
+  // Cuenta cada casilla (jugador visible × día activo) y saca los % sobre ese total.
+  // Devuelve null si no hay actividad.
+  function attTeamTotals(activeDays, playersList){
+    let total = 0, present = 0, lesion = 0, enfermedad = 0, viaje = 0, ausente = 0;
+    activeDays.forEach(dk => {
+      playersList.forEach(p => {
+        total++;
+        const st = attData[dk+'|'+p.id] || '';
+        if(st === 'yes') present++;
+        else if(st === 'lesion') lesion++;
+        else if(st === 'enfermedad') enfermedad++;
+        else if(st === 'viaje') viaje++;
+        else if(st === 'no') ausente++;
+        // celdas sin marcar en un día activo: cuentan en el total pero no en ninguna categoría
+      });
+    });
+    if(total === 0) return null;
+    const pct = n => Math.round(n / total * 100);
+    return {
+      total,
+      presentismo: pct(present),
+      lesion: pct(lesion),
+      enfermedad: pct(enfermedad),
+      viaje: pct(viaje),
+      ausente: pct(ausente)
+    };
+  }
+
   // Expuesto para Semáforo y Ficha (Etapa 2)
   window.__attendancePercent = function(playerId){
     loadExcluded();
@@ -8669,7 +8717,29 @@ window.__initEditor = function(){
 
     // ---- Resumen anual ----
     const activeYear = attActiveDaysYear();
-    html += '<div class="att-annual"><div class="att-annual-title">📊 Asistencia anual '+y+'</div><div class="att-annual-grid">';
+
+    // Tablero de totales del EQUIPO: mes y anual (presentismo + desglose de ausencias)
+    const totMes = attTeamTotals(activeThisMonth, visibles);
+    const totAnio = attTeamTotals(activeYear, visibles);
+    function tarjetaTotales(titulo, t){
+      if(!t){
+        return '<div class="att-tt-block"><div class="att-tt-head">'+titulo+'</div><div class="att-tt-empty">Sin actividad registrada</div></div>';
+      }
+      return '<div class="att-tt-block"><div class="att-tt-head">'+titulo+'</div>'
+        + '<div class="att-tt-main"><span class="att-tt-big">'+t.presentismo+'%</span><span class="att-tt-biglbl">Presentismo</span></div>'
+        + '<div class="att-tt-breakdown">'
+        +   '<span class="att-tt-item"><b class="les">'+t.lesion+'%</b> 🚑 Lesión</span>'
+        +   '<span class="att-tt-item"><b class="enf">'+t.enfermedad+'%</b> 🤒 Enfermedad</span>'
+        +   '<span class="att-tt-item"><b class="via">'+t.viaje+'%</b> ✈️ Viaje</span>'
+        +   '<span class="att-tt-item"><b class="aus">'+t.ausente+'%</b> ✕ Ausente</span>'
+        + '</div></div>';
+    }
+    html += '<div class="att-totals"><div class="att-tt-title">📈 Resumen del equipo</div><div class="att-tt-grid">'
+          + tarjetaTotales('Mes de '+MESES[m], totMes)
+          + tarjetaTotales('Año '+y+' (acumulado)', totAnio)
+          + '</div></div>';
+
+    html += '<div class="att-annual"><div class="att-annual-title">📊 Asistencia anual '+y+' (por jugador)</div><div class="att-annual-grid">';
     visibles.forEach(p => {
       const py = attPercentForDays(p.id, activeYear);
       const val = py===null ? '—' : py+'%';
@@ -8782,6 +8852,25 @@ window.__initEditor = function(){
         bar.className = 'att-bar' + (py===null?'':(py>=80?' hi':(py>=50?' mid':' lo')));
       }
     });
+    // tablero de totales del equipo (mes y anual)
+    const visibles = squad.filter(p => !attIsExcluded(p.id));
+    const totMes = attTeamTotals(activeMonth, visibles);
+    const totAnio = attTeamTotals(activeYear, visibles);
+    const blocks = wrap.querySelectorAll('.att-tt-block');
+    function pintar(block, t){
+      if(!block) return;
+      const big = block.querySelector('.att-tt-big');
+      const items = block.querySelectorAll('.att-tt-item b');
+      if(!t){ if(big) big.textContent = '—'; return; }
+      if(big) big.textContent = t.presentismo+'%';
+      // orden: lesión, enfermedad, viaje, ausente
+      if(items[0]) items[0].textContent = t.lesion+'%';
+      if(items[1]) items[1].textContent = t.enfermedad+'%';
+      if(items[2]) items[2].textContent = t.viaje+'%';
+      if(items[3]) items[3].textContent = t.ausente+'%';
+    }
+    pintar(blocks[0], totMes);
+    pintar(blocks[1], totAnio);
   }
 
   // Refresca el resaltado de días de entreno sin reconstruir la tabla.
