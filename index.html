@@ -4434,6 +4434,7 @@ async function guardarPerfil(userId, email, perfil){
       if(window.__cargarTemporadas) setTimeout(window.__cargarTemporadas, 500);
       if(window.__cargarPromoAnios) setTimeout(window.__cargarPromoAnios, 900);
       if(window.__cargarNotificaciones) setTimeout(window.__cargarNotificaciones, 800);
+      if(window.__pedirClubSiFalta) setTimeout(window.__pedirClubSiFalta, 1200);
     }
   }catch(err){ console.error(err); }
 })();
@@ -4700,6 +4701,67 @@ window.__initEditor = function(){
   }
 
   // Arrancar cuando el usuario entra al panel
+  // ── Cartel: pedir el nombre del club si el usuario no lo cargó ──
+  // Es solo un dato informativo (para saber de qué club es cada uno).
+  // Se puede cerrar, pero reaparece en cada entrada hasta que lo complete.
+  window.__pedirClubSiFalta = async function(){
+    try{
+      const sb = window.__sb; const uid = window.__currentUserId;
+      if(!sb || !uid) return;
+      const { data: prof } = await sb.from('profiles').select('club_name').eq('id', uid).single();
+      // Si ya tiene club cargado, no hacemos nada.
+      if(prof && prof.club_name && prof.club_name.trim()) return;
+
+      // Evitar duplicar el cartel si ya está abierto
+      if(document.getElementById('clubAskModal')) return;
+
+      const m = document.createElement('div');
+      m.id = 'clubAskModal';
+      m.className = 'plans-overlay';
+      m.innerHTML = `<div class="plans-box" style="max-width:420px;text-align:left;">
+        <button class="plans-close" id="clubAskClose" title="Cerrar por ahora">✕</button>
+        <h2 style="font-size:21px;">¿De qué club sos?</h2>
+        <p class="plans-sub">Contanos el club o institución donde trabajás. Es solo para conocerte mejor — no tiene nada que ver con pagos.</p>
+        <input type="text" id="clubAskInput" placeholder="Ej: Hebraica" autocomplete="organization"
+          style="width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;color:var(--chalk);font-family:'Inter',sans-serif;font-size:14px;padding:11px 14px;margin-bottom:6px;">
+        <div id="clubAskErr" style="color:var(--accent);font-size:12px;min-height:16px;margin-bottom:8px;"></div>
+        <button class="btn-primary" id="clubAskSave" style="width:100%;">Guardar</button>
+        <div style="text-align:center;margin-top:10px;">
+          <button id="clubAskLater" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline;">Ahora no, más tarde</button>
+        </div>
+      </div>`;
+      document.body.appendChild(m);
+
+      const input = document.getElementById('clubAskInput');
+      const errEl = document.getElementById('clubAskErr');
+      const saveBtn = document.getElementById('clubAskSave');
+      setTimeout(() => input.focus(), 100);
+
+      const cerrar = () => m.remove();
+      document.getElementById('clubAskClose').addEventListener('click', cerrar);
+      document.getElementById('clubAskLater').addEventListener('click', cerrar);
+      m.addEventListener('click', e => { if(e.target === m) cerrar(); });
+
+      async function guardar(){
+        const nombre = (input.value||'').trim();
+        if(!nombre){ errEl.textContent = 'Escribí el nombre de tu club para guardar.'; return; }
+        saveBtn.disabled = true; saveBtn.textContent = 'Guardando…'; errEl.textContent = '';
+        try{
+          const { error } = await sb.from('profiles').update({ club_name: nombre }).eq('id', uid);
+          if(error) throw error;
+          cerrar();
+          if(window.toast) toast('¡Gracias! Guardamos tu club ✓');
+        }catch(e){
+          console.error('guardar club', e);
+          errEl.textContent = 'No se pudo guardar. Probá de nuevo.';
+          saveBtn.disabled = false; saveBtn.textContent = 'Guardar';
+        }
+      }
+      saveBtn.addEventListener('click', guardar);
+      input.addEventListener('keydown', e => { if(e.key === 'Enter') guardar(); });
+    }catch(e){ /* silencioso: si falla, no molestamos al usuario */ }
+  };
+
   window.__startMetrics = function(){
     sessionStart = Date.now();
     seccionDesde = Date.now();
@@ -5253,23 +5315,30 @@ window.__initEditor = function(){
 
   renderChips();
 
-  // Carga el pack y las categorías ocupadas desde la nube.
+  // Carga el pack (del USUARIO) y las categorías ocupadas (del club) desde la nube.
   window.__loadCategoriesOnce = async function(){
     try{
       const sb = window.__sb; const clubId = await window.__getClubId();
-      if(sb && clubId){
-        const { data } = await sb.from('clubs').select('pack, active_categories').eq('id', clubId).single();
-        if(data){
-          clubPack = data.pack || null;
-          window.__catState.pack = clubPack;
-          if(Array.isArray(data.active_categories) && data.active_categories.length){
-            ocupadas = data.active_categories.slice();
-          } else {
-            // Primera vez con cobro activo: contamos como ocupadas las categorías donde ya haya datos.
-            // Como no podemos escanear todo barato, ocupamos al menos la actual.
-            ocupadas = [activeCategory];
+      if(sb){
+        // Pack: lo elige cada usuario, vive en profiles.pack
+        const uid = window.__currentUserId;
+        if(uid){
+          try{
+            const { data: prof } = await sb.from('profiles').select('pack').eq('id', uid).single();
+            if(prof){ clubPack = prof.pack || null; window.__catState.pack = clubPack; }
+          }catch(e){ /* sin pack: queda en null → default */ }
+        }
+        // Categorías ya ocupadas: siguen siendo del club (son del equipo)
+        if(clubId){
+          const { data } = await sb.from('clubs').select('active_categories').eq('id', clubId).single();
+          if(data){
+            if(Array.isArray(data.active_categories) && data.active_categories.length){
+              ocupadas = data.active_categories.slice();
+            } else {
+              ocupadas = [activeCategory];
+            }
+            window.__catState.ocupadas = ocupadas;
           }
-          window.__catState.ocupadas = ocupadas;
         }
       }
     }catch(e){ /* sin datos: seguimos sin límite */ }
@@ -11343,6 +11412,14 @@ try{
         .eq('id', clubId).single();
       if(error || !data) return;
       window.__myPlanData = data;
+      // El PACK lo elige el usuario (profiles.pack), no el club. Lo sobrescribimos.
+      try{
+        const uid = window.__currentUserId;
+        if(uid){
+          const { data: prof } = await sb.from('profiles').select('pack').eq('id', uid).single();
+          if(prof && prof.pack){ window.__myPlanData.pack = prof.pack; }
+        }
+      }catch(e){ /* si falla, queda el del club como respaldo */ }
       // Amigos fundadores: descuento permanente
       window.__esFundador = !!data.es_fundador;
       window.__descuentoPct = window.__esFundador ? (Number(data.descuento_pct) || 0) : 0;
