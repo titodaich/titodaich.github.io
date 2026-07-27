@@ -1479,6 +1479,30 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .tac-checks label{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--chalk);cursor:pointer;font-family:'Inter',sans-serif;}
 .tac-checks input{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;}
 
+/* Planificación: carga / intensidad semanal */
+.wk-load-hint{font-size:12px;color:var(--muted);font-family:'Inter',sans-serif;}
+.wk-load{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:18px;}
+.wk-load-day{text-align:center;}
+.wk-load-dname{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;}
+.wk-load-btns{display:flex;flex-direction:column;gap:4px;}
+.wk-load-btn{border:1px solid var(--line-soft);background:var(--panel);color:var(--muted);border-radius:6px;
+  padding:7px 0;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .12s;}
+.wk-load-btn:hover{border-color:var(--line);}
+.wk-load-btn.on.suave{background:rgba(76,175,109,0.9);border-color:var(--success);color:#fff;}
+.wk-load-btn.on.medio{background:rgba(224,169,59,0.9);border-color:#E0A93B;color:#1a1a1a;}
+.wk-load-btn.on.fuerte{background:rgba(229,52,42,0.9);border-color:var(--accent);color:#fff;}
+/* Curva visual de la semana */
+.wk-load-curve{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;height:90px;align-items:end;
+  background:var(--bg-2);border-radius:10px;padding:12px 8px 6px;}
+.wk-curve-col{display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end;gap:5px;}
+.wk-curve-barwrap{width:100%;height:100%;display:flex;align-items:flex-end;justify-content:center;}
+.wk-curve-bar{width:60%;max-width:34px;border-radius:4px 4px 0 0;transition:height .25s,background .15s;min-height:0;}
+.wk-curve-bar.suave{background:var(--success);}
+.wk-curve-bar.medio{background:#E0A93B;}
+.wk-curve-bar.fuerte{background:var(--accent);}
+.wk-curve-bar.empty{background:transparent;border-bottom:2px dotted var(--line-soft);}
+.wk-curve-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted-2);text-transform:uppercase;}
+
 /* Planificación: grilla de ejercicios */
 .week-grid-wrap{overflow-x:auto;}
 .week-grid{width:100%;border-collapse:collapse;min-width:1040px;}
@@ -3001,6 +3025,15 @@ body.editor-active #screen-editor{ display:block; }
             <label><input type="checkbox" data-tac="4v5"> 4 vs 5</label>
           </div>
         </div>
+      </div>
+
+      <div class="rd-card">
+        <div class="rd-card-head">
+          <h3>Carga de la semana</h3>
+          <span class="wk-load-hint">Marcá la intensidad de cada día</span>
+        </div>
+        <div class="wk-load" id="wkLoad"></div>
+        <div class="wk-load-curve" id="wkLoadCurve"></div>
       </div>
 
       <div class="rd-card">
@@ -7075,6 +7108,7 @@ window.__initEditor = function(){
       cb.checked = !!w.content.tacticos[cb.dataset.tac];
     });
     renderExercises();
+    renderIntensity();
     listView.style.display = 'none';
     detailView.style.display = 'block';
     window.scrollTo(0,0);
@@ -7139,6 +7173,56 @@ window.__initEditor = function(){
     clearTimeout(savedTimer);
     savedTimer = setTimeout(() => { el.textContent = 'Los cambios se guardan solos'; }, 1500);
     const w = currentWeek(); if(w) saveToCloud(w);
+  }
+
+  // ===== Carga / intensidad semanal =====
+  // 3 niveles: suave (verde) · medio (amarillo) · fuerte (rojo).
+  // Se guarda en w.content.intensidad = { lunes:'suave', martes:'medio', ... }
+  const INTEN_NIVELES = ['suave', 'medio', 'fuerte'];
+  const INTEN_LABEL = { suave:'Suave', medio:'Medio', fuerte:'Fuerte' };
+  const INTEN_ALTURA = { suave:33, medio:66, fuerte:100 };
+  const DIAS_CORTO = { lunes:'Lun', martes:'Mar', miercoles:'Mié', jueves:'Jue', viernes:'Vie', sabado:'Sáb', domingo:'Dom' };
+
+  function renderIntensity(){
+    const w = currentWeek(); if(!w) return;
+    if(!w.content.intensidad) w.content.intensidad = {};
+    const cont = document.getElementById('wkLoad');
+    const curve = document.getElementById('wkLoadCurve');
+    if(!cont || !curve) return;
+
+    // Selectores por día
+    let html = '';
+    DIAS.forEach(dia => {
+      const val = w.content.intensidad[dia] || '';
+      html += '<div class="wk-load-day"><div class="wk-load-dname">'+DIAS_CORTO[dia]+'</div><div class="wk-load-btns">';
+      INTEN_NIVELES.forEach(niv => {
+        const on = val === niv ? ' on '+niv : '';
+        html += '<button class="wk-load-btn'+on+'" data-dia="'+dia+'" data-niv="'+niv+'" title="'+INTEN_LABEL[niv]+'">'+INTEN_LABEL[niv][0]+'</button>';
+      });
+      html += '</div></div>';
+    });
+    cont.innerHTML = html;
+
+    // Curva visual (barras por día)
+    let bars = '';
+    DIAS.forEach(dia => {
+      const val = w.content.intensidad[dia] || '';
+      const h = val ? INTEN_ALTURA[val] : 0;
+      const cls = val ? ' '+val : ' empty';
+      bars += '<div class="wk-curve-col"><div class="wk-curve-barwrap"><div class="wk-curve-bar'+cls+'" style="height:'+h+'%"></div></div><div class="wk-curve-lbl">'+DIAS_CORTO[dia]+'</div></div>';
+    });
+    curve.innerHTML = bars;
+
+    // Eventos: al tocar un nivel, marca (o desmarca si ya estaba)
+    cont.querySelectorAll('.wk-load-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const dia = btn.dataset.dia, niv = btn.dataset.niv;
+        if(w.content.intensidad[dia] === niv) delete w.content.intensidad[dia];  // toca de nuevo = quita
+        else w.content.intensidad[dia] = niv;
+        renderIntensity();   // redibuja selectores + curva
+        flashSaved();
+      });
+    });
   }
 
   const fieldMap = { wkName:'name', wkFrom:'from', wkTo:'to' };
