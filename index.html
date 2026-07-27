@@ -1168,6 +1168,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .g-detail:focus{outline:none;border-color:var(--accent-2);}
 .g-detail::placeholder{color:var(--muted);}
 .origin-tags{display:flex;flex-wrap:wrap;gap:5px;}
+.tags-banner{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  background:linear-gradient(135deg, rgba(47,143,203,0.12), rgba(47,143,203,0.05));
+  border:1px solid rgba(47,143,203,0.35);border-radius:12px;padding:14px 18px;margin-bottom:16px;}
+.tags-banner-text{display:flex;flex-direction:column;gap:3px;min-width:0;}
+.tags-banner-title{font-size:14px;font-weight:600;color:var(--chalk);}
+.tags-banner-sub{font-size:12px;color:var(--muted);}
+.tags-banner .btn{flex-shrink:0;background:var(--accent-2);border-color:var(--accent-2);color:#10161C;font-weight:600;}
+.tags-banner .btn:hover{filter:brightness(1.08);}
 .origin-tag{background:var(--panel-2);border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:5px 10px;font-size:12px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .12s ease;}
 .origin-tag:hover{color:var(--chalk);border-color:var(--muted);}
 .origin-tag.active{background:var(--accent-2);border-color:var(--accent-2);color:#10161C;font-weight:600;}
@@ -2796,6 +2804,14 @@ body.editor-active #screen-editor{ display:block; }
           </div>
         </div>
 
+        <div class="tags-banner">
+          <div class="tags-banner-text">
+            <span class="tags-banner-title">🏷️ Tags de origen del gol</span>
+            <span class="tags-banner-sub">Elegí de dónde salió cada gol. Podés crear tus propios tags o agregar detalle (ej: Transición → 2v1, 3v2…).</span>
+          </div>
+          <button class="btn" id="editTagsBtn" data-i18n="editTags">⚙ Editar tags de gol</button>
+        </div>
+
         <div class="rd-grid">
           <!-- Goles a favor -->
           <div class="rd-col">
@@ -2829,7 +2845,6 @@ body.editor-active #screen-editor{ display:block; }
         <div class="rd-footer">
           <button class="btn danger-outline" id="deleteMatchBtn" data-i18n="delMatch">Eliminar partido</button>
           <div style="display:flex;gap:10px;align-items:center;">
-            <button class="btn small ghost" id="editTagsBtn" data-i18n="editTags">⚙ Editar tags de gol</button>
             <span class="rd-saved" id="mtSaved">Los cambios se guardan solos</span>
           </div>
         </div>
