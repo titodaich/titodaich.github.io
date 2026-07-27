@@ -1480,7 +1480,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .tac-checks input{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;}
 
 /* Planificación: carga / intensidad semanal */
+.wk-load-head{cursor:pointer;user-select:none;transition:opacity .15s;}
+.wk-load-head:hover{opacity:0.85;}
+.wk-load-title{display:flex;align-items:center;gap:9px;}
+.wk-load-title h3{margin:0;}
+.wk-load-arrow{color:var(--accent-2);font-size:13px;transition:transform .15s;display:inline-block;width:14px;}
 .wk-load-hint{font-size:12px;color:var(--muted);font-family:'Inter',sans-serif;}
+.wk-load-body{margin-top:16px;}
 .wk-load{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:18px;}
 .wk-load-day{text-align:center;}
 .wk-load-dname{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;}
@@ -1504,6 +1510,17 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .wk-curve-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted-2);text-transform:uppercase;}
 
 /* Planificación: grilla de ejercicios */
+.ex-name-wrap{display:flex;flex-direction:column;gap:5px;}
+.ex-link-row{display:flex;align-items:center;gap:5px;}
+.ex-link-input{width:100%;font-size:11px;padding:4px 7px;border:1px solid var(--line-soft);border-radius:5px;
+  background:var(--bg-2);color:var(--muted);font-family:'Inter',sans-serif;transition:border-color .15s,color .15s;}
+.ex-link-input:focus{border-color:var(--accent-2);color:var(--chalk);outline:none;}
+.ex-link-input.has{color:var(--accent-2);border-color:rgba(47,143,203,0.4);}
+.ex-link-open{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;
+  background:rgba(47,143,203,0.14);border:1px solid var(--accent-2);border-radius:5px;color:var(--accent-2);
+  text-decoration:none;font-size:13px;transition:background .15s;}
+.ex-link-open:hover{background:rgba(47,143,203,0.28);}
+
 .week-grid-wrap{overflow-x:auto;}
 .week-grid{width:100%;border-collapse:collapse;min-width:1040px;}
 .week-grid th{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);font-weight:500;}
@@ -3028,12 +3045,14 @@ body.editor-active #screen-editor{ display:block; }
       </div>
 
       <div class="rd-card">
-        <div class="rd-card-head">
-          <h3>Carga de la semana</h3>
-          <span class="wk-load-hint">Marcá la intensidad de cada día</span>
+        <div class="rd-card-head wk-load-head" id="wkLoadToggle">
+          <div class="wk-load-title"><span class="wk-load-arrow" id="wkLoadArrow">▸</span> <h3>Carga de la semana</h3></div>
+          <span class="wk-load-hint">Tocá para desplegar y marcar la intensidad</span>
         </div>
-        <div class="wk-load" id="wkLoad"></div>
-        <div class="wk-load-curve" id="wkLoadCurve"></div>
+        <div class="wk-load-body" id="wkLoadBody" style="display:none;">
+          <div class="wk-load" id="wkLoad"></div>
+          <div class="wk-load-curve" id="wkLoadCurve"></div>
+        </div>
       </div>
 
       <div class="rd-card">
@@ -7109,6 +7128,12 @@ window.__initEditor = function(){
     });
     renderExercises();
     renderIntensity();
+    setupLoadToggle();
+    // arranca plegada cada vez que se abre una semana
+    const loadBody = document.getElementById('wkLoadBody');
+    const loadArrow = document.getElementById('wkLoadArrow');
+    if(loadBody){ loadBody.style.display = 'none'; }
+    if(loadArrow){ loadArrow.textContent = '▸'; }
     listView.style.display = 'none';
     detailView.style.display = 'block';
     window.scrollTo(0,0);
@@ -7121,13 +7146,25 @@ window.__initEditor = function(){
     w.content.ejercicios.forEach((ex, idx) => {
       if(!ex.dias) ex.dias = {};
       const tr = document.createElement('tr');
-      let cells = `<td><input class="ex-name" value="${escapeHtml(ex.nombre||'')}" placeholder="Ejercicio ${idx+1}"></td>`;
+      const tieneLink = ex.link && ex.link.trim();
+      const linkCell = `<div class="ex-name-wrap">
+        <input class="ex-name" value="${escapeHtml(ex.nombre||'')}" placeholder="Ejercicio ${idx+1}">
+        <div class="ex-link-row">
+          <input class="ex-link-input${tieneLink?' has':''}" value="${escapeHtml(ex.link||'')}" placeholder="🔗 Pegá un link (video, Drive…)">
+          ${tieneLink ? `<a class="ex-link-open" href="${escapeHtml(ex.link)}" target="_blank" rel="noopener" title="Abrir material">↗</a>` : ''}
+        </div>
+      </div>`;
+      let cells = `<td>${linkCell}</td>`;
       DIAS.forEach(dia => {
         cells += `<td><textarea class="day-cell" data-dia="${dia}" rows="1" placeholder="—">${escapeHtml(ex.dias[dia]||'')}</textarea></td>`;
       });
       cells += `<td><button class="ex-del" title="Quitar">✕</button></td>`;
       tr.innerHTML = cells;
       tr.querySelector('.ex-name').addEventListener('input', e => { ex.nombre = e.target.value; flashSaved(); });
+      const linkInput = tr.querySelector('.ex-link-input');
+      linkInput.addEventListener('input', e => { ex.link = e.target.value; flashSaved(); });
+      // al salir del campo, re-render para mostrar/ocultar el botón de abrir
+      linkInput.addEventListener('blur', () => { renderExercises(); });
       tr.querySelectorAll('.day-cell').forEach(cell => {
         cell.addEventListener('input', e => { ex.dias[cell.dataset.dia] = e.target.value; flashSaved(); });
       });
@@ -7182,6 +7219,20 @@ window.__initEditor = function(){
   const INTEN_LABEL = { suave:'Suave', medio:'Medio', fuerte:'Fuerte' };
   const INTEN_ALTURA = { suave:33, medio:66, fuerte:100 };
   const DIAS_CORTO = { lunes:'Lun', martes:'Mar', miercoles:'Mié', jueves:'Jue', viernes:'Vie', sabado:'Sáb', domingo:'Dom' };
+
+  // Plegar/desplegar la sección de carga (arranca plegada)
+  function setupLoadToggle(){
+    const head = document.getElementById('wkLoadToggle');
+    const body = document.getElementById('wkLoadBody');
+    const arrow = document.getElementById('wkLoadArrow');
+    if(!head || !body || head.dataset.bound) return;
+    head.dataset.bound = '1';
+    head.addEventListener('click', () => {
+      const abierto = body.style.display !== 'none';
+      body.style.display = abierto ? 'none' : 'block';
+      arrow.textContent = abierto ? '▸' : '▾';
+    });
+  }
 
   function renderIntensity(){
     const w = currentWeek(); if(!w) return;
