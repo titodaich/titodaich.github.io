@@ -1147,6 +1147,12 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .trim-playhead{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--accent);pointer-events:none;z-index:2;display:none;}
 .trim-hint{font-size:11.5px;color:var(--muted);margin:8px 0 0;line-height:1.5;}
 .trim-actions{display:flex;align-items:center;gap:8px;margin-top:16px;}
+/* Botón de achicar destacado + nota explicativa */
+.log-btn.log-trim{color:var(--accent-2);border-color:rgba(47,143,203,0.4);}
+.log-btn.log-trim:hover{background:rgba(47,143,203,0.15);}
+.icon-btn.icon-btn-trim{color:var(--accent-2);}
+.trim-note{font-size:11.5px;color:var(--muted);background:rgba(47,143,203,0.08);border:1px solid rgba(47,143,203,0.25);border-radius:8px;padding:8px 11px;margin-bottom:12px;line-height:1.5;}
+.trim-note b{color:var(--accent-2);}
 /* Editor de recorte de foto */
 .crop-stage{position:relative;width:100%;max-width:260px;aspect-ratio:1/1;margin:0 auto 14px;background:var(--bg);border-radius:12px;overflow:hidden;cursor:grab;touch-action:none;user-select:none;}
 .crop-stage:active{cursor:grabbing;}
@@ -2635,6 +2641,7 @@ body.editor-active #screen-editor{ display:block; }
       <button class="btn small ghost" id="myPlanBtn" style="display:none;">💳 Mi plan</button>
       <div class="project-actions" id="videoProjectActions" style="display:none;">
         <button class="btn small primary" id="saveCloudBtn" data-i18n="saveCloud">☁ Guardar en la nube</button>
+        <span id="videoSaveStatus" style="font-size:12px;font-family:'JetBrains Mono',monospace;align-self:center;transition:color .2s;"></span>
         <button class="btn small ghost" id="loadCloudBtn" data-i18n="myMatches">☁ Mis partidos</button>
         <button class="btn small ghost" id="loadProjectBtn" data-i18n="loadFile">Cargar archivo</button>
         <button class="btn small ghost" id="saveProjectBtn" data-i18n="saveFile">Guardar archivo</button>
@@ -2684,7 +2691,7 @@ body.editor-active #screen-editor{ display:block; }
       </div>
       <div class="vh-step">
         <b>3. Revisá tus recortes</b>
-        <p>Cada jugada que marcás aparece en el <b>Registro de recortes</b>. Ahí podés tocar la flecha (▸) para verla sin salir de la lista, renombrarla con el lapicito (✎) sin cambiar el tag original, descargarla suelta, o borrarla con la cruz (✕).</p>
+        <p>Cada jugada que marcás aparece en el <b>Registro de recortes</b>. Ahí podés tocar la flecha (▸) para verla sin salir de la lista, renombrarla con el lapicito (✎) sin cambiar el tag original, <b>achicarla con la tijera (✂)</b> si quedó larga, descargarla suelta, o borrarla con la cruz (✕).</p>
       </div>
       <div class="vh-step">
         <b>4. Armá el video final</b>
@@ -2714,6 +2721,7 @@ body.editor-active #screen-editor{ display:block; }
       <div class="video-list" id="videoList"></div>
       <div class="clip-log-wrap">
         <div class="clip-log-title">Registro de recortes</div>
+        <div class="trim-note">✂ ¿Un recorte quedó largo? Tocá la <b>tijera</b> para achicarlo: vas a ver el video y movés dos manijas para dejarlo justo.</div>
         <div class="clip-log" id="clipLog">
           <div class="clip-log-empty">Los recortes que registres aparecerán acá para que armes el video final.</div>
         </div>
@@ -12286,16 +12294,27 @@ function buildProjectPayload(){
   };
 }
 
-document.getElementById('saveCloudBtn').addEventListener('click', async () => {
+// Guarda el proyecto de video. Si silencioso=true, no pide nombre ni molesta:
+// solo guarda si el proyecto YA existe (tiene id). Sirve para autoguardar.
+async function guardarVideoEnNube(silencioso){
   const sb = window.__sb;
-  if(!sb){ toast(window.t('mNoConnServer')); return; }
+  if(!sb){ if(!silencioso) toast(window.t('mNoConnServer')); return; }
   const clubId = await window.__getClubId();
-  if(!clubId){ toast(window.t('mNoClub')); return; }
-  if(items.length === 0 && videos.length === 0){ toast(window.t('mNothingSave')); return; }
+  if(!clubId){ if(!silencioso) toast(window.t('mNoClub')); return; }
+  if(items.length === 0 && videos.length === 0){ if(!silencioso) toast(window.t('mNothingSave')); return; }
 
-  const defaultName = videos[0]?.name || ('Partido ' + new Date().toLocaleDateString('es-AR'));
-  const name = prompt(window.t('mMatchName'), currentCloudProjectName || defaultName);
-  if(name === null) return;
+  let name;
+  if(silencioso){
+    // Autoguardado: solo si el proyecto ya fue guardado antes (ya tiene nombre e id).
+    // Si nunca se guardó, no hacemos nada: el primer guardado lo hace el usuario (para elegir nombre).
+    if(!currentCloudProjectId) return;
+    name = currentCloudProjectName;
+  } else {
+    const defaultName = videos[0]?.name || ('Partido ' + new Date().toLocaleDateString('es-AR'));
+    name = prompt(window.t('mMatchName'), currentCloudProjectName || defaultName);
+    if(name === null) return;
+    if(!name) name = defaultName;
+  }
 
   const payload = buildProjectPayload();
   const cat = (window.__getActiveCategory && window.__getActiveCategory()) || null;
@@ -12303,7 +12322,7 @@ document.getElementById('saveCloudBtn').addEventListener('click', async () => {
     club_id: clubId,
     categoria: cat,
     temporada: (window.__getTemporada ? window.__getTemporada() : new Date().getFullYear()),
-    name: name || defaultName,
+    name: name,
     videos: payload.videos,
     tags: payload.tags,
     items: payload.items,
@@ -12311,6 +12330,7 @@ document.getElementById('saveCloudBtn').addEventListener('click', async () => {
   };
 
   try{
+    if(silencioso) mostrarEstadoGuardado('guardando');
     let result;
     if(currentCloudProjectId){
       result = await sb.from('video_projects').update(row).eq('id', currentCloudProjectId).select().single();
@@ -12319,12 +12339,36 @@ document.getElementById('saveCloudBtn').addEventListener('click', async () => {
       row.created_by = session ? session.user.id : null;
       result = await sb.from('video_projects').insert(row).select().single();
     }
-    if(result.error){ console.error(result.error); toast('No se pudo guardar: ' + result.error.message); return; }
+    if(result.error){ console.error(result.error); if(!silencioso) toast('No se pudo guardar: ' + result.error.message); else mostrarEstadoGuardado('error'); return; }
     currentCloudProjectId = result.data.id;
     currentCloudProjectName = result.data.name;
-    toast(window.t('mMatchSaved'));
-  }catch(err){ console.error(err); toast(window.t('mSaveErr')); }
-});
+    if(silencioso) mostrarEstadoGuardado('guardado');
+    else toast(window.t('mMatchSaved'));
+  }catch(err){ console.error(err); if(!silencioso) toast(window.t('mSaveErr')); else mostrarEstadoGuardado('error'); }
+}
+
+// Autoguardado con debounce: junta los cambios y guarda 1.5s después del último.
+let __autoSaveTimer = null;
+function autoguardarVideo(){
+  // Solo tiene sentido si el proyecto ya existe en la nube
+  if(!currentCloudProjectId) return;
+  if(__autoSaveTimer) clearTimeout(__autoSaveTimer);
+  __autoSaveTimer = setTimeout(() => { guardarVideoEnNube(true); }, 1500);
+}
+
+// Indicador visual sutil del estado de guardado
+function mostrarEstadoGuardado(estado){
+  const el = document.getElementById('videoSaveStatus');
+  if(!el) return;
+  if(estado === 'guardando'){ el.textContent = 'Guardando…'; el.style.color = 'var(--muted)'; }
+  else if(estado === 'guardado'){ el.textContent = 'Guardado ✓'; el.style.color = 'var(--success)';
+    clearTimeout(el.__t); el.__t = setTimeout(() => { el.textContent = ''; }, 2000);
+  }
+  else if(estado === 'error'){ el.textContent = 'No se pudo guardar'; el.style.color = 'var(--accent)'; }
+}
+window.__autoguardarVideo = autoguardarVideo;
+
+document.getElementById('saveCloudBtn').addEventListener('click', () => guardarVideoEnNube(false));
 
 // Abrir el modal con la lista de partidos guardados
 document.getElementById('loadCloudBtn').addEventListener('click', async () => {
@@ -12572,6 +12616,7 @@ function moveItem(id, delta){
   const [moved] = items.splice(idx, 1);
   items.splice(newIdx, 0, moved);
   renderItems();
+  if(window.__autoguardarVideo) window.__autoguardarVideo();
 }
 
 // Genera una miniatura (frame capturado) para un recorte, sin tocar el reproductor principal.
@@ -12630,7 +12675,7 @@ function updateClipLog(){
         <button class="log-btn" data-log-action="toggle" title="Ver este recorte">▸</button>
         <button class="log-btn log-add${yaEsta?' is-in':''}" data-log-action="add" title="${yaEsta?'Quitar de la línea de tiempo':'Agregar a la línea de tiempo'}">${yaEsta?'✓':'＋'}</button>
         <button class="log-btn" data-log-action="rename" title="Renombrar este recorte">✎</button>
-        <button class="log-btn" data-log-action="trim" title="Ajustar duración del recorte">✂</button>
+        <button class="log-btn log-trim" data-log-action="trim" title="Achicar / ajustar la duración de este recorte">✂</button>
         <button class="log-btn" data-log-action="export" title="Exportar este clip">⬇</button>
         <button class="log-btn" data-log-action="del" title="Borrar del registro">✕</button>
       </span>
@@ -12824,10 +12869,9 @@ function trimCerrar(){
       if(__trimItem){
         __trimItem.start = __trimNewStart;
         __trimItem.end = __trimNewEnd;
-        // El cambio queda en memoria y se persiste al guardar el proyecto,
-        // igual que editar una descripción o reordenar clips.
         renderItems();
-        toast('Recorte ajustado: ahora dura '+fmt(Math.max(0,__trimNewEnd-__trimNewStart))+'. Acordate de guardar el proyecto.');
+        if(window.__autoguardarVideo) window.__autoguardarVideo();
+        toast('Recorte ajustado: ahora dura '+fmt(Math.max(0,__trimNewEnd-__trimNewStart))+'.');
       }
       trimCerrar();
     });
@@ -12897,7 +12941,7 @@ function renderItems(){
           <button class="icon-btn" title="Mover antes" data-action="moveleft" ${i===0?'disabled':''}>◀</button>
           <button class="icon-btn" title="Reproducir" data-action="play">▶</button>
           <button class="icon-btn" title="Editar descripción" data-action="note">✎</button>
-          <button class="icon-btn" title="Ajustar duración" data-action="trim">✂</button>
+          <button class="icon-btn icon-btn-trim" title="Achicar / ajustar la duración" data-action="trim">✂</button>
           <button class="icon-btn danger" title="Eliminar" data-action="del">✕</button>
           <button class="icon-btn" title="Mover después" data-action="moveright" ${i===items.length-1?'disabled':''}>▶</button>
         </div>
@@ -12910,6 +12954,7 @@ function renderItems(){
         e.stopPropagation();
         items = items.filter(c => c.id !== item.id);
         renderItems();
+        if(window.__autoguardarVideo) window.__autoguardarVideo();
       });
       card.querySelector('[data-action="moveleft"]').addEventListener('click', (e) => { e.stopPropagation(); moveItem(item.id, -1); });
       card.querySelector('[data-action="moveright"]').addEventListener('click', (e) => { e.stopPropagation(); moveItem(item.id, 1); });
@@ -12922,7 +12967,7 @@ function renderItems(){
         textarea.value = item.note || '';
         card.replaceChild(textarea, viewEl);
         textarea.focus();
-        function commit(){ item.note = textarea.value.trim(); renderItems(); }
+        function commit(){ item.note = textarea.value.trim(); renderItems(); if(window.__autoguardarVideo) window.__autoguardarVideo(); }
         textarea.addEventListener('blur', commit);
         textarea.addEventListener('keydown', ev => { if(ev.key==='Enter' && ev.ctrlKey) commit(); });
       });
@@ -12956,6 +13001,7 @@ function renderItems(){
         e.stopPropagation();
         items = items.filter(c => c.id !== item.id);
         renderItems();
+        if(window.__autoguardarVideo) window.__autoguardarVideo();
       });
       card.querySelector('[data-action="title"]').addEventListener('click', (e) => {
         e.stopPropagation();
