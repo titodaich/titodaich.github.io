@@ -1224,7 +1224,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .mt-rival-in{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-family:'Oswald',sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:0.3px;padding:5px 8px;}
 .mt-rival-in:focus{outline:none;border-color:var(--accent);}
 .mt-rival-in::placeholder{color:var(--muted);font-size:12px;text-transform:none;}
-.mt-date-in{background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--chalk);padding:5px 7px;font-size:11px;font-family:'Inter',sans-serif;}
+.mt-date-in{background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--chalk);padding:5px 7px;font-size:11px;font-family:'Inter',sans-serif;cursor:pointer;}
+.mt-date-in:hover{border-color:var(--accent-2);}
+.mt-date-in::-webkit-calendar-picker-indicator{cursor:pointer;filter:invert(0.7);}
 .mt-date-in:focus{outline:none;border-color:var(--accent-2);}
 .match-table .mt-open-btn{padding:5px 10px;font-size:11px;}
 .mt-open-btn{white-space:nowrap;}
@@ -8285,12 +8287,15 @@ window.__initEditor = function(){
         <td><input class="mt-rival-in" value="${escapeHtml(m.rival||'')}" placeholder="Escribí el rival"></td>
         <td class="mt-gf"><span class="${cls==='win'?'win':''}">${s.f}</span></td>
         <td class="mt-gc"><span class="${cls==='loss'?'loss':''}">${s.a}</span></td>
-        <td><input type="date" class="mt-date-in" value="${escapeHtml(m.date||'')}"></td>
+        <td><input type="date" class="mt-date-in" value="${escapeHtml(m.date||'')}" title="Tocá para elegir la fecha"></td>
         <td class="mt-open"><button class="btn small mt-open-btn">Abrir →</button></td>
         <td class="mt-del"><button class="btn-del-match" title="Borrar partido">✕</button></td>
       `;
       const rivalIn = tr.querySelector('.mt-rival-in');
       const dateIn = tr.querySelector('.mt-date-in');
+      // Al hacer clic en cualquier parte del campo, abrir el calendario directamente
+      dateIn.addEventListener('click', () => { try{ dateIn.showPicker(); }catch(e){} });
+      dateIn.addEventListener('focus', () => { try{ dateIn.showPicker(); }catch(e){} });
       rivalIn.addEventListener('input', e => { m.rival = e.target.value; saveMatchRow(m); });
       dateIn.addEventListener('change', e => { m.date = e.target.value; saveMatchRow(m); sortMatches(); renderMatchList(); });
       dateIn.addEventListener('input', e => { m.date = e.target.value; saveMatchRow(m); });
@@ -8412,6 +8417,11 @@ window.__initEditor = function(){
 
   document.getElementById('mtRival').addEventListener('input', e => { if(currentMatch){ currentMatch.rival = e.target.value; flashMatchSaved(); }});
   document.getElementById('mtDate').addEventListener('input', e => { if(currentMatch){ currentMatch.date = e.target.value; flashMatchSaved(); }});
+  // Abrir el calendario al tocar el campo de fecha del detalle
+  (function(){ const d = document.getElementById('mtDate'); if(d){
+    d.addEventListener('click', () => { try{ d.showPicker(); }catch(e){} });
+    d.addEventListener('focus', () => { try{ d.showPicker(); }catch(e){} });
+  }})();
 
   function playerOptions(selectedId){
     let opts = '<option value="">— Jugador —</option>';
