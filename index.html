@@ -1132,6 +1132,21 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .pc-photo-btn:hover .pl-avatar{border-color:var(--accent-2);}
 .pc-header-name{font-family:'Oswald',sans-serif;font-size:24px;font-weight:600;color:var(--chalk);line-height:1.1;}
 .pc-header-sub{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent-2);margin-top:4px;}
+/* Editor de recorte de video (ajustar duración) */
+.trim-info{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:12.5px;color:var(--muted);font-family:'Inter',sans-serif;}
+.trim-info b{color:var(--chalk);font-family:'JetBrains Mono',monospace;}
+.trim-dur{color:var(--accent-2);}
+.trim-dur b{color:var(--accent-2);}
+.trim-bar-wrap{position:relative;height:44px;margin:14px 0 6px;border-radius:8px;background:var(--bg-2);cursor:pointer;user-select:none;touch-action:none;}
+.trim-bar-bg{position:absolute;inset:0;border-radius:8px;background:repeating-linear-gradient(90deg,var(--line-soft) 0 1px,transparent 1px 40px);opacity:0.5;}
+.trim-range{position:absolute;top:0;bottom:0;background:rgba(47,143,203,0.22);border-top:2px solid var(--accent-2);border-bottom:2px solid var(--accent-2);pointer-events:none;}
+.trim-handle{position:absolute;top:0;bottom:0;width:16px;background:var(--accent-2);border-radius:5px;cursor:ew-resize;touch-action:none;display:flex;align-items:center;justify-content:center;z-index:3;box-shadow:0 0 0 1px rgba(0,0,0,0.3);}
+.trim-handle::after{content:'';width:2px;height:16px;background:rgba(255,255,255,0.7);border-radius:2px;box-shadow:3px 0 0 rgba(255,255,255,0.7),-3px 0 0 rgba(255,255,255,0.7);}
+.trim-handle-start{transform:translateX(-50%);}
+.trim-handle-end{transform:translateX(-50%);}
+.trim-playhead{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--accent);pointer-events:none;z-index:2;display:none;}
+.trim-hint{font-size:11.5px;color:var(--muted);margin:8px 0 0;line-height:1.5;}
+.trim-actions{display:flex;align-items:center;gap:8px;margin-top:16px;}
 /* Editor de recorte de foto */
 .crop-stage{position:relative;width:100%;max-width:260px;aspect-ratio:1/1;margin:0 auto 14px;background:var(--bg);border-radius:12px;overflow:hidden;cursor:grab;touch-action:none;user-select:none;}
 .crop-stage:active{cursor:grabbing;}
@@ -3502,6 +3517,39 @@ body.editor-active #screen-editor{ display:block; }
 
 <!-- Modal recorte de foto del jugador -->
 <!-- Modal editar tags del video -->
+<!-- Modal ajustar duración de recorte -->
+<div class="cloud-modal-overlay" id="trimModal" style="display:none;">
+  <div class="cloud-modal" style="max-width:640px;">
+    <div class="cloud-modal-head">
+      <h3>✂ Ajustar duración del recorte</h3>
+      <button class="cloud-close" id="trimClose">✕</button>
+    </div>
+    <div style="padding:6px 2px;">
+      <video id="trimVideo" playsinline controls muted style="width:100%;border-radius:10px;background:#000;max-height:340px;"></video>
+      <div class="trim-info">
+        <span>Inicio: <b id="trimStartLbl">0:00</b></span>
+        <span class="trim-dur">Duración: <b id="trimDurLbl">0:00</b></span>
+        <span>Fin: <b id="trimEndLbl">0:00</b></span>
+      </div>
+      <div class="trim-bar-wrap" id="trimBarWrap">
+        <div class="trim-bar-bg"></div>
+        <div class="trim-range" id="trimRange"></div>
+        <div class="trim-handle trim-handle-start" id="trimHandleStart" title="Arrastrá para mover el inicio"></div>
+        <div class="trim-handle trim-handle-end" id="trimHandleEnd" title="Arrastrá para mover el fin"></div>
+        <div class="trim-playhead" id="trimPlayhead"></div>
+      </div>
+      <div class="trim-hint">Arrastrá las manijas <b>azules</b> para recortar. Tocá "Ver recorte" para previsualizar cómo quedó.</div>
+      <div class="trim-actions">
+        <button class="btn small" id="trimPreviewBtn">▶ Ver recorte</button>
+        <div style="flex:1;"></div>
+        <button class="btn small ghost" id="trimCancelBtn">Cancelar</button>
+        <button class="btn small" id="trimSaveBtn" style="background:var(--success);border-color:var(--success);color:#fff;">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <!-- Modal nueva temporada -->
 <div class="cloud-modal-overlay" id="seasonModal" style="display:none;">
   <div class="cloud-modal" style="max-width:420px;">
@@ -12582,6 +12630,7 @@ function updateClipLog(){
         <button class="log-btn" data-log-action="toggle" title="Ver este recorte">▸</button>
         <button class="log-btn log-add${yaEsta?' is-in':''}" data-log-action="add" title="${yaEsta?'Quitar de la línea de tiempo':'Agregar a la línea de tiempo'}">${yaEsta?'✓':'＋'}</button>
         <button class="log-btn" data-log-action="rename" title="Renombrar este recorte">✎</button>
+        <button class="log-btn" data-log-action="trim" title="Ajustar duración del recorte">✂</button>
         <button class="log-btn" data-log-action="export" title="Exportar este clip">⬇</button>
         <button class="log-btn" data-log-action="del" title="Borrar del registro">✕</button>
       </span>
@@ -12626,6 +12675,8 @@ function updateClipLog(){
     });
 
     row.querySelector('[data-log-action="export"]').addEventListener('click', (e) => { e.stopPropagation(); exportSingleClip(item); });
+    const btnTrim = row.querySelector('[data-log-action="trim"]');
+    if(btnTrim) btnTrim.addEventListener('click', (e) => { e.stopPropagation(); abrirEditorRecorte(item); });
 
     // Borrar del registro (y de la línea si estaba)
     row.querySelector('[data-log-action="del"]').addEventListener('click', (e) => {
@@ -12665,6 +12716,130 @@ function updateClipLog(){
 }
 
 // Muestra un mini reproductor del recorte dentro del registro
+// ── Editor visual de recorte: mover manijas para achicar un recorte ──
+let __trimItem = null, __trimVideoDur = 0, __trimNewStart = 0, __trimNewEnd = 0;
+
+function abrirEditorRecorte(item){
+  const video = videos.find(v => v.id === item.videoId);
+  if(!video){ toast('No se encuentra el video de este recorte.'); return; }
+  __trimItem = item;
+  __trimNewStart = item.start;
+  __trimNewEnd = item.end;
+
+  const modal = document.getElementById('trimModal');
+  const vEl = document.getElementById('trimVideo');
+  modal.style.display = 'flex';
+  vEl.src = video.url;
+
+  vEl.addEventListener('loadedmetadata', function onMeta(){
+    vEl.removeEventListener('loadedmetadata', onMeta);
+    __trimVideoDur = vEl.duration || item.end;
+    vEl.currentTime = item.start;
+    trimActualizarBarra();
+  });
+
+  // Actualiza el playhead mientras se reproduce y frena en el fin
+  vEl.addEventListener('timeupdate', trimOnTimeUpdate);
+}
+
+function trimOnTimeUpdate(){
+  const vEl = document.getElementById('trimVideo');
+  if(vEl.currentTime >= __trimNewEnd){ vEl.pause(); }
+  const wrap = document.getElementById('trimBarWrap');
+  const ph = document.getElementById('trimPlayhead');
+  if(__trimVideoDur > 0){
+    const pct = Math.max(0, Math.min(1, vEl.currentTime / __trimVideoDur));
+    ph.style.left = (pct*100)+'%';
+    ph.style.display = 'block';
+  }
+}
+
+function trimActualizarBarra(){
+  const dur = __trimVideoDur || 1;
+  const sPct = Math.max(0, Math.min(1, __trimNewStart / dur)) * 100;
+  const ePct = Math.max(0, Math.min(1, __trimNewEnd / dur)) * 100;
+  document.getElementById('trimRange').style.left = sPct+'%';
+  document.getElementById('trimRange').style.width = (ePct - sPct)+'%';
+  document.getElementById('trimHandleStart').style.left = sPct+'%';
+  document.getElementById('trimHandleEnd').style.left = ePct+'%';
+  document.getElementById('trimStartLbl').textContent = fmt(__trimNewStart);
+  document.getElementById('trimEndLbl').textContent = fmt(__trimNewEnd);
+  document.getElementById('trimDurLbl').textContent = fmt(Math.max(0, __trimNewEnd - __trimNewStart));
+}
+
+function trimCerrar(){
+  const modal = document.getElementById('trimModal');
+  const vEl = document.getElementById('trimVideo');
+  vEl.pause();
+  vEl.removeEventListener('timeupdate', trimOnTimeUpdate);
+  vEl.removeAttribute('src'); vEl.load();
+  modal.style.display = 'none';
+  __trimItem = null;
+}
+
+// Configurar los controles del editor una sola vez
+(function initTrimEditor(){
+  function bind(){
+    const wrap = document.getElementById('trimBarWrap');
+    if(!wrap || wrap.dataset.bound) return;
+    wrap.dataset.bound = '1';
+
+    let arrastrando = null; // 'start' | 'end'
+    function xToTiempo(clientX){
+      const r = wrap.getBoundingClientRect();
+      const pct = Math.max(0, Math.min(1, (clientX - r.left) / r.width));
+      return pct * (__trimVideoDur || 1);
+    }
+    function mover(clientX){
+      if(!arrastrando) return;
+      let t = xToTiempo(clientX);
+      const MIN = 0.3; // duración mínima del recorte (segundos)
+      if(arrastrando === 'start'){
+        __trimNewStart = Math.max(0, Math.min(t, __trimNewEnd - MIN));
+        const vEl = document.getElementById('trimVideo');
+        vEl.currentTime = __trimNewStart;
+      } else {
+        __trimNewEnd = Math.min(__trimVideoDur, Math.max(t, __trimNewStart + MIN));
+        const vEl = document.getElementById('trimVideo');
+        vEl.currentTime = __trimNewEnd;
+      }
+      trimActualizarBarra();
+    }
+    const hStart = document.getElementById('trimHandleStart');
+    const hEnd = document.getElementById('trimHandleEnd');
+    hStart.addEventListener('pointerdown', e => { arrastrando='start'; e.target.setPointerCapture(e.pointerId); e.preventDefault(); });
+    hEnd.addEventListener('pointerdown', e => { arrastrando='end'; e.target.setPointerCapture(e.pointerId); e.preventDefault(); });
+    window.addEventListener('pointermove', e => { if(arrastrando) mover(e.clientX); });
+    window.addEventListener('pointerup', () => { arrastrando = null; });
+
+    // Ver recorte: reproduce desde el nuevo inicio
+    document.getElementById('trimPreviewBtn').addEventListener('click', () => {
+      const vEl = document.getElementById('trimVideo');
+      vEl.currentTime = __trimNewStart;
+      vEl.play().catch(()=>{});
+    });
+
+    // Guardar los nuevos tiempos en el recorte
+    document.getElementById('trimSaveBtn').addEventListener('click', () => {
+      if(__trimItem){
+        __trimItem.start = __trimNewStart;
+        __trimItem.end = __trimNewEnd;
+        // El cambio queda en memoria y se persiste al guardar el proyecto,
+        // igual que editar una descripción o reordenar clips.
+        renderItems();
+        toast('Recorte ajustado: ahora dura '+fmt(Math.max(0,__trimNewEnd-__trimNewStart))+'. Acordate de guardar el proyecto.');
+      }
+      trimCerrar();
+    });
+
+    document.getElementById('trimCancelBtn').addEventListener('click', trimCerrar);
+    document.getElementById('trimClose').addEventListener('click', trimCerrar);
+    document.getElementById('trimModal').addEventListener('click', e => { if(e.target.id === 'trimModal') trimCerrar(); });
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
+  else bind();
+})();
+
 function montarPreviewEnRegistro(item, box){
   const video = videos.find(v => v.id === item.videoId);
   if(!video){ box.innerHTML = '<div class="log-preview-msg">No se encuentra el video de este recorte.</div>'; return; }
@@ -12722,6 +12897,7 @@ function renderItems(){
           <button class="icon-btn" title="Mover antes" data-action="moveleft" ${i===0?'disabled':''}>◀</button>
           <button class="icon-btn" title="Reproducir" data-action="play">▶</button>
           <button class="icon-btn" title="Editar descripción" data-action="note">✎</button>
+          <button class="icon-btn" title="Ajustar duración" data-action="trim">✂</button>
           <button class="icon-btn danger" title="Eliminar" data-action="del">✕</button>
           <button class="icon-btn" title="Mover después" data-action="moveright" ${i===items.length-1?'disabled':''}>▶</button>
         </div>
@@ -12729,6 +12905,7 @@ function renderItems(){
       `;
       card.querySelector('[data-action="exportone"]').addEventListener('click', (e) => { e.stopPropagation(); exportSingleClip(item); });
       card.querySelector('[data-action="play"]').addEventListener('click', (e) => { e.stopPropagation(); previewClip(item); });
+      card.querySelector('[data-action="trim"]').addEventListener('click', (e) => { e.stopPropagation(); abrirEditorRecorte(item); });
       card.querySelector('[data-action="del"]').addEventListener('click', (e) => {
         e.stopPropagation();
         items = items.filter(c => c.id !== item.id);
