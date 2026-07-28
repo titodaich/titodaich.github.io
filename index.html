@@ -4285,9 +4285,10 @@ async function initSupabase(){
   await (window.__libsReady || Promise.resolve());
   try{
     if(!window.supabase) throw new Error('No se pudo cargar Supabase desde ningún servidor.');
-    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    // Reutilizamos un único cliente global para evitar múltiples instancias.
+    sb = window.__sbClient || (window.__sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: { storage: safeStorage, persistSession: true, autoRefreshToken: true }
-    });
+    }));
   }catch(err){
     console.error('Supabase no se pudo inicializar:', err);
     sb = null;
@@ -11180,9 +11181,10 @@ const safeStorage = {
 let sb = null;
 try{
   if(!window.supabase) throw new Error('Supabase no está disponible.');
-  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  // Reutilizamos el mismo cliente global (evita múltiples instancias de auth).
+  sb = window.__sbClient || (window.__sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: { storage: safeStorage, persistSession: true, autoRefreshToken: true }
-  });
+  }));
 
   window.__setEditorUser = function(email){
     var b = document.getElementById('userBadge');
@@ -13272,11 +13274,13 @@ document.getElementById('exportEachBtn').addEventListener('click', async () => {
   try{
     // Usa logo.png si está subido; la ruta se arma desde la ubicación actual de la app
     var icon = new URL('logo.png', window.location.href).href;
+    // URL absoluta de inicio (el start_url relativo no vale cuando el manifest es un blob)
+    var startUrl = new URL('.', window.location.href).href;
     // Manifest embebido como blob (no hace falta manifest.json aparte)
     var manifest = {
       name: 'Benchone',
       short_name: 'Benchone',
-      start_url: '.',
+      start_url: startUrl,
       display: 'standalone',
       background_color: '#10161C',
       theme_color: '#10161C',
@@ -13381,9 +13385,10 @@ document.getElementById('exportEachBtn').addEventListener('click', async () => {
   var propio = null;
   function cliente(){
     if(window.__sb) return window.__sb;
+    if(window.__sbClient) return window.__sbClient;
     if(propio) return propio;
     try{
-      propio = window.supabase.createClient(
+      propio = window.__sbClient = window.supabase.createClient(
         'https://pzhouyxvfgkufmnqokeh.supabase.co',
         'sb_publishable_kSd8QnrUeB0SvHVtWlarCA_BAYas52j'
       );
