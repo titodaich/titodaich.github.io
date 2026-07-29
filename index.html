@@ -11275,10 +11275,26 @@ try{
 
   // Verifica que el usuario tenga un club. Si no lo tiene (usuario nuevo o
   // que quedó sin club), muestra un cartel OBLIGATORIO pidiendo el nombre.
+  // Detecta si el nombre de un club es genérico/automático (no lo eligió el usuario)
+  function esNombreClubGenerico(nombre){
+    if(!nombre) return true;
+    const n = nombre.trim().toLowerCase();
+    return n === '' || n === 'mi club' || n.startsWith('club de ');
+  }
+
   window.__ensureClubOrAsk = async function(){
+    let clubActualId = null;
+    let clubActualNombre = '';
     try{
-      const clubId = await window.__getClubId();
-      if(clubId) return;   // ya tiene club, todo bien
+      clubActualId = await window.__getClubId();
+      if(clubActualId){
+        // Tiene club, pero ¿tiene un nombre real o uno genérico ("Club de...")?
+        const { data: cl } = await sb.from('clubs').select('name').eq('id', clubActualId).single();
+        clubActualNombre = (cl && cl.name) || '';
+        // Si el nombre ya es real (lo eligió el usuario), no molestamos.
+        if(!esNombreClubGenerico(clubActualNombre)) return;
+        // Si es genérico, seguimos abajo para pedirle el nombre real y renombrar.
+      }
     }catch(e){ /* seguimos a pedirlo */ }
 
     // Buscar un nombre sugerido del perfil (si lo cargó al registrarse).
@@ -11300,17 +11316,15 @@ try{
     m.className = 'plans-overlay';
     m.innerHTML = `<div class="plans-box" style="max-width:420px;text-align:left;">
       <h2 style="font-size:20px;">¿De qué club sos?</h2>
-      <p class="plans-sub">Escribí el nombre de tu club o institución para preparar tu espacio de trabajo.</p>
+      <p class="plans-sub">Para empezar a trabajar, contanos el club o institución donde dirigís. Es un paso rápido y necesario para preparar tu espacio.</p>
       <input type="text" id="clubAskInput" placeholder="Ej: Atlanta" value="${(sugerido||'').replace(/"/g,'&quot;')}" style="width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--line);background:var(--panel-2);color:var(--chalk);font-size:15px;margin-bottom:6px;">
       <p id="clubAskError" style="color:var(--danger);font-size:12px;min-height:16px;margin:0 0 8px;"></p>
       <button class="btn-primary" id="clubAskBtn" style="width:100%;">Crear mi espacio</button>
-      <button id="clubAskSkip" style="width:100%;margin-top:8px;background:transparent;border:none;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline;">Entrar igual y completar después</button>
     </div>`;
     document.body.appendChild(m);
     const input = document.getElementById('clubAskInput');
     const errEl = document.getElementById('clubAskError');
     const btn = document.getElementById('clubAskBtn');
-    const skip = document.getElementById('clubAskSkip');
     input.focus();
 
     // Crea el club de forma directa y robusta (no depende de otras funciones).
@@ -11354,9 +11368,38 @@ try{
       const nombre = (input.value||'').trim();
       if(!nombre){ errEl.textContent = 'Escribí el nombre de tu club para continuar.'; return; }
       btn.disabled = true; btn.textContent = 'Creando…'; errEl.textContent = '';
+      // Guardamos el nombre del club en el perfil apenas lo escribe, ANTES de crear el
+      // espacio. Así el dato queda registrado aunque la creación del club falle por red.
+      try{
+        const { data:{ session } } = await sb.auth.getSession();
+        if(session) await sb.from('profiles').update({ club_name: nombre }).eq('id', session.user.id);
+      }catch(e){ /* si falla, se reintenta abajo */ }
       try{
         const { data:{ session } } = await sb.auth.getSession();
         if(!session){ errEl.textContent = 'Tu sesión expiró. Cerrá y volvé a iniciar sesión.'; btn.disabled=false; btn.textContent='Crear mi espacio'; return; }
+
+        // Si el usuario YA tiene un club (con nombre genérico), lo RENOMBRAMOS
+        // en vez de crear uno nuevo. Así no perdemos su espacio ni duplicamos.
+        if(clubActualId){
+          const res = await conTimeout(
+            sb.from('clubs').update({ name: nombre }).eq('id', clubActualId),
+            12000
+          );
+          if(res && !res.error){
+            try{ await sb.from('profiles').update({ club_name: nombre }).eq('id', session.user.id); }catch(e){}
+            m.remove();
+            if(window.__loadCategoriesOnce) window.__loadCategoriesOnce();
+            if(window.toast) toast('¡Listo! Guardamos tu club ✓');
+            return;
+          } else {
+            errEl.textContent = 'No se pudo guardar. Tocá "Reintentar".';
+            btn.disabled = false; btn.textContent = 'Reintentar';
+            mostrarEscapePorFallo();
+            return;
+          }
+        }
+
+        // Si NO tenía club, lo creamos (flujo normal para usuarios nuevos).
         window.__clubIdCache = null;
         const res = await conTimeout(crearClubDirecto(session.user.id, nombre), 12000);
         if(res && res.ok){
@@ -11366,34 +11409,37 @@ try{
           if(window.toast) toast('¡Listo! Tu espacio está preparado ✓');
         } else {
           const msg = (res && res.error && res.error.message) ? res.error.message : '';
-          errEl.textContent = 'No se pudo crear el club' + (msg ? ' ('+msg+')' : '') + '. Probá de nuevo o entrá igual.';
+          errEl.textContent = 'No se pudo preparar tu espacio' + (msg ? ' ('+msg+')' : '') + '. Tocá "Reintentar".';
           btn.disabled = false; btn.textContent = 'Reintentar';
+          mostrarEscapePorFallo();
         }
       }catch(e){
         console.error('crear club', e);
         errEl.textContent = (e && e.message==='timeout')
-          ? 'La conexión está lenta. Probá de nuevo o entrá igual.'
-          : 'Hubo un error. Probá de nuevo o entrá igual.';
+          ? 'La conexión está lenta. Tocá "Reintentar".'
+          : 'Hubo un error. Tocá "Reintentar".';
         btn.disabled = false; btn.textContent = 'Reintentar';
+        mostrarEscapePorFallo();
       }
     }
 
-    // SALIDA DE EMERGENCIA: siempre puede entrar, aunque el club no se haya creado.
-    // Guarda el nombre en el perfil (si puede) para reintentar la creación más adelante.
-    async function salirIgual(){
-      const nombre = (input.value||'').trim();
-      if(nombre){
-        try{
-          const { data:{ session } } = await sb.auth.getSession();
-          if(session) await sb.from('profiles').update({ club_name: nombre }).eq('id', session.user.id);
-        }catch(e){}
-      }
-      m.remove();
-      if(window.toast) toast('Entraste. Si algo no guarda, avisanos y lo resolvemos.');
+    // Escape que aparece SOLO si la creación falló por un problema técnico
+    // (red/servidor) DESPUÉS de que el usuario ya escribió y guardamos su club.
+    // No es una salida gratuita: solo evita dejar atrapado a alguien por un fallo.
+    let escapeMostrado = false;
+    function mostrarEscapePorFallo(){
+      if(escapeMostrado) return;
+      escapeMostrado = true;
+      const cont = m.querySelector('.plans-box');
+      if(!cont) return;
+      const esc = document.createElement('button');
+      esc.textContent = 'Sigue fallando: entrar igual (tu club ya quedó guardado)';
+      esc.style.cssText = 'width:100%;margin-top:10px;background:transparent;border:none;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline;';
+      esc.addEventListener('click', () => { m.remove(); if(window.toast) toast('Entraste. Tu club quedó registrado.'); });
+      cont.appendChild(esc);
     }
 
     btn.addEventListener('click', crear);
-    skip.addEventListener('click', salirIgual);
     input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') crear(); });
   };
 
