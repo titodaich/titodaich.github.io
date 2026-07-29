@@ -11509,13 +11509,41 @@ try{
 
   // Chequea el estado de la suscripción y muestra el cartel si corresponde
   window.__checkSubscription = async function(){
-    // Interruptor maestro: si el cobro está apagado, no mostramos NADA.
-    if(!window.__PAY || !window.__PAY.enabled){
+    const cobroGlobal = !!(window.__PAY && window.__PAY.enabled);
+
+    // Si el cobro global está APAGADO, revisamos si este usuario tiene
+    // el cobro selectivo activado a mano (cuenta regresiva individual).
+    if(!cobroGlobal){
+      try{
+        const uid = window.__currentUserId;
+        if(uid){
+          const { data: prof } = await sb.from('profiles')
+            .select('cobro_activado, sub_status, sub_until, pack')
+            .eq('id', uid).single();
+          if(prof && prof.cobro_activado && prof.sub_until){
+            // Este usuario está en cuenta regresiva individual.
+            window.__cobroSelectivo = true;
+            window.__myPlanData = {
+              subscription_status: prof.sub_status || 'trial',
+              trial_ends_at: prof.sub_until,
+              subscription_ends_at: prof.sub_until,
+              pack: prof.pack || 'entrenador'
+            };
+            const mp = document.getElementById('myPlanBtn');
+            if(mp){ mp.style.display = ''; mp.onclick = () => window.__openMyPlan(); }
+            const dias = Math.ceil((new Date(prof.sub_until).getTime() - Date.now())/(1000*60*60*24));
+            // renderSubBanner ya maneja todo: aviso si faltan días, bloqueo si venció.
+            renderSubBanner(prof.sub_status || 'trial', dias);
+            return;
+          }
+        }
+      }catch(e){ /* si falla, seguimos como demo */ }
+      // No está en cobro selectivo: modo demo, no mostramos nada.
       const b = document.getElementById('subBanner'); if(b) b.remove();
       const mp = document.getElementById('myPlanBtn'); if(mp) mp.style.display = 'none';
       return;
     }
-    // Cobro activo: mostramos el botón "Mi plan".
+    // Cobro activo (global): mostramos el botón "Mi plan".
     const mp = document.getElementById('myPlanBtn');
     if(mp){ mp.style.display = ''; mp.onclick = () => window.__openMyPlan(); }
     try{
@@ -11584,8 +11612,11 @@ try{
   function renderSubBanner(status, daysLeft){
     let banner = document.getElementById('subBanner');
     const vencido = status === 'expired' || (daysLeft !== null && daysLeft < 0);
+    // En cobro selectivo (individual) no hay gracia: al llegar a 0 pasa a solo lectura.
+    // En cobro global se mantienen los días de gracia.
+    const graciaAplicable = window.__cobroSelectivo ? 0 : DIAS_GRACIA;
     // Durante los días de gracia NO se bloquea, solo se avisa fuerte.
-    const enGracia = vencido && daysLeft !== null && daysLeft >= -DIAS_GRACIA;
+    const enGracia = vencido && daysLeft !== null && graciaAplicable > 0 && daysLeft >= -graciaAplicable;
     const bloqueado = vencido && !enGracia;
     const porVencer = !vencido && daysLeft !== null && daysLeft <= 7;
 
@@ -11704,8 +11735,13 @@ try{
   // Uso desde la consola del navegador:  __probarVencimiento('active', -4)
   window.__probarVencimiento = renderSubBanner;
 
-  // Pantalla que tapa todo cuando la prueba venció: obliga a elegir un pack.
+  // Pantalla que tapaba todo cuando la prueba vencía. YA NO SE USA:
+  // el criterio es "modo solo lectura", no bloqueo total. El usuario siempre
+  // puede ver y exportar sus datos (los generó él). Se deja neutralizada.
   function mostrarBloqueoPago(){
+    return;  // no hacer nada: nunca tapamos el acceso a los datos del usuario
+  }
+  function mostrarBloqueoPago_ANTIGUO(){
     if(document.getElementById('payBlockOverlay')) return;
     const ov = document.createElement('div');
     ov.id = 'payBlockOverlay';
@@ -11727,7 +11763,8 @@ try{
 
   // Modal de planes: el usuario elige período y va al pago
   function openPlansModal(){
-    if(!window.__PAY || !window.__PAY.enabled) return;   // cobro apagado: no abrir
+    // Abre si el cobro global está activo, O si este usuario está en cobro selectivo.
+    if(!(window.__PAY && window.__PAY.enabled) && !window.__cobroSelectivo) return;
     const P = window.__PAY;
     let modal = document.getElementById('plansModal');
     if(modal) modal.remove();
