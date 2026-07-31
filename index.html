@@ -1339,6 +1339,12 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 /* Convocatorias */
 .calls-wrap{overflow-x:auto;}
 .calls-table{border-collapse:collapse;width:auto;}
+/* Filas de jugadores invitados (subidos de otra categoría) */
+.inv-divider-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--accent-2);text-transform:uppercase;letter-spacing:1px;text-align:left;padding:5px 14px !important;background:var(--bg-2);}
+.inv-row td{background:rgba(47,143,203,0.06);}
+.inv-badge{display:inline-block;font-size:9px;font-family:'JetBrains Mono',monospace;background:var(--accent-2);color:#10161C;padding:1px 5px;border-radius:4px;margin-left:4px;font-weight:700;vertical-align:middle;}
+.inv-quitar{color:var(--muted);cursor:pointer;font-size:10px;margin-left:6px;font-family:'JetBrains Mono',monospace;}
+.inv-quitar:hover{color:var(--danger);}
 .calls-table .total-col{min-width:70px;}
 .calls-table th,.calls-table td{border:1px solid var(--line);padding:0;text-align:center;}
 .calls-table thead th{background:var(--panel-2);font-family:'Oswald',sans-serif;padding:8px 10px;white-space:nowrap;color:var(--chalk);}
@@ -7722,7 +7728,7 @@ window.__initEditor = function(){
       let pq = sb.from('players').select('*').eq('club_id', clubId);
       pq = cat ? pq.eq('categoria', cat) : pq.is('categoria', null);
       const pRes = await pq;
-      squad = (pRes.data||[]).map(p => ({ id:p.id, name:p.name, number:p.number||'', position:p.position||'', photo:p.photo||'' }));
+      squad = (pRes.data||[]).map(p => ({ id:p.id, name:p.name, number:p.number||'', position:p.position||'', photo:p.photo||'', att_excluido: !!p.att_excluido }));
 
       // Orígenes de gol (guardados como una fila JSON por categoría)
       let oq = sb.from('goal_origins').select('*').eq('club_id', clubId);
@@ -7747,7 +7753,8 @@ window.__initEditor = function(){
       matches = (mRes.data||[]).map(m => ({
         id:m.id, rival:m.rival||'', date:m.match_date||'', createdAt:m.created_at||'',
         goalsFor:m.goals_for||[], goalsAgainst:m.goals_against||[],
-        assists:m.assists||[], cards:m.cards||[], calls:m.calls||{}
+        assists:m.assists||[], cards:m.cards||[], calls:m.calls||{},
+        invitados: Array.isArray(m.invitados) ? m.invitados : []
       }));
       sortMatches();
 
@@ -8639,6 +8646,107 @@ window.__initEditor = function(){
     }, 600);
   }
 
+  // Guarda la lista de jugadores invitados (subidos de otra categoría) de un partido.
+  async function saveInvitados(m){
+    const sb = window.__sb;
+    if(!sb) return;
+    try{ await sb.from('stat_matches').update({ invitados: m.invitados||[], updated_at:new Date().toISOString() }).eq('id', m.id); }
+    catch(e){ console.error('guardar invitados', e); }
+  }
+
+  // Carga los jugadores de OTRAS categorías (para el selector de "subir jugador").
+  // Devuelve [{ id, name, number, position, fromCat }]
+  async function cargarJugadoresOtrasCategorias(){
+    const sb = window.__sb;
+    const clubId = window.__clubIdCache || (window.__getClubId ? await window.__getClubId() : null);
+    const catActual = (window.__getActiveCategory && window.__getActiveCategory()) || null;
+    const temp = window.__getTemporada ? window.__getTemporada() : new Date().getFullYear();
+    if(!sb || !clubId) return [];
+    try{
+      // Traemos todos los jugadores del club de esta temporada que NO sean de la categoría actual
+      let q = sb.from('players').select('id, name, number, position, categoria').eq('club_id', clubId).eq('temporada', temp);
+      const { data } = await q;
+      return (data||[])
+        .filter(p => p.categoria !== catActual)
+        .map(p => ({ id:p.id, name:p.name, number:p.number||'', position:p.position||'', fromCat:p.categoria||'otra' }));
+    }catch(e){ console.error('cargar otras categorías', e); return []; }
+  }
+
+  // Abre el selector para subir un jugador de otra categoría al partido.
+  async function abrirSelectorInvitado(){
+    const jugadores = await cargarJugadoresOtrasCategorias();
+    // Sacamos los que ya están invitados en ALGÚN partido de esta categoría (para no duplicar en la lista)
+    const yaInvitados = new Set();
+    matches.forEach(mm => (mm.invitados||[]).forEach(inv => yaInvitados.add(inv.id)));
+    const disponibles = jugadores.filter(j => !yaInvitados.has(j.id));
+
+    const ov = document.createElement('div');
+    ov.className = 'plans-overlay';
+    ov.id = 'invitadoOverlay';
+
+    let grupos = '';
+    if(disponibles.length === 0){
+      grupos = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px 0;">No hay jugadores de otras categorías disponibles para subir.<br>(O ya están todos subidos.)</div>';
+    } else {
+      // Agrupar por categoría de origen
+      const porCat = {};
+      disponibles.forEach(j => { (porCat[j.fromCat] = porCat[j.fromCat] || []).push(j); });
+      Object.keys(porCat).sort().forEach(cat => {
+        grupos += '<div style="margin-bottom:14px;"><div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:var(--accent-2);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">— De '+escapeHtml(cat)+' —</div>';
+        porCat[cat].forEach(j => {
+          grupos += '<div class="inv-pick" data-id="'+j.id+'" style="display:flex;align-items:center;gap:10px;background:var(--panel-2);border:1px solid var(--line-soft);border-radius:10px;padding:10px 12px;margin-bottom:6px;cursor:pointer;">'
+            + '<div style="width:30px;height:30px;border-radius:7px;background:var(--bg);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:\'JetBrains Mono\',monospace;font-size:12px;font-weight:700;color:var(--accent-2);flex-shrink:0;">'+escapeHtml(j.number||'')+'</div>'
+            + '<div style="flex:1;font-size:14px;color:var(--chalk);font-weight:500;">'+escapeHtml(j.name)+'</div>'
+            + (j.position?'<span style="font-size:11px;color:var(--muted);font-family:\'JetBrains Mono\',monospace;">'+escapeHtml(j.position)+'</span>':'')
+            + '<span style="color:var(--success);font-size:13px;font-weight:600;">+ subir</span></div>';
+        });
+        grupos += '</div>';
+      });
+    }
+
+    ov.innerHTML = '<div class="plans-box" style="max-width:440px;text-align:left;max-height:80vh;overflow-y:auto;">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><h2 style="font-size:19px;">⬆ Subir jugador a este partido</h2><button id="invClose" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;">✕</button></div>'
+      + '<p class="plans-sub" style="margin-bottom:18px;">Elegí un jugador de otra categoría. Va a quedar disponible para la citación, sin salir de su plantel original.</p>'
+      + grupos + '</div>';
+    document.body.appendChild(ov);
+
+    ov.querySelector('#invClose').addEventListener('click', () => ov.remove());
+    ov.addEventListener('click', e => { if(e.target === ov) ov.remove(); });
+    ov.querySelectorAll('.inv-pick').forEach(el => {
+      el.addEventListener('click', async () => {
+        const j = disponibles.find(x => x.id === el.dataset.id);
+        if(!j) return;
+        // Agregar el invitado a TODOS los partidos de la categoría (queda disponible para citar en cualquiera)
+        // pero guardamos la ficha del invitado. La citación puntual se hace tocando cada celda.
+        // Para simplicidad y coherencia: lo agregamos como invitado global de la categoría,
+        // guardándolo en cada partido para que aparezca la fila.
+        for(const mm of matches){
+          if(!mm.invitados) mm.invitados = [];
+          if(!mm.invitados.find(x => x.id === j.id)){
+            mm.invitados.push({ id:j.id, name:j.name, number:j.number, position:j.position, fromCat:j.fromCat });
+            await saveInvitados(mm);
+          }
+        }
+        ov.remove();
+        renderCalls();
+      });
+    });
+  }
+
+  // Quita un jugador invitado de la convocatoria (de todos los partidos de la categoría).
+  async function quitarInvitado(pid){
+    if(!confirm('¿Quitar este jugador subido de la convocatoria?')) return;
+    for(const mm of matches){
+      if(mm.invitados){
+        const i = mm.invitados.findIndex(x => x.id === pid);
+        if(i >= 0){ mm.invitados.splice(i,1); await saveInvitados(mm); }
+      }
+      // También limpiamos su citación en cada partido
+      if(mm.calls && mm.calls[pid]){ delete mm.calls[pid]; saveCalls(mm); }
+    }
+    renderCalls();
+  }
+
   // ========== MINUTAJE ==========
   const fmtMin = (s) => { s=Math.round(s||0); const m=Math.floor(s/60),x=s%60; return String(m).padStart(2,'0')+':'+String(x).padStart(2,'0'); };
   async function renderMinutes(){
@@ -8850,22 +8958,38 @@ window.__initEditor = function(){
   // Jugadores EXCLUIDOS del presentismo (juegan/cuentan en todo lo demás, pero
   // no entrenan durante la semana: p.ej. juveniles que sólo compiten, o bajas).
   // Se guarda solo local, por categoría/temporada. No toca el plantel ni la base.
-  let attExcluded = [];   // [player_id, ...]
-  function attExclKey(){
-    const cat = (window.__getActiveCategory && window.__getActiveCategory()) || 'x';
-    const temp = window.__getTemporada ? window.__getTemporada() : new Date().getFullYear();
-    return 'bo_att_excluded_'+cat+'_'+temp;
-  }
+  let attExcluded = [];   // [player_id, ...] — se llena desde players.att_excluido
+
+  // La exclusión ahora vive en la BASE (players.att_excluido), no en el navegador.
+  // Así es permanente y funciona desde cualquier dispositivo.
   function loadExcluded(){
-    try{ const r = localStorage.getItem(attExclKey()); attExcluded = r ? JSON.parse(r) : []; }
-    catch(e){ attExcluded = []; }
+    // Se arma a partir de los jugadores (squad) que tengan att_excluido = true
+    try{
+      const lista = (typeof squad !== 'undefined' && Array.isArray(squad)) ? squad : [];
+      attExcluded = lista.filter(p => p.att_excluido).map(p => p.id);
+    }catch(e){ attExcluded = []; }
   }
-  function saveExcluded(){
-    try{ localStorage.setItem(attExclKey(), JSON.stringify(attExcluded)); }catch(e){}
-  }
+  function saveExcluded(){ /* ya no se guarda en localStorage; cada cambio va a la base */ }
+
   function attIsExcluded(pid){ return attExcluded.includes(pid); }
-  function attExclude(pid){ if(!attExcluded.includes(pid)){ attExcluded.push(pid); saveExcluded(); } }
-  function attInclude(pid){ const i = attExcluded.indexOf(pid); if(i>=0){ attExcluded.splice(i,1); saveExcluded(); } }
+
+  async function attExclude(pid){
+    if(!attExcluded.includes(pid)){ attExcluded.push(pid); }
+    try{ const p = squad.find(x => x.id === pid); if(p) p.att_excluido = true; }catch(e){}
+    try{
+      const sb = window.__sb;
+      if(sb) await sb.from('players').update({ att_excluido: true }).eq('id', pid);
+    }catch(e){ console.error('excluir jugador', e); }
+  }
+
+  async function attInclude(pid){
+    const i = attExcluded.indexOf(pid); if(i>=0){ attExcluded.splice(i,1); }
+    try{ const p = squad.find(x => x.id === pid); if(p) p.att_excluido = false; }catch(e){}
+    try{
+      const sb = window.__sb;
+      if(sb) await sb.from('players').update({ att_excluido: false }).eq('id', pid);
+    }catch(e){ console.error('incluir jugador', e); }
+  }
 
   // Carga los estados guardados (de toda la temporada, para poder calcular el % anual)
   async function loadAttData(){
@@ -9256,18 +9380,18 @@ window.__initEditor = function(){
 
     // ---- Eventos: excluir un jugador ----
     wrap.querySelectorAll('.att-excl-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', async (e) => {
         e.stopPropagation();
-        attExclude(btn.dataset.excl);
+        await attExclude(btn.dataset.excl);
         if(window.__invalidateAttendance) window.__invalidateAttendance();
         renderAttendance();
       });
     });
     // ---- Eventos: volver a incluir ----
     wrap.querySelectorAll('.att-incl-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', async (e) => {
         e.stopPropagation();
-        attInclude(btn.dataset.incl);
+        await attInclude(btn.dataset.incl);
         if(window.__invalidateAttendance) window.__invalidateAttendance();
         renderAttendance();
       });
@@ -9444,7 +9568,7 @@ window.__initEditor = function(){
       thead += `<th class="match-col"><div class="mc-rival">Partido ${i+1}</div><div class="mc-sub">${m.rival?escapeHtml(m.rival):''}</div><div class="mc-date">${when}</div></th>`;
     });
     thead += '<th class="total-col">Total</th></tr></thead>';
-    // Cuerpo: una fila por jugador
+    // Cuerpo: una fila por jugador del plantel
     let tbody = '<tbody>';
     squad.forEach(p => {
       tbody += `<tr><td class="player-name-cell"><span class="pn-num">${escapeHtml(p.number||'')}</span> ${escapeHtml(p.name)}</td>`;
@@ -9458,14 +9582,47 @@ window.__initEditor = function(){
       const total = matches.reduce((acc,m) => acc + ((m.calls && m.calls[p.id]==='yes')?1:0), 0);
       tbody += `<td class="total-col">${total}</td></tr>`;
     });
+
+    // Filas de jugadores INVITADOS (subidos de otra categoría)
+    // Reunimos los invitados únicos de todos los partidos
+    const invMap = {};
+    matches.forEach(m => (m.invitados||[]).forEach(inv => { invMap[inv.id] = inv; }));
+    const invitados = Object.values(invMap);
+    if(invitados.length > 0){
+      tbody += `<tr class="inv-divider"><td colspan="${ordered.length + 2}" class="inv-divider-label">⬆ Subieron de otra categoría</td></tr>`;
+      invitados.forEach(inv => {
+        tbody += `<tr class="inv-row"><td class="player-name-cell"><span class="pn-num">${escapeHtml(inv.number||'')}</span> ${escapeHtml(inv.name)} <span class="inv-badge">sube de ${escapeHtml(inv.fromCat||'otra')}</span> <span class="inv-quitar" data-quitar="${inv.id}" title="Quitar de la convocatoria">✕ quitar</span></td>`;
+        ordered.forEach(m => {
+          const st = (m.calls && m.calls[inv.id]) || '';
+          const cls = st==='yes'?'yes':(st==='no'?'no':(st?'reason reason-'+st:''));
+          const icon = st==='yes'?'✓':(st==='no'?'✕':(st==='lesion'?'🚑':(st==='enfermedad'?'🤒':(st==='viaje'?'✈️':(st==='suspension'?'🟥':'')))));
+          tbody += `<td class="calls-cell ${cls}" data-match="${m.id}" data-player="${inv.id}">${icon}</td>`;
+        });
+        const total = matches.reduce((acc,m) => acc + ((m.calls && m.calls[inv.id]==='yes')?1:0), 0);
+        tbody += `<td class="total-col">${total}</td></tr>`;
+      });
+    }
     tbody += '</tbody>';
     table.innerHTML = thead + tbody;
     wrap.innerHTML = '';
+    // Botón para subir un jugador de otra categoría
+    const topBar = document.createElement('div');
+    topBar.style.cssText = 'display:flex;justify-content:flex-end;margin-bottom:10px;';
+    topBar.innerHTML = '<button id="btnSubirJugador" class="btn small" style="background:rgba(47,143,203,0.15);border:1px solid var(--accent-2);color:var(--accent-2);font-weight:600;">⬆ Subir jugador de otra categoría</button>';
+    wrap.appendChild(topBar);
     const legend = document.createElement('div');
     legend.className = 'calls-legend';
     legend.innerHTML = 'Tocá una celda para cambiar: <span class="cl-i cl-yes">✓ Citado</span> <span class="cl-i cl-no">✕ No citado (decisión)</span> <span class="cl-i cl-les">🚑 Lesión</span> <span class="cl-i cl-enf">🤒 Enfermedad</span> <span class="cl-i cl-via">✈️ Viaje</span> <span class="cl-i cl-sus">🟥 Suspensión</span>';
     wrap.appendChild(legend);
     wrap.appendChild(table);
+
+    // Listener del botón subir jugador
+    const btnSubir = document.getElementById('btnSubirJugador');
+    if(btnSubir) btnSubir.addEventListener('click', abrirSelectorInvitado);
+    // Listeners de quitar invitado
+    wrap.querySelectorAll('.inv-quitar').forEach(el => {
+      el.addEventListener('click', (e) => { e.stopPropagation(); quitarInvitado(el.dataset.quitar); });
+    });
 
     // Click en cada celda: cicla por todos los estados
     // vacío → sí → no(decisión) → lesión → enfermedad → viaje → suspensión → vacío
