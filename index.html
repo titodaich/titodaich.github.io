@@ -11311,29 +11311,47 @@ window.__initEditor = function(){
       cards.push({ icon:'📋', title:'Sin citar últimamente', body, tone:'info' });
     }
 
-    // 3b) Citado seguido pero sin sumar (señal de que va al banco y no entra)
-    //     Solo usa partidos con citaciones cargadas. No depende de En Vivo.
-    if(conCitaciones.length >= 3){
-      const ultimosCit = conCitaciones.slice(0, 5);   // ventana de los últimos 5 con citaciones
-      const sinSumar = [];
-      squad.forEach(p => {
-        // veces que fue citado (yes) en esa ventana
-        const citado = ultimosCit.filter(m => m.calls && m.calls[p.id] === 'yes').length;
-        if(citado < 3) return;   // solo miramos a los que fueron citados al menos 3 veces
-        // ¿sumó algo (gol o tarjeta) en esos partidos citados?
-        const sumoAlgo = ultimosCit.some(m => {
-          if(!(m.calls && m.calls[p.id] === 'yes')) return false;
-          const hizoGol = (m.goalsFor||[]).some(g => g.player_id === p.id);
-          const hizoTarjeta = (m.cards||[]).some(c => c.player_id === p.id);
-          const hizoAsist = (m.assists||[]).some(a => a.player_id === p.id);
-          return hizoGol || hizoTarjeta || hizoAsist;
-        });
-        if(!sumoAlgo) sinSumar.push({ name:p.name, citado });
+    // 3b) Citado seguido pero SIN MINUTOS en cancha (va al banco y no entra).
+    //     Se basa SOLO en partidos con minutos registrados (En Vivo). Si un
+    //     partido no tiene minutos de nadie, no se sabe qué pasó y no se usa:
+    //     así no se acusa a un citado sólo porque falta el analista de datos.
+
+    // Mapa: match_id -> conjunto de jugadores (por nombre) con minutos > 0 ese partido.
+    // Un partido figura acá únicamente si alguien tuvo minutos (o sea, hubo En Vivo).
+    const minutosPorPartido = {};   // match_id -> Set(nombres con min>0)
+    sessions.forEach(s => {
+      if(!s.match_id) return;
+      const t = s.totals || {};
+      let set = minutosPorPartido[s.match_id];
+      if(!set){ set = new Set(); minutosPorPartido[s.match_id] = set; }
+      Object.keys(t).forEach(name => {
+        if(name === '__rival') return;
+        if((t[name].total || 0) > 0) set.add(name);
       });
-      if(sinSumar.length > 0){
+    });
+
+    // Partidos con citaciones QUE ADEMÁS tienen minutos registrados.
+    const conMinutosRegistrados = conCitaciones.filter(m => minutosPorPartido[m.id]);
+
+    if(conMinutosRegistrados.length >= 3){
+      const ventana = conMinutosRegistrados.slice(0, 5);   // últimos 5 con datos reales
+      const sinJugar = [];
+      squad.forEach(p => {
+        // partidos de la ventana donde fue citado (✓)
+        const citados = ventana.filter(m => m.calls && m.calls[p.id] === 'yes');
+        if(citados.length < 3) return;   // citado al menos 3 veces (con datos)
+        // ¿en cuántos de esos entró a la cancha (tuvo minutos)?
+        const jugo = citados.filter(m => {
+          const set = minutosPorPartido[m.id];
+          return set && set.has(p.name);
+        }).length;
+        // señal real: fue citado varias veces y NUNCA sumó minutos
+        if(jugo === 0) sinJugar.push({ name:p.name, citado:citados.length });
+      });
+      if(sinJugar.length > 0){
         let body = '';
-        sinSumar.sort((a,b)=>b.citado-a.citado).forEach(x => { body += `<div class="health-item"><span class="health-badge warn">${x.citado}×</span> <strong>${escapeHtml(x.name)}</strong> — citado pero sin sumar en cancha</div>`; });
-        body += `<div class="health-note">Fueron citados varias veces pero no registran goles, asistencias ni tarjetas. Puede que estén yendo al banco sin entrar.</div>`;
+        sinJugar.sort((a,b)=>b.citado-a.citado).forEach(x => { body += `<div class="health-item"><span class="health-badge warn">${x.citado}×</span> <strong>${escapeHtml(x.name)}</strong> — citado pero sin minutos en cancha</div>`; });
+        body += `<div class="health-note">Fueron citados varias veces y, en los partidos con minutos registrados en En Vivo, no sumaron minutos. Puede que estén yendo al banco sin entrar.</div>`;
         cards.push({ icon:'🪑', title:'Citados sin jugar', body, tone:'warn' });
       }
     }
