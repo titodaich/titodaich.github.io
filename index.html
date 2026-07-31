@@ -726,6 +726,21 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .board-plays{width:230px;flex-shrink:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;}
 .board-plays-title{font-family:'Oswald',sans-serif;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 12px;color:var(--muted);}
 .board-plays-list{display:flex;flex-direction:column;gap:8px;}
+/* Biblioteca de videos */
+.board-videos-head{display:flex;justify-content:space-between;align-items:center;margin-top:22px;padding-top:16px;border-top:1px solid var(--line);}
+.board-videos-note{font-size:11px;color:var(--muted);margin:4px 0 12px;line-height:1.4;}
+.board-videos-list{display:flex;flex-direction:column;gap:8px;}
+.board-video{background:var(--panel);border:1px solid var(--line-soft);border-radius:10px;padding:11px 13px;}
+.board-video-title{font-weight:600;font-size:14px;color:var(--chalk);display:flex;align-items:center;gap:6px;}
+.board-video-desc{font-size:12px;color:var(--muted);margin-top:2px;}
+.board-video-actions{display:flex;gap:8px;margin-top:8px;}
+.bv-open{background:var(--accent-2);border:none;color:#10161C;border-radius:7px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block;}
+.bv-del{background:var(--panel-2);border:1px solid var(--line);color:var(--muted);border-radius:7px;padding:5px 10px;font-size:12px;cursor:pointer;}
+.bv-del:hover{color:var(--danger);border-color:var(--danger);}
+.board-videos-empty{font-size:12px;color:var(--muted);font-style:italic;padding:6px 0;}
+.vl-label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px;font-family:'JetBrains Mono',monospace;}
+.vl-input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--chalk);font-size:14px;padding:9px 11px;font-family:'Inter',sans-serif;}
+.vl-input:focus{outline:none;border-color:var(--accent-2);}
 .board-play{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;}
 .board-play-name{font-weight:600;font-size:13px;margin-bottom:6px;word-break:break-word;}
 /* ===== CALENDARIO ===== */
@@ -813,10 +828,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .rival-pick.selected .rp-check::after{content:'✓';}
 .rival-pick .rp-name{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;flex:1;}
 .rival-pick .rp-date{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
-.rival-pick .rp-hide{flex-shrink:0;width:26px;height:26px;border-radius:7px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .12s ease;}
-.rival-pick .rp-hide:hover{border-color:var(--danger,#d9534f);color:var(--danger,#d9534f);background:rgba(217,83,79,0.10);}
-.live-hidden-toggle{display:inline-block;margin-top:4px;background:none;border:none;color:var(--muted);font-family:inherit;font-size:12px;text-decoration:underline;cursor:pointer;padding:4px 0;}
-.live-hidden-toggle:hover{color:var(--chalk);}
 .live-call-item:hover{border-color:var(--muted);}
 .live-call-item.called{border-color:var(--success);background:rgba(76,175,109,0.12);}
 .live-call-item .lci-check{width:18px;height:18px;border-radius:5px;border:2px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;}
@@ -3258,6 +3269,33 @@ body.editor-active #screen-editor{ display:block; }
       <div class="board-plays">
         <h3 class="board-plays-title">Jugadas grabadas</h3>
         <div class="board-plays-list" id="boardPlaysList"></div>
+
+        <div class="board-videos-head">
+          <h3 class="board-plays-title">🎥 Biblioteca de videos</h3>
+          <button class="btn small" id="addVideoBtn" style="background:rgba(47,143,203,0.15);border:1px solid var(--accent-2);color:var(--accent-2);font-weight:600;">+ Agregar video</button>
+        </div>
+        <p class="board-videos-note">Guardá links de videos (YouTube, Drive) para mostrarle a los jugadores. No ocupan espacio.</p>
+        <div class="board-videos-list" id="boardVideosList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: agregar video a la biblioteca -->
+  <div class="cloud-modal-overlay" id="videoLibModal" style="display:none;">
+    <div class="cloud-modal" style="max-width:440px;">
+      <div class="cloud-modal-head">
+        <h3>🎥 Agregar video a la biblioteca</h3>
+        <button class="cloud-close" id="videoLibClose">✕</button>
+      </div>
+      <div style="padding:4px 2px;">
+        <label class="vl-label">Título</label>
+        <input type="text" id="vlTitulo" class="vl-input" placeholder="Ej: Salida de pelota parada">
+        <label class="vl-label">Link del video (YouTube, Drive, etc.)</label>
+        <input type="text" id="vlUrl" class="vl-input" placeholder="https://...">
+        <label class="vl-label">Nota (opcional)</label>
+        <input type="text" id="vlDesc" class="vl-input" placeholder="Para qué sirve / qué mostrar">
+        <div id="vlError" style="color:var(--danger);font-size:12px;min-height:16px;margin:4px 0;"></div>
+        <button class="btn-primary" id="vlSave" style="width:100%;">Guardar en la biblioteca</button>
       </div>
     </div>
   </div>
@@ -6188,6 +6226,113 @@ window.__initEditor = function(){
     }, 30);
   }
 
+  // ========== BIBLIOTECA DE VIDEOS (links) ==========
+  let boardVideos = [];
+
+  async function loadBoardVideos(){
+    const sb = window.__sb;
+    if(!sb || !window.__getClubId) return;
+    const clubId = await window.__getClubId();
+    if(!clubId) return;
+    try{
+      let q = sb.from('board_videos').select('*').eq('club_id', clubId);
+      const cat = catActual();
+      q = cat ? q.eq('categoria', cat) : q.is('categoria', null);
+      const { data, error } = await q.order('created_at', { ascending:false });
+      if(error){ console.error('cargar videos', error); return; }
+      boardVideos = data || [];
+      renderBoardVideos();
+    }catch(e){ console.error(e); }
+  }
+
+  function renderBoardVideos(){
+    const list = document.getElementById('boardVideosList');
+    if(!list) return;
+    if(boardVideos.length === 0){
+      list.innerHTML = '<div class="board-videos-empty">Todavía no agregaste videos. Tocá "+ Agregar video".</div>';
+      return;
+    }
+    list.innerHTML = '';
+    boardVideos.forEach(v => {
+      const item = document.createElement('div');
+      item.className = 'board-video';
+      item.innerHTML = `
+        <div class="board-video-title">🎥 ${escapeHtml(v.titulo)}</div>
+        ${v.descripcion ? `<div class="board-video-desc">${escapeHtml(v.descripcion)}</div>` : ''}
+        <div class="board-video-actions">
+          <a class="bv-open" href="${escapeHtml(v.url)}" target="_blank" rel="noopener">▶ Abrir video</a>
+          <button class="bv-del">🗑 Quitar</button>
+        </div>
+      `;
+      item.querySelector('.bv-del').addEventListener('click', async () => {
+        if(!confirm('¿Quitar el video "'+v.titulo+'" de la biblioteca?')) return;
+        try{ if(window.__sb) await window.__sb.from('board_videos').delete().eq('id', v.id); }catch(e){ console.error(e); }
+        boardVideos = boardVideos.filter(x => x.id !== v.id);
+        renderBoardVideos();
+      });
+      list.appendChild(item);
+    });
+  }
+
+  async function guardarBoardVideo(titulo, url, desc){
+    const sb = window.__sb;
+    if(!sb || !window.__getClubId) return { ok:false };
+    const clubId = await window.__getClubId();
+    if(!clubId) return { ok:false };
+    try{
+      const { data:{ session } } = await sb.auth.getSession();
+      const payload = {
+        club_id: clubId, categoria: catActual(),
+        temporada: (window.__getTemporada ? window.__getTemporada() : new Date().getFullYear()),
+        titulo: titulo, url: url, descripcion: desc || null,
+        created_by: session ? session.user.id : null
+      };
+      const { data, error } = await sb.from('board_videos').insert(payload).select().single();
+      if(error){ console.error('guardar video', error); return { ok:false, error }; }
+      boardVideos.unshift(data);
+      renderBoardVideos();
+      return { ok:true };
+    }catch(e){ console.error(e); return { ok:false, error:e }; }
+  }
+
+  // Modal de agregar video
+  (function initVideoLib(){
+    function bind(){
+      const addBtn = document.getElementById('addVideoBtn');
+      const modal = document.getElementById('videoLibModal');
+      if(!addBtn || !modal || addBtn.dataset.bound) return;
+      addBtn.dataset.bound = '1';
+
+      const tituloIn = document.getElementById('vlTitulo');
+      const urlIn = document.getElementById('vlUrl');
+      const descIn = document.getElementById('vlDesc');
+      const errEl = document.getElementById('vlError');
+      const saveBtn = document.getElementById('vlSave');
+
+      const abrir = () => { tituloIn.value=''; urlIn.value=''; descIn.value=''; errEl.textContent=''; modal.style.display='flex'; setTimeout(()=>tituloIn.focus(),100); };
+      const cerrar = () => { modal.style.display='none'; };
+      addBtn.addEventListener('click', abrir);
+      document.getElementById('videoLibClose').addEventListener('click', cerrar);
+      modal.addEventListener('click', e => { if(e.target === modal) cerrar(); });
+
+      saveBtn.addEventListener('click', async () => {
+        const titulo = tituloIn.value.trim();
+        const url = urlIn.value.trim();
+        const desc = descIn.value.trim();
+        if(!titulo){ errEl.textContent = 'Poné un título al video.'; return; }
+        if(!url){ errEl.textContent = 'Pegá el link del video.'; return; }
+        if(!/^https?:\/\//i.test(url)){ errEl.textContent = 'El link tiene que empezar con http:// o https://'; return; }
+        saveBtn.disabled = true; saveBtn.textContent = 'Guardando…'; errEl.textContent='';
+        const res = await guardarBoardVideo(titulo, url, desc);
+        saveBtn.disabled = false; saveBtn.textContent = 'Guardar en la biblioteca';
+        if(res.ok){ cerrar(); if(window.toast) toast('Video agregado a la biblioteca ✓'); }
+        else { errEl.textContent = 'No se pudo guardar. ' + (res.error && res.error.message ? res.error.message : 'Probá de nuevo.'); }
+      });
+    }
+    if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
+    else bind();
+  })();
+
   function renderPlays(){
     const list = document.getElementById('boardPlaysList');
     if(plays.length === 0){
@@ -6236,9 +6381,10 @@ window.__initEditor = function(){
   window.__initBoardOnce = function(){
     if(!started){ started = true; render(); }
     loadPlaysFromCloud();
+    loadBoardVideos();
   };
   if(window.__onCategorySubscribe){
-    window.__onCategorySubscribe(() => { if(started) loadPlaysFromCloud(); }, 'board');
+    window.__onCategorySubscribe(() => { if(started){ loadPlaysFromCloud(); loadBoardVideos(); } }, 'board');
   }
 })();
 
@@ -6261,7 +6407,6 @@ window.__initEditor = function(){
   let liveRowId = null;
   // setup
   let setupCalled = {};          // { pid: true } convocados elegidos en el setup
-  let setupCalledTouched = false; // el entrenador ya tocó la grilla a mano en este setup
   let matchRival = '';           // nombre del rival elegido
   let matchLinkId = null;        // id del partido linkeado
   let inSetup = true;
@@ -6857,7 +7002,7 @@ window.__initEditor = function(){
       toast(window.t('mSavedLocal'));
     }
     // En ambos casos volvemos al setup: el partido está a salvo (local o nube)
-    setupCalled = {}; setupCalledTouched = false; matchRival = ''; matchLinkId = null;
+    setupCalled = {}; matchRival = ''; matchLinkId = null;
     backToSetup();
     // Ofrecer el resumen para compartir
     mostrarResumenPartido(resumen);
@@ -6945,31 +7090,6 @@ window.__initEditor = function(){
     }catch(e){ console.error('live squad',e); }
   }
 
-  // ── Partidos ocultados de la lista de En Vivo (solo este dispositivo) ──
-  // No borra nada: el partido y sus datos quedan intactos en la base.
-  // La clave incluye club+categoría para no mezclar ocultos entre categorías.
-  let mostrarOcultos = false;   // toggle "ver ocultos" dentro del setup
-  async function claveOcultos(){
-    let clubId = ''; try{ clubId = (await window.__getClubId())||''; }catch(e){}
-    const cat = (window.__getActiveCategory && window.__getActiveCategory()) || '';
-    return 'live_hidden_' + clubId + '_' + cat;
-  }
-  async function getOcultos(){
-    try{ const raw = localStorage.getItem(await claveOcultos()); return raw ? JSON.parse(raw) : []; }
-    catch(e){ return []; }
-  }
-  async function setOcultos(arr){
-    try{ localStorage.setItem(await claveOcultos(), JSON.stringify(arr||[])); }catch(e){}
-  }
-  async function ocultarPartido(id){
-    const arr = await getOcultos();
-    if(!arr.includes(id)){ arr.push(id); await setOcultos(arr); }
-  }
-  async function mostrarPartido(id){
-    const arr = (await getOcultos()).filter(x => x !== id);
-    await setOcultos(arr);
-  }
-
   async function renderSetup(){
     // rivales (partidos de la categoría)
     const sb=window.__sb; const cont=document.getElementById('liveSetupRivals');
@@ -6978,71 +7098,25 @@ window.__initEditor = function(){
       try{
         const clubId=await window.__getClubId();
         const cat=(window.__getActiveCategory && window.__getActiveCategory())||null;
-        let q=sb.from('stat_matches').select('id,rival,match_date,calls').eq('club_id',clubId);
+        let q=sb.from('stat_matches').select('id,rival,match_date').eq('club_id',clubId);
         q=cat?q.eq('categoria',cat):q.is('categoria',null); if(window.__getTemporada) q=q.eq('temporada',window.__getTemporada());
         const {data}=await q;
-        const listAll=(data||[]).sort((a,b)=>(a.match_date||'').localeCompare(b.match_date||''));
-        const ocultos = await getOcultos();
-        const list = mostrarOcultos ? listAll : listAll.filter(m => !ocultos.includes(m.id));
+        const list=(data||[]).sort((a,b)=>(a.match_date||'').localeCompare(b.match_date||''));
         cont.innerHTML='';
-        if(listAll.length===0){ cont.innerHTML='<p class="rd-empty">No hay partidos cargados. Andá a Estadísticas → Partidos y creá el partido antes de jugarlo en vivo.</p>'; }
-        else if(list.length===0){ cont.innerHTML='<p class="rd-empty">Ocultaste todos los partidos de esta lista. Podés volver a mostrarlos con el enlace de abajo.</p>'; }
-        const opts=list.slice();
+        if(list.length===0){ cont.innerHTML='<p class="rd-empty">No hay partidos cargados en Estadísticas → Partidos. Podés igual jugar sin linkear (elegí "Amistoso").</p>'; }
+        const opts=list.concat([{id:null,rival:'Amistoso / sin linkear',match_date:''}]);
         opts.forEach(m=>{
-          const estaOculto = ocultos.includes(m.id);
-          const btn=document.createElement('button'); btn.className='rival-pick'+(matchLinkId===m.id&&matchRival===(m.rival||'')?' selected':'')+(estaOculto?' is-hidden':'');
-          btn.__calls = m.calls || {};
+          const btn=document.createElement('button'); btn.className='rival-pick'+(matchLinkId===m.id&&matchRival===(m.rival||'')?' selected':'');
           const when=m.match_date?new Date(m.match_date+'T00:00:00').toLocaleDateString('es-AR'):'';
-          if(estaOculto) btn.style.opacity='0.5';
           btn.innerHTML=`<span class="rp-check"></span><span class="rp-name">${escapeHtml(m.rival||'Sin rival')}</span><span class="rp-date">${when}</span>`;
-          // Botón X para ocultar / o "↩" para volver a mostrar si ya está oculto
-          const xb=document.createElement('span');
-          xb.className='rp-hide';
-          xb.textContent = estaOculto ? '↩' : '✕';
-          xb.title = estaOculto ? 'Volver a mostrar en la lista' : 'Ocultar de la lista (no borra el partido)';
-          xb.addEventListener('click', async (e)=>{
-            e.stopPropagation();   // no seleccionar el partido al tocar la X
-            if(estaOculto){ await mostrarPartido(m.id); }
-            else{
-              await ocultarPartido(m.id);
-              if(matchLinkId===m.id){ matchLinkId=null; matchRival=''; }  // si estaba elegido, se deselecciona
-            }
-            renderSetup();
-          });
-          btn.appendChild(xb);
           btn.addEventListener('click',()=>{
             matchLinkId=m.id; matchRival=m.rival||'Amistoso';
             document.querySelectorAll('#liveSetupRivals .rival-pick').forEach(b=>b.classList.remove('selected'));
             btn.classList.add('selected');
-            // Pre-tickear desde la convocatoria del partido, solo si el
-            // entrenador todavía no tocó la grilla a mano (no le pisamos su elección).
-            if(!setupCalledTouched){
-              const calls = btn.__calls || {};
-              const nuevos = {};
-              allSquad.forEach(p => { if(calls[p.id] === 'yes') nuevos[p.id] = true; });
-              setupCalled = nuevos;
-              renderCallGrid();
-            }
             updateStartHint();
           });
           cont.appendChild(btn);
         });
-        // Aviso guía (no es un botón): para jugar un partido primero hay que crearlo.
-        const hint=document.createElement('p');
-        hint.className='rd-empty';
-        hint.style.marginTop='10px';
-        hint.textContent='¿No aparece tu partido? Andá a Estadísticas → Partidos y crealo previamente.';
-        cont.appendChild(hint);
-        // Enlace para ver / ocultar los partidos escondidos (solo si hay alguno)
-        if(ocultos.length > 0){
-          const tog=document.createElement('button');
-          tog.className='live-hidden-toggle';
-          tog.textContent = mostrarOcultos
-            ? 'Ocultar de nuevo los partidos escondidos'
-            : ('Ver partidos ocultos (' + ocultos.length + ')');
-          tog.addEventListener('click', ()=>{ mostrarOcultos = !mostrarOcultos; renderSetup(); });
-          cont.appendChild(tog);
-        }
       }catch(e){ cont.innerHTML='<p class="rd-empty">No se pudieron cargar los partidos.</p>'; }
     }
     // convocados
@@ -7059,7 +7133,7 @@ window.__initEditor = function(){
       const d=document.createElement('div');
       d.className='live-call-item'+(on?' called':'');
       d.innerHTML=`<span class="lci-check">${on?'✓':''}</span><span class="lci-num">${escapeHtml(p.number?'#'+p.number:'')}</span><span class="lci-name">${escapeHtml(p.name)}</span>`;
-      d.addEventListener('click',()=>{ setupCalledTouched=true; setupCalled[p.id]=!setupCalled[p.id]; renderCallGrid(); updateStartHint(); });
+      d.addEventListener('click',()=>{ setupCalled[p.id]=!setupCalled[p.id]; renderCallGrid(); updateStartHint(); });
       grid.appendChild(d);
     });
   }
@@ -7072,8 +7146,8 @@ window.__initEditor = function(){
     h.textContent = `${rival} · ${n} convocado${n===1?'':'s'}`;
   }
 
-  document.getElementById('liveCallAll').addEventListener('click',()=>{ setupCalledTouched=true; allSquad.forEach(p=>setupCalled[p.id]=true); renderCallGrid(); updateStartHint(); });
-  document.getElementById('liveCallNone').addEventListener('click',()=>{ setupCalledTouched=true; setupCalled={}; renderCallGrid(); updateStartHint(); });
+  document.getElementById('liveCallAll').addEventListener('click',()=>{ allSquad.forEach(p=>setupCalled[p.id]=true); renderCallGrid(); updateStartHint(); });
+  document.getElementById('liveCallNone').addEventListener('click',()=>{ setupCalled={}; renderCallGrid(); updateStartHint(); });
 
   document.getElementById('liveStartBtn').addEventListener('click',()=>{
     if(!matchRival){ toast(window.t('mPickRival')); return; }
@@ -8562,45 +8636,12 @@ window.__initEditor = function(){
     d.addEventListener('focus', () => { try{ d.showPicker(); }catch(e){} });
   }})();
 
-  // Etiqueta corta de la categoría de origen del invitado: "4ta" -> "4ª", "Primera" -> "1ª"...
-  function abrevCat(cat){
-    if(!cat) return '';
-    const s = String(cat).trim();
-    const m = s.match(/(\d+)/);
-    if(m) return m[1] + 'ª';
-    const low = s.toLowerCase();
-    if(low.startsWith('prim')) return '1ª';
-    if(low.startsWith('seg'))  return '2ª';
-    if(low.startsWith('ter'))  return '3ª';
-    if(low.startsWith('cuar')) return '4ª';
-    return s;
-  }
-  // Nombre con el que un invitado figura en las estadísticas de esta categoría.
-  // Le pega la categoría de origen para que NO se confunda con un homónimo local
-  // en la tabla de goleadores (que suma por nombre).
-  function nombreInvitado(inv){
-    const ab = abrevCat(inv.fromCat);
-    return inv.name + (ab ? (' (' + ab + ')') : ' (inv.)');
-  }
-  // Invitados del partido que se está editando (currentMatch), si hay.
-  function invitadosDelPartido(){
-    return (currentMatch && Array.isArray(currentMatch.invitados)) ? currentMatch.invitados : [];
-  }
   function playerOptions(selectedId){
     let opts = '<option value="">— Jugador —</option>';
     squad.forEach(p => {
       const label = (p.number?('#'+p.number+' '):'') + p.name;
       opts += `<option value="${p.id}" ${p.id===selectedId?'selected':''}>${escapeHtml(label)}</option>`;
     });
-    const invs = invitadosDelPartido();
-    if(invs.length){
-      opts += '<optgroup label="— Subieron de otra categoría —">';
-      invs.forEach(inv => {
-        const label = (inv.number?('#'+inv.number+' '):'') + nombreInvitado(inv);
-        opts += `<option value="${inv.id}" ${inv.id===selectedId?'selected':''}>${escapeHtml(label)}</option>`;
-      });
-      opts += '</optgroup>';
-    }
     return opts;
   }
 
@@ -8642,16 +8683,6 @@ window.__initEditor = function(){
     document.getElementById('scoreAgainst').textContent = (currentMatch.goalsAgainst||[]).length;
   }
 
-  // Resuelve un id de jugador a {id, name} mirando el plantel y los invitados
-  // del partido. Para el invitado devuelve el nombre decorado con su categoría,
-  // así queda separado en la tabla de goleadores.
-  function resolverJugador(pid){
-    const p = squad.find(x => x.id === pid);
-    if(p) return { id:p.id, name:p.name };
-    const inv = invitadosDelPartido().find(x => x.id === pid);
-    if(inv) return { id:inv.id, name:nombreInvitado(inv) };
-    return { id:pid, name:'' };
-  }
   function renderGoals(){
     const m = currentMatch; if(!m) return;
     updateScore();
@@ -8665,7 +8696,7 @@ window.__initEditor = function(){
       top.className = 'goal-row-top';
       top.innerHTML = `<span class="g-num">${idx+1}</span><select class="g-player">${playerOptions(g.player_id)}</select><input class="g-min" value="${escapeHtml(g.min||'')}" placeholder="min (ej 6' PT)"><button class="g-remove">✕</button>`;
       top.querySelector('.g-player').addEventListener('change', e => {
-        const r = resolverJugador(e.target.value); g.player_id=r.id; g.player_name=r.name; flashMatchSaved();
+        const p = squad.find(x=>x.id===e.target.value); g.player_id=e.target.value; g.player_name=p?p.name:''; flashMatchSaved();
       });
       top.querySelector('.g-min').addEventListener('input', e => { g.min = e.target.value; flashMatchSaved(); });
       top.querySelector('.g-remove').addEventListener('click', () => { m.goalsFor.splice(idx,1); renderGoals(); flashMatchSaved(); });
@@ -8690,7 +8721,7 @@ window.__initEditor = function(){
       top.innerHTML = `<span class="g-num">${idx+1}</span><input class="g-min" value="${escapeHtml(g.min||'')}" placeholder="min"><select class="g-keeper">${playerOptions(g.keeper_id)}</select><button class="g-remove">✕</button>`;
       top.querySelector('.g-min').addEventListener('input', e => { g.min = e.target.value; flashMatchSaved(); });
       top.querySelector('.g-keeper').addEventListener('change', e => {
-        const r = resolverJugador(e.target.value); g.keeper_id=r.id; g.keeper_name=r.name; flashMatchSaved();
+        const p = squad.find(x=>x.id===e.target.value); g.keeper_id=e.target.value; g.keeper_name=p?p.name:''; flashMatchSaved();
       });
       top.querySelector('.g-remove').addEventListener('click', () => { m.goalsAgainst.splice(idx,1); renderGoals(); flashMatchSaved(); });
       row.appendChild(top);
@@ -8711,7 +8742,7 @@ window.__initEditor = function(){
       row.className = 'goal-row';
       row.innerHTML = `<span class="g-num">${idx+1}</span><select class="g-player">${playerOptions(a.player_id)}</select><button class="g-remove">✕</button>`;
       row.querySelector('.g-player').addEventListener('change', e => {
-        const r = resolverJugador(e.target.value); a.player_id=r.id; a.player_name=r.name; flashMatchSaved();
+        const p = squad.find(x=>x.id===e.target.value); a.player_id=e.target.value; a.player_name=p?p.name:''; flashMatchSaved();
       });
       row.querySelector('.g-remove').addEventListener('click', () => { m.assists.splice(idx,1); renderGoals(); flashMatchSaved(); });
       as.appendChild(row);
@@ -8724,7 +8755,7 @@ window.__initEditor = function(){
       row.className = 'goal-row';
       row.innerHTML = `<span class="g-num">${idx+1}</span><select class="g-player">${playerOptions(c.player_id)}</select><select class="g-origin"><option value="amarilla" ${c.type==='amarilla'?'selected':''}>🟨 Amarilla</option><option value="roja" ${c.type==='roja'?'selected':''}>🟥 Roja</option></select><button class="g-remove">✕</button>`;
       row.querySelector('.g-player').addEventListener('change', e => {
-        const r = resolverJugador(e.target.value); c.player_id=r.id; c.player_name=r.name; flashMatchSaved();
+        const p = squad.find(x=>x.id===e.target.value); c.player_id=e.target.value; c.player_name=p?p.name:''; flashMatchSaved();
       });
       row.querySelector('.g-origin').addEventListener('change', e => { c.type = e.target.value; flashMatchSaved(); });
       row.querySelector('.g-remove').addEventListener('click', () => { m.cards.splice(idx,1); renderGoals(); flashMatchSaved(); });
@@ -10287,44 +10318,6 @@ window.__initEditor = function(){
       });
     });
 
-    // ---- Partidos de OTRAS categorías donde jugó como invitado ----
-    // Su ficha vive en su categoría, pero si lo subieron a otra (ej: de 4ª a 3ª)
-    // esos goles también son suyos. Los buscamos por su ID en los partidos de las
-    // demás categorías del mismo club y temporada.
-    let invitadoEn = 0;   // cuántos goles sumó jugando de invitado (para el aviso)
-    try{
-      const sb = window.__sb; const clubId = await window.__getClubId();
-      const miCat = catActual();
-      if(sb && clubId){
-        let q = sb.from('stat_matches')
-          .select('rival, match_date, created_at, categoria, goals_for, assists, cards, calls, invitados')
-          .eq('club_id', clubId);
-        if(window.__getTemporada) q = q.eq('temporada', window.__getTemporada());
-        const { data } = await q;
-        (data || []).forEach(m => {
-          // Solo partidos de OTRA categoría (los de la propia ya están en 'serie')
-          if((m.categoria || null) === (miCat || null)) return;
-          // ¿Este jugador estuvo subido como invitado en ese partido?
-          const invs = Array.isArray(m.invitados) ? m.invitados : [];
-          if(!invs.some(x => x.id === playerId)) return;
-          const g = (m.goals_for || []).filter(x => x.player_id === playerId).length;
-          const a = (m.assists   || []).filter(x => x.player_id === playerId).length;
-          const c = (m.cards     || []).filter(x => x.player_id === playerId).length;
-          const fue = !!(m.calls && m.calls[playerId] === 'yes');
-          invitadoEn += g;
-          const abrev = (typeof abrevCat === 'function') ? abrevCat(m.categoria) : (m.categoria || '');
-          serie.push({
-            fecha: m.match_date || '',
-            orden: m.created_at || '',
-            label: (m.rival || 'Partido') + (abrev ? (' · jugó en ' + abrev) : ''),
-            goals: g, assists: a, cards: c,
-            wasCalled: fue,
-            origen: 'invitado'
-          });
-        });
-      }
-    }catch(e){ console.error('ficha: partidos como invitado', e); }
-
     // Ordenar por fecha (y luego por orden de carga)
     const ms = serie.sort((a,b) => {
       const da = a.fecha || '', db = b.fecha || '';
@@ -11376,47 +11369,29 @@ window.__initEditor = function(){
       cards.push({ icon:'📋', title:'Sin citar últimamente', body, tone:'info' });
     }
 
-    // 3b) Citado seguido pero SIN MINUTOS en cancha (va al banco y no entra).
-    //     Se basa SOLO en partidos con minutos registrados (En Vivo). Si un
-    //     partido no tiene minutos de nadie, no se sabe qué pasó y no se usa:
-    //     así no se acusa a un citado sólo porque falta el analista de datos.
-
-    // Mapa: match_id -> conjunto de jugadores (por nombre) con minutos > 0 ese partido.
-    // Un partido figura acá únicamente si alguien tuvo minutos (o sea, hubo En Vivo).
-    const minutosPorPartido = {};   // match_id -> Set(nombres con min>0)
-    sessions.forEach(s => {
-      if(!s.match_id) return;
-      const t = s.totals || {};
-      let set = minutosPorPartido[s.match_id];
-      if(!set){ set = new Set(); minutosPorPartido[s.match_id] = set; }
-      Object.keys(t).forEach(name => {
-        if(name === '__rival') return;
-        if((t[name].total || 0) > 0) set.add(name);
-      });
-    });
-
-    // Partidos con citaciones QUE ADEMÁS tienen minutos registrados.
-    const conMinutosRegistrados = conCitaciones.filter(m => minutosPorPartido[m.id]);
-
-    if(conMinutosRegistrados.length >= 3){
-      const ventana = conMinutosRegistrados.slice(0, 5);   // últimos 5 con datos reales
-      const sinJugar = [];
+    // 3b) Citado seguido pero sin sumar (señal de que va al banco y no entra)
+    //     Solo usa partidos con citaciones cargadas. No depende de En Vivo.
+    if(conCitaciones.length >= 3){
+      const ultimosCit = conCitaciones.slice(0, 5);   // ventana de los últimos 5 con citaciones
+      const sinSumar = [];
       squad.forEach(p => {
-        // partidos de la ventana donde fue citado (✓)
-        const citados = ventana.filter(m => m.calls && m.calls[p.id] === 'yes');
-        if(citados.length < 3) return;   // citado al menos 3 veces (con datos)
-        // ¿en cuántos de esos entró a la cancha (tuvo minutos)?
-        const jugo = citados.filter(m => {
-          const set = minutosPorPartido[m.id];
-          return set && set.has(p.name);
-        }).length;
-        // señal real: fue citado varias veces y NUNCA sumó minutos
-        if(jugo === 0) sinJugar.push({ name:p.name, citado:citados.length });
+        // veces que fue citado (yes) en esa ventana
+        const citado = ultimosCit.filter(m => m.calls && m.calls[p.id] === 'yes').length;
+        if(citado < 3) return;   // solo miramos a los que fueron citados al menos 3 veces
+        // ¿sumó algo (gol o tarjeta) en esos partidos citados?
+        const sumoAlgo = ultimosCit.some(m => {
+          if(!(m.calls && m.calls[p.id] === 'yes')) return false;
+          const hizoGol = (m.goalsFor||[]).some(g => g.player_id === p.id);
+          const hizoTarjeta = (m.cards||[]).some(c => c.player_id === p.id);
+          const hizoAsist = (m.assists||[]).some(a => a.player_id === p.id);
+          return hizoGol || hizoTarjeta || hizoAsist;
+        });
+        if(!sumoAlgo) sinSumar.push({ name:p.name, citado });
       });
-      if(sinJugar.length > 0){
+      if(sinSumar.length > 0){
         let body = '';
-        sinJugar.sort((a,b)=>b.citado-a.citado).forEach(x => { body += `<div class="health-item"><span class="health-badge warn">${x.citado}×</span> <strong>${escapeHtml(x.name)}</strong> — citado pero sin minutos en cancha</div>`; });
-        body += `<div class="health-note">Fueron citados varias veces y, en los partidos con minutos registrados en En Vivo, no sumaron minutos. Puede que estén yendo al banco sin entrar.</div>`;
+        sinSumar.sort((a,b)=>b.citado-a.citado).forEach(x => { body += `<div class="health-item"><span class="health-badge warn">${x.citado}×</span> <strong>${escapeHtml(x.name)}</strong> — citado pero sin sumar en cancha</div>`; });
+        body += `<div class="health-note">Fueron citados varias veces pero no registran goles, asistencias ni tarjetas. Puede que estén yendo al banco sin entrar.</div>`;
         cards.push({ icon:'🪑', title:'Citados sin jugar', body, tone:'warn' });
       }
     }
