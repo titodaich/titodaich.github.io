@@ -6257,6 +6257,7 @@ window.__initEditor = function(){
   let liveRowId = null;
   // setup
   let setupCalled = {};          // { pid: true } convocados elegidos en el setup
+  let setupCalledTouched = false; // el entrenador ya tocó la grilla a mano en este setup
   let matchRival = '';           // nombre del rival elegido
   let matchLinkId = null;        // id del partido linkeado
   let inSetup = true;
@@ -6852,7 +6853,7 @@ window.__initEditor = function(){
       toast(window.t('mSavedLocal'));
     }
     // En ambos casos volvemos al setup: el partido está a salvo (local o nube)
-    setupCalled = {}; matchRival = ''; matchLinkId = null;
+    setupCalled = {}; setupCalledTouched = false; matchRival = ''; matchLinkId = null;
     backToSetup();
     // Ofrecer el resumen para compartir
     mostrarResumenPartido(resumen);
@@ -6948,21 +6949,31 @@ window.__initEditor = function(){
       try{
         const clubId=await window.__getClubId();
         const cat=(window.__getActiveCategory && window.__getActiveCategory())||null;
-        let q=sb.from('stat_matches').select('id,rival,match_date').eq('club_id',clubId);
+        let q=sb.from('stat_matches').select('id,rival,match_date,calls').eq('club_id',clubId);
         q=cat?q.eq('categoria',cat):q.is('categoria',null); if(window.__getTemporada) q=q.eq('temporada',window.__getTemporada());
         const {data}=await q;
         const list=(data||[]).sort((a,b)=>(a.match_date||'').localeCompare(b.match_date||''));
         cont.innerHTML='';
         if(list.length===0){ cont.innerHTML='<p class="rd-empty">No hay partidos cargados en Estadísticas → Partidos. Podés igual jugar sin linkear (elegí "Amistoso").</p>'; }
-        const opts=list.concat([{id:null,rival:'Amistoso / sin linkear',match_date:''}]);
+        const opts=list.concat([{id:null,rival:'Amistoso / sin linkear',match_date:'',calls:{}}]);
         opts.forEach(m=>{
           const btn=document.createElement('button'); btn.className='rival-pick'+(matchLinkId===m.id&&matchRival===(m.rival||'')?' selected':'');
+          btn.__calls = m.calls || {};
           const when=m.match_date?new Date(m.match_date+'T00:00:00').toLocaleDateString('es-AR'):'';
           btn.innerHTML=`<span class="rp-check"></span><span class="rp-name">${escapeHtml(m.rival||'Sin rival')}</span><span class="rp-date">${when}</span>`;
           btn.addEventListener('click',()=>{
             matchLinkId=m.id; matchRival=m.rival||'Amistoso';
             document.querySelectorAll('#liveSetupRivals .rival-pick').forEach(b=>b.classList.remove('selected'));
             btn.classList.add('selected');
+            // Pre-tickear desde la convocatoria del partido, solo si el
+            // entrenador todavía no tocó la grilla a mano (no le pisamos su elección).
+            if(!setupCalledTouched){
+              const calls = btn.__calls || {};
+              const nuevos = {};
+              allSquad.forEach(p => { if(calls[p.id] === 'yes') nuevos[p.id] = true; });
+              setupCalled = nuevos;
+              renderCallGrid();
+            }
             updateStartHint();
           });
           cont.appendChild(btn);
@@ -6983,7 +6994,7 @@ window.__initEditor = function(){
       const d=document.createElement('div');
       d.className='live-call-item'+(on?' called':'');
       d.innerHTML=`<span class="lci-check">${on?'✓':''}</span><span class="lci-num">${escapeHtml(p.number?'#'+p.number:'')}</span><span class="lci-name">${escapeHtml(p.name)}</span>`;
-      d.addEventListener('click',()=>{ setupCalled[p.id]=!setupCalled[p.id]; renderCallGrid(); updateStartHint(); });
+      d.addEventListener('click',()=>{ setupCalledTouched=true; setupCalled[p.id]=!setupCalled[p.id]; renderCallGrid(); updateStartHint(); });
       grid.appendChild(d);
     });
   }
@@ -6996,8 +7007,8 @@ window.__initEditor = function(){
     h.textContent = `${rival} · ${n} convocado${n===1?'':'s'}`;
   }
 
-  document.getElementById('liveCallAll').addEventListener('click',()=>{ allSquad.forEach(p=>setupCalled[p.id]=true); renderCallGrid(); updateStartHint(); });
-  document.getElementById('liveCallNone').addEventListener('click',()=>{ setupCalled={}; renderCallGrid(); updateStartHint(); });
+  document.getElementById('liveCallAll').addEventListener('click',()=>{ setupCalledTouched=true; allSquad.forEach(p=>setupCalled[p.id]=true); renderCallGrid(); updateStartHint(); });
+  document.getElementById('liveCallNone').addEventListener('click',()=>{ setupCalledTouched=true; setupCalled={}; renderCallGrid(); updateStartHint(); });
 
   document.getElementById('liveStartBtn').addEventListener('click',()=>{
     if(!matchRival){ toast(window.t('mPickRival')); return; }
