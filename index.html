@@ -8486,12 +8486,45 @@ window.__initEditor = function(){
     d.addEventListener('focus', () => { try{ d.showPicker(); }catch(e){} });
   }})();
 
+  // Etiqueta corta de la categoría de origen del invitado: "4ta" -> "4ª", "Primera" -> "1ª"...
+  function abrevCat(cat){
+    if(!cat) return '';
+    const s = String(cat).trim();
+    const m = s.match(/(\d+)/);
+    if(m) return m[1] + 'ª';
+    const low = s.toLowerCase();
+    if(low.startsWith('prim')) return '1ª';
+    if(low.startsWith('seg'))  return '2ª';
+    if(low.startsWith('ter'))  return '3ª';
+    if(low.startsWith('cuar')) return '4ª';
+    return s;
+  }
+  // Nombre con el que un invitado figura en las estadísticas de esta categoría.
+  // Le pega la categoría de origen para que NO se confunda con un homónimo local
+  // en la tabla de goleadores (que suma por nombre).
+  function nombreInvitado(inv){
+    const ab = abrevCat(inv.fromCat);
+    return inv.name + (ab ? (' (' + ab + ')') : ' (inv.)');
+  }
+  // Invitados del partido que se está editando (currentMatch), si hay.
+  function invitadosDelPartido(){
+    return (currentMatch && Array.isArray(currentMatch.invitados)) ? currentMatch.invitados : [];
+  }
   function playerOptions(selectedId){
     let opts = '<option value="">— Jugador —</option>';
     squad.forEach(p => {
       const label = (p.number?('#'+p.number+' '):'') + p.name;
       opts += `<option value="${p.id}" ${p.id===selectedId?'selected':''}>${escapeHtml(label)}</option>`;
     });
+    const invs = invitadosDelPartido();
+    if(invs.length){
+      opts += '<optgroup label="— Subieron de otra categoría —">';
+      invs.forEach(inv => {
+        const label = (inv.number?('#'+inv.number+' '):'') + nombreInvitado(inv);
+        opts += `<option value="${inv.id}" ${inv.id===selectedId?'selected':''}>${escapeHtml(label)}</option>`;
+      });
+      opts += '</optgroup>';
+    }
     return opts;
   }
 
@@ -8533,6 +8566,16 @@ window.__initEditor = function(){
     document.getElementById('scoreAgainst').textContent = (currentMatch.goalsAgainst||[]).length;
   }
 
+  // Resuelve un id de jugador a {id, name} mirando el plantel y los invitados
+  // del partido. Para el invitado devuelve el nombre decorado con su categoría,
+  // así queda separado en la tabla de goleadores.
+  function resolverJugador(pid){
+    const p = squad.find(x => x.id === pid);
+    if(p) return { id:p.id, name:p.name };
+    const inv = invitadosDelPartido().find(x => x.id === pid);
+    if(inv) return { id:inv.id, name:nombreInvitado(inv) };
+    return { id:pid, name:'' };
+  }
   function renderGoals(){
     const m = currentMatch; if(!m) return;
     updateScore();
@@ -8546,7 +8589,7 @@ window.__initEditor = function(){
       top.className = 'goal-row-top';
       top.innerHTML = `<span class="g-num">${idx+1}</span><select class="g-player">${playerOptions(g.player_id)}</select><input class="g-min" value="${escapeHtml(g.min||'')}" placeholder="min (ej 6' PT)"><button class="g-remove">✕</button>`;
       top.querySelector('.g-player').addEventListener('change', e => {
-        const p = squad.find(x=>x.id===e.target.value); g.player_id=e.target.value; g.player_name=p?p.name:''; flashMatchSaved();
+        const r = resolverJugador(e.target.value); g.player_id=r.id; g.player_name=r.name; flashMatchSaved();
       });
       top.querySelector('.g-min').addEventListener('input', e => { g.min = e.target.value; flashMatchSaved(); });
       top.querySelector('.g-remove').addEventListener('click', () => { m.goalsFor.splice(idx,1); renderGoals(); flashMatchSaved(); });
@@ -8571,7 +8614,7 @@ window.__initEditor = function(){
       top.innerHTML = `<span class="g-num">${idx+1}</span><input class="g-min" value="${escapeHtml(g.min||'')}" placeholder="min"><select class="g-keeper">${playerOptions(g.keeper_id)}</select><button class="g-remove">✕</button>`;
       top.querySelector('.g-min').addEventListener('input', e => { g.min = e.target.value; flashMatchSaved(); });
       top.querySelector('.g-keeper').addEventListener('change', e => {
-        const p = squad.find(x=>x.id===e.target.value); g.keeper_id=e.target.value; g.keeper_name=p?p.name:''; flashMatchSaved();
+        const r = resolverJugador(e.target.value); g.keeper_id=r.id; g.keeper_name=r.name; flashMatchSaved();
       });
       top.querySelector('.g-remove').addEventListener('click', () => { m.goalsAgainst.splice(idx,1); renderGoals(); flashMatchSaved(); });
       row.appendChild(top);
@@ -8592,7 +8635,7 @@ window.__initEditor = function(){
       row.className = 'goal-row';
       row.innerHTML = `<span class="g-num">${idx+1}</span><select class="g-player">${playerOptions(a.player_id)}</select><button class="g-remove">✕</button>`;
       row.querySelector('.g-player').addEventListener('change', e => {
-        const p = squad.find(x=>x.id===e.target.value); a.player_id=e.target.value; a.player_name=p?p.name:''; flashMatchSaved();
+        const r = resolverJugador(e.target.value); a.player_id=r.id; a.player_name=r.name; flashMatchSaved();
       });
       row.querySelector('.g-remove').addEventListener('click', () => { m.assists.splice(idx,1); renderGoals(); flashMatchSaved(); });
       as.appendChild(row);
@@ -8605,7 +8648,7 @@ window.__initEditor = function(){
       row.className = 'goal-row';
       row.innerHTML = `<span class="g-num">${idx+1}</span><select class="g-player">${playerOptions(c.player_id)}</select><select class="g-origin"><option value="amarilla" ${c.type==='amarilla'?'selected':''}>🟨 Amarilla</option><option value="roja" ${c.type==='roja'?'selected':''}>🟥 Roja</option></select><button class="g-remove">✕</button>`;
       row.querySelector('.g-player').addEventListener('change', e => {
-        const p = squad.find(x=>x.id===e.target.value); c.player_id=e.target.value; c.player_name=p?p.name:''; flashMatchSaved();
+        const r = resolverJugador(e.target.value); c.player_id=r.id; c.player_name=r.name; flashMatchSaved();
       });
       row.querySelector('.g-origin').addEventListener('change', e => { c.type = e.target.value; flashMatchSaved(); });
       row.querySelector('.g-remove').addEventListener('click', () => { m.cards.splice(idx,1); renderGoals(); flashMatchSaved(); });
@@ -10167,6 +10210,44 @@ window.__initEditor = function(){
         origen: 'envivo'
       });
     });
+
+    // ---- Partidos de OTRAS categorías donde jugó como invitado ----
+    // Su ficha vive en su categoría, pero si lo subieron a otra (ej: de 4ª a 3ª)
+    // esos goles también son suyos. Los buscamos por su ID en los partidos de las
+    // demás categorías del mismo club y temporada.
+    let invitadoEn = 0;   // cuántos goles sumó jugando de invitado (para el aviso)
+    try{
+      const sb = window.__sb; const clubId = await window.__getClubId();
+      const miCat = catActual();
+      if(sb && clubId){
+        let q = sb.from('stat_matches')
+          .select('rival, match_date, created_at, categoria, goals_for, assists, cards, calls, invitados')
+          .eq('club_id', clubId);
+        if(window.__getTemporada) q = q.eq('temporada', window.__getTemporada());
+        const { data } = await q;
+        (data || []).forEach(m => {
+          // Solo partidos de OTRA categoría (los de la propia ya están en 'serie')
+          if((m.categoria || null) === (miCat || null)) return;
+          // ¿Este jugador estuvo subido como invitado en ese partido?
+          const invs = Array.isArray(m.invitados) ? m.invitados : [];
+          if(!invs.some(x => x.id === playerId)) return;
+          const g = (m.goals_for || []).filter(x => x.player_id === playerId).length;
+          const a = (m.assists   || []).filter(x => x.player_id === playerId).length;
+          const c = (m.cards     || []).filter(x => x.player_id === playerId).length;
+          const fue = !!(m.calls && m.calls[playerId] === 'yes');
+          invitadoEn += g;
+          const abrev = (typeof abrevCat === 'function') ? abrevCat(m.categoria) : (m.categoria || '');
+          serie.push({
+            fecha: m.match_date || '',
+            orden: m.created_at || '',
+            label: (m.rival || 'Partido') + (abrev ? (' · jugó en ' + abrev) : ''),
+            goals: g, assists: a, cards: c,
+            wasCalled: fue,
+            origen: 'invitado'
+          });
+        });
+      }
+    }catch(e){ console.error('ficha: partidos como invitado', e); }
 
     // Ordenar por fecha (y luego por orden de carga)
     const ms = serie.sort((a,b) => {
