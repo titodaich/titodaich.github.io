@@ -813,6 +813,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .rival-pick.selected .rp-check::after{content:'✓';}
 .rival-pick .rp-name{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;flex:1;}
 .rival-pick .rp-date{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.rival-pick .rp-hide{flex-shrink:0;width:26px;height:26px;border-radius:7px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .12s ease;}
+.rival-pick .rp-hide:hover{border-color:var(--danger,#d9534f);color:var(--danger,#d9534f);background:rgba(217,83,79,0.10);}
+.live-hidden-toggle{display:inline-block;margin-top:4px;background:none;border:none;color:var(--muted);font-family:inherit;font-size:12px;text-decoration:underline;cursor:pointer;padding:4px 0;}
+.live-hidden-toggle:hover{color:var(--chalk);}
 .live-call-item:hover{border-color:var(--muted);}
 .live-call-item.called{border-color:var(--success);background:rgba(76,175,109,0.12);}
 .live-call-item .lci-check{width:18px;height:18px;border-radius:5px;border:2px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;}
@@ -6941,6 +6945,31 @@ window.__initEditor = function(){
     }catch(e){ console.error('live squad',e); }
   }
 
+  // ── Partidos ocultados de la lista de En Vivo (solo este dispositivo) ──
+  // No borra nada: el partido y sus datos quedan intactos en la base.
+  // La clave incluye club+categoría para no mezclar ocultos entre categorías.
+  let mostrarOcultos = false;   // toggle "ver ocultos" dentro del setup
+  async function claveOcultos(){
+    let clubId = ''; try{ clubId = (await window.__getClubId())||''; }catch(e){}
+    const cat = (window.__getActiveCategory && window.__getActiveCategory()) || '';
+    return 'live_hidden_' + clubId + '_' + cat;
+  }
+  async function getOcultos(){
+    try{ const raw = localStorage.getItem(await claveOcultos()); return raw ? JSON.parse(raw) : []; }
+    catch(e){ return []; }
+  }
+  async function setOcultos(arr){
+    try{ localStorage.setItem(await claveOcultos(), JSON.stringify(arr||[])); }catch(e){}
+  }
+  async function ocultarPartido(id){
+    const arr = await getOcultos();
+    if(!arr.includes(id)){ arr.push(id); await setOcultos(arr); }
+  }
+  async function mostrarPartido(id){
+    const arr = (await getOcultos()).filter(x => x !== id);
+    await setOcultos(arr);
+  }
+
   async function renderSetup(){
     // rivales (partidos de la categoría)
     const sb=window.__sb; const cont=document.getElementById('liveSetupRivals');
@@ -6952,15 +6981,35 @@ window.__initEditor = function(){
         let q=sb.from('stat_matches').select('id,rival,match_date,calls').eq('club_id',clubId);
         q=cat?q.eq('categoria',cat):q.is('categoria',null); if(window.__getTemporada) q=q.eq('temporada',window.__getTemporada());
         const {data}=await q;
-        const list=(data||[]).sort((a,b)=>(a.match_date||'').localeCompare(b.match_date||''));
+        const listAll=(data||[]).sort((a,b)=>(a.match_date||'').localeCompare(b.match_date||''));
+        const ocultos = await getOcultos();
+        const list = mostrarOcultos ? listAll : listAll.filter(m => !ocultos.includes(m.id));
         cont.innerHTML='';
-        if(list.length===0){ cont.innerHTML='<p class="rd-empty">No hay partidos cargados en Estadísticas → Partidos. Podés igual jugar sin linkear (elegí "Amistoso").</p>'; }
-        const opts=list.concat([{id:null,rival:'Amistoso / sin linkear',match_date:'',calls:{}}]);
+        if(listAll.length===0){ cont.innerHTML='<p class="rd-empty">No hay partidos cargados. Andá a Estadísticas → Partidos y creá el partido antes de jugarlo en vivo.</p>'; }
+        else if(list.length===0){ cont.innerHTML='<p class="rd-empty">Ocultaste todos los partidos de esta lista. Podés volver a mostrarlos con el enlace de abajo.</p>'; }
+        const opts=list.slice();
         opts.forEach(m=>{
-          const btn=document.createElement('button'); btn.className='rival-pick'+(matchLinkId===m.id&&matchRival===(m.rival||'')?' selected':'');
+          const estaOculto = ocultos.includes(m.id);
+          const btn=document.createElement('button'); btn.className='rival-pick'+(matchLinkId===m.id&&matchRival===(m.rival||'')?' selected':'')+(estaOculto?' is-hidden':'');
           btn.__calls = m.calls || {};
           const when=m.match_date?new Date(m.match_date+'T00:00:00').toLocaleDateString('es-AR'):'';
+          if(estaOculto) btn.style.opacity='0.5';
           btn.innerHTML=`<span class="rp-check"></span><span class="rp-name">${escapeHtml(m.rival||'Sin rival')}</span><span class="rp-date">${when}</span>`;
+          // Botón X para ocultar / o "↩" para volver a mostrar si ya está oculto
+          const xb=document.createElement('span');
+          xb.className='rp-hide';
+          xb.textContent = estaOculto ? '↩' : '✕';
+          xb.title = estaOculto ? 'Volver a mostrar en la lista' : 'Ocultar de la lista (no borra el partido)';
+          xb.addEventListener('click', async (e)=>{
+            e.stopPropagation();   // no seleccionar el partido al tocar la X
+            if(estaOculto){ await mostrarPartido(m.id); }
+            else{
+              await ocultarPartido(m.id);
+              if(matchLinkId===m.id){ matchLinkId=null; matchRival=''; }  // si estaba elegido, se deselecciona
+            }
+            renderSetup();
+          });
+          btn.appendChild(xb);
           btn.addEventListener('click',()=>{
             matchLinkId=m.id; matchRival=m.rival||'Amistoso';
             document.querySelectorAll('#liveSetupRivals .rival-pick').forEach(b=>b.classList.remove('selected'));
@@ -6978,6 +7027,22 @@ window.__initEditor = function(){
           });
           cont.appendChild(btn);
         });
+        // Aviso guía (no es un botón): para jugar un partido primero hay que crearlo.
+        const hint=document.createElement('p');
+        hint.className='rd-empty';
+        hint.style.marginTop='10px';
+        hint.textContent='¿No aparece tu partido? Andá a Estadísticas → Partidos y crealo previamente.';
+        cont.appendChild(hint);
+        // Enlace para ver / ocultar los partidos escondidos (solo si hay alguno)
+        if(ocultos.length > 0){
+          const tog=document.createElement('button');
+          tog.className='live-hidden-toggle';
+          tog.textContent = mostrarOcultos
+            ? 'Ocultar de nuevo los partidos escondidos'
+            : ('Ver partidos ocultos (' + ocultos.length + ')');
+          tog.addEventListener('click', ()=>{ mostrarOcultos = !mostrarOcultos; renderSetup(); });
+          cont.appendChild(tog);
+        }
       }catch(e){ cont.innerHTML='<p class="rd-empty">No se pudieron cargar los partidos.</p>'; }
     }
     // convocados
