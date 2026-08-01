@@ -6801,16 +6801,17 @@ window.__initEditor = function(){
   function time1(pid){ const st=ensure(pid); return st.acc1 + (currentHalf===1 ? liveExtra(st) : 0); }
   function time2(pid){ const st=ensure(pid); return st.acc2 + (currentHalf===2 ? liveExtra(st) : 0); }
   function timeTotal(pid){ return time1(pid) + time2(pid); }
-  // Qué mostrar en el cuadrado del jugador en cancha:
-  // - corrido: el tiempo total jugado (cronómetro)
-  // - parado (3era/1era): el minuto del reloj oficial en que entró (dato visual fijo)
+  // Qué mostrar en el cuadrado del jugador en cancha: el momento en que entró (dato visual fijo).
+  // - parado (3era/1era): el minuto del reloj oficial (ej: "entró 18'")
+  // - corrido (4ta a promocionales): el momento del cronómetro (ej: "entró 12:30")
   function displayTimeEnCancha(pid){
     const st = ensure(pid);
     if(clockType==='parado'){
       if(st.onCourt && st.entroMin!=null) return "entró "+st.entroMin+"'";
       return "—";
     }
-    return fmtClock(timeTotal(pid));
+    if(st.onCourt && st.entroSeg!=null) return "entró "+fmtClock(st.entroSeg);
+    return "—";
   }
   function countOnCourt(){ return Object.values(state).filter(s => s.onCourt).length; }
 
@@ -6894,8 +6895,11 @@ window.__initEditor = function(){
   function playerIn(pid){
     if(countOnCourt() >= 5){ toast(window.t('mFull5')); return false; }
     const st = ensure(pid); st.onCourt = true; st.lastInAt = nowSeconds();
-    // Guardar el minuto del reloj oficial en que entró (solo dato visual para reloj parado)
+    // Momento de entrada (solo dato visual, no afecta el registro de minutos):
+    // - parado: el minuto del reloj oficial (regresivo)
+    // - corrido: el momento del cronómetro (segundos), para mostrarlo como mm:ss
     st.entroMin = (clockType==='parado') ? manualMin : null;
+    st.entroSeg = (clockType!=='parado') ? clockSeconds : null;
     return true;
   }
   function playerOut(pid){
@@ -6904,7 +6908,7 @@ window.__initEditor = function(){
       const dt = nowSeconds() - st.lastInAt;
       if(currentHalf===1) st.acc1 += Math.max(0,dt); else st.acc2 += Math.max(0,dt);
     }
-    st.onCourt=false; st.lastInAt=null; st.entroMin=null;
+    st.onCourt=false; st.lastInAt=null; st.entroMin=null; st.entroSeg=null;
   }
   function totalsSnapshot(){
     const o={}; squad.forEach(p=>{ const st=ensure(p.id); o[p.name]={t1:time1(p.id),t2:time2(p.id),total:timeTotal(p.id),goals:st.goals||0,fouls:foulsTotal(p.id),fouls1:st.fouls1||0,fouls2:st.fouls2||0,cards:st.cards||0,shots:st.shots||0,number:p.number||''}; }); return o;
