@@ -7353,7 +7353,8 @@ window.__initEditor = function(){
     const payload = {
       club_id: clubId, categoria: cat, temporada: (window.__getTemporada ? window.__getTemporada() : new Date().getFullYear()), name: rivalName,
       match_id: matchId || null, half_minutes: halfMinutes,
-      events, totals
+      events, totals,
+      created_by: (window.__currentUserId || null)
     };
 
     // PASO 1: guardar SIEMPRE en el teléfono primero. Pase lo que pase, no se pierde.
