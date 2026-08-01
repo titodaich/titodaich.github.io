@@ -6801,6 +6801,17 @@ window.__initEditor = function(){
   function time1(pid){ const st=ensure(pid); return st.acc1 + (currentHalf===1 ? liveExtra(st) : 0); }
   function time2(pid){ const st=ensure(pid); return st.acc2 + (currentHalf===2 ? liveExtra(st) : 0); }
   function timeTotal(pid){ return time1(pid) + time2(pid); }
+  // Qué mostrar en el cuadrado del jugador en cancha:
+  // - corrido: el tiempo total jugado (cronómetro)
+  // - parado (3era/1era): el minuto del reloj oficial en que entró (dato visual fijo)
+  function displayTimeEnCancha(pid){
+    const st = ensure(pid);
+    if(clockType==='parado'){
+      if(st.onCourt && st.entroMin!=null) return "entró "+st.entroMin+"'";
+      return "—";
+    }
+    return fmtClock(timeTotal(pid));
+  }
   function countOnCourt(){ return Object.values(state).filter(s => s.onCourt).length; }
 
   // ----- Reloj -----
@@ -6882,7 +6893,10 @@ window.__initEditor = function(){
   // ----- Acciones -----
   function playerIn(pid){
     if(countOnCourt() >= 5){ toast(window.t('mFull5')); return false; }
-    const st = ensure(pid); st.onCourt = true; st.lastInAt = nowSeconds(); return true;
+    const st = ensure(pid); st.onCourt = true; st.lastInAt = nowSeconds();
+    // Guardar el minuto del reloj oficial en que entró (solo dato visual para reloj parado)
+    st.entroMin = (clockType==='parado') ? manualMin : null;
+    return true;
   }
   function playerOut(pid){
     const st = ensure(pid);
@@ -6890,7 +6904,7 @@ window.__initEditor = function(){
       const dt = nowSeconds() - st.lastInAt;
       if(currentHalf===1) st.acc1 += Math.max(0,dt); else st.acc2 += Math.max(0,dt);
     }
-    st.onCourt=false; st.lastInAt=null;
+    st.onCourt=false; st.lastInAt=null; st.entroMin=null;
   }
   function totalsSnapshot(){
     const o={}; squad.forEach(p=>{ const st=ensure(p.id); o[p.name]={t1:time1(p.id),t2:time2(p.id),total:timeTotal(p.id),goals:st.goals||0,fouls:foulsTotal(p.id),fouls1:st.fouls1||0,fouls2:st.fouls2||0,cards:st.cards||0,shots:st.shots||0,number:p.number||''}; }); return o;
@@ -6919,9 +6933,12 @@ window.__initEditor = function(){
         const inP = squad.find(p=>p.id===pid);
         const nombreOut = outP ? outP.name : '';
         const nombreIn = inP ? inP.name : '';
+        // Dato de referencia: minuto en que entró el que sale (para calcular su tiempo en cancha)
+        const stOutRef = ensure(swapOutId);
+        const entroRef = (stOutRef.entroMin!=null) ? ' · ' + nombreOut + ' entró ' + stOutRef.entroMin + '\'' : '';
         openTimePicker(
           '¿En qué minuto fue el cambio?',
-          'Sale ' + nombreOut + ', entra ' + nombreIn + '. Poné el minuto (reloj regresivo ' + halfMinutes + '→0).',
+          'Sale ' + nombreOut + ', entra ' + nombreIn + '. Poné el minuto (reloj regresivo ' + halfMinutes + '→0).' + entroRef,
           manualMin, 0,
           (elapsed)=>{
             // el que sale: acumula su tiempo hasta este minuto
@@ -6936,6 +6953,7 @@ window.__initEditor = function(){
             stIn.onCourt=true; stIn.lastInAt=elapsed;
             // registrar el cambio con ese minuto
             manualMin = Math.round(halfMinutes - elapsed/60);
+            stIn.entroMin = manualMin;   // minuto de entrada (dato visual)
             logEvent('swap', pid, swapOutId);
             swapOutId=null; updateStep();
             renderField(); renderBench(); renderTotals(); updateOnCourt(); updateClockUI();
@@ -6946,6 +6964,7 @@ window.__initEditor = function(){
       // SIN cambio pendiente: es un titular que entra al arranque → minuto de inicio, sin preguntar.
       if(countOnCourt() >= 5){ toast(window.t('mFull5')); return; }
       const st=ensure(pid); st.onCourt=true; st.lastInAt=0;   // 0 = arranca desde el inicio del tiempo
+      st.entroMin = halfMinutes;   // entró al arranque (ej: 20') — dato visual
       logEvent('in', pid, null);
       renderField(); renderBench(); renderTotals(); updateOnCourt();
       return;
@@ -7076,7 +7095,7 @@ window.__initEditor = function(){
       d.style.top = slot.y + '%';
       const roleLabel = role==='otro' ? '' : role.charAt(0).toUpperCase()+role.slice(1);
       const st=ensure(p.id);
-      d.innerHTML=`<div class="lt-avatar">${(window.__avatarHTML?window.__avatarHTML(p,44):"")}</div><div class="lt-num">${escapeHtml(p.number?'#'+p.number:'')}${roleLabel?' · '+roleLabel:''}</div><div class="lt-name">${escapeHtml(p.name)}</div><div class="lt-time" data-t="${p.id}">${fmtClock(timeTotal(p.id))}</div><div class="lt-actions"><button class="lt-act lt-goal" title="Gol">⚽<span class="lt-cnt">${st.goals||0}</span></button><button class="lt-act lt-shot" title="Remate al arco">🎯<span class="lt-cnt">${st.shots||0}</span></button><button class="lt-act lt-foul" title="Falta (del tiempo actual)">⚠️<span class="lt-cnt">${foulsNow(p.id)}</span></button><button class="lt-act lt-card" title="Tarjeta amarilla">🟨<span class="lt-cnt">${st.cards||0}</span></button></div>`;
+      d.innerHTML=`<div class="lt-avatar">${(window.__avatarHTML?window.__avatarHTML(p,44):"")}</div><div class="lt-num">${escapeHtml(p.number?'#'+p.number:'')}${roleLabel?' · '+roleLabel:''}</div><div class="lt-name">${escapeHtml(p.name)}</div><div class="lt-time" data-t="${p.id}">${displayTimeEnCancha(p.id)}</div><div class="lt-actions"><button class="lt-act lt-goal" title="Gol">⚽<span class="lt-cnt">${st.goals||0}</span></button><button class="lt-act lt-shot" title="Remate al arco">🎯<span class="lt-cnt">${st.shots||0}</span></button><button class="lt-act lt-foul" title="Falta (del tiempo actual)">⚠️<span class="lt-cnt">${foulsNow(p.id)}</span></button><button class="lt-act lt-card" title="Tarjeta amarilla">🟨<span class="lt-cnt">${st.cards||0}</span></button></div>`;
       // click en la ficha (fuera de los botones) = cambio
       d.addEventListener('click',(e)=>{ if(e.target.closest('.lt-act')) return; tapOnCourt(p.id); });
       d.querySelector('.lt-goal').addEventListener('click',(e)=>{ e.stopPropagation(); addGoal(p.id); });
@@ -7102,7 +7121,15 @@ window.__initEditor = function(){
   }
   function updateTimes(){
     squad.forEach(p=>{
-      document.querySelectorAll(`[data-t="${p.id}"]`).forEach(el=>{ el.textContent=fmtClock(timeTotal(p.id)); });
+      document.querySelectorAll(`[data-t="${p.id}"]`).forEach(el=>{
+        // El cuadrado en cancha (.lt-time) muestra el minuto de entrada en reloj parado;
+        // el resto (banco, tabla) muestra el tiempo total.
+        if(el.classList.contains('lt-time')){
+          el.textContent = displayTimeEnCancha(p.id);
+        } else {
+          el.textContent = fmtClock(timeTotal(p.id));
+        }
+      });
     });
     // refrescar columnas de la tabla en vivo
     renderTotalsValues();
