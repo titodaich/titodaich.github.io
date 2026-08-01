@@ -840,6 +840,12 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .gol-origen-box{background:var(--panel);border:1px solid var(--accent-2);border-radius:16px;padding:20px 18px;max-width:400px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,0.5);}
 .go-head{font-size:16px;color:var(--chalk);text-align:center;margin-bottom:16px;font-family:'Inter',sans-serif;}
 .go-head b{color:var(--accent-2);}
+.go-min-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 12px;background:var(--bg-2);border:1px solid var(--line-soft);border-radius:10px;}
+.go-min-label{font-size:13px;color:var(--chalk);white-space:nowrap;font-family:'Inter',sans-serif;}
+.go-min-label span{color:var(--muted);font-size:11px;}
+.go-min-input{flex:1;background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);border-radius:8px;padding:9px 11px;font-size:15px;font-family:'JetBrains Mono',monospace;min-width:0;}
+.go-min-input:focus{outline:none;border-color:var(--accent-2);}
+.gol-origen-overlay.go-contra .go-min-input:focus{border-color:var(--danger);}
 .go-btns{display:flex;flex-direction:column;gap:8px;}
 .go-btn{background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);border-radius:10px;padding:13px 14px;font-size:15px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .12s;width:100%;text-align:center;}
 .go-btn:hover,.go-btn:active{border-color:var(--accent-2);background:rgba(47,143,203,0.15);color:var(--accent-2);}
@@ -850,6 +856,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .go-skip:hover{color:var(--danger);}
 .llr-origen{display:inline-block;background:rgba(47,143,203,0.15);border:1px solid var(--accent-2);color:var(--accent-2);border-radius:5px;padding:1px 7px;font-size:11px;margin-left:6px;font-family:'JetBrains Mono',monospace;}
 .llr-origen-add{background:transparent;border:1px dashed var(--muted);color:var(--muted);}
+.llr-min{display:inline-block;background:var(--panel-2);border:1px solid var(--line);color:var(--muted);border-radius:5px;padding:1px 6px;font-size:11px;margin-left:6px;font-family:'JetBrains Mono',monospace;}
 .llr-origen-add:hover{border-color:var(--accent-2);color:var(--accent-2);}
 .llr-origen-against{background:rgba(240,85,63,0.15);border-color:var(--danger);color:var(--danger);}
 .gol-origen-overlay.go-contra .gol-origen-box{border-color:var(--danger);}
@@ -894,6 +901,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .live-call-item.called .lci-check{background:var(--success);border-color:var(--success);}
 .live-call-item .lci-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
 .live-call-item .lci-name{font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;flex:1;}
+.live-call-item.invitado{border-style:dashed;border-color:var(--accent-2);}
+.live-call-item.invitado.called{border-style:solid;}
+.live-call-item .lci-inv{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--accent-2);background:rgba(47,143,203,0.12);border-radius:4px;padding:2px 6px;white-space:nowrap;}
 .live-clock-bar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:16px;}
 .live-clock{font-family:'JetBrains Mono',monospace;font-size:38px;font-weight:700;color:var(--chalk);letter-spacing:1px;min-width:130px;}
 .live-clock.running{color:var(--success);}
@@ -7153,12 +7163,14 @@ window.__initEditor = function(){
       else if(ev.type==='half'){ desc='— Fin del 1er tiempo —'; cls='half'; label='Tiempo'; }
       else if(ev.type==='goal'){
         desc='⚽ Gol de '+escapeHtml(ev.inName);
+        if(ev.min){ desc += ' <span class="llr-min">'+escapeHtml(ev.min)+'</span>'; }
         if(ev.origen){ desc += ' <span class="llr-origen" data-goal-idx="'+events.indexOf(ev)+'">🏷️ '+escapeHtml(ev.origen)+'</span>'; }
         else { desc += ' <span class="llr-origen llr-origen-add" data-goal-idx="'+events.indexOf(ev)+'">+ ¿cómo fue?</span>'; }
         cls='in'; label='Gol';
       }
       else if(ev.type==='goalAgainst'){
         desc='🥅 Gol en contra';
+        if(ev.min){ desc += ' <span class="llr-min">'+escapeHtml(ev.min)+'</span>'; }
         if(ev.origen){ desc += ' <span class="llr-origen llr-origen-against">🏷️ '+escapeHtml(ev.origen)+'</span>'; }
         else { desc += ' <span class="llr-origen llr-origen-add">+ ¿cómo fue?</span>'; }
         cls='out'; label='Gol -';
@@ -7335,7 +7347,8 @@ window.__initEditor = function(){
         const golesEnVivo = events.filter(e => e.type === 'goal').map(e => ({
           player_id: e.pid || '',
           player_name: e.inName || '',
-          origin: e.origen || ''
+          origin: e.origen || '',
+          min: e.min || ''
         }));
         if(golesEnVivo.length){
           // Traer el partido actual para no pisar goles ya cargados a mano
@@ -7462,17 +7475,26 @@ window.__initEditor = function(){
             matchLinkId=m.id; matchRival=m.rival||'Amistoso';
             document.querySelectorAll('#liveSetupRivals .rival-pick').forEach(b=>b.classList.remove('selected'));
             btn.classList.add('selected');
-            // Pre-tildar los jugadores convocados de ese partido (los citados = 'yes')
+            // Quitar invitados de un partido elegido antes (dejamos solo el plantel propio)
+            allSquad = allSquad.filter(p => !p.invitado);
             if(m.id){
               try{
-                const { data: mData } = await sb.from('stat_matches').select('calls').eq('id', m.id).single();
+                const { data: mData } = await sb.from('stat_matches').select('calls,invitados').eq('id', m.id).single();
                 const calls = (mData && mData.calls) || {};
+                const invitados = (mData && Array.isArray(mData.invitados)) ? mData.invitados : [];
+                // Sumar los invitados de ESTE partido a la plantilla disponible
+                invitados.forEach(inv => {
+                  if(!allSquad.some(p => p.id === inv.id)){
+                    allSquad.push({ id:inv.id, name:inv.name, number:inv.number||'', position:inv.position||'', photo:'', invitado:true, fromCat:inv.fromCat||'' });
+                  }
+                });
+                // Pre-tildar los convocados (citados = 'yes'), incluidos los invitados
                 setupCalled = {};
                 Object.keys(calls).forEach(pid => { if(calls[pid] === 'yes') setupCalled[pid] = true; });
                 renderCallGrid();
                 const n = Object.keys(setupCalled).length;
                 if(n > 0) toast('✓ '+n+' convocados de este partido');
-              }catch(e){ console.error('leer convocatorias', e); }
+              }catch(e){ console.error('leer convocatorias/invitados', e); }
             }
             updateStartHint();
           });
@@ -7492,8 +7514,9 @@ window.__initEditor = function(){
     allSquad.forEach(p=>{
       const on=!!setupCalled[p.id];
       const d=document.createElement('div');
-      d.className='live-call-item'+(on?' called':'');
-      d.innerHTML=`<span class="lci-check">${on?'✓':''}</span><span class="lci-num">${escapeHtml(p.number?'#'+p.number:'')}</span><span class="lci-name">${escapeHtml(p.name)}</span>`;
+      d.className='live-call-item'+(on?' called':'')+(p.invitado?' invitado':'');
+      const badge = p.invitado ? `<span class="lci-inv">sube${p.fromCat?' de '+escapeHtml(p.fromCat):''}</span>` : '';
+      d.innerHTML=`<span class="lci-check">${on?'✓':''}</span><span class="lci-num">${escapeHtml(p.number?'#'+p.number:'')}</span><span class="lci-name">${escapeHtml(p.name)}</span>${badge}`;
       d.addEventListener('click',()=>{ setupCalled[p.id]=!setupCalled[p.id]; renderCallGrid(); updateStartHint(); });
       grid.appendChild(d);
     });
@@ -7587,21 +7610,38 @@ window.__initEditor = function(){
       ? `🥅 Gol en contra — ¿cómo nos lo hicieron?`
       : `⚽ Gol de <b>${escapeHtml(jugadorNombre)}</b> — ¿cómo fue?`;
 
+    // Campo de minuto: opcional. Solo tiene sentido mostrarlo destacado en reloj parado
+    // (1era/3era), donde el minuto no se puede autocompletar. Igual lo dejamos siempre disponible.
+    const minActual = evento.min ? escapeHtml(evento.min) : '';
+    const periodo = currentHalf === 1 ? 'PT' : 'ST';
+
     ov.innerHTML = `<div class="gol-origen-box">
       <div class="go-head">${titulo}</div>
+      <div class="go-min-row">
+        <label class="go-min-label">⏱ Minuto <span>(opcional)</span></label>
+        <input type="text" class="go-min-input" id="goMinInput" value="${minActual}" placeholder="ej: 12' ${periodo}" inputmode="numeric">
+      </div>
       <div class="go-btns">${botones}</div>
       <button class="go-skip" id="goSkip">Saltear ✕</button>
     </div>`;
     document.body.appendChild(ov);
 
+    const minInput = ov.querySelector('#goMinInput');
+    // Guarda el minuto tipeado en el evento (si hay algo)
+    const guardarMin = () => {
+      const v = (minInput.value || '').trim();
+      evento.min = v || '';
+    };
+
     const cerrar = () => ov.remove();
-    ov.querySelector('#goSkip').addEventListener('click', cerrar);
-    ov.addEventListener('click', e => { if(e.target === ov) cerrar(); });
+    ov.querySelector('#goSkip').addEventListener('click', () => { guardarMin(); renderLog(); cerrar(); });
+    ov.addEventListener('click', e => { if(e.target === ov) { guardarMin(); renderLog(); cerrar(); } });
     ov.querySelectorAll('.go-btn[data-tag]').forEach(btn => {
       btn.addEventListener('click', () => {
         evento.origen = btn.dataset.tag;
+        guardarMin();
         renderLog();
-        toast('🏷️ '+btn.dataset.tag);
+        toast('🏷️ '+btn.dataset.tag + (evento.min ? ' · '+evento.min : ''));
         cerrar();
       });
     });
