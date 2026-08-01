@@ -703,6 +703,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 
 /* ===== PIZARRA TÁCTICA ===== */
 .board-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px;}
+.board-note{background:rgba(47,143,203,0.08);border:1px solid var(--line-soft);border-left:3px solid var(--accent-2);border-radius:8px;padding:10px 13px;margin-bottom:12px;font-size:12.5px;color:var(--muted);line-height:1.5;}
+.board-note b{color:var(--chalk);font-weight:600;}
+.board-mode-switch{display:flex;gap:0;margin-bottom:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:3px;width:fit-content;max-width:100%;flex-wrap:wrap;}
+.board-mode-btn{background:transparent;border:none;color:var(--muted);border-radius:7px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s ease;}
+.board-mode-btn.active{background:var(--accent-2);color:#10161C;}
 .board-tool-sep{width:1px;height:24px;background:var(--line);margin:0 4px;}
 .board-rec{border-color:var(--accent)!important;color:var(--accent)!important;font-weight:600;}
 .board-rec.recording{background:var(--accent)!important;color:#fff!important;animation:recpulse 1s infinite;}
@@ -725,6 +730,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .board-ball:active{cursor:grabbing;}
 .board-plays{width:230px;flex-shrink:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;}
 .board-plays-title{font-family:'Oswald',sans-serif;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 12px;color:var(--muted);}
+.board-train-section{margin-top:20px;padding-top:16px;border-top:1px solid var(--line);}
 .board-plays-list{display:flex;flex-direction:column;gap:8px;}
 /* Biblioteca de videos */
 .board-videos-head{display:flex;justify-content:space-between;align-items:center;margin-top:22px;padding-top:16px;border-top:1px solid var(--line);}
@@ -3247,12 +3253,26 @@ body.editor-active #screen-editor{ display:block; }
       <button class="btn small export-btn print-hide" id="exportBoardPdf">⬇ PDF</button>
     </div>
 
+    <div class="board-mode-switch">
+      <button class="board-mode-btn active" id="modeJugadas" data-mode="jugadas">⚽ Pizarra de partido (jugadas)</button>
+      <button class="board-mode-btn" id="modeEntrenamiento" data-mode="entrenamiento">🏋 Pizarra de entrenamiento</button>
+    </div>
+    <div class="board-note" id="boardNoteJugadas">
+      💡 <b>Modo jugadas.</b> Dibujá y grabá jugadas de partido moviendo los jugadores y la pelota. Ideal para explicar salidas, presiones y movimientos.
+    </div>
+    <div class="board-note" id="boardNoteEntrenamiento" style="display:none;">
+      💡 <b>Modo entrenamiento.</b> Diseñá ejercicios: sumá <b>jugadores de apoyo</b> (verdes), <b>conos</b> y <b>arcos</b> extra, y armá el espacio moviéndolos por la cancha. <span style="color:var(--muted);">Doble clic sobre un cono, arco o apoyo para quitarlo.</span>
+    </div>
     <div class="board-toolbar">
       <button class="btn small" id="boardResetBtn">↺ Posición inicial</button>
       <button class="btn small" id="boardClearBtn">Limpiar cancha</button>
       <div class="board-tool-sep"></div>
       <button class="btn small" id="boardAddHome">+ Jugador (local)</button>
       <button class="btn small" id="boardAddAway">+ Rival</button>
+      <button class="btn small board-tool-train" id="boardAddSupport" style="display:none;">+ Apoyo</button>
+      <div class="board-tool-sep board-tool-train" style="display:none;"></div>
+      <button class="btn small board-tool-train" id="boardAddCone" style="display:none;">▲ Cono</button>
+      <button class="btn small board-tool-train" id="boardAddGoal" style="display:none;">🥅 Arco</button>
       <div class="board-tool-sep"></div>
       <button class="btn small board-rec" id="boardRecBtn">● Grabar</button>
     </div>
@@ -3267,8 +3287,13 @@ body.editor-active #screen-editor{ display:block; }
         <svg id="futsalBoard" viewBox="0 0 680 400" xmlns="http://www.w3.org/2000/svg"></svg>
       </div>
       <div class="board-plays">
-        <h3 class="board-plays-title">Jugadas grabadas</h3>
+        <h3 class="board-plays-title">⚽ Jugadas grabadas</h3>
         <div class="board-plays-list" id="boardPlaysList"></div>
+
+        <div class="board-train-section">
+          <h3 class="board-plays-title">🏋 Entrenamientos guardados</h3>
+          <div class="board-plays-list" id="boardTrainList"></div>
+        </div>
 
         <div class="board-videos-head">
           <h3 class="board-plays-title">🎥 Biblioteca de videos</h3>
@@ -5941,6 +5966,46 @@ window.__initEditor = function(){
 
   // ----- Dibujar una ficha -----
   function drawToken(t){
+    // --- Cono (triángulo naranja) ---
+    if(t.team === 'cone'){
+      const g = document.createElementNS(SVGNS,'g');
+      g.setAttribute('class','board-token'); g.setAttribute('data-id',t.id);
+      g.setAttribute('transform',`translate(${t.x},${t.y})`);
+      const hit = document.createElementNS(SVGNS,'circle');
+      hit.setAttribute('r',22); hit.setAttribute('fill','transparent'); hit.setAttribute('class','tk-hit');
+      g.appendChild(hit);
+      const sh = document.createElementNS(SVGNS,'ellipse');
+      sh.setAttribute('cx',0); sh.setAttribute('cy',9); sh.setAttribute('rx',10); sh.setAttribute('ry',3);
+      sh.setAttribute('fill','rgba(0,0,0,0.28)'); g.appendChild(sh);
+      const tri = document.createElementNS(SVGNS,'path');
+      tri.setAttribute('d','M 0 -13 L 9 8 L -9 8 Z');
+      tri.setAttribute('fill','#E8A33D'); tri.setAttribute('stroke','#b87d24'); tri.setAttribute('stroke-width','1');
+      g.appendChild(tri);
+      const band = document.createElementNS(SVGNS,'path');
+      band.setAttribute('d','M -4.5 -2 L 4.5 -2 L 6 3 L -6 3 Z');
+      band.setAttribute('fill','rgba(255,255,255,0.55)');
+      g.appendChild(band);
+      return g;
+    }
+    // --- Arco (igual estilo que los de la cancha) ---
+    if(t.team === 'goal'){
+      const g = document.createElementNS(SVGNS,'g');
+      g.setAttribute('class','board-token'); g.setAttribute('data-id',t.id);
+      g.setAttribute('transform',`translate(${t.x},${t.y})`);
+      const hit = document.createElementNS(SVGNS,'rect');
+      hit.setAttribute('x',-8); hit.setAttribute('y',-30); hit.setAttribute('width',16); hit.setAttribute('height',60);
+      hit.setAttribute('fill','transparent'); hit.setAttribute('class','tk-hit');
+      g.appendChild(hit);
+      const post = document.createElementNS(SVGNS,'rect');
+      post.setAttribute('x',-3); post.setAttribute('y',-26); post.setAttribute('width',6); post.setAttribute('height',52);
+      post.setAttribute('fill','rgba(255,255,255,0.95)'); post.setAttribute('rx',1);
+      g.appendChild(post);
+      const net = document.createElementNS(SVGNS,'path');
+      net.setAttribute('d','M 3 -26 L 12 -20 M 3 -13 L 12 -8 M 3 0 L 12 4 M 3 13 L 12 16 M 3 26 L 12 28 M 12 -20 L 12 28');
+      net.setAttribute('stroke','rgba(255,255,255,0.4)'); net.setAttribute('stroke-width','1'); net.setAttribute('fill','none');
+      g.appendChild(net);
+      return g;
+    }
     if(t.team === 'ball'){
       const g = document.createElementNS(SVGNS,'g');
       g.setAttribute('class','board-ball'); g.setAttribute('data-id',t.id);
@@ -5986,7 +6051,7 @@ window.__initEditor = function(){
     g.appendChild(sh);
     // anillo exterior claro
     const ring = document.createElementNS(SVGNS,'circle');
-    ring.setAttribute('r',15); ring.setAttribute('fill', t.team==='home' ? 'url(#homeGrad)' : 'url(#awayGrad)');
+    ring.setAttribute('r',15); ring.setAttribute('fill', t.team==='home' ? 'url(#homeGrad)' : (t.team==='support' ? 'url(#supportGrad)' : 'url(#awayGrad)'));
     ring.setAttribute('stroke','rgba(255,255,255,0.9)'); ring.setAttribute('stroke-width','2');
     g.appendChild(ring);
     // brillo superior (highlight)
@@ -6015,6 +6080,11 @@ window.__initEditor = function(){
         <stop offset="0%" stop-color="#ff6a5f"/>
         <stop offset="60%" stop-color="#E5342A"/>
         <stop offset="100%" stop-color="#a81f18"/>
+      </radialGradient>
+      <radialGradient id="supportGrad" cx="40%" cy="35%" r="70%">
+        <stop offset="0%" stop-color="#6fd48f"/>
+        <stop offset="60%" stop-color="#4CAF6D"/>
+        <stop offset="100%" stop-color="#357a4c"/>
       </radialGradient>
       <radialGradient id="ballGrad" cx="38%" cy="32%" r="70%">
         <stop offset="0%" stop-color="#ffffff"/>
@@ -6073,6 +6143,16 @@ window.__initEditor = function(){
     el.addEventListener('pointerup', onUp);
     el.addEventListener('pointercancel', onUp);
     el.addEventListener('lostpointercapture', onUp);
+    // Doble clic borra conos, arcos y apoyos (elementos de entrenamiento)
+    el.addEventListener('dblclick', (e) => {
+      const id = el.getAttribute('data-id');
+      const tk = tokens.find(t => t.id === id);
+      if(tk && (tk.team === 'cone' || tk.team === 'goal' || tk.team === 'support')){
+        e.preventDefault();
+        tokens = tokens.filter(t => t.id !== id);
+        render();
+      }
+    });
   }
 
   // ----- Botones -----
@@ -6086,6 +6166,42 @@ window.__initEditor = function(){
     const n = tokens.filter(t=>t.team==='away').length + 1;
     tokens.push({ id:'a'+Date.now(), team:'away', x:560, y:200, label:String(n) }); render();
   });
+  // Jugador de apoyo (comodín, verde)
+  const addSup = document.getElementById('boardAddSupport');
+  if(addSup) addSup.addEventListener('click', () => {
+    const n = tokens.filter(t=>t.team==='support').length + 1;
+    tokens.push({ id:'s'+Date.now(), team:'support', x:340, y:120, label:'A' }); render();
+  });
+  // Cono
+  const addCone = document.getElementById('boardAddCone');
+  if(addCone) addCone.addEventListener('click', () => {
+    tokens.push({ id:'c'+Date.now(), team:'cone', x:340, y:200, label:'' }); render();
+  });
+  // Arco extra
+  const addGoal = document.getElementById('boardAddGoal');
+  if(addGoal) addGoal.addEventListener('click', () => {
+    tokens.push({ id:'g'+Date.now(), team:'goal', x:340, y:200, label:'' }); render();
+  });
+
+  // ----- CAMBIO DE MODO: jugadas / entrenamiento -----
+  window.__boardMode = 'jugadas';
+  function setBoardMode(modo){
+    window.__boardMode = modo;
+    const esEntren = (modo === 'entrenamiento');
+    // Botones de modo
+    document.getElementById('modeJugadas')?.classList.toggle('active', !esEntren);
+    document.getElementById('modeEntrenamiento')?.classList.toggle('active', esEntren);
+    // Notas
+    const nJ = document.getElementById('boardNoteJugadas');
+    const nE = document.getElementById('boardNoteEntrenamiento');
+    if(nJ) nJ.style.display = esEntren ? 'none' : '';
+    if(nE) nE.style.display = esEntren ? '' : 'none';
+    // Herramientas de entrenamiento (solo visibles en ese modo)
+    document.querySelectorAll('.board-tool-train').forEach(el => { el.style.display = esEntren ? '' : 'none'; });
+  }
+  document.getElementById('modeJugadas')?.addEventListener('click', () => setBoardMode('jugadas'));
+  document.getElementById('modeEntrenamiento')?.addEventListener('click', () => setBoardMode('entrenamiento'));
+  setBoardMode('jugadas');   // arranca en modo jugadas
 
   // ----- GRABACIÓN DE JUGADAS -----
   let recording = false;
@@ -6129,10 +6245,14 @@ window.__initEditor = function(){
     if(name === null) return;
     const descEl = document.getElementById('boardDescInput');
     const desc = descEl ? (descEl.value||'').trim() : '';
+    const esEntren = (window.__boardMode === 'entrenamiento');
+    const nJugadas = plays.filter(p => (p.tipo||'jugada') !== 'entrenamiento').length;
+    const nEntren = plays.filter(p => (p.tipo||'jugada') === 'entrenamiento').length;
     const play = {
       id: 'play'+Date.now(),
-      name: name || ('Jugada '+(plays.length+1)),
+      name: name || (esEntren ? ('Ejercicio '+(nEntren+1)) : ('Jugada '+(nJugadas+1))),
       desc: desc,
+      tipo: esEntren ? 'entrenamiento' : 'jugada',
       frames: recFrames,
       tokensSnapshot: JSON.parse(JSON.stringify(tokens))
     };
@@ -6153,13 +6273,14 @@ window.__initEditor = function(){
       const payload = {
         club_id: clubId, categoria: catActual(), temporada: (window.__getTemporada ? window.__getTemporada() : new Date().getFullYear()),
         name: play.name, frames: play.frames, tokens_snapshot: play.tokensSnapshot,
+        tipo: (play.tipo || 'jugada'),
         created_by: session ? session.user.id : null
       };
       if(play.desc) payload.description = play.desc;
       let { data, error } = await sb.from('board_plays').insert(payload).select().single();
-      // si falla por falta de columna description, reintentar sin ella
-      if(error && payload.description!==undefined){
-        delete payload.description;
+      // si falla por falta de columna, reintentar sin las opcionales
+      if(error && (payload.description!==undefined || payload.tipo!==undefined)){
+        delete payload.description; delete payload.tipo;
         const retry = await sb.from('board_plays').insert(payload).select().single();
         data = retry.data; error = retry.error;
       }
@@ -6185,6 +6306,7 @@ window.__initEditor = function(){
       if(error){ console.error('board load', error); return; }
       plays = (data||[]).map(p => ({
         id:'play'+p.id, dbId:p.id, name:p.name||'Jugada', desc:p.description||'',
+        tipo:p.tipo||'jugada',
         frames:p.frames||[], tokensSnapshot:p.tokens_snapshot||[]
       }));
       renderPlays();
@@ -6334,34 +6456,43 @@ window.__initEditor = function(){
   })();
 
   function renderPlays(){
-    const list = document.getElementById('boardPlaysList');
-    if(plays.length === 0){
-      list.innerHTML = '<div class="board-plays-empty">Todavía no grabaste jugadas. Tocá "● Grabar", movés las fichas, y "■ Detener".</div>';
-      return;
-    }
-    list.innerHTML = '';
-    plays.forEach((play, idx) => {
-      const item = document.createElement('div');
-      item.className = 'board-play';
-      const dur = (play.frames[play.frames.length-1].t/1000).toFixed(1);
-      item.innerHTML = `
-        <div class="board-play-name">${escapeHtml(play.name)} <span style="color:var(--muted);font-weight:400;font-size:11px;">${dur}s</span></div>
-        ${play.desc ? `<div class="board-play-desc">${escapeHtml(play.desc)}</div>` : ''}
-        <div class="board-play-actions">
-          <button class="bp-play">▶ Ver</button>
-          <button class="bp-export">⬇ Exportar</button>
-          <button class="bp-del">🗑</button>
-        </div>
-      `;
-      item.querySelector('.bp-play').addEventListener('click', () => playPlay(play));
-      item.querySelector('.bp-export').addEventListener('click', () => exportPlay(play));
-      item.querySelector('.bp-del').addEventListener('click', async () => {
-        if(!confirm('¿Eliminar la jugada "'+play.name+'"?')) return;
-        if(play.dbId && window.__sb){ try{ await window.__sb.from('board_plays').delete().eq('id', play.dbId); }catch(e){} }
-        plays.splice(idx,1); renderPlays();
+    const listJugadas = document.getElementById('boardPlaysList');
+    const listTrain = document.getElementById('boardTrainList');
+    const jugadas = plays.filter(p => (p.tipo||'jugada') !== 'entrenamiento');
+    const entrenamientos = plays.filter(p => (p.tipo||'jugada') === 'entrenamiento');
+
+    // Renderiza una lista de plays en un contenedor dado
+    const pintar = (cont, items, vacio) => {
+      if(!cont) return;
+      if(items.length === 0){ cont.innerHTML = '<div class="board-plays-empty">'+vacio+'</div>'; return; }
+      cont.innerHTML = '';
+      items.forEach((play) => {
+        const item = document.createElement('div');
+        item.className = 'board-play';
+        const dur = (play.frames[play.frames.length-1].t/1000).toFixed(1);
+        item.innerHTML = `
+          <div class="board-play-name">${escapeHtml(play.name)} <span style="color:var(--muted);font-weight:400;font-size:11px;">${dur}s</span></div>
+          ${play.desc ? `<div class="board-play-desc">${escapeHtml(play.desc)}</div>` : ''}
+          <div class="board-play-actions">
+            <button class="bp-play">▶ Ver</button>
+            <button class="bp-export">⬇ Exportar</button>
+            <button class="bp-del">🗑</button>
+          </div>
+        `;
+        item.querySelector('.bp-play').addEventListener('click', () => playPlay(play));
+        item.querySelector('.bp-export').addEventListener('click', () => exportPlay(play));
+        item.querySelector('.bp-del').addEventListener('click', async () => {
+          if(!confirm('¿Eliminar "'+play.name+'"?')) return;
+          if(play.dbId && window.__sb){ try{ await window.__sb.from('board_plays').delete().eq('id', play.dbId); }catch(e){} }
+          const i = plays.indexOf(play); if(i>=0) plays.splice(i,1);
+          renderPlays();
+        });
+        cont.appendChild(item);
       });
-      list.appendChild(item);
-    });
+    };
+
+    pintar(listJugadas, jugadas, 'Todavía no grabaste jugadas. En modo "jugadas", tocá "● Grabar", movés las fichas, y "■ Detener".');
+    pintar(listTrain, entrenamientos, 'Todavía no guardaste entrenamientos. En modo "entrenamiento", armá el ejercicio y tocá "● Grabar".');
   }
 
   // Exportar la jugada como archivo .json (para guardar/compartir)
