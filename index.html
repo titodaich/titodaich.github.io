@@ -851,6 +851,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .llr-origen{display:inline-block;background:rgba(47,143,203,0.15);border:1px solid var(--accent-2);color:var(--accent-2);border-radius:5px;padding:1px 7px;font-size:11px;margin-left:6px;font-family:'JetBrains Mono',monospace;}
 .llr-origen-add{background:transparent;border:1px dashed var(--muted);color:var(--muted);}
 .llr-origen-add:hover{border-color:var(--accent-2);color:var(--accent-2);}
+.llr-origen-against{background:rgba(240,85,63,0.15);border-color:var(--danger);color:var(--danger);}
+.gol-origen-overlay.go-contra .gol-origen-box{border-color:var(--danger);}
+.gol-origen-overlay.go-contra .go-btn:hover,.gol-origen-overlay.go-contra .go-btn:active{border-color:var(--danger);background:rgba(240,85,63,0.15);color:var(--danger);}
 .live-scoreboard .lsb-result{display:flex;align-items:center;gap:14px;}
 .live-scoreboard .lsb-col{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:70px;}
 .live-scoreboard .lsb-team{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.5px;color:var(--muted);text-transform:uppercase;}
@@ -6852,6 +6855,13 @@ window.__initEditor = function(){
     halfSplitAt = clockSeconds;
     currentHalf = 2;
     clockRunning=false; clearInterval(clockTimer); clockTimer=null; clockAnchor=null;
+    // El timer del PERÍODO vuelve a 0 en el 2º tiempo (el acumulado ya quedó guardado
+    // en halfSplitAt y en acc1 de cada jugador).
+    if(clockType!=='parado'){
+      clockSeconds = 0;
+      // los que están en cancha arrancan su tramo del 2º tiempo desde 0
+      Object.keys(state).forEach(pid=>{ if(state[pid].onCourt) state[pid].lastInAt = 0; });
+    }
     events.unshift({ t:now, type:'half', inName:'', outName:'' });
     // en parado, el 2do tiempo arranca de nuevo en 20'
     if(clockType==='parado'){ manualMin = halfMinutes; Object.keys(state).forEach(pid=>{ if(state[pid].onCourt) state[pid].lastInAt = manualElapsed(); }); }
@@ -7147,6 +7157,12 @@ window.__initEditor = function(){
         else { desc += ' <span class="llr-origen llr-origen-add" data-goal-idx="'+events.indexOf(ev)+'">+ ¿cómo fue?</span>'; }
         cls='in'; label='Gol';
       }
+      else if(ev.type==='goalAgainst'){
+        desc='🥅 Gol en contra';
+        if(ev.origen){ desc += ' <span class="llr-origen llr-origen-against">🏷️ '+escapeHtml(ev.origen)+'</span>'; }
+        else { desc += ' <span class="llr-origen llr-origen-add">+ ¿cómo fue?</span>'; }
+        cls='out'; label='Gol -';
+      }
       else if(ev.type==='shot'){ desc='🎯 Remate de '+escapeHtml(ev.inName); cls='swap'; label='Remate'; }
       else if(ev.type==='foul'){ desc='⚠️ Falta de '+escapeHtml(ev.inName); cls='out'; label='Falta'; }
       else if(ev.type==='card'){ desc='🟨 Tarjeta a '+escapeHtml(ev.inName); cls='half'; label='Tarjeta'; }
@@ -7155,7 +7171,7 @@ window.__initEditor = function(){
       const origenEl = row.querySelector('.llr-origen');
       if(origenEl){
         origenEl.style.cursor='pointer';
-        origenEl.addEventListener('click', () => abrirSelectorOrigenGol(ev, ev.inName));
+        origenEl.addEventListener('click', () => abrirSelectorOrigenGol(ev, ev.inName, ev.type==='goalAgainst'));
       }
       el.appendChild(row);
     });
@@ -7204,8 +7220,28 @@ window.__initEditor = function(){
 
   // ----- Marcador: contadores MANUALES (goles y faltas en contra) -----
   function bindMini(id, fn){ const b=document.getElementById(id); if(b) b.addEventListener('click', fn); }
-  bindMini('sbGAplus', ()=>{ goalsAgainstManual++; renderScoreboard(); });
-  bindMini('sbGAminus',()=>{ goalsAgainstManual=Math.max(0,goalsAgainstManual-1); renderScoreboard(); });
+  bindMini('sbGAplus', ()=>{
+    goalsAgainstManual++;
+    // Un gol implica un remate: sumamos remate en contra automáticamente
+    if(currentHalf===1) shotsAgainst1++; else shotsAgainst2++;
+    // Registrar el evento del gol en contra (para poder etiquetar cómo fue)
+    const evento = { t:nowSeconds(), type:'goalAgainst', pid:null, inName:'Rival', outName:'', half:currentHalf, origen:null };
+    events.unshift(evento);
+    renderScoreboard(); renderLog();
+    // Abrir el cartelito de "cómo fue el gol en contra"
+    abrirSelectorOrigenGol(evento, 'Rival', true);
+  });
+  bindMini('sbGAminus',()=>{
+    if(goalsAgainstManual>0){
+      goalsAgainstManual--;
+      // Al restar un gol, restamos también el remate que se había sumado
+      if(currentHalf===1) shotsAgainst1=Math.max(0,shotsAgainst1-1); else shotsAgainst2=Math.max(0,shotsAgainst2-1);
+      // Quitar el último evento de gol en contra
+      const idx = events.findIndex(e => e.type==='goalAgainst');
+      if(idx>=0) events.splice(idx,1);
+    }
+    renderScoreboard(); renderLog();
+  });
   bindMini('sbFAplus', ()=>{ if(currentHalf===1) foulsAgainst1++; else foulsAgainst2++; renderScoreboard(); });
   bindMini('sbFAminus',()=>{ if(currentHalf===1) foulsAgainst1=Math.max(0,foulsAgainst1-1); else foulsAgainst2=Math.max(0,foulsAgainst2-1); renderScoreboard(); });
   bindMini('sbSFplus', ()=>{ if(currentHalf===1) shotsFor1++; else shotsFor2++; renderScoreboard(); });
@@ -7422,10 +7458,22 @@ window.__initEditor = function(){
           const btn=document.createElement('button'); btn.className='rival-pick'+(matchLinkId===m.id&&matchRival===(m.rival||'')?' selected':'');
           const when=m.match_date?new Date(m.match_date+'T00:00:00').toLocaleDateString('es-AR'):'';
           btn.innerHTML=`<span class="rp-check"></span><span class="rp-name">${escapeHtml(m.rival||'Sin rival')}</span><span class="rp-date">${when}</span>`;
-          btn.addEventListener('click',()=>{
+          btn.addEventListener('click', async ()=>{
             matchLinkId=m.id; matchRival=m.rival||'Amistoso';
             document.querySelectorAll('#liveSetupRivals .rival-pick').forEach(b=>b.classList.remove('selected'));
             btn.classList.add('selected');
+            // Pre-tildar los jugadores convocados de ese partido (los citados = 'yes')
+            if(m.id){
+              try{
+                const { data: mData } = await sb.from('stat_matches').select('calls').eq('id', m.id).single();
+                const calls = (mData && mData.calls) || {};
+                setupCalled = {};
+                Object.keys(calls).forEach(pid => { if(calls[pid] === 'yes') setupCalled[pid] = true; });
+                renderCallGrid();
+                const n = Object.keys(setupCalled).length;
+                if(n > 0) toast('✓ '+n+' convocados de este partido');
+              }catch(e){ console.error('leer convocatorias', e); }
+            }
             updateStartHint();
           });
           cont.appendChild(btn);
@@ -7509,7 +7557,8 @@ window.__initEditor = function(){
   }
 
   // Cartelito rápido para etiquetar cómo fue el gol (se puede saltear).
-  function abrirSelectorOrigenGol(evento, jugadorNombre){
+  // esContra = true cuando es un gol del rival (cambia los textos).
+  function abrirSelectorOrigenGol(evento, jugadorNombre, esContra){
     const tags = Array.isArray(window.__origins) && window.__origins.length ? window.__origins : [
       { name:'Ataque posicional', subs:[] }, { name:'Transición', subs:[] },
       { name:'Robo alto', subs:[] }, { name:'Estrategia', subs:['Tiro libre','Lateral','Córner'] },
@@ -7520,10 +7569,10 @@ window.__initEditor = function(){
 
     const ov = document.createElement('div');
     ov.className = 'gol-origen-overlay'; ov.id = 'golOrigenOverlay';
+    if(esContra) ov.classList.add('go-contra');
     let botones = '';
     tags.forEach((tag, i) => {
       if(tag.subs && tag.subs.length){
-        // Tag con sub-opciones: muestra el principal y despliega las subs
         botones += `<div class="go-group"><button class="go-btn go-parent" data-parent="${i}">${escapeHtml(tag.name)} ▾</button><div class="go-subs" data-subs="${i}" style="display:none;">`;
         tag.subs.forEach(sub => {
           botones += `<button class="go-btn go-sub" data-tag="${escapeHtml(tag.name)} → ${escapeHtml(sub)}">${escapeHtml(sub)}</button>`;
@@ -7534,18 +7583,20 @@ window.__initEditor = function(){
       }
     });
 
+    const titulo = esContra
+      ? `🥅 Gol en contra — ¿cómo nos lo hicieron?`
+      : `⚽ Gol de <b>${escapeHtml(jugadorNombre)}</b> — ¿cómo fue?`;
+
     ov.innerHTML = `<div class="gol-origen-box">
-      <div class="go-head">⚽ Gol de <b>${escapeHtml(jugadorNombre)}</b> — ¿cómo fue?</div>
+      <div class="go-head">${titulo}</div>
       <div class="go-btns">${botones}</div>
       <button class="go-skip" id="goSkip">Saltear ✕</button>
     </div>`;
     document.body.appendChild(ov);
 
     const cerrar = () => ov.remove();
-    // Saltear (no pone tag)
     ov.querySelector('#goSkip').addEventListener('click', cerrar);
     ov.addEventListener('click', e => { if(e.target === ov) cerrar(); });
-    // Tags simples y subs: asignan y cierran
     ov.querySelectorAll('.go-btn[data-tag]').forEach(btn => {
       btn.addEventListener('click', () => {
         evento.origen = btn.dataset.tag;
@@ -7554,7 +7605,6 @@ window.__initEditor = function(){
         cerrar();
       });
     });
-    // Tags con subs: despliegan
     ov.querySelectorAll('.go-parent').forEach(btn => {
       btn.addEventListener('click', () => {
         const subs = ov.querySelector('[data-subs="'+btn.dataset.parent+'"]');
