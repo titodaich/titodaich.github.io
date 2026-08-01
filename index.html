@@ -835,6 +835,22 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .live-finish-top{font-size:15px;padding:11px 24px;}
 /* ===== MARCADOR EN VIVO ===== */
 .live-scoreboard{display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 18px;box-shadow:0 2px 8px rgba(0,0,0,0.25);}
+/* Cartelito rápido "cómo fue el gol" (En Vivo) */
+.gol-origen-overlay{position:fixed;inset:0;background:rgba(6,10,14,0.82);backdrop-filter:blur(3px);z-index:9000;display:flex;align-items:center;justify-content:center;padding:18px;}
+.gol-origen-box{background:var(--panel);border:1px solid var(--accent-2);border-radius:16px;padding:20px 18px;max-width:400px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,0.5);}
+.go-head{font-size:16px;color:var(--chalk);text-align:center;margin-bottom:16px;font-family:'Inter',sans-serif;}
+.go-head b{color:var(--accent-2);}
+.go-btns{display:flex;flex-direction:column;gap:8px;}
+.go-btn{background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);border-radius:10px;padding:13px 14px;font-size:15px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .12s;width:100%;text-align:center;}
+.go-btn:hover,.go-btn:active{border-color:var(--accent-2);background:rgba(47,143,203,0.15);color:var(--accent-2);}
+.go-group{display:flex;flex-direction:column;gap:6px;}
+.go-subs{display:flex;flex-direction:column;gap:6px;padding-left:14px;}
+.go-sub{background:var(--bg-2);font-size:14px;padding:10px 14px;}
+.go-skip{margin-top:14px;background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;width:100%;padding:8px;font-family:'Inter',sans-serif;}
+.go-skip:hover{color:var(--danger);}
+.llr-origen{display:inline-block;background:rgba(47,143,203,0.15);border:1px solid var(--accent-2);color:var(--accent-2);border-radius:5px;padding:1px 7px;font-size:11px;margin-left:6px;font-family:'JetBrains Mono',monospace;}
+.llr-origen-add{background:transparent;border:1px dashed var(--muted);color:var(--muted);}
+.llr-origen-add:hover{border-color:var(--accent-2);color:var(--accent-2);}
 .live-scoreboard .lsb-result{display:flex;align-items:center;gap:14px;}
 .live-scoreboard .lsb-col{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:70px;}
 .live-scoreboard .lsb-team{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.5px;color:var(--muted);text-transform:uppercase;}
@@ -7125,11 +7141,22 @@ window.__initEditor = function(){
       else if(ev.type==='out'){ desc='Sale '+escapeHtml(ev.outName); cls='out'; label='Salida'; }
       else if(ev.type==='swap'){ desc='Cambio: sale '+escapeHtml(ev.outName)+', entra '+escapeHtml(ev.inName); cls='swap'; label='Cambio'; }
       else if(ev.type==='half'){ desc='— Fin del 1er tiempo —'; cls='half'; label='Tiempo'; }
-      else if(ev.type==='goal'){ desc='⚽ Gol de '+escapeHtml(ev.inName); cls='in'; label='Gol'; }
+      else if(ev.type==='goal'){
+        desc='⚽ Gol de '+escapeHtml(ev.inName);
+        if(ev.origen){ desc += ' <span class="llr-origen" data-goal-idx="'+events.indexOf(ev)+'">🏷️ '+escapeHtml(ev.origen)+'</span>'; }
+        else { desc += ' <span class="llr-origen llr-origen-add" data-goal-idx="'+events.indexOf(ev)+'">+ ¿cómo fue?</span>'; }
+        cls='in'; label='Gol';
+      }
       else if(ev.type==='shot'){ desc='🎯 Remate de '+escapeHtml(ev.inName); cls='swap'; label='Remate'; }
       else if(ev.type==='foul'){ desc='⚠️ Falta de '+escapeHtml(ev.inName); cls='out'; label='Falta'; }
       else if(ev.type==='card'){ desc='🟨 Tarjeta a '+escapeHtml(ev.inName); cls='half'; label='Tarjeta'; }
       row.innerHTML=`<span class="llr-time">${fmtClock(ev.t)}</span><span class="llr-type ${cls}">${label}</span><span class="llr-desc">${desc}</span>`;
+      // Permitir editar/agregar el tag del gol tocándolo (modo manual)
+      const origenEl = row.querySelector('.llr-origen');
+      if(origenEl){
+        origenEl.style.cursor='pointer';
+        origenEl.addEventListener('click', () => abrirSelectorOrigenGol(ev, ev.inName));
+      }
       el.appendChild(row);
     });
   }
@@ -7264,6 +7291,29 @@ window.__initEditor = function(){
       // quedó guardado en el teléfono; se subirá solo cuando vuelva internet
       toast(window.t('mSavedLocal'));
     }
+
+    // Si se asoció a un partido, volcar los goles CON SU TAG DE ORIGEN a estadísticas.
+    if(matchId && sb){
+      try{
+        // Tomar los goles registrados en vivo (con su origen)
+        const golesEnVivo = events.filter(e => e.type === 'goal').map(e => ({
+          player_id: e.pid || '',
+          player_name: e.inName || '',
+          origin: e.origen || ''
+        }));
+        if(golesEnVivo.length){
+          // Traer el partido actual para no pisar goles ya cargados a mano
+          const { data: mData } = await sb.from('stat_matches').select('goals_for').eq('id', matchId).single();
+          const existentes = (mData && Array.isArray(mData.goals_for)) ? mData.goals_for : [];
+          // Solo agregamos si el partido no tenía goles cargados (para no duplicar)
+          if(existentes.length === 0){
+            await sb.from('stat_matches').update({ goals_for: golesEnVivo, updated_at: new Date().toISOString() }).eq('id', matchId);
+            if(typeof window.__refreshMinutes === 'function') window.__refreshMinutes();
+          }
+        }
+      }catch(e){ console.error('volcar goles con origen', e); }
+    }
+
     // En ambos casos volvemos al setup: el partido está a salvo (local o nube)
     setupCalled = {}; matchRival = ''; matchLinkId = null;
     backToSetup();
@@ -7449,9 +7499,68 @@ window.__initEditor = function(){
   // ===== Gol / Falta =====
   function addGoal(pid){
     const st=ensure(pid); st.goals++;
-    events.unshift({ t:nowSeconds(), type:'goal', pid, inName:(squad.find(p=>p.id===pid)||{}).name||'', outName:'', half:currentHalf });
+    const jugadorNombre = (squad.find(p=>p.id===pid)||{}).name||'';
+    const evento = { t:nowSeconds(), type:'goal', pid, inName:jugadorNombre, outName:'', half:currentHalf, origen:null };
+    events.unshift(evento);
     renderField(); renderTotals(); renderLog(); renderScoreboard();
-    toast(window.t('mGoalOf')+((squad.find(p=>p.id===pid)||{}).name||''));
+    toast(window.t('mGoalOf')+jugadorNombre);
+    // Abrir el cartelito rápido de "cómo fue el gol"
+    abrirSelectorOrigenGol(evento, jugadorNombre);
+  }
+
+  // Cartelito rápido para etiquetar cómo fue el gol (se puede saltear).
+  function abrirSelectorOrigenGol(evento, jugadorNombre){
+    const tags = Array.isArray(window.__origins) && window.__origins.length ? window.__origins : [
+      { name:'Ataque posicional', subs:[] }, { name:'Transición', subs:[] },
+      { name:'Robo alto', subs:[] }, { name:'Estrategia', subs:['Tiro libre','Lateral','Córner'] },
+      { name:'5 vs 4', subs:[] }, { name:'4 vs 5', subs:[] }
+    ];
+    // Quitar cualquier selector previo
+    const prev = document.getElementById('golOrigenOverlay'); if(prev) prev.remove();
+
+    const ov = document.createElement('div');
+    ov.className = 'gol-origen-overlay'; ov.id = 'golOrigenOverlay';
+    let botones = '';
+    tags.forEach((tag, i) => {
+      if(tag.subs && tag.subs.length){
+        // Tag con sub-opciones: muestra el principal y despliega las subs
+        botones += `<div class="go-group"><button class="go-btn go-parent" data-parent="${i}">${escapeHtml(tag.name)} ▾</button><div class="go-subs" data-subs="${i}" style="display:none;">`;
+        tag.subs.forEach(sub => {
+          botones += `<button class="go-btn go-sub" data-tag="${escapeHtml(tag.name)} → ${escapeHtml(sub)}">${escapeHtml(sub)}</button>`;
+        });
+        botones += `</div></div>`;
+      } else {
+        botones += `<button class="go-btn" data-tag="${escapeHtml(tag.name)}">${escapeHtml(tag.name)}</button>`;
+      }
+    });
+
+    ov.innerHTML = `<div class="gol-origen-box">
+      <div class="go-head">⚽ Gol de <b>${escapeHtml(jugadorNombre)}</b> — ¿cómo fue?</div>
+      <div class="go-btns">${botones}</div>
+      <button class="go-skip" id="goSkip">Saltear ✕</button>
+    </div>`;
+    document.body.appendChild(ov);
+
+    const cerrar = () => ov.remove();
+    // Saltear (no pone tag)
+    ov.querySelector('#goSkip').addEventListener('click', cerrar);
+    ov.addEventListener('click', e => { if(e.target === ov) cerrar(); });
+    // Tags simples y subs: asignan y cierran
+    ov.querySelectorAll('.go-btn[data-tag]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        evento.origen = btn.dataset.tag;
+        renderLog();
+        toast('🏷️ '+btn.dataset.tag);
+        cerrar();
+      });
+    });
+    // Tags con subs: despliegan
+    ov.querySelectorAll('.go-parent').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const subs = ov.querySelector('[data-subs="'+btn.dataset.parent+'"]');
+        if(subs) subs.style.display = subs.style.display==='none' ? 'flex' : 'none';
+      });
+    });
   }
   function addFoul(pid){
     const st=ensure(pid); if(currentHalf===1) st.fouls1++; else st.fouls2++;
@@ -8257,6 +8366,8 @@ window.__initEditor = function(){
         const ins = await sb.from('goal_origins').insert({ club_id:clubId, categoria:cat, name:JSON.stringify(origins), sort_order:0 }).select().single();
         if(ins.data) originsRowId = ins.data.id;
       }
+      // Exponer los tags de origen para que el módulo En Vivo los use
+      window.__origins = origins;
 
       // Partidos
       let mq = sb.from('stat_matches').select('*').eq('club_id', clubId);
