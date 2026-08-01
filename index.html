@@ -4555,7 +4555,7 @@ window.__openPackLimit = function(catNueva){
 // para que la sesión no se pierda en un reload en un entorno real.
 const memoryStore = {};
 const safeStorage = {
-  getItem: (k) => { try { return window.localStorage.getItem(k); } catch(e) { return memoryStore[k] ?? null; } },
+  getItem: (k) => { try { return window.localStorage.getItem(k); } catch(e) { return memoryStore[k] || null; } },
   setItem: (k, v) => { try { window.localStorage.setItem(k, v); } catch(e) { memoryStore[k] = v; } },
   removeItem: (k) => { try { window.localStorage.removeItem(k); } catch(e) { delete memoryStore[k]; } }
 };
@@ -4620,7 +4620,7 @@ function setMode(newMode){
 }
 toggleModeBtn.addEventListener('click', () => setMode(mode === 'signin' ? 'signup' : 'signin'));
 // Link "términos y política" del formulario de registro
-document.getElementById('openLegalLink')?.addEventListener('click', (e) => {
+document.getElementById('openLegalLink') && document.getElementById('openLegalLink').addEventListener('click', (e) => {
   e.preventDefault();
   if(window.__openLegal) window.__openLegal();
 });
@@ -4788,7 +4788,7 @@ form.addEventListener('submit', async (e) => {
       if(window.__cargarNotificaciones) setTimeout(window.__cargarNotificaciones, 800);
     } else {
       // Sin sesión (requiere confirmar email). Guardamos lo posible igual.
-      try{ await guardarPerfil(data.user?.id, email, perfil); }catch(e){}
+      try{ await guardarPerfil((data.user && data.user.id), email, perfil); }catch(e){}
       showSuccess('Cuenta creada. Revisá tu email para confirmarla y después iniciá sesión.');
       setMode('signin');
     }
@@ -5162,7 +5162,7 @@ window.__initEditor = function(){
     guardarLeidas();
     setTimeout(() => { dot.style.display = 'none'; }, 400);
   });
-  document.getElementById('notifClose')?.addEventListener('click', () => { panel.style.display = 'none'; });
+  document.getElementById('notifClose') && document.getElementById('notifClose').addEventListener('click', () => { panel.style.display = 'none'; });
   document.addEventListener('click', e => {
     if(!panel.contains(e.target) && !bell.contains(e.target)) panel.style.display = 'none';
   });
@@ -5281,17 +5281,17 @@ window.__initEditor = function(){
   function cerrarModal(){ if(modal) modal.style.display = 'none'; }
 
   if(btnNew) btnNew.addEventListener('click', abrirModal);
-  document.getElementById('seasonModalClose')?.addEventListener('click', cerrarModal);
-  document.getElementById('seasonCancel')?.addEventListener('click', cerrarModal);
-  modal?.addEventListener('click', e => { if(e.target === modal) cerrarModal(); });
-  document.getElementById('seasonAll')?.addEventListener('click', () => {
+  document.getElementById('seasonModalClose') && document.getElementById('seasonModalClose').addEventListener('click', cerrarModal);
+  document.getElementById('seasonCancel') && document.getElementById('seasonCancel').addEventListener('click', cerrarModal);
+  if(modal) modal.addEventListener('click', e => { if(e.target === modal) cerrarModal(); });
+  document.getElementById('seasonAll') && document.getElementById('seasonAll').addEventListener('click', () => {
     document.querySelectorAll('#seasonPlayers input[type=checkbox]').forEach(c => c.checked = true);
   });
-  document.getElementById('seasonNone')?.addEventListener('click', () => {
+  document.getElementById('seasonNone') && document.getElementById('seasonNone').addEventListener('click', () => {
     document.querySelectorAll('#seasonPlayers input[type=checkbox]').forEach(c => c.checked = false);
   });
 
-  document.getElementById('seasonCreate')?.addEventListener('click', async () => {
+  document.getElementById('seasonCreate') && document.getElementById('seasonCreate').addEventListener('click', async () => {
     const año = parseInt(document.getElementById('seasonYear').value, 10);
     if(!año || año < 2000 || año > 2100){ toast('Poné un año válido'); return; }
     if(temporadas.includes(año)){ toast('Esa temporada ya existe'); return; }
@@ -6345,8 +6345,8 @@ window.__initEditor = function(){
     window.__boardMode = modo;
     const esEntren = (modo === 'entrenamiento');
     // Botones de modo
-    document.getElementById('modeJugadas')?.classList.toggle('active', !esEntren);
-    document.getElementById('modeEntrenamiento')?.classList.toggle('active', esEntren);
+    document.getElementById('modeJugadas') && document.getElementById('modeJugadas').classList.toggle('active', !esEntren);
+    document.getElementById('modeEntrenamiento') && document.getElementById('modeEntrenamiento').classList.toggle('active', esEntren);
     // Notas
     const nJ = document.getElementById('boardNoteJugadas');
     const nE = document.getElementById('boardNoteEntrenamiento');
@@ -6355,8 +6355,8 @@ window.__initEditor = function(){
     // Herramientas de entrenamiento (solo visibles en ese modo)
     document.querySelectorAll('.board-tool-train').forEach(el => { el.style.display = esEntren ? '' : 'none'; });
   }
-  document.getElementById('modeJugadas')?.addEventListener('click', () => setBoardMode('jugadas'));
-  document.getElementById('modeEntrenamiento')?.addEventListener('click', () => setBoardMode('entrenamiento'));
+  document.getElementById('modeJugadas') && document.getElementById('modeJugadas').addEventListener('click', () => setBoardMode('jugadas'));
+  document.getElementById('modeEntrenamiento') && document.getElementById('modeEntrenamiento').addEventListener('click', () => setBoardMode('entrenamiento'));
   setBoardMode('jugadas');   // arranca en modo jugadas
 
   // ----- GRABACIÓN DE JUGADAS -----
@@ -8850,10 +8850,10 @@ window.__initEditor = function(){
       aplicarZoom(parseFloat(zoom.value) || 1);
     });
     // Botones + y - (además de la barra)
-    document.getElementById('cropZoomIn')?.addEventListener('click', () => {
+    document.getElementById('cropZoomIn') && document.getElementById('cropZoomIn').addEventListener('click', () => {
       aplicarZoom((parseFloat(zoom.value) || 1) + 0.3);
     });
-    document.getElementById('cropZoomOut')?.addEventListener('click', () => {
+    document.getElementById('cropZoomOut') && document.getElementById('cropZoomOut').addEventListener('click', () => {
       aplicarZoom((parseFloat(zoom.value) || 1) - 0.3);
     });
 
@@ -8895,8 +8895,8 @@ window.__initEditor = function(){
       }catch(err){ console.error('recorte', err); toast('No se pudo guardar la foto'); }
     });
 
-    document.getElementById('photoCropClose')?.addEventListener('click', cerrar);
-    document.getElementById('photoCropCancel')?.addEventListener('click', cerrar);
+    document.getElementById('photoCropClose') && document.getElementById('photoCropClose').addEventListener('click', cerrar);
+    document.getElementById('photoCropCancel') && document.getElementById('photoCropCancel').addEventListener('click', cerrar);
     modal.addEventListener('click', e => { if(e.target === modal) cerrar(); });
   })();
 
@@ -8960,7 +8960,7 @@ window.__initEditor = function(){
     input.click();
   }
   // enganchar el botón del escudo
-  document.getElementById('clubEscudoBtn')?.addEventListener('click', subirEscudoClub);
+  document.getElementById('clubEscudoBtn') && document.getElementById('clubEscudoBtn').addEventListener('click', subirEscudoClub);
   window.__cargarEscudoClub = cargarEscudoClub;
 
   // ── Selector de posiciones ──
@@ -11024,8 +11024,8 @@ window.__initEditor = function(){
         <div class="pc-stat"><div class="pc-stat-num" style="color:var(--accent-2)">${totAssists}</div><div class="pc-stat-lbl">Asistencias</div></div>
         <div class="pc-stat"><div class="pc-stat-num" style="color:var(--danger)">${totCards}</div><div class="pc-stat-lbl">Tarjetas</div></div>
         <div class="pc-stat"><div class="pc-stat-num">${called}</div><div class="pc-stat-lbl">Citado</div></div>
-        <div class="pc-stat"><div class="pc-stat-num" style="color:#E0A93B">${minutosTotales}'</div><div class="pc-stat-lbl">Minutos</div></div>
-        <div class="pc-stat"><div class="pc-stat-num" style="color:var(--muted)">${minutosPromedio}'</div><div class="pc-stat-lbl">Prom. x partido</div></div>
+        <div class="pc-stat"><div class="pc-stat-num" style="color:#E0A93B">${minutosTotales}'</div><div class="pc-stat-lbl">Minutos${partidosConMinutos ? ' <span style="color:var(--muted);font-weight:400">('+partidosConMinutos+(partidosConMinutos===1?' partido':' partidos')+')</span>' : ''}</div></div>
+        <div class="pc-stat"><div class="pc-stat-num" style="color:var(--muted)">${minutosPromedio}'</div><div class="pc-stat-lbl">Prom. x partido${partidosConMinutos ? ' <span style="color:var(--muted);font-weight:400">('+partidosConMinutos+(partidosConMinutos===1?' partido':' partidos')+')</span>' : ''}</div></div>
         <div class="pc-stat"><div class="pc-stat-num" style="color:${asistColor}">${asistTxt}</div><div class="pc-stat-lbl">Asistencia al entrenamiento</div></div>
       </div>`;
 
@@ -11148,7 +11148,7 @@ window.__initEditor = function(){
         </div>
         ${player.notas ? `<div class="pc-notas"><b>Notas:</b> ${escapeHtml(player.notas)}</div>` : ''}
       </div>`;
-    document.getElementById('pcEditPersonal')?.addEventListener('click', () => editarDatosPersonales(player));
+    document.getElementById('pcEditPersonal') && document.getElementById('pcEditPersonal').addEventListener('click', () => editarDatosPersonales(player));
   }
 
   function editarDatosPersonales(player){
@@ -11265,7 +11265,7 @@ window.__initEditor = function(){
         </div>
         <div class="pc-incidents">${filas}</div>
       </div>`;
-    document.getElementById('pcAddInc')?.addEventListener('click', () => agregarLesion(player));
+    document.getElementById('pcAddInc') && document.getElementById('pcAddInc').addEventListener('click', () => agregarLesion(player));
     box.querySelectorAll('.pi-del').forEach(b => b.addEventListener('click', async () => {
       if(!confirm('¿Borrar este registro?')) return;
       try{
@@ -11338,7 +11338,7 @@ window.__initEditor = function(){
     document.getElementById('lesClose').addEventListener('click', cerrar);
     document.getElementById('lesCancel').addEventListener('click', cerrar);
     m.addEventListener('click', e => { if(e.target === m) cerrar(); });
-    setTimeout(() => document.getElementById('lesTitulo')?.focus(), 80);
+    setTimeout(() => document.getElementById('lesTitulo') && document.getElementById('lesTitulo').focus(), 80);
 
     document.getElementById('lesSave').addEventListener('click', async () => {
       const titulo = document.getElementById('lesTitulo').value.trim();
@@ -11495,7 +11495,7 @@ window.__initEditor = function(){
           </div>
           <p class="rd-empty">Todavía no hay ítems de evaluación para esta categoría.</p>
         </div>`;
-      document.getElementById('evEditItems')?.addEventListener('click', () => abrirEditorItems(player));
+      document.getElementById('evEditItems') && document.getElementById('evEditItems').addEventListener('click', () => abrirEditorItems(player));
       return;
     }
 
@@ -11566,7 +11566,7 @@ window.__initEditor = function(){
     box.querySelectorAll('.ev-btn').forEach(b =>
       b.addEventListener('click', () => abrirEvaluacion(player, parseInt(b.dataset.cuat,10), porCuat[b.dataset.cuat]))
     );
-    document.getElementById('evEditItems')?.addEventListener('click', () => abrirEditorItems(player));
+    document.getElementById('evEditItems') && document.getElementById('evEditItems').addEventListener('click', () => abrirEditorItems(player));
   }
 
   function abrirEvaluacion(player, cuatrimestre, actual){
@@ -12189,7 +12189,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_kSd8QnrUeB0SvHVtWlarCA_BAYas52j';
 
 const memoryStore = {};
 const safeStorage = {
-  getItem: (k) => { try { return window.localStorage.getItem(k); } catch(e) { return memoryStore[k] ?? null; } },
+  getItem: (k) => { try { return window.localStorage.getItem(k); } catch(e) { return memoryStore[k] || null; } },
   setItem: (k, v) => { try { window.localStorage.setItem(k, v); } catch(e) { memoryStore[k] = v; } },
   removeItem: (k) => { try { window.localStorage.removeItem(k); } catch(e) { delete memoryStore[k]; } }
 };
@@ -13343,7 +13343,7 @@ async function guardarVideoEnNube(silencioso){
     if(!currentCloudProjectId) return;
     name = currentCloudProjectName;
   } else {
-    const defaultName = videos[0]?.name || ('Partido ' + new Date().toLocaleDateString('es-AR'));
+    const defaultName = (videos[0] && videos[0].name) || ('Partido ' + new Date().toLocaleDateString('es-AR'));
     name = prompt(window.t('mMatchName'), currentCloudProjectName || defaultName);
     if(name === null) return;
     if(!name) name = defaultName;
@@ -13456,7 +13456,7 @@ async function loadCloudProject(id){
     const { data, error } = await sb.from('video_projects').select('*').eq('id', id).single();
     if(error){ toast(window.t('mLoadMatchErr')); return; }
     tags = data.tags || tags;
-    activeTagId = tags[0]?.id || activeTagId;
+    activeTagId = (tags[0] && tags[0].id) || activeTagId;
     videos = (data.videos || []).map(v => ({ id:v.id, name:v.name, file:null, url:null, duration:null, missing:true }));
     activeVideoId = null;
     videoEl.removeAttribute('src');
@@ -13528,7 +13528,7 @@ document.addEventListener('keydown', (e) => {
 function updateRecordStatus(){
   const statusEl = document.getElementById('recordStatus');
   if(marking){
-    const tagName = tags.find(t=>t.id===activeTagId)?.name || '';
+    const tagName = (function(){ var _t = tags.find(t=>t.id===activeTagId); return _t ? _t.name : ''; })();
     statusEl.textContent = '● Grabando "'+tagName+'" — tocá el tag de nuevo para cortar';
     statusEl.classList.add('recording');
   } else {
@@ -13591,7 +13591,7 @@ document.getElementById('addSepBtn').addEventListener('click', () => {
 // ---------------- CARGA MASIVA DE CLIPS YA HECHOS ----------------
 const bulkClipInput = document.getElementById('bulkClipInput');
 document.getElementById('bulkAddBtn').addEventListener('click', () => bulkClipInput.click());
-document.getElementById('benchEmpty')?.addEventListener('click', () => bulkClipInput.click());
+document.getElementById('benchEmpty') && document.getElementById('benchEmpty').addEventListener('click', () => bulkClipInput.click());
 
 function probeVideoFile(file){
   return new Promise((resolve) => {
@@ -14465,7 +14465,7 @@ document.getElementById('exportSeqBtn').addEventListener('click', async () => {
 });
 
 async function exportSingleClip(item){
-  const tagName = tags.find(t=>t.id===item.tagId)?.name || 'clip';
+  const tagName = (function(){ var _t = tags.find(t=>t.id===item.tagId); return _t ? _t.name : 'clip'; })();
   const srcVideo = videos.find(v => v.id === item.videoId);
   if(!srcVideo || srcVideo.missing){
     toast('Falta subir de nuevo "'+(srcVideo?srcVideo.name:'el video')+'" para exportar este clip.');
