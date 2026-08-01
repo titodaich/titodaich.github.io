@@ -1569,15 +1569,18 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 
 /* Planificación: grilla de ejercicios */
 .ex-name-wrap{display:flex;flex-direction:column;gap:5px;}
-.ex-link-row{display:flex;align-items:center;gap:5px;}
-.ex-link-input{width:100%;font-size:11px;padding:4px 7px;border:1px solid var(--line-soft);border-radius:5px;
-  background:var(--bg-2);color:var(--muted);font-family:'Inter',sans-serif;transition:border-color .15s,color .15s;}
-.ex-link-input:focus{border-color:var(--accent-2);color:var(--chalk);outline:none;}
-.ex-link-input.has{color:var(--accent-2);border-color:rgba(47,143,203,0.4);}
-.ex-link-open{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;
-  background:rgba(47,143,203,0.14);border:1px solid var(--accent-2);border-radius:5px;color:var(--accent-2);
-  text-decoration:none;font-size:13px;transition:background .15s;}
-.ex-link-open:hover{background:rgba(47,143,203,0.28);}
+.ex-name-row{display:flex;align-items:center;gap:5px;}
+.ex-link-btn{flex-shrink:0;width:28px;height:28px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--muted);cursor:pointer;font-size:13px;transition:all .15s;}
+.ex-link-btn.linked{color:var(--accent-2);border-color:var(--accent-2);background:rgba(47,143,203,0.1);}
+.ex-link-btn:hover{border-color:var(--accent-2);color:var(--accent-2);}
+.ex-chip-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.ex-chip{display:inline-flex;align-items:center;gap:4px;background:rgba(47,143,203,0.15);border:1px solid var(--accent-2);border-radius:5px;padding:3px 8px;font-size:10.5px;color:var(--accent-2);cursor:pointer;text-decoration:none;font-family:'JetBrains Mono',monospace;}
+.ex-chip-video{background:rgba(76,175,109,0.15);border-color:var(--success);color:var(--success);}
+.ex-chip:hover{filter:brightness(1.2);}
+.ex-chip-quitar{color:var(--muted);cursor:pointer;font-size:11px;padding:0 3px;}
+.ex-chip-quitar:hover{color:var(--danger);}
+.vinc-item{display:flex;justify-content:space-between;align-items:center;background:var(--panel-2);border:1px solid var(--line-soft);border-radius:9px;padding:10px 12px;margin-bottom:6px;cursor:pointer;font-size:13.5px;color:var(--chalk);transition:all .12s;}
+.vinc-item:hover{border-color:var(--accent-2);background:rgba(47,143,203,0.1);}
 
 .week-grid-wrap{overflow-x:auto;}
 .week-grid{width:100%;border-collapse:collapse;min-width:1040px;}
@@ -4746,6 +4749,11 @@ window.__initEditor = function(){
       }
     });
   });
+  // Permite navegar a una sección desde el código (ej: desde un vínculo de ejercicio)
+  window.__goToSection = function(target){
+    const tab = document.querySelector('.nav-tab[data-section="'+target+'"]');
+    if(tab) tab.click();
+  };
 })();
 
 // ---------------- MÉTRICAS DE USO (para el panel de admin) ----------------
@@ -6315,6 +6323,15 @@ window.__initEditor = function(){
 
   // Reproducir una jugada
   let playingTimer = null;
+  // Reproduce un entrenamiento/jugada por su id de base (usado desde la planificación).
+  window.__playBoardById = function(dbId){
+    const play = plays.find(p => String(p.dbId) === String(dbId));
+    if(play){ playPlay(play); }
+    else {
+      // Puede no estar cargado si la categoría difiere; avisamos suave.
+      if(window.toast) toast('Abrí la pizarra en la categoría del ejercicio para verlo.');
+    }
+  };
   function playPlay(play){
     if(playingTimer) return;
     // mostrar la descripción sobre la cancha (si tiene)
@@ -7576,13 +7593,25 @@ window.__initEditor = function(){
     w.content.ejercicios.forEach((ex, idx) => {
       if(!ex.dias) ex.dias = {};
       const tr = document.createElement('tr');
-      const tieneLink = ex.link && ex.link.trim();
+      // Vínculo del ejercicio: puede ser a un entrenamiento de pizarra, un video, o un link pegado
+      const tieneVinculo = ex.vinculo && ex.vinculo.tipo;
+      let chipHtml = '';
+      if(tieneVinculo){
+        if(ex.vinculo.tipo === 'pizarra'){
+          chipHtml = `<span class="ex-chip ex-chip-board" data-abrir-pizarra="${escapeHtml(ex.vinculo.id)}">▶ ver jugada: ${escapeHtml(ex.vinculo.nombre||'ejercicio')}</span>`;
+        } else if(ex.vinculo.tipo === 'video'){
+          chipHtml = `<a class="ex-chip ex-chip-video" href="${escapeHtml(ex.vinculo.url||'#')}" target="_blank" rel="noopener">🎥 ver video: ${escapeHtml(ex.vinculo.nombre||'video')}</a>`;
+        } else if(ex.vinculo.tipo === 'link'){
+          chipHtml = `<a class="ex-chip ex-chip-link" href="${escapeHtml(ex.vinculo.url||'#')}" target="_blank" rel="noopener">↗ ${escapeHtml(ex.vinculo.nombre||'material')}</a>`;
+        }
+        chipHtml += ` <span class="ex-chip-quitar" data-quitar-vinculo="${idx}" title="Quitar vínculo">✕</span>`;
+      }
       const linkCell = `<div class="ex-name-wrap">
-        <input class="ex-name" value="${escapeHtml(ex.nombre||'')}" placeholder="Ejercicio ${idx+1}">
-        <div class="ex-link-row">
-          <input class="ex-link-input${tieneLink?' has':''}" value="${escapeHtml(ex.link||'')}" placeholder="🔗 Pegá un link (video, Drive…)">
-          ${tieneLink ? `<a class="ex-link-open" href="${escapeHtml(ex.link)}" target="_blank" rel="noopener" title="Abrir material">↗</a>` : ''}
+        <div class="ex-name-row">
+          <input class="ex-name" value="${escapeHtml(ex.nombre||'')}" placeholder="Ejercicio ${idx+1}">
+          <button class="ex-link-btn${tieneVinculo?' linked':''}" data-vincular="${idx}" title="Vincular con pizarra o video">🔗</button>
         </div>
+        ${chipHtml ? `<div class="ex-chip-row">${chipHtml}</div>` : ''}
       </div>`;
       let cells = `<td>${linkCell}</td>`;
       DIAS.forEach(dia => {
@@ -7591,10 +7620,14 @@ window.__initEditor = function(){
       cells += `<td><button class="ex-del" title="Quitar">✕</button></td>`;
       tr.innerHTML = cells;
       tr.querySelector('.ex-name').addEventListener('input', e => { ex.nombre = e.target.value; flashSaved(); });
-      const linkInput = tr.querySelector('.ex-link-input');
-      linkInput.addEventListener('input', e => { ex.link = e.target.value; flashSaved(); });
-      // al salir del campo, re-render para mostrar/ocultar el botón de abrir
-      linkInput.addEventListener('blur', () => { renderExercises(); });
+      // Botón vincular
+      tr.querySelector('.ex-link-btn').addEventListener('click', (e) => { e.stopPropagation(); abrirSelectorVinculo(ex); });
+      // Chip: abrir pizarra
+      const chipBoard = tr.querySelector('[data-abrir-pizarra]');
+      if(chipBoard) chipBoard.addEventListener('click', () => abrirEntrenamientoPizarra(chipBoard.dataset.abrirPizarra));
+      // Quitar vínculo
+      const quitar = tr.querySelector('[data-quitar-vinculo]');
+      if(quitar) quitar.addEventListener('click', (e) => { e.stopPropagation(); ex.vinculo = null; renderExercises(); flashSaved(); });
       tr.querySelectorAll('.day-cell').forEach(cell => {
         cell.addEventListener('input', e => { ex.dias[cell.dataset.dia] = e.target.value; flashSaved(); });
       });
@@ -7602,6 +7635,89 @@ window.__initEditor = function(){
       body.appendChild(tr);
     });
     renderCuartetos();
+  }
+
+  // Abre el selector para vincular un ejercicio con un entrenamiento de pizarra o un video.
+  async function abrirSelectorVinculo(ex){
+    const sb = window.__sb;
+    const clubId = window.__getClubId ? await window.__getClubId() : null;
+    let entrenamientos = [], videos = [];
+    if(sb && clubId){
+      try{
+        const cat = (window.__getActiveCategory && window.__getActiveCategory()) || null;
+        // Entrenamientos de pizarra (board_plays con tipo entrenamiento)
+        let qp = sb.from('board_plays').select('id, name, tipo').eq('club_id', clubId);
+        qp = cat ? qp.eq('categoria', cat) : qp.is('categoria', null);
+        const rp = await qp;
+        entrenamientos = (rp.data||[]).filter(p => (p.tipo||'jugada') === 'entrenamiento');
+        // Videos de biblioteca
+        let qv = sb.from('board_videos').select('id, titulo, url').eq('club_id', clubId);
+        qv = cat ? qv.eq('categoria', cat) : qv.is('categoria', null);
+        const rv = await qv;
+        videos = rv.data||[];
+      }catch(e){ console.error('cargar vínculos', e); }
+    }
+
+    const ov = document.createElement('div');
+    ov.className = 'plans-overlay'; ov.id = 'vinculoOverlay';
+    let cuerpo = '';
+    // Entrenamientos de pizarra
+    cuerpo += '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:var(--accent-2);text-transform:uppercase;letter-spacing:1px;margin:10px 0 8px;">🏋 Entrenamientos de pizarra</div>';
+    if(entrenamientos.length === 0){
+      cuerpo += '<div style="color:var(--muted);font-size:12px;margin-bottom:10px;">No hay entrenamientos guardados. Diseñá uno en la pizarra (modo entrenamiento).</div>';
+    } else {
+      entrenamientos.forEach(t => {
+        cuerpo += `<div class="vinc-item" data-tipo="pizarra" data-id="${t.id}" data-nombre="${escapeHtml(t.name||'')}"><span>🏋 ${escapeHtml(t.name||'Ejercicio')}</span><span style="color:var(--success);font-size:12px;font-weight:600;">+ vincular</span></div>`;
+      });
+    }
+    // Videos
+    cuerpo += '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:var(--accent-2);text-transform:uppercase;letter-spacing:1px;margin:14px 0 8px;">🎥 Videos de biblioteca</div>';
+    if(videos.length === 0){
+      cuerpo += '<div style="color:var(--muted);font-size:12px;margin-bottom:10px;">No hay videos en la biblioteca.</div>';
+    } else {
+      videos.forEach(v => {
+        cuerpo += `<div class="vinc-item" data-tipo="video" data-url="${escapeHtml(v.url||'')}" data-nombre="${escapeHtml(v.titulo||'')}"><span>🎥 ${escapeHtml(v.titulo||'Video')}</span><span style="color:var(--success);font-size:12px;font-weight:600;">+ vincular</span></div>`;
+      });
+    }
+    // Opción de pegar link a mano
+    cuerpo += '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:var(--accent-2);text-transform:uppercase;letter-spacing:1px;margin:14px 0 8px;">🔗 O pegá un link</div>';
+    cuerpo += '<div style="display:flex;gap:6px;"><input id="vincLinkInput" placeholder="https://..." style="flex:1;background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--chalk);font-size:13px;padding:9px 11px;"><button id="vincLinkBtn" class="btn small" style="background:var(--accent-2);border:none;color:#10161C;font-weight:600;">Vincular</button></div>';
+
+    ov.innerHTML = '<div class="plans-box" style="max-width:440px;text-align:left;max-height:80vh;overflow-y:auto;">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><h2 style="font-size:18px;">🔗 Vincular ejercicio</h2><button id="vincClose" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;">✕</button></div>'
+      + '<p class="plans-sub" style="margin-bottom:6px;">Elegí un entrenamiento de la pizarra o un video de tu biblioteca para adjuntar a este ejercicio.</p>'
+      + cuerpo + '</div>';
+    document.body.appendChild(ov);
+
+    const cerrar = () => ov.remove();
+    ov.querySelector('#vincClose').addEventListener('click', cerrar);
+    ov.addEventListener('click', e => { if(e.target === ov) cerrar(); });
+    ov.querySelectorAll('.vinc-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const tipo = el.dataset.tipo;
+        if(tipo === 'pizarra'){ ex.vinculo = { tipo:'pizarra', id:el.dataset.id, nombre:el.dataset.nombre }; }
+        else if(tipo === 'video'){ ex.vinculo = { tipo:'video', url:el.dataset.url, nombre:el.dataset.nombre }; }
+        cerrar(); renderExercises(); flashSaved();
+      });
+    });
+    const linkBtn = ov.querySelector('#vincLinkBtn');
+    if(linkBtn) linkBtn.addEventListener('click', () => {
+      const url = (ov.querySelector('#vincLinkInput').value||'').trim();
+      if(!/^https?:\/\//i.test(url)){ alert('El link tiene que empezar con http:// o https://'); return; }
+      ex.vinculo = { tipo:'link', url:url, nombre:'material' };
+      cerrar(); renderExercises(); flashSaved();
+    });
+  }
+
+  // Abre un entrenamiento de pizarra (lleva a la pizarra y lo reproduce).
+  async function abrirEntrenamientoPizarra(playId){
+    // Cambiar a la sección pizarra
+    if(window.__goToSection) window.__goToSection('board');
+    else { const s = document.querySelector('[data-section="board"]'); if(s) s.click(); }
+    // Darle un momento a que cargue y reproducir
+    setTimeout(() => {
+      if(window.__playBoardById) window.__playBoardById(playId);
+    }, 400);
   }
 
   // Fila al pie: los 3 cuartetos (grupos de jugadores) de cada día.
