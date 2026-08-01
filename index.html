@@ -1570,9 +1570,12 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 /* Planificación: grilla de ejercicios */
 .ex-name-wrap{display:flex;flex-direction:column;gap:5px;}
 .ex-name-row{display:flex;align-items:center;gap:5px;}
-.ex-link-btn{flex-shrink:0;width:28px;height:28px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--muted);cursor:pointer;font-size:13px;transition:all .15s;}
+.ex-link-btn{flex-shrink:0;width:28px;height:28px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--muted);cursor:pointer;font-size:13px;transition:all .15s;position:relative;}
 .ex-link-btn.linked{color:var(--accent-2);border-color:var(--accent-2);background:rgba(47,143,203,0.1);}
 .ex-link-btn:hover{border-color:var(--accent-2);color:var(--accent-2);}
+/* Tooltip elegante que aparece al pasar el mouse */
+.ex-link-btn::after{content:"🔗 Vinculá este ejercicio con un entrenamiento de la pizarra o un video de tu biblioteca";position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--panel-2);color:var(--chalk);border:1px solid var(--accent-2);border-radius:8px;padding:8px 11px;font-size:11.5px;font-weight:400;line-height:1.4;width:230px;text-align:left;white-space:normal;opacity:0;visibility:hidden;transition:opacity .15s,visibility .15s;z-index:50;box-shadow:0 4px 14px rgba(0,0,0,0.4);pointer-events:none;font-family:'Inter',sans-serif;}
+.ex-link-btn:hover::after{opacity:1;visibility:visible;}
 .ex-chip-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
 .ex-chip{display:inline-flex;align-items:center;gap:4px;background:rgba(47,143,203,0.15);border:1px solid var(--accent-2);border-radius:5px;padding:3px 8px;font-size:10.5px;color:var(--accent-2);cursor:pointer;text-decoration:none;font-family:'JetBrains Mono',monospace;}
 .ex-chip-video{background:rgba(76,175,109,0.15);border-color:var(--success);color:var(--success);}
@@ -7609,7 +7612,7 @@ window.__initEditor = function(){
       const linkCell = `<div class="ex-name-wrap">
         <div class="ex-name-row">
           <input class="ex-name" value="${escapeHtml(ex.nombre||'')}" placeholder="Ejercicio ${idx+1}">
-          <button class="ex-link-btn${tieneVinculo?' linked':''}" data-vincular="${idx}" title="Vincular con pizarra o video">🔗</button>
+          <button class="ex-link-btn${tieneVinculo?' linked':''}" data-vincular="${idx}">🔗</button>
         </div>
         ${chipHtml ? `<div class="ex-chip-row">${chipHtml}</div>` : ''}
       </div>`;
