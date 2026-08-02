@@ -937,7 +937,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .live-field .field-goal{position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:120px;height:8px;background:rgba(255,255,255,0.85);border-radius:2px;}
 .live-field .field-area{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:200px;height:90px;border:2px solid rgba(255,255,255,0.4);border-bottom:none;border-radius:100px 100px 0 0;}
 .live-field .field-empty{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,0.9);font-family:'JetBrains Mono',monospace;font-size:12px;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,0.5);width:80%;}
-.live-token{position:absolute;z-index:2;transform:translate(-50%,-50%);background:rgba(16,22,28,0.72);border:2px solid #fff;border-radius:12px;padding:10px 9px;width:134px;text-align:center;cursor:pointer;transition:all .12s ease;box-shadow:0 3px 10px rgba(0,0,0,0.4);}
+.live-token{position:absolute;z-index:2;transform:translate(-50%,-50%);background:rgba(16,22,28,0.72);border:2px solid #fff;border-radius:12px;padding:10px 9px;width:134px;text-align:center;cursor:pointer;transition:all .12s ease;box-shadow:0 3px 10px rgba(0,0,0,0.4);-webkit-tap-highlight-color:rgba(47,143,203,0.3);touch-action:manipulation;}
 .live-token:hover{background:rgba(16,22,28,0.75);}
 .live-token.swap-out{border-color:var(--danger);background:rgba(240,85,63,0.5);}
 .live-token .lt-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,0.8);}
@@ -973,7 +973,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 }
 
 .live-bench{display:flex;flex-direction:column;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;min-height:100px;}
-.bench-player{background:var(--panel-2);border:2px solid var(--line);border-radius:10px;padding:8px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .12s ease;}
+.bench-player{background:var(--panel-2);border:2px solid var(--line);border-radius:10px;padding:8px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .12s ease;-webkit-tap-highlight-color:rgba(47,143,203,0.3);touch-action:manipulation;}
 .bench-player .bp-avatar{line-height:0;flex-shrink:0;}
 .bench-player:hover{border-color:var(--accent-2);}
 .bench-player.swap-in-ready{border-color:var(--success);}
@@ -6701,6 +6701,37 @@ window.__initEditor = function(){
   let state = {};                // { pid: {onCourt, acc1, acc2, lastInAt, goals, fouls} }
   let events = [];
   let liveRowId = null;
+  // Helper de toque compatible con iPad/Safari viejo.
+  // Safari en iOS a veces no dispara 'click' en <div> normales. Escuchamos también
+  // 'touchend', con una guarda para que no se ejecute dos veces (touch + click fantasma)
+  // y para no disparar el toque cuando en realidad fue un scroll (el dedo se movió).
+  function onTap(el, handler){
+    if(!el) return;
+    let tocado = false;
+    let startX = 0, startY = 0, movido = false;
+    el.addEventListener('touchstart', function(e){
+      if(e.touches && e.touches[0]){ startX = e.touches[0].clientX; startY = e.touches[0].clientY; }
+      movido = false;
+    }, { passive: true });
+    el.addEventListener('touchmove', function(e){
+      if(e.touches && e.touches[0]){
+        const dx = Math.abs(e.touches[0].clientX - startX);
+        const dy = Math.abs(e.touches[0].clientY - startY);
+        if(dx > 10 || dy > 10) movido = true;  // se movió: es scroll, no toque
+      }
+    }, { passive: true });
+    el.addEventListener('touchend', function(e){
+      if(movido) return;                       // fue scroll, ignorar
+      tocado = true;
+      handler.call(el, e);
+      if(e.cancelable) e.preventDefault();      // evitar el 'click' fantasma de iOS
+      setTimeout(function(){ tocado = false; }, 400);
+    }, { passive: false });
+    el.addEventListener('click', function(e){
+      if(tocado){ tocado = false; return; }     // ya lo manejó el touchend
+      handler.call(el, e);
+    });
+  }
   // setup
   let setupCalled = {};          // { pid: true } convocados elegidos en el setup
   let matchRival = '';           // nombre del rival elegido
@@ -7105,15 +7136,15 @@ window.__initEditor = function(){
       const st=ensure(p.id);
       d.innerHTML=`<div class="lt-avatar">${(window.__avatarHTML?window.__avatarHTML(p,44):"")}</div><div class="lt-num">${escapeHtml(p.number?'#'+p.number:'')}${roleLabel?' · '+roleLabel:''}</div><div class="lt-name">${escapeHtml(p.name)}</div><div class="lt-time" data-t="${p.id}">${displayTimeEnCancha(p.id)}</div><div class="lt-actions"><div class="lt-act-wrap"><button class="lt-act lt-goal" title="Gol">⚽<span class="lt-cnt">${st.goals||0}</span></button><button class="lt-minus lt-goal-minus" title="Restar gol">−</button></div><div class="lt-act-wrap"><button class="lt-act lt-shot" title="Remate al arco">🎯<span class="lt-cnt">${st.shots||0}</span></button><button class="lt-minus lt-shot-minus" title="Restar remate">−</button></div><div class="lt-act-wrap"><button class="lt-act lt-foul" title="Falta (del tiempo actual)">⚠️<span class="lt-cnt">${foulsNow(p.id)}</span></button><button class="lt-minus lt-foul-minus" title="Restar falta">−</button></div><div class="lt-act-wrap"><button class="lt-act lt-card" title="Tarjeta amarilla">🟨<span class="lt-cnt">${st.cards||0}</span></button><button class="lt-minus lt-card-minus" title="Restar tarjeta">−</button></div></div>`;
       // click en la ficha (fuera de los botones) = cambio
-      d.addEventListener('click',(e)=>{ if(e.target.closest('.lt-act')||e.target.closest('.lt-minus')) return; tapOnCourt(p.id); });
-      d.querySelector('.lt-goal').addEventListener('click',(e)=>{ e.stopPropagation(); addGoal(p.id); });
-      d.querySelector('.lt-shot').addEventListener('click',(e)=>{ e.stopPropagation(); addShot(p.id); });
-      d.querySelector('.lt-foul').addEventListener('click',(e)=>{ e.stopPropagation(); addFoul(p.id); });
-      d.querySelector('.lt-card').addEventListener('click',(e)=>{ e.stopPropagation(); addCard(p.id); });
-      d.querySelector('.lt-goal-minus').addEventListener('click',(e)=>{ e.stopPropagation(); restarGoal(p.id); });
-      d.querySelector('.lt-shot-minus').addEventListener('click',(e)=>{ e.stopPropagation(); restarShot(p.id); });
-      d.querySelector('.lt-foul-minus').addEventListener('click',(e)=>{ e.stopPropagation(); restarFoul(p.id); });
-      d.querySelector('.lt-card-minus').addEventListener('click',(e)=>{ e.stopPropagation(); restarCard(p.id); });
+      onTap(d,(e)=>{ const t=e.target; if((t.closest&&(t.closest('.lt-act')||t.closest('.lt-minus')))) return; tapOnCourt(p.id); });
+      onTap(d.querySelector('.lt-goal'),(e)=>{ e.stopPropagation(); addGoal(p.id); });
+      onTap(d.querySelector('.lt-shot'),(e)=>{ e.stopPropagation(); addShot(p.id); });
+      onTap(d.querySelector('.lt-foul'),(e)=>{ e.stopPropagation(); addFoul(p.id); });
+      onTap(d.querySelector('.lt-card'),(e)=>{ e.stopPropagation(); addCard(p.id); });
+      onTap(d.querySelector('.lt-goal-minus'),(e)=>{ e.stopPropagation(); restarGoal(p.id); });
+      onTap(d.querySelector('.lt-shot-minus'),(e)=>{ e.stopPropagation(); restarShot(p.id); });
+      onTap(d.querySelector('.lt-foul-minus'),(e)=>{ e.stopPropagation(); restarFoul(p.id); });
+      onTap(d.querySelector('.lt-card-minus'),(e)=>{ e.stopPropagation(); restarCard(p.id); });
       field.appendChild(d);
     });
   }
@@ -7127,7 +7158,7 @@ window.__initEditor = function(){
       const d=document.createElement('div');
       d.className='bench-player'+(swapOutId!==null?' swap-in-ready':'');
       d.innerHTML=`<div class="bp-avatar">${(window.__avatarHTML?window.__avatarHTML(p,24):"")}</div><span class="bp-num">${escapeHtml(p.number?'#'+p.number:'')}</span><span class="bp-name">${escapeHtml(p.name)}</span><span class="bp-time" data-t="${p.id}">${fmtClock(timeTotal(p.id))}</span>`;
-      d.addEventListener('click',()=>tapBench(p.id));
+      onTap(d,()=>tapBench(p.id));
       bench.appendChild(d);
     });
   }
