@@ -2606,6 +2606,33 @@ body.editor-active #screen-editor{ display:block; }
 </head>
 <body>
 
+<!-- DIAGNÓSTICO temporal: muestra en pantalla cualquier error de JavaScript.
+     Sirve para ver qué falla en dispositivos donde no se puede abrir la consola (iPad).
+     Se puede quitar una vez resuelto el problema. -->
+<div id="errBox" style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#7a1515;color:#fff;font:12px monospace;padding:10px 12px;max-height:40vh;overflow:auto;white-space:pre-wrap;border-top:2px solid #ff5b5b;"></div>
+<script>
+(function(){
+  function mostrar(msg){
+    var box = document.getElementById('errBox');
+    if(!box) return;
+    box.style.display = 'block';
+    box.textContent += msg + '\n';
+  }
+  window.addEventListener('error', function(e){
+    mostrar('⚠️ ' + (e.message || 'error') + '  @ ' + (e.filename||'').split('/').pop() + ':' + (e.lineno||'?'));
+  });
+  window.addEventListener('unhandledrejection', function(e){
+    var r = e.reason;
+    mostrar('⚠️ promesa: ' + (r && (r.message || r) || 'error'));
+  });
+  // Botón para ocultar el cartel
+  document.addEventListener('DOMContentLoaded', function(){
+    var box = document.getElementById('errBox');
+    if(box){ box.addEventListener('click', function(){ box.style.display='none'; box.textContent=''; }); }
+  });
+})();
+</script>
+
 <!-- Fondo de cancha de futsal (marca de agua sutil, detrás de todo) -->
 <svg class="cancha-bg" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
   <g fill="none" stroke="#33495E" stroke-width="2" opacity="0.20">
