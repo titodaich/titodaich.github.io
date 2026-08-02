@@ -2625,6 +2625,8 @@ body.editor-active #screen-editor{ display:block; }
     var r = e.reason;
     mostrar('⚠️ promesa: ' + (r && (r.message || r) || 'error'));
   });
+  // Función para que el código muestre mensajes de diagnóstico (ej: confirmar que un toque llegó)
+  window.__diag = mostrar;
   // Botón para ocultar el cartel
   document.addEventListener('DOMContentLoaded', function(){
     var box = document.getElementById('errBox');
@@ -6728,36 +6730,21 @@ window.__initEditor = function(){
   let state = {};                // { pid: {onCourt, acc1, acc2, lastInAt, goals, fouls} }
   let events = [];
   let liveRowId = null;
-  // Helper de toque compatible con iPad/Safari viejo.
-  // Safari en iOS a veces no dispara 'click' en <div> normales. Escuchamos también
-  // 'touchend', con una guarda para que no se ejecute dos veces (touch + click fantasma)
-  // y para no disparar el toque cuando en realidad fue un scroll (el dedo se movió).
+  // Helper de toque. Mínimo y seguro: escucha 'click' (que en Safari 12 anda),
+  // y agrega 'touchend' SIN preventDefault como respaldo, con una guarda para no
+  // duplicar. No usamos preventDefault porque puede bloquear el toque en Safari viejo.
   function onTap(el, handler){
     if(!el) return;
-    let tocado = false;
-    let startX = 0, startY = 0, movido = false;
-    el.addEventListener('touchstart', function(e){
-      if(e.touches && e.touches[0]){ startX = e.touches[0].clientX; startY = e.touches[0].clientY; }
-      movido = false;
-    }, { passive: true });
-    el.addEventListener('touchmove', function(e){
-      if(e.touches && e.touches[0]){
-        const dx = Math.abs(e.touches[0].clientX - startX);
-        const dy = Math.abs(e.touches[0].clientY - startY);
-        if(dx > 10 || dy > 10) movido = true;  // se movió: es scroll, no toque
-      }
-    }, { passive: true });
+    let ultimoToque = 0;
     el.addEventListener('touchend', function(e){
-      if(movido) return;                       // fue scroll, ignorar
-      tocado = true;
+      ultimoToque = Date.now();
       handler.call(el, e);
-      if(e.cancelable) e.preventDefault();      // evitar el 'click' fantasma de iOS
-      setTimeout(function(){ tocado = false; }, 400);
-    }, { passive: false });
+    }, false);
     el.addEventListener('click', function(e){
-      if(tocado){ tocado = false; return; }     // ya lo manejó el touchend
+      // si vino de un touchend hace muy poco, es el click fantasma: lo ignoramos
+      if(Date.now() - ultimoToque < 500) return;
       handler.call(el, e);
-    });
+    }, false);
   }
   // setup
   let setupCalled = {};          // { pid: true } convocados elegidos en el setup
@@ -6983,6 +6970,7 @@ window.__initEditor = function(){
 
   // Tocar un TITULAR (en cancha): lo selecciona para salir (igual en parado y corrido).
   function tapOnCourt(pid){
+    if(window.__diag) window.__diag('👆 tocaste jugador en cancha: ' + pid);
     if(swapOutId === pid){ swapOutId=null; updateStep(); renderField(); renderBench(); return; }
     swapOutId = pid;
     const quien = (squad.find(p=>p.id===pid)||{}).name || '';
