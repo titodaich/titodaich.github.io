@@ -10973,7 +10973,18 @@ window.__initEditor = function(){
       btnAll.__wired = true;
     }
     drawPlayerCard(sel.value);
+    // Cargar los partidos con invitados en segundo plano (una sola vez). Cuando estén,
+    // redibujamos la ficha actual para sumar los goles de invitado. No bloquea nada.
+    if(!Array.isArray(__invitadosCache) && !__invitadosCargando){
+      __invitadosCargando = true;
+      cargarPartidosConInvitados().then(() => {
+        __invitadosCargando = false;
+        const s = document.getElementById('playerCardSelect');
+        if(s && s.value) drawPlayerCard(s.value);
+      }).catch(() => { __invitadosCargando = false; });
+    }
   }
+  let __invitadosCargando = false;
 
   // Dibuja la ficha del jugador elegido
   // ─────────────────────────────────────────────────────────────
@@ -11107,23 +11118,17 @@ window.__initEditor = function(){
       const seg = Number(t.total) || 0;
       if(seg > 0){ segundosTotales += seg; partidosConMinutos++; }
     });
-    // ---- Partidos de OTRAS categorías donde este jugador fue INVITADO (subido) ----
-    // Usamos SOLO el caché ya cargado para no demorar ni colgar la ficha. Si todavía
-    // no está listo, disparamos la carga en segundo plano y redibujamos cuando llegue.
+    // ---- Partidos donde el jugador fue INVITADO en otra categoría ----
+    // Se usa solo si el caché ya está disponible (cargado aparte). Nunca bloquea ni
+    // recarga la ficha: si no hay caché, simplemente no se suman (se verá al recargar).
     let partidosComoInvitado = [];
     try{
       const cat = catActual();
-      if(__invitadosCache){
+      if(Array.isArray(__invitadosCache)){
         __invitadosCache.forEach(m => {
           if(m.categoria === cat) return;
           const esInvitado = Array.isArray(m.invitados) && m.invitados.some(inv => inv && inv.id === playerId);
           if(esInvitado) partidosComoInvitado.push(m);
-        });
-      } else {
-        // no está en caché: lo cargamos en segundo plano y redibujamos al terminar
-        cargarPartidosConInvitados().then(() => {
-          const selNow = document.getElementById('playerCardSelect');
-          if(selNow && selNow.value === playerId) drawPlayerCard(playerId);
         });
       }
     }catch(e){ partidosComoInvitado = []; }
