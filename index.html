@@ -6778,14 +6778,28 @@ window.__initEditor = function(){
   // duplicar. No usamos preventDefault porque puede bloquear el toque en Safari viejo.
   function onTap(el, handler){
     if(!el) return;
-    let ultimoToque = 0;
+    // Un solo disparo por interacción, SIN preventDefault (que en iOS puede bloquear
+    // otros toques). Usamos una marca de tiempo: si el click llega justo después del
+    // touch, es el fantasma y lo ignoramos.
+    let ultimoTouch = 0;
+    let moviendo = false;
+    let sx = 0, sy = 0;
+    el.addEventListener('touchstart', function(e){
+      moviendo = false;
+      if(e.touches && e.touches[0]){ sx = e.touches[0].clientX; sy = e.touches[0].clientY; }
+    }, { passive: true });
+    el.addEventListener('touchmove', function(e){
+      if(e.touches && e.touches[0]){
+        if(Math.abs(e.touches[0].clientX - sx) > 12 || Math.abs(e.touches[0].clientY - sy) > 12) moviendo = true;
+      }
+    }, { passive: true });
     el.addEventListener('touchend', function(e){
-      ultimoToque = Date.now();
+      if(moviendo) return;
+      ultimoTouch = Date.now();
       handler.call(el, e);
-    }, false);
+    }, { passive: true });
     el.addEventListener('click', function(e){
-      // si vino de un touchend hace muy poco, es el click fantasma: lo ignoramos
-      if(Date.now() - ultimoToque < 500) return;
+      if(Date.now() - ultimoTouch < 600) return;  // click fantasma tras el touch: ignorar
       handler.call(el, e);
     }, false);
   }
@@ -6842,7 +6856,7 @@ window.__initEditor = function(){
 
   // ----- Picker de minuto:segundo (modo parado) -----
   // Abre el modal y llama a onOk(elapsedSeconds) con el tramo elegido (regresivo)
-  let tpMin = 20, tpSec = 0, tpOnOk = null;
+  let tpMin = 20, tpSec = 0, tpOnOk = null, tpAbiertoEn = 0;
   function openTimePicker(title, sub, defMin, defSec, onOk){
     tpMin = Math.max(0, Math.min(halfMinutes, defMin));
     tpSec = Math.max(0, Math.min(59, defSec));
@@ -6851,6 +6865,7 @@ window.__initEditor = function(){
     document.getElementById('liveTimeSub').textContent = sub;
     renderTP();
     document.getElementById('liveTimeModal').style.display='flex';
+    tpAbiertoEn = Date.now();   // marca para ignorar el click fantasma que lo cerraría
   }
   function renderTP(){
     document.getElementById('tpMin').textContent = String(tpMin).padStart(2,'0');
@@ -6870,7 +6885,7 @@ window.__initEditor = function(){
     });
   });
   onTap(document.getElementById('liveTimeClose'),()=>{ document.getElementById('liveTimeModal').style.display='none'; tpOnOk=null; });
-  document.getElementById('liveTimeModal').addEventListener('click',e=>{ if(e.target.id==='liveTimeModal'){ e.target.style.display='none'; tpOnOk=null; } });
+  document.getElementById('liveTimeModal').addEventListener('click',e=>{ if(e.target.id==='liveTimeModal' && Date.now()-tpAbiertoEn > 400){ e.target.style.display='none'; tpOnOk=null; } });
   onTap(document.getElementById('liveTimeOk'),()=>{
     document.getElementById('liveTimeModal').style.display='none';
     if(tpOnOk){ const fn=tpOnOk; tpOnOk=null; fn(regresivoToElapsed(tpMin,tpSec), tpMin, tpSec); }
@@ -7194,15 +7209,25 @@ window.__initEditor = function(){
       const st=ensure(p.id);
       d.innerHTML=`<div class="lt-avatar">${(window.__avatarHTML?window.__avatarHTML(p,44):"")}</div><div class="lt-num">${escapeHtml(p.number?'#'+p.number:'')}${roleLabel?' · '+roleLabel:''}</div><div class="lt-name">${escapeHtml(p.name)}</div><div class="lt-time" data-t="${p.id}">${displayTimeEnCancha(p.id)}</div><div class="lt-actions"><div class="lt-act-wrap"><button class="lt-act lt-goal" title="Gol">⚽<span class="lt-cnt">${st.goals||0}</span></button><button class="lt-minus lt-goal-minus" title="Restar gol">−</button></div><div class="lt-act-wrap"><button class="lt-act lt-shot" title="Remate al arco">🎯<span class="lt-cnt">${st.shots||0}</span></button><button class="lt-minus lt-shot-minus" title="Restar remate">−</button></div><div class="lt-act-wrap"><button class="lt-act lt-foul" title="Falta (del tiempo actual)">⚠️<span class="lt-cnt">${foulsNow(p.id)}</span></button><button class="lt-minus lt-foul-minus" title="Restar falta">−</button></div><div class="lt-act-wrap"><button class="lt-act lt-card" title="Tarjeta amarilla">🟨<span class="lt-cnt">${st.cards||0}</span></button><button class="lt-minus lt-card-minus" title="Restar tarjeta">−</button></div></div>`;
       // click en la ficha (fuera de los botones) = cambio
-      onTap(d,(e)=>{ const t=e.target; if((t.closest&&(t.closest('.lt-act')||t.closest('.lt-minus')))) return; tapOnCourt(p.id); });
-      onTap(d.querySelector('.lt-goal'),(e)=>{ e.stopPropagation(); addGoal(p.id); });
-      onTap(d.querySelector('.lt-shot'),(e)=>{ e.stopPropagation(); addShot(p.id); });
-      onTap(d.querySelector('.lt-foul'),(e)=>{ e.stopPropagation(); addFoul(p.id); });
-      onTap(d.querySelector('.lt-card'),(e)=>{ e.stopPropagation(); addCard(p.id); });
-      onTap(d.querySelector('.lt-goal-minus'),(e)=>{ e.stopPropagation(); restarGoal(p.id); });
-      onTap(d.querySelector('.lt-shot-minus'),(e)=>{ e.stopPropagation(); restarShot(p.id); });
-      onTap(d.querySelector('.lt-foul-minus'),(e)=>{ e.stopPropagation(); restarFoul(p.id); });
-      onTap(d.querySelector('.lt-card-minus'),(e)=>{ e.stopPropagation(); restarCard(p.id); });
+      // UN SOLO manejador por tarjeta: decide la acción según qué botón se tocó.
+      // Evita tener listeners anidados (tarjeta + botones) que se pisan y cuentan doble.
+      onTap(d,(e)=>{
+        const t = e.target;
+        const btn = t.closest ? t.closest('.lt-act, .lt-minus') : null;
+        if(btn){
+          if(btn.classList.contains('lt-goal')) addGoal(p.id);
+          else if(btn.classList.contains('lt-shot')) addShot(p.id);
+          else if(btn.classList.contains('lt-foul')) addFoul(p.id);
+          else if(btn.classList.contains('lt-card')) addCard(p.id);
+          else if(btn.classList.contains('lt-goal-minus')) restarGoal(p.id);
+          else if(btn.classList.contains('lt-shot-minus')) restarShot(p.id);
+          else if(btn.classList.contains('lt-foul-minus')) restarFoul(p.id);
+          else if(btn.classList.contains('lt-card-minus')) restarCard(p.id);
+          return;
+        }
+        // no fue un botón: tocaron la tarjeta → seleccionar para cambio
+        tapOnCourt(p.id);
+      });
       field.appendChild(d);
     });
   }
@@ -7770,7 +7795,11 @@ window.__initEditor = function(){
 
     const cerrar = () => ov.remove();
     onTap(ov.querySelector('#goSkip'), () => { guardarMin(); renderLog(); cerrar(); });
-    ov.addEventListener('click', e => { if(e.target === ov) { guardarMin(); renderLog(); cerrar(); } });
+    // El "cerrar al tocar afuera" se activa recién después de 400ms, para que el click
+    // fantasma del toque que ABRIÓ este cartel no lo cierre de inmediato (bug en iPad).
+    setTimeout(() => {
+      ov.addEventListener('click', e => { if(e.target === ov) { guardarMin(); renderLog(); cerrar(); } });
+    }, 400);
     ov.querySelectorAll('.go-btn[data-tag]').forEach(btn => {
       onTap(btn, () => {
         evento.origen = btn.dataset.tag;
