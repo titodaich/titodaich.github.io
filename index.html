@@ -98,7 +98,7 @@ body{background-color:var(--bg);-webkit-tap-highlight-color:transparent;overflow
   border-radius:999px;
   padding:6px 14px;
   background:rgba(21,34,48,0.55);
-  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
 }
 .scoreboard span{color:var(--accent-2);}
 
@@ -215,8 +215,7 @@ body{background-color:var(--bg);-webkit-tap-highlight-color:transparent;overflow
 
 .card{
   background:rgba(21,34,48,0.82);
-  backdrop-filter:blur(10px);
-  -webkit-backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
   border:1px solid var(--line);
   border-radius:14px;
   padding:32px 30px 28px;
@@ -836,7 +835,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 /* ===== MARCADOR EN VIVO ===== */
 .live-scoreboard{display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 18px;box-shadow:0 2px 8px rgba(0,0,0,0.25);}
 /* Cartelito rápido "cómo fue el gol" (En Vivo) */
-.gol-origen-overlay{position:fixed;inset:0;background:rgba(6,10,14,0.82);backdrop-filter:blur(3px);z-index:9000;display:flex;align-items:center;justify-content:center;padding:18px;}
+.gol-origen-overlay{position:fixed;inset:0;background:rgba(6,10,14,0.82);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);z-index:9000;display:flex;align-items:center;justify-content:center;padding:18px;}
 .gol-origen-box{background:var(--panel);border:1px solid var(--accent-2);border-radius:16px;padding:20px 18px;max-width:400px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,0.5);}
 .go-head{font-size:16px;color:var(--chalk);text-align:center;margin-bottom:16px;font-family:'Inter',sans-serif;}
 .go-head b{color:var(--accent-2);}
@@ -937,7 +936,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .live-field .field-goal{position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:120px;height:8px;background:rgba(255,255,255,0.85);border-radius:2px;}
 .live-field .field-area{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:200px;height:90px;border:2px solid rgba(255,255,255,0.4);border-bottom:none;border-radius:100px 100px 0 0;}
 .live-field .field-empty{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,0.9);font-family:'JetBrains Mono',monospace;font-size:12px;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,0.5);width:80%;}
-.live-token{position:absolute;z-index:2;transform:translate(-50%,-50%);background:rgba(16,22,28,0.72);border:2px solid #fff;border-radius:12px;padding:10px 9px;width:134px;text-align:center;cursor:pointer;transition:all .12s ease;box-shadow:0 3px 10px rgba(0,0,0,0.4);-webkit-tap-highlight-color:rgba(47,143,203,0.3);touch-action:manipulation;}
+.live-token{position:absolute;z-index:2;transform:translate(-50%,-50%);background:rgba(16,22,28,0.72);border:2px solid #fff;border-radius:12px;padding:10px 9px;width:134px;text-align:center;cursor:pointer;transition:all .12s ease;box-shadow:0 3px 10px rgba(0,0,0,0.4);}
 .live-token:hover{background:rgba(16,22,28,0.75);}
 .live-token.swap-out{border-color:var(--danger);background:rgba(240,85,63,0.5);}
 .live-token .lt-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,0.8);}
@@ -973,7 +972,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 }
 
 .live-bench{display:flex;flex-direction:column;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;min-height:100px;}
-.bench-player{background:var(--panel-2);border:2px solid var(--line);border-radius:10px;padding:8px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .12s ease;-webkit-tap-highlight-color:rgba(47,143,203,0.3);touch-action:manipulation;}
+.bench-player{background:var(--panel-2);border:2px solid var(--line);border-radius:10px;padding:8px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .12s ease;}
 .bench-player .bp-avatar{line-height:0;flex-shrink:0;}
 .bench-player:hover{border-color:var(--accent-2);}
 .bench-player.swap-in-ready{border-color:var(--success);}
@@ -1793,7 +1792,7 @@ body.modo-lectura .section-content textarea:read-only{
 .plans-legal a{color:var(--accent-2);cursor:pointer;}
 .plans-back{background:transparent;border:none;color:var(--accent-2);font-size:12px;cursor:pointer;padding:0;margin-bottom:8px;font-family:'JetBrains Mono',monospace;}
 .plans-back:hover{text-decoration:underline;}
-.pay-block-overlay{position:fixed;inset:0;z-index:9999;background:rgba(16,22,28,0.92);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;padding:max(20px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));}
+.pay-block-overlay{position:fixed;inset:0;z-index:9999;background:rgba(16,22,28,0.92);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;padding:max(20px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));}
 .pay-block-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;max-width:420px;width:100%;padding:32px 26px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.5);}
 .pay-block-icon{font-size:44px;margin-bottom:8px;}
 .pay-block-box h2{font-family:'Oswald',sans-serif;font-size:24px;margin:0 0 10px;color:var(--chalk);}
@@ -1824,7 +1823,7 @@ body.modo-lectura .section-content textarea:read-only{
   #section-video > .timeline-panel{order:2; margin-top:14px;}
 }
 
-.panel{background:rgba(42,36,25,0.86);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);border:1px solid var(--line);border-radius:var(--radius);padding:18px;min-width:0;max-width:100%;}
+.panel{background:rgba(42,36,25,0.86);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);border:1px solid var(--line);border-radius:var(--radius);padding:18px;min-width:0;max-width:100%;}
 .panel h2{font-family:'Oswald',sans-serif;font-size:14px;text-transform:uppercase;letter-spacing:1px;margin:0 0 14px;color:var(--muted);display:flex;align-items:center;gap:8px;}
 .panel h2 .n{font-family:'JetBrains Mono',monospace;color:var(--accent);}
 
@@ -2601,6 +2600,23 @@ body.editor-active #screen-editor{ display:block; }
   /* Que las 7 secciones entren en una sola fila sin amontonarse */
   .main-nav{row-gap:8px;}
   .nav-tab{min-width:88px;font-size:12px;padding:12px 8px;letter-spacing:0.3px;}
+}
+/* Respaldo de aspect-ratio para Safari iOS 14 y anteriores (no soportan aspect-ratio).
+   Los navegadores modernos ignoran este bloque; los viejos usan la tecnica del padding. */
+@supports not (aspect-ratio: 1 / 1){
+  .material-item::before,
+  .crop-stage::before,
+  .video-frame::before,
+  .clip-thumb-wrap::before{ content:''; display:block; }
+  .material-item::before{ padding-top:100%; }
+  .crop-stage::before{ padding-top:100%; }
+  .video-frame::before{ padding-top:56.25%; }
+  .clip-thumb-wrap::before{ padding-top:56.25%; }
+  .material-item > img,
+  .crop-stage > *,
+  .video-frame > *,
+  .clip-thumb-wrap > *{ position:absolute; top:0; left:0; width:100%; height:100%; }
+  #aiPreviewEl{ height:0; padding-top:56.25%; }
 }
 </style>
 </head>
@@ -6776,33 +6792,6 @@ window.__initEditor = function(){
   // Helper de toque. Mínimo y seguro: escucha 'click' (que en Safari 12 anda),
   // y agrega 'touchend' SIN preventDefault como respaldo, con una guarda para no
   // duplicar. No usamos preventDefault porque puede bloquear el toque en Safari viejo.
-  function onTap(el, handler){
-    if(!el) return;
-    // Un solo disparo por interacción, SIN preventDefault (que en iOS puede bloquear
-    // otros toques). Usamos una marca de tiempo: si el click llega justo después del
-    // touch, es el fantasma y lo ignoramos.
-    let ultimoTouch = 0;
-    let moviendo = false;
-    let sx = 0, sy = 0;
-    el.addEventListener('touchstart', function(e){
-      moviendo = false;
-      if(e.touches && e.touches[0]){ sx = e.touches[0].clientX; sy = e.touches[0].clientY; }
-    }, { passive: true });
-    el.addEventListener('touchmove', function(e){
-      if(e.touches && e.touches[0]){
-        if(Math.abs(e.touches[0].clientX - sx) > 12 || Math.abs(e.touches[0].clientY - sy) > 12) moviendo = true;
-      }
-    }, { passive: true });
-    el.addEventListener('touchend', function(e){
-      if(moviendo) return;
-      ultimoTouch = Date.now();
-      handler.call(el, e);
-    }, { passive: true });
-    el.addEventListener('click', function(e){
-      if(Date.now() - ultimoTouch < 600) return;  // click fantasma tras el touch: ignorar
-      handler.call(el, e);
-    }, false);
-  }
   // setup
   let setupCalled = {};          // { pid: true } convocados elegidos en el setup
   let matchRival = '';           // nombre del rival elegido
@@ -6856,7 +6845,7 @@ window.__initEditor = function(){
 
   // ----- Picker de minuto:segundo (modo parado) -----
   // Abre el modal y llama a onOk(elapsedSeconds) con el tramo elegido (regresivo)
-  let tpMin = 20, tpSec = 0, tpOnOk = null, tpAbiertoEn = 0;
+  let tpMin = 20, tpSec = 0, tpOnOk = null;
   function openTimePicker(title, sub, defMin, defSec, onOk){
     tpMin = Math.max(0, Math.min(halfMinutes, defMin));
     tpSec = Math.max(0, Math.min(59, defSec));
@@ -6865,7 +6854,6 @@ window.__initEditor = function(){
     document.getElementById('liveTimeSub').textContent = sub;
     renderTP();
     document.getElementById('liveTimeModal').style.display='flex';
-    tpAbiertoEn = Date.now();   // marca para ignorar el click fantasma que lo cerraría
   }
   function renderTP(){
     document.getElementById('tpMin').textContent = String(tpMin).padStart(2,'0');
@@ -6875,7 +6863,7 @@ window.__initEditor = function(){
   function regresivoToElapsed(min, sec){ return (halfMinutes*60) - (min*60 + sec); }
 
   document.querySelectorAll('#liveTimeModal .tp-btn').forEach(b=>{
-    onTap(b,()=>{
+    b.addEventListener('click',()=>{
       const a=b.dataset.tp;
       if(a==='min-up') tpMin=Math.min(halfMinutes,tpMin+1);
       else if(a==='min-down') tpMin=Math.max(0,tpMin-1);
@@ -6884,9 +6872,9 @@ window.__initEditor = function(){
       renderTP();
     });
   });
-  onTap(document.getElementById('liveTimeClose'),()=>{ document.getElementById('liveTimeModal').style.display='none'; tpOnOk=null; });
-  document.getElementById('liveTimeModal').addEventListener('click',e=>{ if(e.target.id==='liveTimeModal' && Date.now()-tpAbiertoEn > 400){ e.target.style.display='none'; tpOnOk=null; } });
-  onTap(document.getElementById('liveTimeOk'),()=>{
+  document.getElementById('liveTimeClose').addEventListener('click',()=>{ document.getElementById('liveTimeModal').style.display='none'; tpOnOk=null; });
+  document.getElementById('liveTimeModal').addEventListener('click',e=>{ if(e.target.id==='liveTimeModal'){ e.target.style.display='none'; tpOnOk=null; } });
+  document.getElementById('liveTimeOk').addEventListener('click',()=>{
     document.getElementById('liveTimeModal').style.display='none';
     if(tpOnOk){ const fn=tpOnOk; tpOnOk=null; fn(regresivoToElapsed(tpMin,tpSec), tpMin, tpSec); }
   });
@@ -7209,25 +7197,15 @@ window.__initEditor = function(){
       const st=ensure(p.id);
       d.innerHTML=`<div class="lt-avatar">${(window.__avatarHTML?window.__avatarHTML(p,44):"")}</div><div class="lt-num">${escapeHtml(p.number?'#'+p.number:'')}${roleLabel?' · '+roleLabel:''}</div><div class="lt-name">${escapeHtml(p.name)}</div><div class="lt-time" data-t="${p.id}">${displayTimeEnCancha(p.id)}</div><div class="lt-actions"><div class="lt-act-wrap"><button class="lt-act lt-goal" title="Gol">⚽<span class="lt-cnt">${st.goals||0}</span></button><button class="lt-minus lt-goal-minus" title="Restar gol">−</button></div><div class="lt-act-wrap"><button class="lt-act lt-shot" title="Remate al arco">🎯<span class="lt-cnt">${st.shots||0}</span></button><button class="lt-minus lt-shot-minus" title="Restar remate">−</button></div><div class="lt-act-wrap"><button class="lt-act lt-foul" title="Falta (del tiempo actual)">⚠️<span class="lt-cnt">${foulsNow(p.id)}</span></button><button class="lt-minus lt-foul-minus" title="Restar falta">−</button></div><div class="lt-act-wrap"><button class="lt-act lt-card" title="Tarjeta amarilla">🟨<span class="lt-cnt">${st.cards||0}</span></button><button class="lt-minus lt-card-minus" title="Restar tarjeta">−</button></div></div>`;
       // click en la ficha (fuera de los botones) = cambio
-      // UN SOLO manejador por tarjeta: decide la acción según qué botón se tocó.
-      // Evita tener listeners anidados (tarjeta + botones) que se pisan y cuentan doble.
-      onTap(d,(e)=>{
-        const t = e.target;
-        const btn = t.closest ? t.closest('.lt-act, .lt-minus') : null;
-        if(btn){
-          if(btn.classList.contains('lt-goal')) addGoal(p.id);
-          else if(btn.classList.contains('lt-shot')) addShot(p.id);
-          else if(btn.classList.contains('lt-foul')) addFoul(p.id);
-          else if(btn.classList.contains('lt-card')) addCard(p.id);
-          else if(btn.classList.contains('lt-goal-minus')) restarGoal(p.id);
-          else if(btn.classList.contains('lt-shot-minus')) restarShot(p.id);
-          else if(btn.classList.contains('lt-foul-minus')) restarFoul(p.id);
-          else if(btn.classList.contains('lt-card-minus')) restarCard(p.id);
-          return;
-        }
-        // no fue un botón: tocaron la tarjeta → seleccionar para cambio
-        tapOnCourt(p.id);
-      });
+      d.addEventListener('click',(e)=>{ if(e.target.closest('.lt-act')||e.target.closest('.lt-minus')) return; tapOnCourt(p.id); });
+      d.querySelector('.lt-goal').addEventListener('click',(e)=>{ e.stopPropagation(); addGoal(p.id); });
+      d.querySelector('.lt-shot').addEventListener('click',(e)=>{ e.stopPropagation(); addShot(p.id); });
+      d.querySelector('.lt-foul').addEventListener('click',(e)=>{ e.stopPropagation(); addFoul(p.id); });
+      d.querySelector('.lt-card').addEventListener('click',(e)=>{ e.stopPropagation(); addCard(p.id); });
+      d.querySelector('.lt-goal-minus').addEventListener('click',(e)=>{ e.stopPropagation(); restarGoal(p.id); });
+      d.querySelector('.lt-shot-minus').addEventListener('click',(e)=>{ e.stopPropagation(); restarShot(p.id); });
+      d.querySelector('.lt-foul-minus').addEventListener('click',(e)=>{ e.stopPropagation(); restarFoul(p.id); });
+      d.querySelector('.lt-card-minus').addEventListener('click',(e)=>{ e.stopPropagation(); restarCard(p.id); });
       field.appendChild(d);
     });
   }
@@ -7241,7 +7219,7 @@ window.__initEditor = function(){
       const d=document.createElement('div');
       d.className='bench-player'+(swapOutId!==null?' swap-in-ready':'');
       d.innerHTML=`<div class="bp-avatar">${(window.__avatarHTML?window.__avatarHTML(p,24):"")}</div><span class="bp-num">${escapeHtml(p.number?'#'+p.number:'')}</span><span class="bp-name">${escapeHtml(p.name)}</span><span class="bp-time" data-t="${p.id}">${fmtClock(timeTotal(p.id))}</span>`;
-      onTap(d,()=>tapBench(p.id));
+      d.addEventListener('click',()=>tapBench(p.id));
       bench.appendChild(d);
     });
   }
@@ -7794,14 +7772,10 @@ window.__initEditor = function(){
     };
 
     const cerrar = () => ov.remove();
-    onTap(ov.querySelector('#goSkip'), () => { guardarMin(); renderLog(); cerrar(); });
-    // El "cerrar al tocar afuera" se activa recién después de 400ms, para que el click
-    // fantasma del toque que ABRIÓ este cartel no lo cierre de inmediato (bug en iPad).
-    setTimeout(() => {
-      ov.addEventListener('click', e => { if(e.target === ov) { guardarMin(); renderLog(); cerrar(); } });
-    }, 400);
+    ov.querySelector('#goSkip').addEventListener('click', () => { guardarMin(); renderLog(); cerrar(); });
+    ov.addEventListener('click', e => { if(e.target === ov) { guardarMin(); renderLog(); cerrar(); } });
     ov.querySelectorAll('.go-btn[data-tag]').forEach(btn => {
-      onTap(btn, () => {
+      btn.addEventListener('click', () => {
         evento.origen = btn.dataset.tag;
         guardarMin();
         renderLog();
@@ -7810,7 +7784,7 @@ window.__initEditor = function(){
       });
     });
     ov.querySelectorAll('.go-parent').forEach(btn => {
-      onTap(btn, () => {
+      btn.addEventListener('click', () => {
         const subs = ov.querySelector('[data-subs="'+btn.dataset.parent+'"]');
         if(subs) subs.style.display = subs.style.display==='none' ? 'flex' : 'none';
       });
@@ -9426,12 +9400,37 @@ window.__initEditor = function(){
     d.addEventListener('focus', () => { try{ d.showPicker(); }catch(e){} });
   }})();
 
+  // Busca un jugador por id, primero en el plantel y si no en los invitados del partido.
+  function buscarJugadorPartido(id){
+    let p = squad.find(x=>x.id===id);
+    if(p) return p;
+    if(currentMatch && Array.isArray(currentMatch.invitados)){
+      p = currentMatch.invitados.find(x=>x && x.id===id);
+      if(p) return p;
+    }
+    return null;
+  }
   function playerOptions(selectedId){
     let opts = '<option value="">— Jugador —</option>';
     squad.forEach(p => {
       const label = (p.number?('#'+p.number+' '):'') + p.name;
       opts += `<option value="${p.id}" ${p.id===selectedId?'selected':''}>${escapeHtml(label)}</option>`;
     });
+    // Agregar los jugadores subidos de otra categoría a ESTE partido (invitados),
+    // para poder elegirlos como goleadores/asistentes/etc. Van marcados con su categoría.
+    if(currentMatch && Array.isArray(currentMatch.invitados) && currentMatch.invitados.length){
+      // evitar duplicar si alguno ya estuviera en squad
+      const idsSquad = new Set(squad.map(p=>p.id));
+      const invs = currentMatch.invitados.filter(inv => inv && inv.id && !idsSquad.has(inv.id));
+      if(invs.length){
+        opts += '<optgroup label="⬆ Subieron de otra categoría">';
+        invs.forEach(inv => {
+          const label = (inv.number?('#'+inv.number+' '):'') + inv.name + (inv.fromCat?(' (sube de '+inv.fromCat+')'):'');
+          opts += `<option value="${inv.id}" ${inv.id===selectedId?'selected':''}>${escapeHtml(label)}</option>`;
+        });
+        opts += '</optgroup>';
+      }
+    }
     return opts;
   }
 
@@ -9486,7 +9485,7 @@ window.__initEditor = function(){
       top.className = 'goal-row-top';
       top.innerHTML = `<span class="g-num">${idx+1}</span><select class="g-player">${playerOptions(g.player_id)}</select><input class="g-min" value="${escapeHtml(g.min||'')}" placeholder="min (ej 6' PT)"><button class="g-remove">✕</button>`;
       top.querySelector('.g-player').addEventListener('change', e => {
-        const p = squad.find(x=>x.id===e.target.value); g.player_id=e.target.value; g.player_name=p?p.name:''; flashMatchSaved();
+        const p = buscarJugadorPartido(e.target.value); g.player_id=e.target.value; g.player_name=p?p.name:''; flashMatchSaved();
       });
       top.querySelector('.g-min').addEventListener('input', e => { g.min = e.target.value; flashMatchSaved(); });
       top.querySelector('.g-remove').addEventListener('click', () => { m.goalsFor.splice(idx,1); renderGoals(); flashMatchSaved(); });
@@ -9511,7 +9510,7 @@ window.__initEditor = function(){
       top.innerHTML = `<span class="g-num">${idx+1}</span><input class="g-min" value="${escapeHtml(g.min||'')}" placeholder="min"><select class="g-keeper">${playerOptions(g.keeper_id)}</select><button class="g-remove">✕</button>`;
       top.querySelector('.g-min').addEventListener('input', e => { g.min = e.target.value; flashMatchSaved(); });
       top.querySelector('.g-keeper').addEventListener('change', e => {
-        const p = squad.find(x=>x.id===e.target.value); g.keeper_id=e.target.value; g.keeper_name=p?p.name:''; flashMatchSaved();
+        const p = buscarJugadorPartido(e.target.value); g.keeper_id=e.target.value; g.keeper_name=p?p.name:''; flashMatchSaved();
       });
       top.querySelector('.g-remove').addEventListener('click', () => { m.goalsAgainst.splice(idx,1); renderGoals(); flashMatchSaved(); });
       row.appendChild(top);
@@ -9532,7 +9531,7 @@ window.__initEditor = function(){
       row.className = 'goal-row';
       row.innerHTML = `<span class="g-num">${idx+1}</span><select class="g-player">${playerOptions(a.player_id)}</select><button class="g-remove">✕</button>`;
       row.querySelector('.g-player').addEventListener('change', e => {
-        const p = squad.find(x=>x.id===e.target.value); a.player_id=e.target.value; a.player_name=p?p.name:''; flashMatchSaved();
+        const p = buscarJugadorPartido(e.target.value); a.player_id=e.target.value; a.player_name=p?p.name:''; flashMatchSaved();
       });
       row.querySelector('.g-remove').addEventListener('click', () => { m.assists.splice(idx,1); renderGoals(); flashMatchSaved(); });
       as.appendChild(row);
@@ -9545,7 +9544,7 @@ window.__initEditor = function(){
       row.className = 'goal-row';
       row.innerHTML = `<span class="g-num">${idx+1}</span><select class="g-player">${playerOptions(c.player_id)}</select><select class="g-origin"><option value="amarilla" ${c.type==='amarilla'?'selected':''}>🟨 Amarilla</option><option value="roja" ${c.type==='roja'?'selected':''}>🟥 Roja</option></select><button class="g-remove">✕</button>`;
       row.querySelector('.g-player').addEventListener('change', e => {
-        const p = squad.find(x=>x.id===e.target.value); c.player_id=e.target.value; c.player_name=p?p.name:''; flashMatchSaved();
+        const p = buscarJugadorPartido(e.target.value); c.player_id=e.target.value; c.player_name=p?p.name:''; flashMatchSaved();
       });
       row.querySelector('.g-origin').addEventListener('change', e => { c.type = e.target.value; flashMatchSaved(); });
       row.querySelector('.g-remove').addEventListener('click', () => { m.cards.splice(idx,1); renderGoals(); flashMatchSaved(); });
@@ -11075,8 +11074,27 @@ window.__initEditor = function(){
       const seg = Number(t.total) || 0;
       if(seg > 0){ segundosTotales += seg; partidosConMinutos++; }
     });
-    const minutosTotales = Math.round(segundosTotales / 60);
-    const minutosPromedio = partidosConMinutos ? Math.round(minutosTotales / partidosConMinutos) : 0;
+    // ---- Partidos de OTRAS categorías donde este jugador fue INVITADO (subido) ----
+    // Buscamos en stat_matches del club (cualquier categoría) los partidos donde el
+    // jugador aparece en la lista de invitados, para sumar sus goles/asist/tarjetas
+    // a su ficha aunque el partido sea de otra categoría.
+    let partidosComoInvitado = [];
+    try{
+      const sb = window.__sb; const clubId = await window.__getClubId();
+      const cat = catActual();
+      if(sb && clubId){
+        let q = sb.from('stat_matches').select('rival, date, goals_for, assists, cards, invitados, categoria, created_at').eq('club_id', clubId);
+        if(window.__getTemporada) q = q.eq('temporada', window.__getTemporada());
+        const { data } = await q;
+        (data||[]).forEach(m => {
+          // solo partidos de OTRA categoría (los de la propia ya vienen en 'matches')
+          if(m.categoria === cat) return;
+          const esInvitado = Array.isArray(m.invitados) && m.invitados.some(inv => inv && inv.id === playerId);
+          if(!esInvitado) return;
+          partidosComoInvitado.push(m);
+        });
+      }
+    }catch(e){ partidosComoInvitado = []; }
 
     // Serie unificada: partidos (sección Partidos) + sesiones En Vivo independientes.
     // Cada entrada: {fecha, label, goals, assists, cards, wasCalled, origen}
@@ -11091,6 +11109,19 @@ window.__initEditor = function(){
         cards: (m.cards||[]).filter(x => x.player_id === playerId).length,
         wasCalled: !!(m.calls && m.calls[playerId] === 'yes'),
         origen: 'partido'
+      });
+    });
+    // Partidos donde jugó como invitado en otra categoría (goles/asist/tarjetas por su id)
+    partidosComoInvitado.forEach(m => {
+      serie.push({
+        fecha: m.date || '',
+        orden: m.created_at || '',
+        label: (m.rival || 'Partido') + ' (invitado' + (m.categoria?(' en '+m.categoria):'') + ')',
+        goals: (Array.isArray(m.goals_for)?m.goals_for:[]).filter(x => x.player_id === playerId).length,
+        assists: (Array.isArray(m.assists)?m.assists:[]).filter(x => x.player_id === playerId).length,
+        cards: (Array.isArray(m.cards)?m.cards:[]).filter(x => x.player_id === playerId).length,
+        wasCalled: true,   // si fue invitado, estuvo convocado
+        origen: 'invitado'
       });
     });
     liveIndep.forEach(s => {
@@ -11118,8 +11149,24 @@ window.__initEditor = function(){
 
     // Recorrer y armar los totales del jugador
     let totGoals = 0, totAssists = 0, totCards = 0, called = 0, played = 0;
+    // ---- Goles del AJUSTE INICIAL (semestre previo cargado a mano) ----
+    // Los goleadores del ajuste se guardan por nombre (elegidos del plantel), así que
+    // los buscamos por el nombre de este jugador y los sumamos a su total.
+    let golesAjuste = 0;
+    try{
+      if(adjustment && Array.isArray(adjustment.scorers)){
+        adjustment.scorers.forEach(s => {
+          if(s && s.name === playerName){ golesAjuste += Number(s.goals) || 0; }
+        });
+      }
+    }catch(e){ golesAjuste = 0; }
     let acc = 0;
     const perMatch = [];   // {label, goals, assists, cards, acc, wasCalled}
+    // El ajuste inicial va PRIMERO en la línea de tiempo (es el semestre previo).
+    if(golesAjuste > 0){
+      acc += golesAjuste;
+      perMatch.push({ label:'Ajuste inicial (semestre previo)', goals:golesAjuste, assists:0, cards:0, acc, wasCalled:false, esAjuste:true });
+    }
     ms.forEach((m, i) => {
       const g = m.goals, a = m.assists, c = m.cards;
       const wasCalled = m.wasCalled;
@@ -11130,6 +11177,8 @@ window.__initEditor = function(){
       const rivalTxt = m.label ? m.label : ('P' + (i+1));
       perMatch.push({ label: rivalTxt, goals:g, assists:a, cards:c, acc, wasCalled });
     });
+    // Sumar los goles del ajuste al total de goles del jugador
+    totGoals += golesAjuste;
 
     // Si todavía no hay partidos, igual mostramos la ficha:
     // los datos personales, lesiones y evaluaciones no dependen de haber jugado.
@@ -11183,7 +11232,7 @@ window.__initEditor = function(){
       const x = i * 42 + 8;
       const h = p.goals > 0 ? (p.goals / maxG) * (chartH - padB - padT) : 0;
       const y = chartH - padB - h;
-      const col = p.goals > 0 ? 'var(--success)' : 'var(--line)';
+      const col = p.esAjuste ? '#E0A93B' : (p.goals > 0 ? 'var(--success)' : 'var(--line)');
       const barH = p.goals > 0 ? h : 2;
       const barY = p.goals > 0 ? y : (chartH - padB - 2);
       bars += `<rect x="${x}" y="${barY}" width="26" height="${barH}" rx="3" fill="${col}"><title>${escapeHtml(p.label)}: ${p.goals} gol(es)</title></rect>`;
