@@ -11292,12 +11292,14 @@ window.__initEditor = function(){
     const box = document.getElementById('pcPersonal');
     if(!box) return;
     const pierna = player.pierna ? (PIERNAS[player.pierna] || player.pierna) : '—';
-    const nac = player.nacimiento ? new Date(player.nacimiento + 'T00:00:00').toLocaleDateString('es-AR') : '—';
+    // Año de nacimiento: usa el campo nuevo; si no está, cae al año de la fecha vieja.
+    let anio = player.anio_nacimiento || (player.nacimiento ? parseInt(String(player.nacimiento).slice(0,4),10) : null);
+    if(!(anio >= 1950 && anio <= new Date().getFullYear())) anio = null;
+    let nacTxt = anio ? String(anio) : '—';
     let edad = '';
-    if(player.nacimiento){
-      const d = new Date(player.nacimiento + 'T00:00:00');
-      const a = Math.floor((Date.now() - d.getTime()) / (365.25*24*60*60*1000));
-      if(a > 0 && a < 100) edad = ' (' + a + ' años)';
+    if(anio){
+      const a = new Date().getFullYear() - anio;
+      if(a >= 0 && a < 100) edad = ' (' + a + ' años)';
     }
     box.innerHTML = `
       <div class="pc-card">
@@ -11307,7 +11309,7 @@ window.__initEditor = function(){
         </div>
         <div class="pc-datos">
           <div class="pc-dato"><span class="pd-lbl">Pierna hábil</span><span class="pd-val">${escapeHtml(pierna)}</span></div>
-          <div class="pc-dato"><span class="pd-lbl">Nacimiento</span><span class="pd-val">${escapeHtml(nac)}${edad}</span></div>
+          <div class="pc-dato"><span class="pd-lbl">Año de nacimiento</span><span class="pd-val">${escapeHtml(nacTxt)}${edad}</span></div>
           <div class="pc-dato"><span class="pd-lbl">Posición</span><span class="pd-val">${escapeHtml(player.position || '—')}</span></div>
         </div>
         ${player.notas ? `<div class="pc-notas"><b>Notas:</b> ${escapeHtml(player.notas)}</div>` : ''}
@@ -11336,8 +11338,8 @@ window.__initEditor = function(){
             <button class="pierna-btn${actual==='izquierda'?' selected':''}" data-pierna="izquierda">Izquierda</button>
           </div>
 
-          <label class="cal-field-lbl" style="margin-top:14px;">Fecha de nacimiento</label>
-          <input type="date" id="datosNac" class="cuarteto-input" style="width:100%;" value="${player.nacimiento || ''}">
+          <label class="cal-field-lbl" style="margin-top:14px;">Año de nacimiento</label>
+          <input type="number" id="datosNac" class="cuarteto-input" style="width:100%;" min="1950" max="${new Date().getFullYear()}" step="1" placeholder="ej: 2008" value="${player.anio_nacimiento || (player.nacimiento ? String(player.nacimiento).slice(0,4) : '')}">
 
           <label class="cal-field-lbl" style="margin-top:14px;">Notas</label>
           <textarea id="datosNotas" class="cuarteto-input" rows="3" style="width:100%;resize:vertical;">${escapeHtml(player.notas || '')}</textarea>
@@ -11371,18 +11373,20 @@ window.__initEditor = function(){
     m.addEventListener('click', e => { if(e.target === m) cerrar(); });
 
     document.getElementById('datosSave').addEventListener('click', async () => {
-      const nac = document.getElementById('datosNac').value || null;
+      const anioRaw = document.getElementById('datosNac').value || '';
+      const anio = anioRaw ? parseInt(anioRaw, 10) : null;
+      const anioValido = (anio && anio >= 1950 && anio <= new Date().getFullYear()) ? anio : null;
       const notas = document.getElementById('datosNotas').value.trim() || null;
       try{
         const sb = window.__sb;
         const { error } = await sb.from('players').update({
           pierna: piernaElegida || null,
-          nacimiento: nac,
+          anio_nacimiento: anioValido,
           notas: notas
         }).eq('id', player.id);
         if(error) throw error;
         player.pierna = piernaElegida || null;
-        player.nacimiento = nac;
+        player.anio_nacimiento = anioValido;
         player.notas = notas;
         cerrar();
         renderDatosPersonales(player);
@@ -11390,7 +11394,7 @@ window.__initEditor = function(){
       }catch(e){
         console.error(e);
         const msg = (e.message||'').toLowerCase();
-        toast(msg.includes('column') ? 'Falta preparar la base: corré el SQL de la ficha' : 'No se pudo guardar');
+        toast(msg.includes('column') ? 'Falta preparar la base: corré el SQL de año de nacimiento' : 'No se pudo guardar');
       }
     });
   }
