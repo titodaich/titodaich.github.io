@@ -1304,13 +1304,32 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .proj-roster{margin-top:16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;}
 .proj-roster-h{font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;color:var(--chalk,#dfe8f0);margin-bottom:10px;}
 .proj-roster-h .proj-roster-n{color:var(--muted);font-weight:400;margin-left:4px;}
+.proj-roster-hint{font-size:11.5px;color:var(--muted);margin:-4px 0 10px;font-style:italic;}
 .proj-roster-pos{font-size:11.5px;font-weight:600;color:var(--accent-2);text-transform:uppercase;letter-spacing:0.4px;margin:12px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--line);}
 .proj-roster-pos:first-of-type{margin-top:0;}
 .proj-roster-row{display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid rgba(51,73,94,0.4);}
 .proj-roster-row:last-child{border-bottom:none;}
 .proj-roster-num{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);min-width:34px;}
 .proj-roster-name{flex:1;font-size:14px;color:var(--chalk,#dfe8f0);}
-.proj-roster-anio{font-family:'JetBrains Mono',monospace;font-size:12px;color:#E0A93B;min-width:30px;text-align:right;}
+.proj-roster-anio{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);min-width:38px;text-align:right;}
+.proj-pierna{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:5px;font-family:'Oswald',sans-serif;font-size:11px;font-weight:700;flex-shrink:0;}
+.proj-pierna-d{background:rgba(47,143,203,0.18);color:var(--accent-2);}
+.proj-pierna-z{background:rgba(224,169,59,0.18);color:#E0A93B;}
+.proj-clickable{cursor:pointer;transition:background .12s ease;}
+.proj-clickable:hover{background:rgba(47,143,203,0.07);}
+.proj-nivel{font-family:'Oswald',sans-serif;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;padding:2px 8px;border-radius:20px;flex-shrink:0;}
+.proj-nivel-alto{background:rgba(76,175,109,0.18);color:var(--success);}
+.proj-nivel-medio{background:rgba(224,169,59,0.18);color:#E0A93B;}
+.proj-nivel-bajo{background:rgba(240,85,63,0.18);color:var(--danger);}
+.proj-baja{font-size:10.5px;font-weight:600;color:#C77DFF;background:rgba(199,125,255,0.14);border:1px solid rgba(199,125,255,0.4);padding:2px 8px;border-radius:20px;flex-shrink:0;}
+.senal-nivel-grid{display:flex;gap:9px;}
+.senal-nivel-btn{flex:1;background:var(--bg);border:1px solid var(--line);color:var(--muted);border-radius:9px;padding:12px 10px;font-family:'Oswald',sans-serif;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;cursor:pointer;transition:all .15s ease;}
+.senal-nivel-btn:hover{border-color:var(--accent-2);color:var(--chalk,#dfe8f0);}
+.senal-alto.selected{background:rgba(76,175,109,0.18);border-color:var(--success);color:var(--success);}
+.senal-medio.selected{background:rgba(224,169,59,0.18);border-color:#E0A93B;color:#E0A93B;}
+.senal-bajo.selected{background:rgba(240,85,63,0.18);border-color:var(--danger);color:var(--danger);}
+.senal-baja-row{display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--chalk,#dfe8f0);cursor:pointer;line-height:1.4;}
+.senal-baja-row input{width:18px;height:18px;flex-shrink:0;accent-color:#C77DFF;}
 
 .score-box{display:flex;align-items:center;gap:8px;margin-left:auto;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:6px 16px;}
 .score-num{font-family:'Oswald',sans-serif;font-size:28px;font-weight:700;}
@@ -1404,6 +1423,17 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .squad-card .sq-edit:hover{color:var(--accent-2);}
 .squad-card .sq-del{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:14px;}
 .squad-card .sq-del:hover{color:var(--danger);}
+.squad-card .sq-archive{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:14px;}
+.squad-card .sq-archive:hover{color:var(--accent-2);}
+.archivo-bar{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-left:3px solid #E0A93B;border-radius:0 10px 10px 0;padding:9px 14px;margin-bottom:14px;}
+.archivo-bar-ico{font-size:16px;}
+.archivo-bar-txt{flex:1;font-size:13px;color:var(--muted);}
+.archivo-bar-txt b{color:#E0A93B;font-family:'Oswald',sans-serif;font-size:16px;}
+.archivo-lista{display:flex;flex-direction:column;gap:8px;max-height:50vh;overflow-y:auto;}
+.archivo-row{display:flex;align-items:center;gap:10px;background:var(--bg-2);border:1px solid var(--line);border-radius:8px;padding:9px 12px;}
+.archivo-row-num{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);min-width:28px;}
+.archivo-row-name{flex:1;font-size:14px;color:var(--chalk,#dfe8f0);}
+.archivo-row-pos{font-size:12px;color:var(--muted);}
 
 .annual-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px;}
 .annual-card h3{font-family:'Oswald',sans-serif;font-size:15px;text-transform:uppercase;letter-spacing:0.6px;margin:0 0 14px;}
@@ -3051,6 +3081,11 @@ body.editor-active #screen-editor{ display:block; }
           <div class="squad-info-card"><span class="squad-info-ico">ℹ️</span><span data-i18n="squadSub">Los jugadores de esta categoría se usan para convocatorias, cargar goleadores y asistencias, y usar la sección En Vivo. Podés agregarles una foto tocando el círculo.</span></div>
         </div>
         <button class="btn primary" id="addPlayerToSquadBtn" data-i18n="addPlayer">+ Agregar jugador</button>
+      </div>
+      <div class="archivo-bar" id="archivoBar" style="display:none;">
+        <span class="archivo-bar-ico">🗄</span>
+        <span class="archivo-bar-txt"><b id="archivoCount">0</b> <span id="archivoCountLbl">archivados</span></span>
+        <button class="btn small" id="verArchivoBtn">Ver archivo →</button>
       </div>
       <div class="squad-list" id="squadList"></div>
     </div>
@@ -5342,7 +5377,7 @@ window.__initEditor = function(){
       const sb = window.__sb;
       const clubId = window.__clubIdCache || (window.__getClubId ? await window.__getClubId() : null);
       if(!sb || !clubId){ cont.innerHTML = '<p class="rd-empty">Sin conexión.</p>'; return; }
-      let q = sb.from('players').select('*').eq('club_id', clubId).eq('temporada', temporadaActiva);
+      let q = sb.from('players').select('*').eq('club_id', clubId).eq('temporada', temporadaActiva).eq('archivado', false);
       const { data } = await q;
       jugadoresPrevios = data || [];
       if(jugadoresPrevios.length === 0){
@@ -7644,7 +7679,7 @@ window.__initEditor = function(){
     const clubId=await window.__getClubId(); if(!clubId) return;
     const cat=(window.__getActiveCategory && window.__getActiveCategory())||null;
     try{
-      let q=sb.from('players').select('*').eq('club_id',clubId);
+      let q=sb.from('players').select('*').eq('club_id',clubId).eq('archivado',false);
       q=cat?q.eq('categoria',cat):q.is('categoria',null); if(window.__getTemporada) q=q.eq('temporada',window.__getTemporada());
       const {data}=await q;
       allSquad=(data||[]).map(p=>({id:p.id,name:p.name,number:p.number||'',position:p.position||'',photo:p.photo||''}));
@@ -8651,7 +8686,8 @@ window.__initEditor = function(){
     { name:'4 vs 5', subs:[] }
   ];
   let clubId = null;
-  let squad = [];        // jugadores de la categoría
+  let squad = [];        // jugadores de la categoría (solo activos)
+  let squadArchivados = [];  // jugadores archivados de la categoría
   let origins = [];      // formas de origen de gol (con subs)
   let originsRowId = null;
   let matches = [];      // partidos de la categoría
@@ -8705,7 +8741,11 @@ window.__initEditor = function(){
       let pq = sb.from('players').select('*').eq('club_id', clubId);
       pq = cat ? pq.eq('categoria', cat) : pq.is('categoria', null);
       const pRes = await pq;
-      squad = (pRes.data||[]).map(p => ({ id:p.id, name:p.name, number:p.number||'', position:p.position||'', photo:p.photo||'', att_excluido: !!p.att_excluido }));
+      const todos = (pRes.data||[]).map(p => ({ id:p.id, name:p.name, number:p.number||'', position:p.position||'', photo:p.photo||'', att_excluido: !!p.att_excluido, archivado: !!p.archivado }));
+      // squad = solo los ACTIVOS (los archivados no aparecen en ninguna lista).
+      squad = todos.filter(p => !p.archivado);
+      // Guardamos los archivados aparte para el panel "Archivo".
+      squadArchivados = todos.filter(p => p.archivado);
 
       // Orígenes de gol (guardados como una fila JSON por categoría)
       let oq = sb.from('goal_origins').select('*').eq('club_id', clubId);
@@ -9214,6 +9254,7 @@ window.__initEditor = function(){
   }
 
   function renderSquad(){
+    actualizarArchivoBar();
     const el = document.getElementById('squadList');
     if(squad.length === 0){
       el.innerHTML = '<div class="match-empty" style="grid-column:1/-1;">Todavía no cargaste jugadores. Tocá "+ Agregar jugador".</div>';
@@ -9228,10 +9269,26 @@ window.__initEditor = function(){
         <div class="sq-num">${escapeHtml(p.number||'—')}</div>
         <div class="sq-info"><div class="sq-name">${escapeHtml(p.name)}</div><div class="sq-pos">${escapeHtml(p.position||'')}</div></div>
         <button class="sq-edit" title="Editar">✎</button>
+        <button class="sq-archive" title="Archivar (dejó la actividad)">📥</button>
         <button class="sq-del" title="Quitar">✕</button>
       `;
       card.querySelector('.sq-avatar-btn').addEventListener('click', () => {
         subirFotoJugador(p, () => renderSquad());
+      });
+      card.querySelector('.sq-archive').addEventListener('click', async () => {
+        if(!confirm('¿Archivar a '+p.name+'?\n\nDeja de aparecer en las listas, pero su historial (goles, minutos, partidos) se conserva. Lo podés reactivar desde "🗄 Archivo".')) return;
+        const sb = window.__sb;
+        if(sb && !String(p.id).startsWith('tmp')){
+          try{
+            const { error } = await sb.from('players').update({ archivado:true }).eq('id', p.id);
+            if(error){ toast('No se pudo archivar'); return; }
+          }catch(e){ console.error('archivar', e); toast('No se pudo archivar'); return; }
+        }
+        p.archivado = true;
+        squad = squad.filter(x => x.id !== p.id);
+        squadArchivados.push(p);
+        renderSquad();
+        toast(p.name + ' archivado');
       });
       card.querySelector('.sq-edit').addEventListener('click', async () => {
         const name = prompt(window.t('mPlayerName'), p.name || '');
@@ -9265,6 +9322,73 @@ window.__initEditor = function(){
       el.appendChild(card);
     });
   }
+
+  // Actualiza el cartel lateral "🗄 archivados" según cuántos hay.
+  function actualizarArchivoBar(){
+    const bar = document.getElementById('archivoBar');
+    if(!bar) return;
+    const n = squadArchivados.length;
+    if(n === 0){ bar.style.display = 'none'; return; }
+    bar.style.display = '';
+    document.getElementById('archivoCount').textContent = n;
+    document.getElementById('archivoCountLbl').textContent = (n === 1 ? 'archivado' : 'archivados');
+  }
+
+  // Panel de Archivo: lista los jugadores archivados con opción de reactivar.
+  function abrirArchivo(){
+    let m = document.getElementById('archivoModal');
+    if(m) m.remove();
+    m = document.createElement('div');
+    m.id = 'archivoModal';
+    m.className = 'cloud-modal-overlay';
+    m.style.display = 'flex';
+    const lista = squadArchivados.slice().sort((a,b) => (a.name||'').localeCompare(b.name||''));
+    const filas = lista.length
+      ? lista.map(p => `
+          <div class="archivo-row" data-id="${escapeHtml(String(p.id))}">
+            <span class="archivo-row-num">${escapeHtml(p.number||'—')}</span>
+            <span class="archivo-row-name">${escapeHtml(p.name||'Sin nombre')}</span>
+            <span class="archivo-row-pos">${escapeHtml(p.position||'')}</span>
+            <button class="btn small archivo-reactivar" data-id="${escapeHtml(String(p.id))}">↩ Reactivar</button>
+          </div>`).join('')
+      : '<p class="rd-empty">No hay jugadores archivados en esta categoría.</p>';
+    m.innerHTML = `
+      <div class="cloud-modal" style="max-width:460px;">
+        <div class="cloud-modal-head">
+          <h3>🗄 Archivo — jugadores dados de baja</h3>
+          <button class="cloud-close" id="archivoClose">✕</button>
+        </div>
+        <div style="padding:6px 2px;">
+          <p class="rd-empty" style="margin-bottom:12px;">Estos jugadores no aparecen en las listas activas, pero su historial se conserva. Reactivá a cualquiera si vuelve.</p>
+          <div class="archivo-lista">${filas}</div>
+        </div>
+      </div>`;
+    document.body.appendChild(m);
+    const cerrar = () => m.remove();
+    document.getElementById('archivoClose').addEventListener('click', cerrar);
+    m.addEventListener('click', e => { if(e.target === m) cerrar(); });
+    m.querySelectorAll('.archivo-reactivar').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        const p = squadArchivados.find(x => String(x.id) === String(id));
+        if(!p) return;
+        const sb = window.__sb;
+        if(sb && !String(p.id).startsWith('tmp')){
+          try{
+            const { error } = await sb.from('players').update({ archivado:false }).eq('id', p.id);
+            if(error){ toast('No se pudo reactivar'); return; }
+          }catch(e){ console.error('reactivar', e); toast('No se pudo reactivar'); return; }
+        }
+        p.archivado = false;
+        squadArchivados = squadArchivados.filter(x => x.id !== p.id);
+        squad.push(p);
+        renderSquad();
+        toast(p.name + ' reactivado');
+        if(squadArchivados.length === 0) cerrar(); else abrirArchivo();
+      });
+    });
+  }
+  document.getElementById('verArchivoBtn') && document.getElementById('verArchivoBtn').addEventListener('click', abrirArchivo);
   document.getElementById('addPlayerToSquadBtn').addEventListener('click', async () => {
     const name = prompt(window.t('mPlayerName'));
     if(!name || !name.trim()) return;
@@ -9669,7 +9793,7 @@ window.__initEditor = function(){
     if(!sb || !clubId) return [];
     try{
       // Traemos todos los jugadores del club de esta temporada que NO sean de la categoría actual
-      let q = sb.from('players').select('id, name, number, position, categoria').eq('club_id', clubId).eq('temporada', temp);
+      let q = sb.from('players').select('id, name, number, position, categoria').eq('club_id', clubId).eq('temporada', temp).eq('archivado', false);
       const { data } = await q;
       return (data||[])
         .filter(p => p.categoria !== catActual)
@@ -12492,7 +12616,7 @@ window.__initEditor = function(){
     // Traemos TODOS los jugadores del club en la temporada activa (todas las categorías)
     let players = [];
     try{
-      let q = sb.from('players').select('id,name,number,position,categoria,anio_nacimiento').eq('club_id', clubId);
+      let q = sb.from('players').select('id,name,number,position,categoria,anio_nacimiento,pierna,nivel,posible_baja').eq('club_id', clubId).eq('archivado', false);
       if(window.__getTemporada) q = q.eq('temporada', window.__getTemporada());
       const { data, error } = await q;
       if(error) throw error;
@@ -12531,7 +12655,82 @@ window.__initEditor = function(){
       }
     });
 
+    // Guardamos los proyectados por id para el señalador (nivel / posible baja).
+    projPlayersById = {};
+    seQuedan.concat(suben).forEach(p => { projPlayersById[String(p.id)] = p; });
+
     cont.innerHTML = construirProjHTML({ cat, catArriba, catAbajo, seQuedan, suben, seVan, sinAnio, revisar, temporada });
+
+    // Al tocar un jugador de la lista resumen, abrir el selector de nivel / baja.
+    cont.querySelectorAll('.proj-roster-row.proj-clickable').forEach(row => {
+      row.addEventListener('click', () => {
+        const p = projPlayersById[row.dataset.pid];
+        if(p) abrirSenalador(p);
+      });
+    });
+  }
+
+  let projPlayersById = {};
+
+  // Selector manual de nivel y "posible baja" para un jugador (usado en Proyección).
+  function abrirSenalador(player){
+    let m = document.getElementById('senaladorModal');
+    if(m) m.remove();
+    m = document.createElement('div');
+    m.id = 'senaladorModal';
+    m.className = 'cloud-modal-overlay';
+    m.style.display = 'flex';
+    let nivelSel = (player.nivel||'').toString().toLowerCase();
+    let bajaSel = !!player.posible_baja;
+    const btn = (val, lbl) => '<button class="senal-nivel-btn senal-'+val+(nivelSel===val?' selected':'')+'" data-nivel="'+val+'">'+lbl+'</button>';
+    m.innerHTML = `
+      <div class="cloud-modal" style="max-width:400px;">
+        <div class="cloud-modal-head">
+          <h3>🎯 ${escapeHtml(player.name || 'Jugador')}</h3>
+          <button class="cloud-close" id="senalClose">✕</button>
+        </div>
+        <div style="padding:6px 2px;">
+          <label class="cal-field-lbl">Nivel</label>
+          <div class="senal-nivel-grid">${btn('alto','Alto')}${btn('medio','Medio')}${btn('bajo','Bajo')}</div>
+          <label class="senal-baja-row" style="margin-top:16px;">
+            <input type="checkbox" id="senalBaja" ${bajaSel?'checked':''}>
+            <span>⚠ Marcar como <b>posible baja</b> (podría dejar la actividad)</span>
+          </label>
+          <div class="summary-actions" style="margin-top:18px;">
+            <button class="btn small" id="senalCancel">Cancelar</button>
+            <button class="btn small primary" id="senalSave">Guardar</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(m);
+    m.querySelectorAll('.senal-nivel-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        // Tocar el que ya está elegido lo deselecciona.
+        if(nivelSel === b.dataset.nivel){ nivelSel = ''; b.classList.remove('selected'); return; }
+        nivelSel = b.dataset.nivel;
+        m.querySelectorAll('.senal-nivel-btn').forEach(x => x.classList.remove('selected'));
+        b.classList.add('selected');
+      });
+    });
+    const cerrar = () => m.remove();
+    document.getElementById('senalClose').addEventListener('click', cerrar);
+    document.getElementById('senalCancel').addEventListener('click', cerrar);
+    m.addEventListener('click', e => { if(e.target === m) cerrar(); });
+    document.getElementById('senalSave').addEventListener('click', async () => {
+      const baja = document.getElementById('senalBaja').checked;
+      const sb = window.__sb;
+      if(sb && !String(player.id).startsWith('tmp')){
+        try{
+          const { error } = await sb.from('players').update({ nivel: nivelSel || null, posible_baja: baja }).eq('id', player.id);
+          if(error){ toast('No se pudo guardar'); return; }
+        }catch(e){ console.error('senalador', e); toast('No se pudo guardar'); return; }
+      }
+      player.nivel = nivelSel || null;
+      player.posible_baja = baja;
+      cerrar();
+      renderProjection();
+      toast('Guardado');
+    });
   }
 
   // Ordena por número y nombre
@@ -12553,12 +12752,35 @@ window.__initEditor = function(){
       html += '<div class="proj-pos-block"><div class="proj-pos-h">'+PROJ_POS_LABEL[g]+' <span class="proj-pos-n">'+grupos[g].length+'</span></div><div class="proj-pos-list">';
       html += grupos[g].map(p => {
         const num = p.number ? '<span class="proj-num">#'+escapeHtml(String(p.number))+'</span>' : '';
-        const anio = p.anio_nacimiento ? '<span class="proj-anio">\''+String(p.anio_nacimiento).slice(-2)+'</span>' : '';
-        return '<div class="proj-player">'+num+'<span class="proj-name">'+escapeHtml(p.name||'Sin nombre')+'</span>'+anio+'</div>';
+        const anio = p.anio_nacimiento ? '<span class="proj-anio">'+String(p.anio_nacimiento)+'</span>' : '';
+        return '<div class="proj-player">'+num+'<span class="proj-name">'+escapeHtml(p.name||'Sin nombre')+'</span>'+projPiernaTag(p.pierna)+anio+'</div>';
       }).join('');
       html += '</div></div>';
     });
     return html;
+  }
+
+  // Etiqueta corta de pierna hábil: D (derecha) / Z (zurdo). Vacío si no está cargada.
+  function projPiernaTag(pierna){
+    const p = (pierna||'').toString().toLowerCase();
+    if(p === 'derecha') return '<span class="proj-pierna proj-pierna-d" title="Derecha">D</span>';
+    if(p === 'izquierda') return '<span class="proj-pierna proj-pierna-z" title="Zurdo">Z</span>';
+    return '';
+  }
+
+  // Señaladores manuales: nivel (alto/medio/bajo) y posible baja.
+  const PROJ_NIVEL_LABEL = { alto:'Alto', medio:'Medio', bajo:'Bajo' };
+  function projNivelTag(nivel){
+    const n = (nivel||'').toString().toLowerCase();
+    if(!PROJ_NIVEL_LABEL[n]) return '';
+    return '<span class="proj-nivel proj-nivel-'+n+'" title="Nivel '+PROJ_NIVEL_LABEL[n]+'">'+PROJ_NIVEL_LABEL[n]+'</span>';
+  }
+  function projBajaTag(posibleBaja){
+    return posibleBaja ? '<span class="proj-baja" title="Posible baja">⚠ posible baja</span>' : '';
+  }
+  // Los dos juntos, para el renglón.
+  function projSenaladores(p){
+    return projNivelTag(p.nivel) + projBajaTag(p.posible_baja);
   }
 
   function construirProjHTML(d){
@@ -12641,7 +12863,7 @@ window.__initEditor = function(){
     // Lista resumen limpia: SOLO el plantel proyectado de esta categoría
     // (se quedan + suben), uno debajo del otro, ordenado por posición.
     if(proyectados.length){
-      html += '<div class="proj-roster"><div class="proj-roster-h">📋 Plantel '+PROJ_LABEL[cat]+' '+temporada+' <span class="proj-roster-n">('+proyectados.length+')</span></div>';
+      html += '<div class="proj-roster"><div class="proj-roster-h">📋 Plantel '+PROJ_LABEL[cat]+' '+temporada+' <span class="proj-roster-n">('+proyectados.length+')</span></div><div class="proj-roster-hint">Tocá un jugador para marcar su nivel o señalarlo como posible baja.</div>';
       const grupos = {};
       proyectados.forEach(p => { const g = projPosGroup(p.position); (grupos[g]=grupos[g]||[]).push(p); });
       PROJ_POS_ORDER.forEach(g => {
@@ -12650,9 +12872,11 @@ window.__initEditor = function(){
         html += '<div class="proj-roster-pos">'+PROJ_POS_LABEL[g]+'</div>';
         grupos[g].forEach(p => {
           const num = p.number ? '#'+escapeHtml(String(p.number)) : '—';
-          const anio = p.anio_nacimiento ? '\''+String(p.anio_nacimiento).slice(-2) : '';
-          html += '<div class="proj-roster-row"><span class="proj-roster-num">'+num+'</span>'
+          const anio = p.anio_nacimiento ? String(p.anio_nacimiento) : '';
+          html += '<div class="proj-roster-row proj-clickable" data-pid="'+escapeHtml(String(p.id))+'"><span class="proj-roster-num">'+num+'</span>'
             + '<span class="proj-roster-name">'+escapeHtml(p.name||'Sin nombre')+'</span>'
+            + projSenaladores(p)
+            + projPiernaTag(p.pierna)
             + '<span class="proj-roster-anio">'+anio+'</span></div>';
         });
       });
