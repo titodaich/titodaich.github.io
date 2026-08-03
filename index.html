@@ -2606,35 +2606,6 @@ body.editor-active #screen-editor{ display:block; }
 </head>
 <body>
 
-<!-- DIAGNÓSTICO temporal: muestra en pantalla cualquier error de JavaScript.
-     Sirve para ver qué falla en dispositivos donde no se puede abrir la consola (iPad).
-     Se puede quitar una vez resuelto el problema. -->
-<div id="errBox" style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#7a1515;color:#fff;font:12px monospace;padding:10px 12px;max-height:40vh;overflow:auto;white-space:pre-wrap;border-top:2px solid #ff5b5b;"></div>
-<script>
-(function(){
-  function mostrar(msg){
-    var box = document.getElementById('errBox');
-    if(!box) return;
-    box.style.display = 'block';
-    box.textContent += msg + '\n';
-  }
-  window.addEventListener('error', function(e){
-    mostrar('⚠️ ' + (e.message || 'error') + '  @ ' + (e.filename||'').split('/').pop() + ':' + (e.lineno||'?'));
-  });
-  window.addEventListener('unhandledrejection', function(e){
-    var r = e.reason;
-    mostrar('⚠️ promesa: ' + (r && (r.message || r) || 'error'));
-  });
-  // Función para que el código muestre mensajes de diagnóstico (ej: confirmar que un toque llegó)
-  window.__diag = mostrar;
-  // Botón para ocultar el cartel
-  document.addEventListener('DOMContentLoaded', function(){
-    var box = document.getElementById('errBox');
-    if(box){ box.addEventListener('click', function(){ box.style.display='none'; box.textContent=''; }); }
-  });
-})();
-</script>
-
 <!-- Fondo de cancha de futsal (marca de agua sutil, detrás de todo) -->
 <svg class="cancha-bg" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
   <g fill="none" stroke="#33495E" stroke-width="2" opacity="0.20">
@@ -6730,6 +6701,78 @@ window.__initEditor = function(){
   let state = {};                // { pid: {onCourt, acc1, acc2, lastInAt, goals, fouls} }
   let events = [];
   let liveRowId = null;
+  // ===== AUTOGUARDADO LOCAL DEL PARTIDO EN VIVO =====
+  // Guarda todo el estado en el propio dispositivo (funciona sin internet).
+  // Si se corta la conexión, se cierra Safari o salís sin querer, al volver a
+  // En Vivo se retoma automáticamente donde quedaste.
+  const LIVE_SAVE_KEY = 'benchone_live_encurso';
+  let __restaurando = false;   // evita autoguardar mientras se restaura
+  function guardarPartidoLocal(){
+    if(__restaurando) return;
+    if(inSetup) return;        // solo guardamos si hay un partido en curso
+    try{
+      const snap = {
+        v: 1,
+        ts: Date.now(),
+        categoria: (window.__getActiveCategory && window.__getActiveCategory()) || '',
+        clockSeconds, clockRunning, clockAnchor,
+        swapOutId, squad, allSquad,
+        clockType, halfMinutes, currentHalf, halfSplitAt,
+        state, events, liveRowId,
+        setupCalled, matchRival, matchLinkId, inSetup, manualMin,
+        goalsAgainstManual, foulsAgainst1, foulsAgainst2,
+        shotsFor1, shotsFor2, shotsAgainst1, shotsAgainst2
+      };
+      safeStorage.setItem(LIVE_SAVE_KEY, JSON.stringify(snap));
+    }catch(e){ /* storage lleno o bloqueado: no rompemos el partido por esto */ }
+  }
+  function hayPartidoGuardado(){
+    try{
+      const raw = safeStorage.getItem(LIVE_SAVE_KEY);
+      if(!raw) return false;
+      const snap = JSON.parse(raw);
+      // válido si tiene un partido en curso con jugadores
+      return snap && snap.inSetup===false && snap.squad && snap.squad.length>0;
+    }catch(e){ return false; }
+  }
+  function restaurarPartidoLocal(){
+    try{
+      const raw = safeStorage.getItem(LIVE_SAVE_KEY);
+      if(!raw) return false;
+      const snap = JSON.parse(raw);
+      if(!snap || snap.inSetup!==false || !snap.squad || !snap.squad.length) return false;
+      __restaurando = true;
+      // restaurar todas las variables
+      clockSeconds = snap.clockSeconds||0;
+      clockRunning = false;            // por seguridad arranca pausado (lo puede reanudar el DT)
+      clockAnchor = null;
+      swapOutId = snap.swapOutId||null;
+      squad = snap.squad||[];
+      allSquad = snap.allSquad||[];
+      clockType = snap.clockType||'corrido';
+      halfMinutes = snap.halfMinutes||25;
+      currentHalf = snap.currentHalf||1;
+      halfSplitAt = (snap.halfSplitAt!=null)?snap.halfSplitAt:null;
+      state = snap.state||{};
+      events = snap.events||[];
+      liveRowId = snap.liveRowId||null;
+      setupCalled = snap.setupCalled||{};
+      matchRival = snap.matchRival||'';
+      matchLinkId = (snap.matchLinkId!=null)?snap.matchLinkId:null;
+      inSetup = false;
+      manualMin = (snap.manualMin!=null)?snap.manualMin:halfMinutes;
+      goalsAgainstManual = snap.goalsAgainstManual||0;
+      foulsAgainst1 = snap.foulsAgainst1||0;
+      foulsAgainst2 = snap.foulsAgainst2||0;
+      shotsFor1 = snap.shotsFor1||0; shotsFor2 = snap.shotsFor2||0;
+      shotsAgainst1 = snap.shotsAgainst1||0; shotsAgainst2 = snap.shotsAgainst2||0;
+      __restaurando = false;
+      return true;
+    }catch(e){ __restaurando = false; return false; }
+  }
+  function borrarPartidoGuardado(){
+    try{ safeStorage.removeItem(LIVE_SAVE_KEY); }catch(e){}
+  }
   // Helper de toque. Mínimo y seguro: escucha 'click' (que en Safari 12 anda),
   // y agrega 'touchend' SIN preventDefault como respaldo, con una guarda para no
   // duplicar. No usamos preventDefault porque puede bloquear el toque en Safari viejo.
@@ -6817,7 +6860,7 @@ window.__initEditor = function(){
   function regresivoToElapsed(min, sec){ return (halfMinutes*60) - (min*60 + sec); }
 
   document.querySelectorAll('#liveTimeModal .tp-btn').forEach(b=>{
-    b.addEventListener('click',()=>{
+    onTap(b,()=>{
       const a=b.dataset.tp;
       if(a==='min-up') tpMin=Math.min(halfMinutes,tpMin+1);
       else if(a==='min-down') tpMin=Math.max(0,tpMin-1);
@@ -6826,9 +6869,9 @@ window.__initEditor = function(){
       renderTP();
     });
   });
-  document.getElementById('liveTimeClose').addEventListener('click',()=>{ document.getElementById('liveTimeModal').style.display='none'; tpOnOk=null; });
+  onTap(document.getElementById('liveTimeClose'),()=>{ document.getElementById('liveTimeModal').style.display='none'; tpOnOk=null; });
   document.getElementById('liveTimeModal').addEventListener('click',e=>{ if(e.target.id==='liveTimeModal'){ e.target.style.display='none'; tpOnOk=null; } });
-  document.getElementById('liveTimeOk').addEventListener('click',()=>{
+  onTap(document.getElementById('liveTimeOk'),()=>{
     document.getElementById('liveTimeModal').style.display='none';
     if(tpOnOk){ const fn=tpOnOk; tpOnOk=null; fn(regresivoToElapsed(tpMin,tpSec), tpMin, tpSec); }
   });
@@ -6895,14 +6938,14 @@ window.__initEditor = function(){
     if(clockRunning){
       // Pausar: congelamos los segundos actuales
       clockRunning=false; clearInterval(clockTimer); clockTimer=null; clockAnchor=null;
-      updateClockUI(); return;
+      updateClockUI(); guardarPartidoLocal(); return;
     }
     clockRunning = true;
     // Anclamos el arranque a la hora real, descontando lo ya acumulado
     clockAnchor = Date.now() - clockSeconds*1000;
     clearInterval(clockTimer);
     clockTimer = setInterval(tickClock, 1000);
-    updateClockUI();
+    updateClockUI(); guardarPartidoLocal();
   }
   function resetClock(){
     if(!confirm(window.t('mResetAll'))) return;
@@ -6966,11 +7009,11 @@ window.__initEditor = function(){
     const inP=squad.find(p=>p.id===inId), outP=squad.find(p=>p.id===outId);
     events.unshift({ t:nowSeconds(), type, inName:inP?inP.name:'', outName:outP?outP.name:'', half:currentHalf, min:(clockType==='parado'?manualMin:null) });
     renderLog();
+    guardarPartidoLocal();   // autoguardado local tras cada cambio
   }
 
   // Tocar un TITULAR (en cancha): lo selecciona para salir (igual en parado y corrido).
   function tapOnCourt(pid){
-    if(window.__diag) window.__diag('👆 tocaste jugador en cancha: ' + pid);
     if(swapOutId === pid){ swapOutId=null; updateStep(); renderField(); renderBench(); return; }
     swapOutId = pid;
     const quien = (squad.find(p=>p.id===pid)||{}).name || '';
@@ -7214,6 +7257,7 @@ window.__initEditor = function(){
     const boxAg = document.getElementById('sbFoulsAgainstBox');
     if(boxFor) boxFor.classList.toggle('foul-alert', ff >= FALTA_LIMITE);
     if(boxAg) boxAg.classList.toggle('foul-alert', faManual >= FALTA_LIMITE);
+    guardarPartidoLocal();   // autoguardado local tras cada acción
   }
 
   function renderTotals(){
@@ -7451,6 +7495,9 @@ window.__initEditor = function(){
 
     // En ambos casos volvemos al setup: el partido está a salvo (local o nube)
     setupCalled = {}; matchRival = ''; matchLinkId = null;
+    // El partido terminó y ya quedó guardado (en la nube o en la cola de pendientes),
+    // así que el respaldo "en curso" ya no hace falta: lo borramos para no ocupar memoria.
+    borrarPartidoGuardado();
     backToSetup();
     // Ofrecer el resumen para compartir
     mostrarResumenPartido(resumen);
@@ -7631,6 +7678,7 @@ window.__initEditor = function(){
     goalsAgainstManual=0; foulsAgainst1=0; foulsAgainst2=0;
     shotsFor1=0; shotsFor2=0; shotsAgainst1=0; shotsAgainst2=0;
     inSetup=false;
+    borrarPartidoGuardado();   // arranca limpio: descartamos cualquier partido viejo guardado
     document.getElementById('liveSetup').style.display='none';
     document.getElementById('liveActive').style.display='block';
     document.getElementById('liveNewMatchBtn').style.display='inline-flex';
@@ -7646,6 +7694,7 @@ window.__initEditor = function(){
   function backToSetup(){
     clockRunning=false; clearInterval(clockTimer);
     inSetup=true;
+    borrarPartidoGuardado();   // el DT decidió empezar de nuevo: descartamos el guardado
     document.getElementById('liveActive').style.display='none';
     document.getElementById('liveSetup').style.display='block';
     document.getElementById('liveNewMatchBtn').style.display='none';
@@ -7720,10 +7769,10 @@ window.__initEditor = function(){
     };
 
     const cerrar = () => ov.remove();
-    ov.querySelector('#goSkip').addEventListener('click', () => { guardarMin(); renderLog(); cerrar(); });
+    onTap(ov.querySelector('#goSkip'), () => { guardarMin(); renderLog(); cerrar(); });
     ov.addEventListener('click', e => { if(e.target === ov) { guardarMin(); renderLog(); cerrar(); } });
     ov.querySelectorAll('.go-btn[data-tag]').forEach(btn => {
-      btn.addEventListener('click', () => {
+      onTap(btn, () => {
         evento.origen = btn.dataset.tag;
         guardarMin();
         renderLog();
@@ -7732,7 +7781,7 @@ window.__initEditor = function(){
       });
     });
     ov.querySelectorAll('.go-parent').forEach(btn => {
-      btn.addEventListener('click', () => {
+      onTap(btn, () => {
         const subs = ov.querySelector('[data-subs="'+btn.dataset.parent+'"]');
         if(subs) subs.style.display = subs.style.display==='none' ? 'flex' : 'none';
       });
@@ -7828,10 +7877,31 @@ window.__initEditor = function(){
   window.__initLiveOnce=function(){
     if(!started){ started=true; renderLog(); }
     updateClockType();
-    if(inSetup){ document.getElementById('liveSetup').style.display='block'; document.getElementById('liveActive').style.display='none'; loadSquad(); }
+    // ¿Quedó un partido a medias (corte de wifi, salida sin querer)? Lo retomamos solo.
+    if(inSetup && hayPartidoGuardado()){
+      if(restaurarPartidoLocal()){
+        document.getElementById('liveSetup').style.display='none';
+        document.getElementById('liveActive').style.display='block';
+        document.getElementById('liveNewMatchBtn').style.display='inline-flex';
+        document.getElementById('liveVsRival').textContent = 'vs ' + (matchRival||'Partido');
+        document.getElementById('liveSubtitle').textContent = 'Partido recuperado — vs ' + (matchRival||'Partido');
+        // No volvemos a llamar updateClockType() acá: el clockType/halfMinutes ya vienen
+        // correctos del guardado, y recalcularlos podría pisarlos. Solo redibujamos.
+        updateClockUI(); renderField(); renderBench(); renderTotals(); renderLog(); updateOnCourt(); updateStep(); renderScoreboard();
+        toast('↩️ Retomamos el partido donde lo dejaste');
+      }
+    } else if(inSetup){
+      document.getElementById('liveSetup').style.display='block'; document.getElementById('liveActive').style.display='none'; loadSquad();
+    }
     // por si quedó algún partido sin subir de una vez anterior, intentamos ahora
     if(typeof flushPending === 'function') flushPending(false);
   };
+  // Autoguardado periódico: cada 12s, mientras haya un partido en curso, para
+  // capturar el avance del reloj aunque no toques nada.
+  setInterval(function(){ if(!inSetup) guardarPartidoLocal(); }, 12000);
+  // Guardar también cuando la app pasa a segundo plano o se cierra (por las dudas).
+  document.addEventListener('visibilitychange', function(){ if(document.hidden && !inSetup) guardarPartidoLocal(); });
+  window.addEventListener('pagehide', function(){ if(!inSetup) guardarPartidoLocal(); });
   if(window.__onCategorySubscribe){
     window.__onCategorySubscribe(()=>{ if(started && inSetup){ setupCalled={}; matchRival=''; matchLinkId=null; updateClockType(); loadSquad(); } }, 'live');
   }
