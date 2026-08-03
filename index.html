@@ -12187,7 +12187,10 @@ window.__initEditor = function(){
         // veces que fue citado (yes) en esa ventana
         const citado = ultimosCit.filter(m => m.calls && m.calls[p.id] === 'yes').length;
         if(citado < 3) return;   // solo miramos a los que fueron citados al menos 3 veces
-        // ¿sumó algo (gol o tarjeta) en esos partidos citados?
+        // Si el jugador tiene MINUTOS jugados, entró a la cancha: NO está "sin jugar".
+        const tieneMinutos = stat[p.name] && (stat[p.name].minutos || 0) > 0;
+        if(tieneMinutos) return;
+        // ¿sumó algo (gol, tarjeta o asistencia) en esos partidos citados?
         const sumoAlgo = ultimosCit.some(m => {
           if(!(m.calls && m.calls[p.id] === 'yes')) return false;
           const hizoGol = (m.goalsFor||[]).some(g => g.player_id === p.id);
