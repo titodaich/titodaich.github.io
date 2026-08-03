@@ -11057,9 +11057,14 @@ window.__initEditor = function(){
           .eq('club_id', clubId)
           .not('invitados', 'is', null);   // SOLO partidos que tienen invitados
         if(window.__getTemporada) q = q.eq('temporada', window.__getTemporada());
-        const { data } = await q;
-        // filtrar en memoria los que realmente tienen al menos un invitado
-        __invitadosCache = (data||[]).filter(m => Array.isArray(m.invitados) && m.invitados.length > 0);
+        // Timeout: si la consulta tarda más de 4s, devolvemos vacío para NO colgar la ficha.
+        const conTimeout = Promise.race([
+          q,
+          new Promise(resolve => setTimeout(() => resolve({ data: [], __timeout:true }), 4000))
+        ]);
+        const res = await conTimeout;
+        const data = (res && res.data) || [];
+        __invitadosCache = data.filter(m => Array.isArray(m.invitados) && m.invitados.length > 0);
         return __invitadosCache;
       }catch(e){ __invitadosCache = []; return []; }
       finally{ __invitadosCachePromise = null; }
@@ -11103,17 +11108,24 @@ window.__initEditor = function(){
       if(seg > 0){ segundosTotales += seg; partidosConMinutos++; }
     });
     // ---- Partidos de OTRAS categorías donde este jugador fue INVITADO (subido) ----
-    // Optimización: cargamos UNA sola vez todos los partidos del club que tienen
-    // invitados (cacheado en window.__invitadosCache), en vez de consultar en cada ficha.
+    // Usamos SOLO el caché ya cargado para no demorar ni colgar la ficha. Si todavía
+    // no está listo, disparamos la carga en segundo plano y redibujamos cuando llegue.
     let partidosComoInvitado = [];
     try{
       const cat = catActual();
-      const cache = await cargarPartidosConInvitados();
-      cache.forEach(m => {
-        if(m.categoria === cat) return;   // los de la propia categoría ya vienen en 'matches'
-        const esInvitado = Array.isArray(m.invitados) && m.invitados.some(inv => inv && inv.id === playerId);
-        if(esInvitado) partidosComoInvitado.push(m);
-      });
+      if(__invitadosCache){
+        __invitadosCache.forEach(m => {
+          if(m.categoria === cat) return;
+          const esInvitado = Array.isArray(m.invitados) && m.invitados.some(inv => inv && inv.id === playerId);
+          if(esInvitado) partidosComoInvitado.push(m);
+        });
+      } else {
+        // no está en caché: lo cargamos en segundo plano y redibujamos al terminar
+        cargarPartidosConInvitados().then(() => {
+          const selNow = document.getElementById('playerCardSelect');
+          if(selNow && selNow.value === playerId) drawPlayerCard(playerId);
+        });
+      }
     }catch(e){ partidosComoInvitado = []; }
 
     // Serie unificada: partidos (sección Partidos) + sesiones En Vivo independientes.
