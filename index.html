@@ -10973,18 +10973,7 @@ window.__initEditor = function(){
       btnAll.__wired = true;
     }
     drawPlayerCard(sel.value);
-    // Cargar los partidos con invitados en segundo plano (una sola vez). Cuando estén,
-    // redibujamos la ficha actual para sumar los goles de invitado. No bloquea nada.
-    if(!Array.isArray(__invitadosCache) && !__invitadosCargando){
-      __invitadosCargando = true;
-      cargarPartidosConInvitados().then(() => {
-        __invitadosCargando = false;
-        const s = document.getElementById('playerCardSelect');
-        if(s && s.value) drawPlayerCard(s.value);
-      }).catch(() => { __invitadosCargando = false; });
-    }
   }
-  let __invitadosCargando = false;
 
   // Dibuja la ficha del jugador elegido
   // ─────────────────────────────────────────────────────────────
@@ -11052,39 +11041,6 @@ window.__initEditor = function(){
     }, 400);
   }
 
-  // Carga (UNA sola vez por sesión) los partidos del club que tienen invitados.
-  // Cachea el resultado para que abrir fichas sea rápido. Trae solo lo necesario.
-  let __invitadosCache = null;
-  let __invitadosCachePromise = null;
-  async function cargarPartidosConInvitados(){
-    if(__invitadosCache) return __invitadosCache;
-    if(__invitadosCachePromise) return __invitadosCachePromise;
-    __invitadosCachePromise = (async () => {
-      try{
-        const sb = window.__sb; const clubId = await window.__getClubId();
-        if(!sb || !clubId){ __invitadosCache = []; return []; }
-        let q = sb.from('stat_matches')
-          .select('rival, date, goals_for, assists, cards, invitados, categoria, created_at')
-          .eq('club_id', clubId)
-          .not('invitados', 'is', null);   // SOLO partidos que tienen invitados
-        if(window.__getTemporada) q = q.eq('temporada', window.__getTemporada());
-        // Timeout: si la consulta tarda más de 4s, devolvemos vacío para NO colgar la ficha.
-        const conTimeout = Promise.race([
-          q,
-          new Promise(resolve => setTimeout(() => resolve({ data: [], __timeout:true }), 4000))
-        ]);
-        const res = await conTimeout;
-        const data = (res && res.data) || [];
-        __invitadosCache = data.filter(m => Array.isArray(m.invitados) && m.invitados.length > 0);
-        return __invitadosCache;
-      }catch(e){ __invitadosCache = []; return []; }
-      finally{ __invitadosCachePromise = null; }
-    })();
-    return __invitadosCachePromise;
-  }
-  // Limpiar el caché cuando cambia de categoría o temporada (para que se recargue)
-  window.__limpiarInvitadosCache = function(){ __invitadosCache = null; __invitadosCachePromise = null; };
-
   async function drawPlayerCard(playerId){
     const cont2 = document.getElementById('playerCardContent');
     if(!cont2) return;
@@ -11118,20 +11074,9 @@ window.__initEditor = function(){
       const seg = Number(t.total) || 0;
       if(seg > 0){ segundosTotales += seg; partidosConMinutos++; }
     });
-    // ---- Partidos donde el jugador fue INVITADO en otra categoría ----
-    // Se usa solo si el caché ya está disponible (cargado aparte). Nunca bloquea ni
-    // recarga la ficha: si no hay caché, simplemente no se suman (se verá al recargar).
-    let partidosComoInvitado = [];
-    try{
-      const cat = catActual();
-      if(Array.isArray(__invitadosCache)){
-        __invitadosCache.forEach(m => {
-          if(m.categoria === cat) return;
-          const esInvitado = Array.isArray(m.invitados) && m.invitados.some(inv => inv && inv.id === playerId);
-          if(esInvitado) partidosComoInvitado.push(m);
-        });
-      }
-    }catch(e){ partidosComoInvitado = []; }
+    const minutosTotales = Math.round(segundosTotales / 60);
+    const minutosPromedio = partidosConMinutos ? Math.round(minutosTotales / partidosConMinutos) : 0;
+
 
     // Serie unificada: partidos (sección Partidos) + sesiones En Vivo independientes.
     // Cada entrada: {fecha, label, goals, assists, cards, wasCalled, origen}
@@ -11149,18 +11094,6 @@ window.__initEditor = function(){
       });
     });
     // Partidos donde jugó como invitado en otra categoría (goles/asist/tarjetas por su id)
-    partidosComoInvitado.forEach(m => {
-      serie.push({
-        fecha: m.date || '',
-        orden: m.created_at || '',
-        label: (m.rival || 'Partido') + ' (invitado' + (m.categoria?(' en '+m.categoria):'') + ')',
-        goals: (Array.isArray(m.goals_for)?m.goals_for:[]).filter(x => x.player_id === playerId).length,
-        assists: (Array.isArray(m.assists)?m.assists:[]).filter(x => x.player_id === playerId).length,
-        cards: (Array.isArray(m.cards)?m.cards:[]).filter(x => x.player_id === playerId).length,
-        wasCalled: true,   // si fue invitado, estuvo convocado
-        origen: 'invitado'
-      });
-    });
     liveIndep.forEach(s => {
       const t = (s.totals && s.totals[playerName]) || null;
       if(!t) return;   // ese jugador no estuvo en esa sesión
