@@ -1262,6 +1262,55 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .pc-chart-foot strong{color:var(--chalk);}
 .stats-sub{display:none;}
 .stats-sub.active{display:block;}
+/* ===== Proyección 2027 ===== */
+.proj-empty{padding:26px 20px;text-align:center;color:var(--muted);background:var(--panel);border:1px dashed var(--line);border-radius:12px;font-size:14px;line-height:1.5;}
+.proj-summary{background:linear-gradient(135deg,var(--panel-2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin-bottom:16px;}
+.proj-summary-cat{font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;color:var(--accent-2);letter-spacing:0.5px;}
+.proj-summary-anios{font-size:12.5px;color:var(--muted);margin-top:2px;font-family:'JetBrains Mono',monospace;}
+.proj-summary-total{margin-top:10px;font-size:14px;color:var(--chalk,#dfe8f0);}
+.proj-summary-total .proj-big{font-family:'Oswald',sans-serif;font-size:30px;font-weight:700;color:var(--success);vertical-align:-3px;margin-right:4px;}
+.proj-summary-total .proj-detail{color:var(--muted);font-size:12.5px;}
+.proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.proj-col{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;border-top:3px solid var(--line);}
+.proj-col-stay{border-top-color:var(--success);}
+.proj-col-up{border-top-color:var(--accent-2);}
+.proj-col-out{border-top-color:#E0A93B;}
+.proj-col-h{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;}
+.proj-col-title{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;color:var(--chalk,#dfe8f0);}
+.proj-col-count{font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;color:var(--muted);min-width:26px;text-align:right;}
+.proj-col-sub{font-size:11.5px;color:var(--muted);margin-bottom:12px;line-height:1.4;}
+.proj-pos-block{margin-bottom:12px;}
+.proj-pos-h{font-size:12px;font-weight:600;color:var(--accent-2);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;border-bottom:1px solid var(--line);padding-bottom:4px;}
+.proj-pos-h .proj-pos-n{color:var(--muted);font-weight:400;margin-left:4px;}
+.proj-pos-list{display:flex;flex-direction:column;gap:5px;}
+.proj-player{display:flex;align-items:center;gap:7px;background:var(--bg-2);border-radius:7px;padding:6px 9px;font-size:13px;}
+.proj-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);min-width:26px;}
+.proj-name{flex:1;color:var(--chalk,#dfe8f0);}
+.proj-anio{font-family:'JetBrains Mono',monospace;font-size:11px;color:#E0A93B;}
+.proj-pos-empty{font-size:12.5px;color:var(--muted);padding:8px 4px;font-style:italic;}
+.proj-warn{background:rgba(224,169,59,0.08);border:1px solid rgba(224,169,59,0.35);border-radius:10px;padding:12px 15px;margin-bottom:16px;}
+.proj-warn-review{background:rgba(47,143,203,0.08);border-color:rgba(47,143,203,0.35);margin-top:16px;margin-bottom:0;}
+.proj-warn-h{font-weight:600;font-size:13.5px;color:#E0A93B;}
+.proj-warn-review .proj-warn-h{color:var(--accent-2);}
+.proj-warn-sub{font-size:12px;color:var(--muted);margin:3px 0 7px;line-height:1.4;}
+.proj-warn-list{font-size:12.5px;color:var(--chalk,#dfe8f0);line-height:1.7;}
+.proj-balance{margin-top:16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;}
+.proj-balance-h{font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;color:var(--chalk,#dfe8f0);margin-bottom:10px;}
+.proj-balance-row{display:flex;flex-wrap:wrap;gap:8px;}
+.proj-balance-pill{display:flex;align-items:center;gap:7px;background:var(--bg-2);border:1px solid var(--line);border-radius:20px;padding:6px 14px;}
+.proj-balance-lbl{font-size:12.5px;color:var(--muted);}
+.proj-balance-num{font-family:'Oswald',sans-serif;font-size:17px;font-weight:700;color:var(--accent-2);}
+@media(max-width:820px){.proj-grid{grid-template-columns:1fr;}}
+.proj-roster{margin-top:16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;}
+.proj-roster-h{font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;color:var(--chalk,#dfe8f0);margin-bottom:10px;}
+.proj-roster-h .proj-roster-n{color:var(--muted);font-weight:400;margin-left:4px;}
+.proj-roster-pos{font-size:11.5px;font-weight:600;color:var(--accent-2);text-transform:uppercase;letter-spacing:0.4px;margin:12px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--line);}
+.proj-roster-pos:first-of-type{margin-top:0;}
+.proj-roster-row{display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid rgba(51,73,94,0.4);}
+.proj-roster-row:last-child{border-bottom:none;}
+.proj-roster-num{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);min-width:34px;}
+.proj-roster-name{flex:1;font-size:14px;color:var(--chalk,#dfe8f0);}
+.proj-roster-anio{font-family:'JetBrains Mono',monospace;font-size:12px;color:#E0A93B;min-width:30px;text-align:right;}
 
 .score-box{display:flex;align-items:center;gap:8px;margin-left:auto;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:6px 16px;}
 .score-num{font-family:'Oswald',sans-serif;font-size:28px;font-weight:700;}
@@ -2906,6 +2955,7 @@ body.editor-active #screen-editor{ display:block; }
       <button class="stats-subtab" data-sub="annual" data-i18n="stAnnual">📈 Estadísticas anuales</button>
       <button class="stats-subtab" data-sub="player" data-i18n="stPlayer">🎯 Ficha del jugador</button>
       <button class="stats-subtab" data-sub="health" data-i18n="stHealth">🚦 Semáforo del Plantel</button>
+      <button class="stats-subtab" data-sub="projection" data-i18n="stProjection">🔮 Proyección</button>
     </div>
 
     <!-- Barra de exportación -->
@@ -3075,6 +3125,17 @@ body.editor-active #screen-editor{ display:block; }
         </div>
       </div>
       <div id="healthContent"></div>
+    </div>
+
+    <!-- ===== SUB: PROYECCIÓN 2027 ===== -->
+    <div class="stats-sub" id="stats-projection">
+      <div class="scout-head">
+        <div>
+          <h2 class="scout-title" data-i18n="projTitle">🔮 Proyección</h2>
+          <p class="scout-sub" data-i18n="projSub">Cómo queda esta categoría el año que viene, según el año de nacimiento. Quiénes se quedan, quiénes suben desde abajo y quiénes pasan a la categoría de arriba. Vista de solo lectura para planificar el plantel.</p>
+        </div>
+      </div>
+      <div id="projectionContent"></div>
     </div>
   </div>
 
@@ -3982,6 +4043,7 @@ window.I18N = {
     aiAnalyze:'⚡ Analizar', aiCancel:'Cancelar',
     // Estadísticas subtabs
     stMatches:'⚽ Partidos', stSquad:'👥 Plantel', stCalls:'✅ Convocatorias', stMinutes:'⏱ Minutaje', stAnnual:'📈 Estadísticas anuales', stPlayer:'🎯 Ficha del jugador', playerTitle:'Ficha del jugador', playerSub:'Elegí un jugador y mirá su evolución partido a partido.', playerPick:'Jugador:', stHealth:'🚦 Semáforo del Plantel', healthTitle:'Semáforo del Plantel', healthSub:'Alertas automáticas según tus datos: tarjetas, minutos y convocatorias.',
+    stProjection:'🔮 Proyección', projTitle:'🔮 Proyección', projSub:'Cómo queda esta categoría el año que viene, según el año de nacimiento. Quiénes se quedan, quiénes suben desde abajo y quiénes pasan a la categoría de arriba. Vista de solo lectura para planificar el plantel.',
     stAttendance:'📅 Presentismo', attTitle:'Presentismo', attSub:'Marcá la asistencia de cada jugador a entrenamientos y partidos. Tocá una celda para cambiar el estado. El porcentaje se calcula solo.',
     exportLbl:'Exportar:', exportExcel:'⬇ Excel', exportPdf:'⬇ PDF', exportPdfGraph:'⬇ PDF con gráficos', exportEmpty:'No hay datos para exportar en esta pestaña.', exportReady:'Preparando la descarga…', exportPdfReady:'Se abrirá el diálogo de impresión. Elegí "Guardar como PDF".',
     stMatchesTitle:'Partidos', stMatchesSub:'Cargá cada partido con sus goles, asistencias y tarjetas. Se suma solo en las estadísticas anuales.',
@@ -4067,6 +4129,7 @@ window.I18N = {
     aiTitle:'Automatic AI analysis', aiSub:'The AI scans the video and suggests plays with your tags (corners, sidelines, 3-1, 4-0, defenses, 5v4...). You review and accept. Accepted clips appear in the Video tab like manual ones.',
     aiAnalyze:'⚡ Analyze', aiCancel:'Cancel',
     stMatches:'⚽ Matches', stSquad:'👥 Roster', stCalls:'✅ Call-ups', stMinutes:'⏱ Minutes', stAnnual:'📈 Season stats', stPlayer:'🎯 Player card', playerTitle:'Player card', playerSub:'Pick a player and see their match-by-match evolution.', playerPick:'Player:', stHealth:'🚦 Squad Traffic Light', healthTitle:'Squad Traffic Light', healthSub:'Automatic alerts from your data: cards, minutes and call-ups.',
+    stProjection:'🔮 Projection', projTitle:'🔮 Projection', projSub:'How this category looks next year, based on birth year. Who stays, who moves up from below, and who moves up to the category above. Read-only view for squad planning.',
     stAttendance:'📅 Attendance', attTitle:'Attendance', attSub:'Mark attendance for each player to trainings and matches. Tap a cell to change the status. The percentage is calculated automatically.',
     exportLbl:'Export:', exportExcel:'⬇ Excel', exportPdf:'⬇ PDF', exportPdfGraph:'⬇ PDF with charts', exportEmpty:'No data to export in this tab.', exportReady:'Preparing download…', exportPdfReady:'The print dialog will open. Choose "Save as PDF".',
     stMatchesTitle:'Matches', stMatchesSub:'Log each match with its goals, assists and cards. It adds up in the season stats.',
@@ -4147,6 +4210,7 @@ window.I18N = {
     aiTitle:'Análise automática com IA', aiSub:'A IA percorre o vídeo e sugere jogadas com suas tags (escanteios, laterais, 3-1, 4-0, defesas, 5x4...). Você revisa e aceita. Os cortes aceitos aparecem na aba Vídeo como os manuais.',
     aiAnalyze:'⚡ Analisar', aiCancel:'Cancelar',
     stMatches:'⚽ Jogos', stSquad:'👥 Elenco', stCalls:'✅ Convocações', stMinutes:'⏱ Minutagem', stAnnual:'📈 Estatísticas anuais', stPlayer:'🎯 Ficha do jogador', playerTitle:'Ficha do jogador', playerSub:'Escolha um jogador e veja sua evolução jogo a jogo.', playerPick:'Jogador:', stHealth:'🚦 Semáforo do Elenco', healthTitle:'Semáforo do Elenco', healthSub:'Alertas automáticos dos seus dados: cartões, minutos e convocações.',
+    stProjection:'🔮 Projeção', projTitle:'🔮 Projeção', projSub:'Como fica esta categoria no ano que vem, de acordo com o ano de nascimento. Quem fica, quem sobe de baixo e quem passa para a categoria de cima. Visualização somente leitura para planejar o elenco.',
     stAttendance:'📅 Presença', attTitle:'Presença', attSub:'Marque a presença de cada jogador em treinos e jogos. Toque numa célula para mudar o estado. A porcentagem é calculada sozinha.',
     exportLbl:'Exportar:', exportExcel:'⬇ Excel', exportPdf:'⬇ PDF', exportPdfGraph:'⬇ PDF com gráficos', exportEmpty:'Não há dados para exportar nesta aba.', exportReady:'Preparando o download…', exportPdfReady:'A janela de impressão será aberta. Escolha "Salvar como PDF".',
     stMatchesTitle:'Jogos', stMatchesSub:'Registre cada jogo com seus gols, assistências e cartões. Soma nas estatísticas anuais.',
@@ -8625,6 +8689,7 @@ window.__initEditor = function(){
       if(sub === 'minutes') renderMinutes();
       if(sub === 'player') renderPlayerCard();
       if(sub === 'health') renderHealth();
+      if(sub === 'projection') renderProjection();
     });
   });
 
@@ -8713,6 +8778,7 @@ window.__initEditor = function(){
     else if(sub === 'minutes') renderMinutes();
     else if(sub === 'player') renderPlayerCard();
     else if(sub === 'health') renderHealth();
+    else if(sub === 'projection') renderProjection();
     else renderMatchList();
   }
 
@@ -12326,16 +12392,303 @@ window.__initEditor = function(){
     saveOrigins(); renderTagsEditor();
   });
 
+  // ========== PROYECCIÓN ==========
+  // La proyección apunta SIEMPRE a la temporada activa + 1 (si trabajás en 2026,
+  // proyecta 2027; si trabajás en 2027, proyecta 2028; y así). No hay años clavados:
+  // guardamos la EDAD que cumple cada camada en la temporada, y los años de nacimiento
+  // se calculan solos. Cada temporada, cada categoría suma +1 año automáticamente.
+  //
+  // Edades (cumplidas en la temporada) según el seteo 2027:
+  //   3ERA → 18,19,20   4TA → 16,17   5TA → 14,15   6TA → 13   7MA → 12   8VA → 11
+  //   1ERA → 21 o más (abierta hacia arriba: recibe a los que se pasan de 3ERA)
+  // Corte por AÑO CALENDARIO: edad en la temporada = temporada − año_de_nacimiento.
+  const PROJ_CATS = ['1era','3era','4ta','5ta','6ta','7ma','8va'];
+  const PROJ_AGES = {
+    '3era': [18, 19, 20],
+    '4ta':  [16, 17],
+    '5ta':  [14, 15],
+    '6ta':  [13],
+    '7ma':  [12],
+    '8va':  [11]
+  };
+  const PROJ_1ERA_MIN_AGE = 21; // 21 años o más → 1ERA
+
+  // Devuelve el año objetivo de la proyección (temporada activa + 1).
+  function projTemporadaObjetivo(){
+    let base = null;
+    if(window.__getTemporada){ base = parseInt(window.__getTemporada(), 10); }
+    if(!base || isNaN(base)) base = new Date().getFullYear();
+    return base + 1;
+  }
+
+  // Años de nacimiento que componen una categoría en la temporada objetivo.
+  // año = temporada − edad. Devuelve [] para 1era (es abierta hacia arriba).
+  function projAniosDe(cat, temporada){
+    if(cat === '1era') return [];
+    const edades = PROJ_AGES[cat];
+    if(!edades) return [];
+    return edades.map(e => temporada - e).sort((a,b) => b - a); // más grande primero
+  }
+
+  // Nombre lindo para mostrar
+  const PROJ_LABEL = { '1era':'1ERA','3era':'3ERA','4ta':'4TA','5ta':'5TA','6ta':'6TA','7ma':'7MA','8va':'8VA' };
+
+  // Normaliza una posición a un grupo canónico (sin tildes, minúscula).
+  function projPosGroup(raw){
+    const t = (raw||'').toString().trim().toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    if(!t) return 'sin';
+    if(t.indexOf('arq')>=0 || t.indexOf('port')>=0 || t.indexOf('golero')>=0) return 'arquero';
+    if(t.indexOf('cierre')>=0 || t.indexOf('defens')>=0 || t.indexOf('ultimo')>=0) return 'cierre';
+    if(t.indexOf('piv')>=0) return 'pivot';
+    if(t.indexOf('ala')>=0) return 'ala';
+    return 'otro';
+  }
+  const PROJ_POS_ORDER = ['arquero','cierre','ala','pivot','otro','sin'];
+  const PROJ_POS_LABEL = { arquero:'🧤 Arqueros', cierre:'🛡️ Cierres', ala:'⚡ Alas', pivot:'🎯 Pívots', otro:'🔹 Otra posición', sin:'❔ Sin posición cargada' };
+
+  // Devuelve la categoría que le corresponde a un año de nacimiento en la temporada objetivo.
+  // Para 1era: edad >= 21 (abierta hacia arriba).
+  function projCatDeAnio(anio, temporada){
+    if(anio == null || isNaN(anio)) return null;
+    const edad = temporada - anio;
+    if(edad >= PROJ_1ERA_MIN_AGE) return '1era';
+    for(const c of PROJ_CATS){
+      if(c === '1era') continue;
+      if(PROJ_AGES[c].indexOf(edad) >= 0) return c;
+    }
+    return null; // fuera de rango (más chico que 8va o edad negativa)
+  }
+
+  async function renderProjection(){
+    const cont = document.getElementById('projectionContent');
+    if(!cont) return;
+    const catRaw = catActual();
+    const cat = (catRaw||'').toString().toLowerCase();
+
+    // La 1ERA es la categoría mayor: no se proyecta (es abierta hacia arriba).
+    if(cat === '1era'){
+      cont.innerHTML = '<div class="proj-empty">La 1ERA es la categoría mayor: no se proyecta.<br>Los jugadores que pasan a 1ERA por edad se ven desde la 3ERA.</div>';
+      return;
+    }
+
+    // Solo tiene sentido en las categorías con edad definida (no en Promo/años sueltos)
+    if(!PROJ_AGES[cat]){
+      cont.innerHTML = '<div class="proj-empty">La proyección está disponible para las categorías 3ERA, 4TA, 5TA, 6TA, 7MA y 8VA. Elegí una de esas categorías arriba para verla.</div>';
+      return;
+    }
+
+    // La proyección apunta a la temporada activa + 1.
+    const temporada = projTemporadaObjetivo();
+
+    cont.innerHTML = '<p class="rd-empty">Calculando proyección…</p>';
+
+    const sb = window.__sb;
+    if(!sb || !clubId){
+      cont.innerHTML = '<div class="proj-empty">Sin conexión. La proyección necesita leer los jugadores de todas las categorías.</div>';
+      return;
+    }
+
+    // Traemos TODOS los jugadores del club en la temporada activa (todas las categorías)
+    let players = [];
+    try{
+      let q = sb.from('players').select('id,name,number,position,categoria,anio_nacimiento').eq('club_id', clubId);
+      if(window.__getTemporada) q = q.eq('temporada', window.__getTemporada());
+      const { data, error } = await q;
+      if(error) throw error;
+      players = data || [];
+    }catch(e){
+      console.error('proyeccion load', e);
+      cont.innerHTML = '<div class="proj-empty">No se pudieron cargar los jugadores para la proyección.</div>';
+      return;
+    }
+
+    const idx = PROJ_CATS.indexOf(cat);
+    const catArriba = idx > 0 ? PROJ_CATS[idx-1] : null;   // a dónde se van (más grande)
+    const catAbajo  = idx < PROJ_CATS.length-1 ? PROJ_CATS[idx+1] : null; // de dónde suben (más chica)
+
+    // Clasificamos a los jugadores relevantes en 3 grupos + avisos.
+    const seQuedan = [];   // este año en la categoría y su año 2027 sigue siendo esta
+    const suben = [];      // este año en la categoría de abajo, y su año 2027 es esta
+    const seVan = [];      // este año en la categoría, pero su año 2027 es la de arriba
+    const sinAnio = [];    // en la categoría, sin año cargado
+    const revisar = [];    // en la categoría, con año que no cae ni acá ni arriba
+
+    players.forEach(p => {
+      const pcat = (p.categoria||'').toString().toLowerCase();
+      const anio = p.anio_nacimiento != null ? parseInt(p.anio_nacimiento, 10) : null;
+      const destino = projCatDeAnio(anio, temporada);
+
+      if(pcat === cat){
+        if(anio == null || isNaN(anio)){ sinAnio.push(p); return; }
+        if(destino === cat){ seQuedan.push(p); }
+        else if(catArriba && destino === catArriba){ seVan.push(p); }
+        else if(destino === null){ revisar.push({p, motivo:'Año fuera de rango'}); }
+        else { seVan.push(p); } // cae en otra categoría distinta (poco común): lo tratamos como que se va
+      } else if(catAbajo && pcat === catAbajo){
+        // Candidato a subir: solo si su año 2027 corresponde a esta categoría
+        if(anio != null && !isNaN(anio) && destino === cat){ suben.push(p); }
+      }
+    });
+
+    cont.innerHTML = construirProjHTML({ cat, catArriba, catAbajo, seQuedan, suben, seVan, sinAnio, revisar, temporada });
+  }
+
+  // Ordena por número y nombre
+  function projSort(a,b){
+    const na = parseInt(a.number,10), nb = parseInt(b.number,10);
+    if(!isNaN(na) && !isNaN(nb) && na !== nb) return na - nb;
+    return (a.name||'').localeCompare(b.name||'');
+  }
+
+  // Agrupa una lista de jugadores por posición y devuelve HTML
+  function projPorPosicion(lista){
+    if(!lista.length) return '<div class="proj-pos-empty">— nadie —</div>';
+    const grupos = {};
+    lista.forEach(p => { const g = projPosGroup(p.position); (grupos[g] = grupos[g]||[]).push(p); });
+    let html = '';
+    PROJ_POS_ORDER.forEach(g => {
+      if(!grupos[g] || !grupos[g].length) return;
+      grupos[g].sort(projSort);
+      html += '<div class="proj-pos-block"><div class="proj-pos-h">'+PROJ_POS_LABEL[g]+' <span class="proj-pos-n">'+grupos[g].length+'</span></div><div class="proj-pos-list">';
+      html += grupos[g].map(p => {
+        const num = p.number ? '<span class="proj-num">#'+escapeHtml(String(p.number))+'</span>' : '';
+        const anio = p.anio_nacimiento ? '<span class="proj-anio">\''+String(p.anio_nacimiento).slice(-2)+'</span>' : '';
+        return '<div class="proj-player">'+num+'<span class="proj-name">'+escapeHtml(p.name||'Sin nombre')+'</span>'+anio+'</div>';
+      }).join('');
+      html += '</div></div>';
+    });
+    return html;
+  }
+
+  function construirProjHTML(d){
+    const { cat, catArriba, catAbajo, seQuedan, suben, seVan, sinAnio, revisar, temporada } = d;
+    const aniosTxt = projAniosDe(cat, temporada).join(', ');
+    const totalProyectado = seQuedan.length + suben.length;
+
+    let html = '';
+
+    // Encabezado con resumen
+    html += '<div class="proj-summary">';
+    html += '<div class="proj-summary-cat">'+PROJ_LABEL[cat]+' '+temporada+'</div>';
+    html += '<div class="proj-summary-anios">Camadas: '+aniosTxt+'</div>';
+    html += '<div class="proj-summary-total"><span class="proj-big">'+totalProyectado+'</span> jugadores proyectados <span class="proj-detail">('+seQuedan.length+' se quedan + '+suben.length+' suben)</span></div>';
+    html += '</div>';
+
+    // Aviso de datos faltantes
+    if(sinAnio.length){
+      sinAnio.sort(projSort);
+      html += '<div class="proj-warn"><div class="proj-warn-h">⚠️ '+sinAnio.length+' jugador'+(sinAnio.length>1?'es':'')+' sin año de nacimiento cargado</div>'
+        + '<div class="proj-warn-sub">No aparecen en la proyección hasta que cargues su año (Ficha del jugador → Datos personales).</div>'
+        + '<div class="proj-warn-list">'+sinAnio.map(p => escapeHtml((p.number?'#'+p.number+' ':'')+(p.name||'Sin nombre'))).join(' · ')+'</div></div>';
+    }
+
+    // Columna 1: SE QUEDAN
+    html += '<div class="proj-grid">';
+    html += '<div class="proj-col proj-col-stay">';
+    html += '<div class="proj-col-h"><span class="proj-col-title">✅ Se quedan en '+PROJ_LABEL[cat]+'</span><span class="proj-col-count">'+seQuedan.length+'</span></div>';
+    html += '<div class="proj-col-sub">Ya están en la categoría y por edad siguen en '+temporada+'.</div>';
+    html += projPorPosicion(seQuedan);
+    html += '</div>';
+
+    // Columna 2: SUBEN
+    html += '<div class="proj-col proj-col-up">';
+    if(catAbajo){
+      html += '<div class="proj-col-h"><span class="proj-col-title">⬆️ Suben desde '+PROJ_LABEL[catAbajo]+'</span><span class="proj-col-count">'+suben.length+'</span></div>';
+      html += '<div class="proj-col-sub">Por edad, en '+temporada+' pasan a esta categoría.</div>';
+      html += projPorPosicion(suben);
+    } else {
+      html += '<div class="proj-col-h"><span class="proj-col-title">⬆️ Suben</span></div>';
+      html += '<div class="proj-pos-empty">'+PROJ_LABEL[cat]+' es la categoría más chica: no hay nadie debajo que suba.</div>';
+    }
+    html += '</div>';
+
+    // Columna 3: SE VAN
+    html += '<div class="proj-col proj-col-out">';
+    if(catArriba){
+      seVan.sort(projSort);
+      html += '<div class="proj-col-h"><span class="proj-col-title">➡️ Pasan a '+PROJ_LABEL[catArriba]+'</span><span class="proj-col-count">'+seVan.length+'</span></div>';
+      html += '<div class="proj-col-sub">Por edad dejan esta categoría en '+temporada+'.</div>';
+      html += projPorPosicion(seVan);
+    } else {
+      html += '<div class="proj-col-h"><span class="proj-col-title">➡️ Se van</span></div>';
+      html += '<div class="proj-pos-empty">1ERA es la categoría más grande: no hay categoría por encima.</div>';
+    }
+    html += '</div>';
+    html += '</div>'; // proj-grid
+
+    // Revisar (año fuera de rango)
+    if(revisar.length){
+      revisar.sort((a,b)=>projSort(a.p,b.p));
+      html += '<div class="proj-warn proj-warn-review"><div class="proj-warn-h">🔎 '+revisar.length+' para revisar</div>'
+        + '<div class="proj-warn-sub">Están en esta categoría pero su año de nacimiento no encaja en la grilla de '+temporada+'. Puede ser sobreedad, un error de carga, o un año fuera del rango del club.</div>'
+        + '<div class="proj-warn-list">'+revisar.map(r => escapeHtml((r.p.number?'#'+r.p.number+' ':'')+(r.p.name||'Sin nombre')+' ('+(r.p.anio_nacimiento||'?')+')')).join(' · ')+'</div></div>';
+    }
+
+    // Balance por posición del plantel proyectado (se quedan + suben)
+    const proyectados = seQuedan.concat(suben);
+    if(proyectados.length){
+      const conteo = {};
+      proyectados.forEach(p => { const g = projPosGroup(p.position); conteo[g]=(conteo[g]||0)+1; });
+      html += '<div class="proj-balance"><div class="proj-balance-h">📊 Plantel proyectado por puesto</div><div class="proj-balance-row">';
+      PROJ_POS_ORDER.forEach(g => {
+        if(!conteo[g]) return;
+        html += '<div class="proj-balance-pill"><span class="proj-balance-lbl">'+PROJ_POS_LABEL[g].replace(/^[^ ]+ /,'')+'</span><span class="proj-balance-num">'+conteo[g]+'</span></div>';
+      });
+      html += '</div></div>';
+    }
+
+    // Lista resumen limpia: SOLO el plantel proyectado de esta categoría
+    // (se quedan + suben), uno debajo del otro, ordenado por posición.
+    if(proyectados.length){
+      html += '<div class="proj-roster"><div class="proj-roster-h">📋 Plantel '+PROJ_LABEL[cat]+' '+temporada+' <span class="proj-roster-n">('+proyectados.length+')</span></div>';
+      const grupos = {};
+      proyectados.forEach(p => { const g = projPosGroup(p.position); (grupos[g]=grupos[g]||[]).push(p); });
+      PROJ_POS_ORDER.forEach(g => {
+        if(!grupos[g] || !grupos[g].length) return;
+        grupos[g].sort(projSort);
+        html += '<div class="proj-roster-pos">'+PROJ_POS_LABEL[g]+'</div>';
+        grupos[g].forEach(p => {
+          const num = p.number ? '#'+escapeHtml(String(p.number)) : '—';
+          const anio = p.anio_nacimiento ? '\''+String(p.anio_nacimiento).slice(-2) : '';
+          html += '<div class="proj-roster-row"><span class="proj-roster-num">'+num+'</span>'
+            + '<span class="proj-roster-name">'+escapeHtml(p.name||'Sin nombre')+'</span>'
+            + '<span class="proj-roster-anio">'+anio+'</span></div>';
+        });
+      });
+      html += '</div>';
+    }
+
+    return html;
+  }
+
   // ----- Carga y cambios de categoría -----
   let loadedOnce = false;
+  // La pestaña Proyección no aplica a 1ERA (categoría mayor, abierta hacia arriba):
+  // ocultamos el botón cuando la categoría activa es 1era.
+  function actualizarVisibilidadProyeccion(){
+    const btn = document.querySelector('.stats-subtab[data-sub="projection"]');
+    if(!btn) return;
+    const cat = (catActual()||'').toString().toLowerCase();
+    const ocultar = (cat === '1era');
+    btn.style.display = ocultar ? 'none' : '';
+    // Si estabas parado en Proyección y cambiaste a 1ERA, volvé a Partidos
+    if(ocultar && btn.classList.contains('active')){
+      const primera = document.querySelector('.stats-subtab[data-sub="matches"]');
+      if(primera) primera.click();
+    }
+  }
+
   window.__loadStatsOnce = function(){
     if(loadedOnce) return;
     loadedOnce = true;
+    actualizarVisibilidadProyeccion();
     loadAll();
   };
   if(window.__onCategorySubscribe){
     window.__onCategorySubscribe(() => {
       if(loadedOnce){
+        actualizarVisibilidadProyeccion();
         // si estabas dentro de la ficha de un partido, volvé a la lista
         document.getElementById('matchDetail').style.display = 'none';
         document.getElementById('matchList').style.display = 'block';
