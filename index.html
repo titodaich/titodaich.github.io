@@ -1053,6 +1053,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   .section-content.active .back-to-list-btn,
   .section-content.active .export-btn,
   .section-content.active .scout-sub{display:none !important;}
+  /* En Vivo: el PDF solo lleva los CUADROS DE DATOS (entradas totales,
+     entradas parciales y registro de eventos). Se oculta la cancha, el banco,
+     el marcador y los controles del reloj. */
+  #section-live .live-scoreboard,
+  #section-live .live-clock-bar,
+  #section-live .live-swap-hint,
+  #section-live .live-field-layout{display:none !important;}
   /* Los encabezados de sección (título + subtítulo "Elegí un jugador...") no
      aportan al PDF; dejamos que cada vista ponga su propio print-header limpio. */
   .section-content.active .scout-head{display:none !important;}
@@ -1970,6 +1977,16 @@ body.modo-lectura .section-content textarea:read-only{
   .mark-hint{font-size:10px;}
 }
 .video-frame video{width:100%;height:100%;display:block;background:#000;}
+.tele-canvas{position:absolute;top:0;left:0;width:100%;height:100%;z-index:5;touch-action:none;cursor:crosshair;}
+.tele-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--panel-2,#1B2C3D);border:1px solid var(--line);border-radius:9px;padding:8px 10px;margin-bottom:10px;}
+.tele-tools{display:flex;gap:6px;}
+.tele-tool{width:38px;height:38px;border:1px solid var(--line);background:var(--bg);color:var(--chalk,#dfe8f0);border-radius:8px;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.tele-tool:hover{border-color:var(--accent-2,#2F8FCB);}
+.tele-tool.active{background:rgba(47,143,203,0.2);border-color:var(--accent-2,#2F8FCB);color:var(--accent-2,#2F8FCB);}
+.tele-colors{display:flex;gap:5px;}
+.tele-color{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;}
+.tele-color.active{border-color:#fff;}
+.tele-actions{margin-bottom:12px;}
 .video-placeholder{
   position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   font-family:'Oswald',sans-serif;font-size:22px;text-transform:uppercase;letter-spacing:1px;
@@ -2990,8 +3007,22 @@ body.editor-active #screen-editor{ display:block; }
       <h2><span class="n">02</span> Empezá a editar</h2>
       <div class="video-frame" id="videoFrame">
         <video id="videoEl" controls style="display:none;"></video>
+        <canvas id="teleCanvas" class="tele-canvas" style="display:none;"></canvas>
         <div class="preview-separator-overlay" id="previewSeparatorOverlay"></div>
         <div class="video-placeholder" id="videoPlaceholder">Subilo</div>
+      </div>
+      <div class="tele-toolbar" id="teleToolbar" style="display:none;">
+        <span class="tele-tools">
+          <button class="tele-tool" data-shape="rect" title="Rectángulo">▭</button>
+          <button class="tele-tool" data-shape="circle" title="Círculo">◯</button>
+          <button class="tele-tool" data-shape="arrow" title="Flecha">➤</button>
+        </span>
+        <span class="tele-colors" id="teleColors"></span>
+        <button class="btn small" id="teleUndo" title="Deshacer">↩</button>
+        <button class="btn small" id="teleClear" title="Borrar todo">🗑</button>
+      </div>
+      <div class="tele-actions">
+        <button class="btn small" id="teleDrawBtn">✏ Dibujar sobre el video</button>
       </div>
       <div class="timecode"><small>Tiempo actual — <span id="activeVideoLabel">sin video</span></small><span id="currentTimeDisplay">00:00</span></div>
       <div class="record-status" id="recordStatus">Tocá un tag para iniciar la jugada</div>
@@ -3582,7 +3613,6 @@ body.editor-active #screen-editor{ display:block; }
         <p class="scout-sub" id="liveSubtitle" data-i18n="liveSetupSub">Elegí el rival y los convocados para arrancar.</p>
       </div>
       <div class="train-head-actions">
-        <button class="btn small export-btn print-hide" id="livePartialBtn">📊 Entradas parciales</button>
         <button class="btn small export-btn print-hide" id="exportLiveExcel">⬇ Excel</button>
         <button class="btn small export-btn print-hide" id="exportLivePdf">⬇ PDF</button>
         <button class="btn small" id="liveNewMatchBtn" data-i18n="liveNewMatch" style="display:none;">↺ Nuevo partido</button>
@@ -3703,7 +3733,7 @@ body.editor-active #screen-editor{ display:block; }
       </div>
 
       <div class="live-totals-wrap">
-        <div class="rd-card-head"><h3 data-i18n="liveMinBy">Minutos y acciones por jugador</h3></div>
+        <div class="rd-card-head"><h3 data-i18n="liveMinBy">Minutos y acciones por jugador</h3><button class="btn small export-btn print-hide" id="livePartialBtn">📊 Entradas parciales</button></div>
         <div class="live-totals-head">
           <span data-i18n="livePlayer">Jugador</span><span data-i18n="liveT1">1er T</span><span data-i18n="liveT2">2do T</span><span data-i18n="liveTotal">Total</span><span title="Goles">⚽</span><span title="Remates">🎯</span><span title="Faltas">⚠️</span><span title="Tarjetas">🟨</span>
         </div>
@@ -7607,7 +7637,7 @@ window.__initEditor = function(){
         ]);
       });
       const ws1 = window.XLSX.utils.aoa_to_sheet(filas1);
-      window.XLSX.utils.book_append_sheet(wb, ws1, 'Jugadores');
+      window.XLSX.utils.book_append_sheet(wb, ws1, 'Entradas totales');
 
       // Hoja 2: registro de eventos
       const head2 = ['Tiempo','Tipo','Detalle','Minuto','Origen'];
@@ -7626,7 +7656,7 @@ window.__initEditor = function(){
         filas2.push([ fmtClock(ev.t||0), tipo, detalle, ev.min || '', ev.origen || '' ]);
       });
       const ws2 = window.XLSX.utils.aoa_to_sheet(filas2);
-      window.XLSX.utils.book_append_sheet(wb, ws2, 'Eventos');
+      window.XLSX.utils.book_append_sheet(wb, ws2, 'Registro de eventos');
 
       // Hoja 3: entradas parciales (cada vez que un jugador estuvo en cancha)
       const head3 = ['#','Jugador','Entrada N°','Tiempo','Duración','Subtotal período','Total partido'];
@@ -15368,7 +15398,143 @@ function downloadBlob(blob, name){
   setTimeout(()=> URL.revokeObjectURL(url), 4000);
 }
 
-// ---------------- REAL EXPORT (canvas + MediaRecorder) ----------------
+// ---------------- TELESTRATION: dibujar sobre el video ----------------
+// Paso 1: herramienta de dibujo (rectángulo, círculo, flecha) sobre el video
+// pausado. Las figuras se guardan en teleShapes con el tiempo del video en que
+// se dibujaron, para (en el paso siguiente) grabarlas en la exportación.
+(function(){
+  const video = document.getElementById('videoEl');
+  const canvas = document.getElementById('teleCanvas');
+  const toolbar = document.getElementById('teleToolbar');
+  const drawBtn = document.getElementById('teleDrawBtn');
+  if(!video || !canvas || !toolbar || !drawBtn) return;
+
+  const COLORS = ['#F0553F','#2F8FCB','#4CAF6D','#E0A93B','#FFFFFF'];
+  let teleOn = false;
+  let shape = 'rect';        // figura activa
+  let color = COLORS[0];
+  let drawing = false;
+  let startX = 0, startY = 0;
+  // Cada figura: {shape, color, x1,y1,x2,y2, t} en coordenadas 0..1 (relativas)
+  window.teleShapes = window.teleShapes || [];
+
+  // Ajusta el tamaño del canvas al del video que se ve
+  function fitCanvas(){
+    const r = canvas.getBoundingClientRect();
+    canvas.width = r.width; canvas.height = r.height;
+    redraw();
+  }
+  window.addEventListener('resize', fitCanvas);
+
+  // Convierte coords de puntero a 0..1 (para que el dibujo escale con el video)
+  function rel(e){
+    const r = canvas.getBoundingClientRect();
+    const cx = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+    const cy = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
+    return { x: Math.max(0,Math.min(1, cx/r.width)), y: Math.max(0,Math.min(1, cy/r.height)) };
+  }
+
+  // Dibuja una figura en el canvas dado (reutilizable para export)
+  function drawShape(ctx, s, w, h){
+    ctx.strokeStyle = s.color; ctx.lineWidth = Math.max(2, w*0.004); ctx.lineJoin='round'; ctx.lineCap='round';
+    const x1=s.x1*w, y1=s.y1*h, x2=s.x2*w, y2=s.y2*h;
+    if(s.shape==='rect'){
+      ctx.strokeRect(Math.min(x1,x2), Math.min(y1,y2), Math.abs(x2-x1), Math.abs(y2-y1));
+    } else if(s.shape==='circle'){
+      const cx=(x1+x2)/2, cy=(y1+y2)/2, rx=Math.abs(x2-x1)/2, ry=Math.abs(y2-y1)/2;
+      ctx.beginPath(); ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2); ctx.stroke();
+    } else if(s.shape==='arrow'){
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+      const ang=Math.atan2(y2-y1,x2-x1), head=Math.max(10,w*0.02);
+      ctx.beginPath(); ctx.moveTo(x2,y2);
+      ctx.lineTo(x2-head*Math.cos(ang-Math.PI/6), y2-head*Math.sin(ang-Math.PI/6));
+      ctx.moveTo(x2,y2);
+      ctx.lineTo(x2-head*Math.cos(ang+Math.PI/6), y2-head*Math.sin(ang+Math.PI/6));
+      ctx.stroke();
+    }
+  }
+
+  // Redibuja todas las figuras guardadas + la que se está dibujando
+  function redraw(preview){
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    window.teleShapes.forEach(s => drawShape(ctx, s, canvas.width, canvas.height));
+    if(preview) drawShape(ctx, preview, canvas.width, canvas.height);
+  }
+  window.__teleRedraw = redraw;
+  window.__teleDrawShape = drawShape;  // lo usará la exportación
+
+  function onDown(e){
+    if(!teleOn) return;
+    e.preventDefault();
+    if(!video.paused) video.pause();   // dibujar sobre el cuadro quieto
+    drawing = true;
+    const p = rel(e); startX=p.x; startY=p.y;
+  }
+  function onMove(e){
+    if(!teleOn || !drawing) return;
+    e.preventDefault();
+    const p = rel(e);
+    redraw({ shape, color, x1:startX, y1:startY, x2:p.x, y2:p.y });
+  }
+  function onUp(e){
+    if(!teleOn || !drawing) return;
+    drawing = false;
+    const p = rel(e.changedTouches ? {clientX:e.changedTouches[0].clientX, clientY:e.changedTouches[0].clientY} : e);
+    // Ignorar toques mínimos (sin arrastrar)
+    if(Math.abs(p.x-startX) < 0.01 && Math.abs(p.y-startY) < 0.01){ redraw(); return; }
+    window.teleShapes.push({ shape, color, x1:startX, y1:startY, x2:p.x, y2:p.y, t: video.currentTime || 0 });
+    redraw();
+  }
+
+  canvas.addEventListener('mousedown', onDown);
+  canvas.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onUp);
+  canvas.addEventListener('touchstart', onDown, {passive:false});
+  canvas.addEventListener('touchmove', onMove, {passive:false});
+  canvas.addEventListener('touchend', onUp);
+
+  // Activar / desactivar el modo dibujo
+  drawBtn.addEventListener('click', () => {
+    teleOn = !teleOn;
+    canvas.style.display = teleOn ? 'block' : 'none';
+    toolbar.style.display = teleOn ? 'flex' : 'none';
+    drawBtn.textContent = teleOn ? '✓ Terminar dibujo' : '✏ Dibujar sobre el video';
+    drawBtn.classList.toggle('primary', teleOn);
+    if(teleOn){ if(!video.paused) video.pause(); fitCanvas(); }
+  });
+
+  // Herramientas (figuras)
+  toolbar.querySelectorAll('.tele-tool').forEach(b => {
+    b.addEventListener('click', () => {
+      shape = b.dataset.shape;
+      toolbar.querySelectorAll('.tele-tool').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+    });
+  });
+  toolbar.querySelector('.tele-tool').classList.add('active'); // rect por defecto
+
+  // Colores
+  const colorsWrap = document.getElementById('teleColors');
+  COLORS.forEach((c,i) => {
+    const b = document.createElement('button');
+    b.className = 'tele-color'+(i===0?' active':'');
+    b.style.background = c;
+    b.addEventListener('click', () => {
+      color = c;
+      colorsWrap.querySelectorAll('.tele-color').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+    });
+    colorsWrap.appendChild(b);
+  });
+
+  // Deshacer y limpiar
+  document.getElementById('teleUndo').addEventListener('click', () => { window.teleShapes.pop(); redraw(); });
+  document.getElementById('teleClear').addEventListener('click', () => { window.teleShapes = []; redraw(); });
+
+  // Cuando se carga un video nuevo, limpiamos los dibujos
+  video.addEventListener('loadedmetadata', () => { window.teleShapes = []; if(teleOn) fitCanvas(); });
+})();
 const MIME_CANDIDATES = [
   'video/mp4;codecs=avc1,mp4a.40.2',
   'video/mp4',
