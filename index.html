@@ -1027,6 +1027,25 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .export-btn:hover{border-color:var(--success);color:var(--success);}
 @media print{
   .export-bar,.stats-subnav,.main-nav,.topbar,.cat-bar,#subBanner,.cancha-bg,#toast,.video-help,.print-hide{display:none !important;}
+  /* ── Limpieza general del PDF: fuera todo lo interactivo/decorativo ──
+     Solo queremos el CONTENIDO (datos, tablas, calendario), no controles.
+     Ocultamos botones, selectores, inputs y barras de acción de la sección
+     que se está imprimiendo. Así el PDF sale limpio en cualquier sección. */
+  .section-content.active button,
+  .section-content.active select,
+  .section-content.active input,
+  .section-content.active textarea,
+  .section-content.active .player-picker-bar,
+  .section-content.active .cal-type-btn,
+  .section-content.active .back-to-list-btn,
+  .section-content.active .export-btn,
+  .section-content.active .scout-sub{display:none !important;}
+  /* Los encabezados de sección (título + subtítulo "Elegí un jugador...") no
+     aportan al PDF; dejamos que cada vista ponga su propio print-header limpio. */
+  .section-content.active .scout-head{display:none !important;}
+  /* Si alguna vista necesita mostrar un control en el PDF, que le ponga la
+     clase .print-keep y sobreescriba lo de arriba. */
+  .section-content.active .print-keep{display:revert !important;}
   body,#screen-editor{background:#fff !important;color:#000 !important;}
   /* Solo se imprime la sección que está abierta */
   .section-content:not(.active){display:none !important;}
@@ -3176,6 +3195,7 @@ body.editor-active #screen-editor{ display:block; }
       <div class="player-picker-bar">
         <label class="player-picker-label" data-i18n="playerPick">Jugador:</label>
         <select id="playerCardSelect" class="player-card-select"></select>
+        <button class="btn small export-btn print-hide" id="printOneCard" title="Imprimir la ficha del jugador que estás viendo">🖨 Esta ficha</button>
         <button class="btn small export-btn print-hide" id="printAllCards" title="Imprimir la ficha de todos los jugadores, una debajo de la otra">🖨 Todas las fichas</button>
       </div>
       <div id="playerCardContent"></div>
@@ -3549,6 +3569,7 @@ body.editor-active #screen-editor{ display:block; }
         <p class="scout-sub" id="liveSubtitle" data-i18n="liveSetupSub">Elegí el rival y los convocados para arrancar.</p>
       </div>
       <div class="train-head-actions">
+        <button class="btn small export-btn print-hide" id="exportLiveExcel">⬇ Excel</button>
         <button class="btn small export-btn print-hide" id="exportLivePdf">⬇ PDF</button>
         <button class="btn small" id="liveNewMatchBtn" data-i18n="liveNewMatch" style="display:none;">↺ Nuevo partido</button>
       </div>
@@ -4096,7 +4117,7 @@ window.I18N = {
     liveSwapHintTxt:'Tocá el jugador que SALE (en la cancha) y después el que ENTRA (del banco). Los botones ⚽ 🎯 y 🟨 cargan gol, remate y falta.',
     livePlayer:'Jugador', liveT1:'1er T', liveT2:'2do T', liveTotal:'Total',
     liveNoEvents:'Todavía no hay eventos. Iniciá el reloj y armá el equipo.',
-    liveClockRunning:'⏱ Reloj CORRIDO · 2×25\' (corre sin parar)', liveClockStopped:'⏱ Reloj PARADO · 2×20\' · cargá los minutos a mano',
+    liveClockRunning:'⏱ Reloj CORRIDO · 2×25\' (corre sin parar)', liveClockStopped:'⏱ Reloj PARADO · 2×20\' · Pulsá los 5 iniciales del banco para armar el equipo. Después tocá un jugador de la cancha y uno del banco para hacer un cambio: confirmás el minuto de salida y queda registrado abajo.',
     liveOnCourtLbl:'en cancha', livePause:'⏸ Pausar', liveUndo:'↩ Deshacer último', weekLbl:'Semana', fechaLbl:'Fecha',
     // Login
     loginCreate:'Crear una cuenta', loginEnter:'Entrar', loginBackLogin:'Ya tengo cuenta',
@@ -4186,7 +4207,7 @@ window.I18N = {
     liveSwapHintTxt:'Tap the player going OFF (on court) then the one coming ON (from the bench). The ⚽ and 🟨 buttons log goal and foul.',
     livePlayer:'Player', liveT1:'1st H', liveT2:'2nd H', liveTotal:'Total',
     liveNoEvents:'No events yet. Start the clock and set up the team.',
-    liveClockRunning:'⏱ RUNNING clock · 2×25\' (runs non-stop)', liveClockStopped:'⏱ STOPPED clock · 2×20\' · enter minutes manually',
+    liveClockRunning:'⏱ RUNNING clock · 2×25\' (runs non-stop)', liveClockStopped:'⏱ STOPPED clock · 2×20\' · Tap the 5 starters from the bench to set the lineup. Then tap a player on court and one on the bench to make a sub: you confirm the exit minute and it is logged below.',
     liveOnCourtLbl:'on court', livePause:'⏸ Pause', liveUndo:'↩ Undo last', weekLbl:'Week', fechaLbl:'Match',
     loginCreate:'Create an account', loginEnter:'Sign in', loginBackLogin:'I already have an account',
     vBulkAdd:'+ Load clips (multiple)', vSep:'+ Separator (text/photo)', vPlaySeq:'▶ Play sequence',
@@ -4267,7 +4288,7 @@ window.I18N = {
     liveSwapHintTxt:'Toque no jogador que SAI (em quadra) e depois no que ENTRA (do banco). Os botões ⚽ e 🟨 registram gol e falta.',
     livePlayer:'Jogador', liveT1:'1º T', liveT2:'2º T', liveTotal:'Total',
     liveNoEvents:'Ainda não há eventos. Inicie o relógio e monte o time.',
-    liveClockRunning:'⏱ Relógio CORRIDO · 2×25\' (corre sem parar)', liveClockStopped:'⏱ Relógio PARADO · 2×20\' · insira os minutos manualmente',
+    liveClockRunning:'⏱ Relógio CORRIDO · 2×25\' (corre sem parar)', liveClockStopped:'⏱ Relógio PARADO · 2×20\' · Toque nos 5 titulares do banco para montar a equipe. Depois toque num jogador em quadra e num do banco para fazer a substituição: você confirma o minuto de saída e fica registrado abaixo.',
     liveOnCourtLbl:'em quadra', livePause:'⏸ Pausar', liveUndo:'↩ Desfazer último', weekLbl:'Semana', fechaLbl:'Jogo',
     loginCreate:'Criar uma conta', loginEnter:'Entrar', loginBackLogin:'Já tenho conta',
     vBulkAdd:'+ Carregar clipes (vários)', vSep:'+ Separador (texto/foto)', vPlaySeq:'▶ Reproduzir sequência',
@@ -6975,8 +6996,11 @@ window.__initEditor = function(){
     if(manualCtrls) manualCtrls.style.display = parado ? 'flex' : 'none';
     if(autoCtrls) autoCtrls.style.display = parado ? 'none' : 'flex';
     // en parado, botones de tiempo/reset propios
+    // NOTA: liveManualCtrls YA incluye "Fin 1er tiempo" y "Reiniciar" (además del
+    // +1'/−1'), así que liveParadoCtrls duplicaba esos botones. Lo dejamos siempre
+    // oculto para que no aparezcan por duplicado en modo parado.
     const paradoCtrls = document.getElementById('liveParadoCtrls');
-    if(paradoCtrls) paradoCtrls.style.display = parado ? 'flex' : 'none';
+    if(paradoCtrls) paradoCtrls.style.display = 'none';
     if(parado && events.length===0 && countOnCourt()===0){ manualMin = halfMinutes; }
     updateClockUI();
   }
@@ -7423,6 +7447,70 @@ window.__initEditor = function(){
       cont.appendChild(row);
     });
   }
+  // ----- Exportar el partido en vivo a Excel (minutos + eventos) -----
+  function exportarLiveExcel(){
+    if(!window.XLSX){ toast('No se pudo cargar el exportador de Excel.'); return; }
+    if(!squad || squad.length === 0){ toast('No hay jugadores para exportar.'); return; }
+    try{
+      const minToStr = (secs) => {
+        const s = Math.max(0, Math.round(secs||0));
+        const m = Math.floor(s/60), r = s%60;
+        return m + ':' + String(r).padStart(2,'0');
+      };
+      const wb = window.XLSX.utils.book_new();
+
+      // Hoja 1: stats por jugador
+      const head1 = ['#','Jugador','Min 1T','Min 2T','Min total','Goles','Remates','Faltas','Tarjetas'];
+      const filas1 = [head1];
+      squad.forEach(p => {
+        const st = ensure(p.id);
+        filas1.push([
+          p.number ? String(p.number) : '',
+          p.name || '',
+          minToStr(time1(p.id)),
+          minToStr(time2(p.id)),
+          minToStr(timeTotal(p.id)),
+          st.goals || 0,
+          st.shots || 0,
+          foulsTotal(p.id),
+          st.cards || 0
+        ]);
+      });
+      const ws1 = window.XLSX.utils.aoa_to_sheet(filas1);
+      window.XLSX.utils.book_append_sheet(wb, ws1, 'Jugadores');
+
+      // Hoja 2: registro de eventos
+      const head2 = ['Tiempo','Tipo','Detalle','Minuto','Origen'];
+      const filas2 = [head2];
+      (events||[]).forEach(ev => {
+        let tipo = ev.type, detalle = '';
+        if(ev.type==='in'){ tipo='Ingreso'; detalle='Entra '+(ev.inName||''); }
+        else if(ev.type==='out'){ tipo='Salida'; detalle='Sale '+(ev.outName||''); }
+        else if(ev.type==='swap'){ tipo='Cambio'; detalle='Sale '+(ev.outName||'')+', entra '+(ev.inName||''); }
+        else if(ev.type==='half'){ tipo='Tiempo'; detalle='Fin del 1er tiempo'; }
+        else if(ev.type==='goal'){ tipo='Gol'; detalle='Gol de '+(ev.inName||''); }
+        else if(ev.type==='goalAgainst'){ tipo='Gol en contra'; detalle='Gol del rival'; }
+        else if(ev.type==='shot'){ tipo='Remate'; detalle='Remate de '+(ev.inName||''); }
+        else if(ev.type==='foul'){ tipo='Falta'; detalle='Falta de '+(ev.inName||''); }
+        else if(ev.type==='card'){ tipo='Tarjeta'; detalle='Tarjeta a '+(ev.inName||''); }
+        filas2.push([ fmtClock(ev.t||0), tipo, detalle, ev.min || '', ev.origen || '' ]);
+      });
+      const ws2 = window.XLSX.utils.aoa_to_sheet(filas2);
+      window.XLSX.utils.book_append_sheet(wb, ws2, 'Eventos');
+
+      // Nombre del archivo: vs Rival + fecha
+      const hoy = new Date().toISOString().slice(0,10);
+      const rival = (matchRival || 'partido').replace(/[\\\/\?\*\[\]:]/g,'').substring(0,20);
+      window.XLSX.writeFile(wb, 'Benchone - ' + rival + ' - ' + hoy + '.xlsx');
+      toast('Descargando Excel…');
+    }catch(e){
+      console.error('export live excel', e);
+      toast('Error al exportar a Excel.');
+    }
+  }
+
+  document.getElementById('exportLiveExcel') && document.getElementById('exportLiveExcel').addEventListener('click', exportarLiveExcel);
+
   function renderTotalsValues(){
     squad.forEach(p=>{
       const a=document.querySelector(`[data-t1="${p.id}"]`); if(a) a.textContent=fmtClock(time1(p.id));
@@ -11239,7 +11327,39 @@ window.__initEditor = function(){
       btnAll.addEventListener('click', imprimirTodasLasFichas);
       btnAll.__wired = true;
     }
+    // Botón "esta ficha" (imprime solo la ficha del jugador visible)
+    const btnOne = document.getElementById('printOneCard');
+    if(btnOne && !btnOne.__wired){
+      btnOne.addEventListener('click', imprimirUnaFicha);
+      btnOne.__wired = true;
+    }
     drawPlayerCard(sel.value);
+  }
+
+  // Imprime SOLO la ficha del jugador que se está viendo, con encabezado limpio.
+  function imprimirUnaFicha(){
+    const cont = document.getElementById('playerCardContent');
+    if(!cont || !cont.innerHTML.trim()){ toast('Elegí un jugador primero'); return; }
+    // Sacamos cualquier encabezado previo
+    const viejo = cont.querySelector('.print-header'); if(viejo) viejo.remove();
+    // Nombre del jugador para el título (del selector)
+    const sel = document.getElementById('playerCardSelect');
+    const nombre = (sel && sel.options[sel.selectedIndex]) ? sel.options[sel.selectedIndex].textContent : '';
+    const cat = (window.__getActiveCategory && window.__getActiveCategory()) || '';
+    const club = window.__clubNombre || '';
+    const temp = window.__getTemporada ? window.__getTemporada() : '';
+    const hoy = new Date().toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric' });
+    const head = document.createElement('div');
+    head.className = 'print-header';
+    head.innerHTML = '<h1>' + escapeHtml('Ficha' + (nombre ? ' — ' + nombre : '')) + '</h1><div class="ph-sub">'
+      + escapeHtml([club, cat ? ('Categoría ' + cat) : '', temp ? ('Temporada ' + temp) : '', hoy].filter(Boolean).join(' · '))
+      + '</div>';
+    cont.insertBefore(head, cont.firstChild);
+    toast('Se abrirá el diálogo de impresión. Elegí "Guardar como PDF".');
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => { const h = cont.querySelector('.print-header'); if(h) h.remove(); }, 500);
+    }, 350);
   }
 
   // Dibuja la ficha del jugador elegido
