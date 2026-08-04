@@ -7157,12 +7157,26 @@ window.__initEditor = function(){
   function endFirstHalf(){
     if(currentHalf !== 1){ toast(window.t('mAlready2nd')); return; }
     if(!confirm(window.t('mEndHalf'))) return;
-    // consolidar lo jugado hasta acá en acc1 para los que están en cancha
-    const now = nowSeconds();
+    // El período se cierra en su FINAL:
+    //  - parado (1ERA/3ERA): el reloj regresivo llega a 0 → el tiempo transcurrido
+    //    es el período completo (halfMinutes). Un jugador que entró en el minuto 3
+    //    jugó esos 3 minutos hasta el 0.
+    //  - corrido (4TA a PROMO): el tiempo real es el del cronómetro al cortar (25' o
+    //    más con descuento), que es clockSeconds en este momento.
+    const finPeriodo = (clockType==='parado') ? (halfMinutes * 60) : clockSeconds;
     Object.keys(state).forEach(pid => {
       const st = state[pid];
-      if(st.onCourt && st.lastInAt!==null){ st.acc1 += Math.max(0, now - st.lastInAt); st.lastInAt = (clockType==='parado' ? 0 : now); }
+      if(st.onCourt && st.lastInAt!==null){
+        const dur = Math.max(0, finPeriodo - st.lastInAt);
+        st.acc1 += dur;
+        // Cerramos su entrada del 1er tiempo en el registro de parciales, así cada
+        // tiempo tiene su propia entrada (no se mezcla la 1ª mitad con la 2ª).
+        if(!st.stints) st.stints = [];
+        if(dur > 0) st.stints.push({ half: 1, dur: dur });
+        st.lastInAt = (clockType==='parado' ? 0 : finPeriodo);
+      }
     });
+    const now = finPeriodo;
     halfSplitAt = clockSeconds;
     currentHalf = 2;
     clockRunning=false; clearInterval(clockTimer); clockTimer=null; clockAnchor=null;
@@ -7245,6 +7259,9 @@ window.__initEditor = function(){
             if(stOut.onCourt && stOut.lastInAt!==null){
               const dt = Math.max(0, elapsed - stOut.lastInAt);
               if(currentHalf===1) stOut.acc1 += dt; else stOut.acc2 += dt;
+              // Registrar esta entrada en el detalle de parciales.
+              if(!stOut.stints) stOut.stints = [];
+              if(dt > 0) stOut.stints.push({ half: currentHalf, dur: dt });
             }
             stOut.onCourt=false; stOut.lastInAt=null;
             // el que entra: arranca en este mismo minuto
@@ -7712,10 +7729,19 @@ window.__initEditor = function(){
   async function finishMatch(){
     if(events.length===0){ if(!confirm(window.t('mFinishNoEv'))) return; }
     const clubId=await window.__getClubId();
-    // consolidar el tiempo en curso
+    // consolidar el tiempo en curso hasta el final del período (mismo criterio que
+    // el fin del 1er tiempo): parado cierra en el período completo; corrido en el
+    // cronómetro actual. Y registramos ese último tramo en las entradas parciales.
+    const finPeriodo = (clockType==='parado') ? (halfMinutes * 60) : clockSeconds;
     Object.keys(state).forEach(pid => {
       const st=state[pid];
-      if(st.onCourt && st.lastInAt!==null){ const dt=nowSeconds()-st.lastInAt; if(currentHalf===1) st.acc1+=Math.max(0,dt); else st.acc2+=Math.max(0,dt); st.lastInAt=nowSeconds(); }
+      if(st.onCourt && st.lastInAt!==null){
+        const dt = Math.max(0, finPeriodo - st.lastInAt);
+        if(currentHalf===1) st.acc1+=dt; else st.acc2+=dt;
+        if(!st.stints) st.stints=[];
+        if(dt>0) st.stints.push({ half: currentHalf, dur: dt });
+        st.lastInAt=finPeriodo;
+      }
     });
     finishAndArchive(matchLinkId, matchRival||'Partido');
   }
