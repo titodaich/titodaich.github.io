@@ -984,6 +984,18 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 
 .live-totals-wrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;}
 .live-totals-head,.live-total-row{display:grid;grid-template-columns:1fr 58px 58px 64px 34px 34px 34px 34px;gap:6px;align-items:center;}
+.live-partial{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:6px;}
+.lp-player{background:var(--bg-2,#10161C);border:1px solid var(--line);border-radius:10px;padding:12px 14px;}
+.lp-name{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;color:var(--chalk,#dfe8f0);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--line);}
+.lp-oncourt{font-family:'Inter',sans-serif;font-size:11px;font-weight:400;color:var(--success,#4CAF6D);margin-left:4px;}
+.lp-stint{display:flex;justify-content:space-between;font-size:13px;color:var(--muted,#7C8B99);padding:3px 0;}
+.lp-stint .lp-dur{font-family:'JetBrains Mono',monospace;color:var(--chalk,#dfe8f0);}
+.lp-live{color:var(--success,#4CAF6D);font-size:11px;}
+.lp-subtotal{display:flex;justify-content:space-between;font-size:12.5px;color:var(--accent-2,#2F8FCB);padding:5px 0 3px;margin-top:3px;border-top:1px dashed var(--line);}
+.lp-subtotal span{font-family:'JetBrains Mono',monospace;font-weight:600;}
+.lp-total{display:flex;justify-content:space-between;font-family:'Oswald',sans-serif;font-size:14px;font-weight:700;color:var(--chalk,#dfe8f0);margin-top:6px;padding-top:6px;border-top:2px solid var(--line);}
+.lp-total span{font-family:'JetBrains Mono',monospace;color:var(--success,#4CAF6D);}
+.lp-empty{font-size:12.5px;color:var(--muted,#7C8B99);font-style:italic;}
 .live-totals-head{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line);}
 .live-totals-head span:not(:first-child),.live-total-row span:not(:first-child){text-align:center;font-family:'JetBrains Mono',monospace;}
 .live-totals{margin-top:6px;}
@@ -3570,6 +3582,7 @@ body.editor-active #screen-editor{ display:block; }
         <p class="scout-sub" id="liveSubtitle" data-i18n="liveSetupSub">Elegí el rival y los convocados para arrancar.</p>
       </div>
       <div class="train-head-actions">
+        <button class="btn small export-btn print-hide" id="livePartialBtn">📊 Entradas parciales</button>
         <button class="btn small export-btn print-hide" id="exportLiveExcel">⬇ Excel</button>
         <button class="btn small export-btn print-hide" id="exportLivePdf">⬇ PDF</button>
         <button class="btn small" id="liveNewMatchBtn" data-i18n="liveNewMatch" style="display:none;">↺ Nuevo partido</button>
@@ -3695,6 +3708,14 @@ body.editor-active #screen-editor{ display:block; }
           <span data-i18n="livePlayer">Jugador</span><span data-i18n="liveT1">1er T</span><span data-i18n="liveT2">2do T</span><span data-i18n="liveTotal">Total</span><span title="Goles">⚽</span><span title="Remates">🎯</span><span title="Faltas">⚠️</span><span title="Tarjetas">🟨</span>
         </div>
         <div class="live-totals" id="liveTotals"></div>
+      </div>
+
+      <div class="live-totals-wrap" id="livePartialWrap" style="display:none;">
+        <div class="rd-card-head" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+          <h3>Entradas parciales — cuánto duró cada vez en cancha</h3>
+          <button class="btn small print-hide" id="livePartialToggle">Ocultar</button>
+        </div>
+        <div class="live-partial" id="livePartial"></div>
       </div>
 
       <div class="live-log-wrap">
@@ -4112,7 +4133,7 @@ window.I18N = {
     liveStep1:'1 · Rival del partido', liveStep2:'2 · Convocados', liveAll:'Todos', liveNone:'Ninguno',
     liveCallHint:'Tocá los jugadores que están convocados. Solo ellos aparecerán en el partido.',
     liveStartBtn:'▶ Iniciar partido', liveNewMatch:'↺ Nuevo partido', liveFinish:'🏁 Finalizar partido',
-    liveOnField:'EN CANCHA', liveBench:'BANCO', liveMinBy:'Minutos y acciones por jugador',
+    liveOnField:'EN CANCHA', liveBench:'BANCO', liveMinBy:'Entradas totales — minutos y acciones por jugador',
     liveEvents:'Registro de eventos', liveStart:'▶ Iniciar', liveHalf:'⏱ Fin 1er tiempo', liveReset:'↺ Reiniciar',
     liveMinReg:'Minuto (regresivo):', liveFirstHalf:'1er tiempo', liveSecondHalf:'2do tiempo',
     liveSwapHintTxt:'Tocá el jugador que SALE (en la cancha) y después el que ENTRA (del banco). Los botones ⚽ 🎯 y 🟨 cargan gol, remate y falta.',
@@ -4202,7 +4223,7 @@ window.I18N = {
     liveStep1:'1 · Opponent', liveStep2:'2 · Called-up', liveAll:'All', liveNone:'None',
     liveCallHint:'Tap the players who are called up. Only they will appear in the match.',
     liveStartBtn:'▶ Start match', liveNewMatch:'↺ New match', liveFinish:'🏁 End match',
-    liveOnField:'ON COURT', liveBench:'BENCH', liveMinBy:'Minutes and actions per player',
+    liveOnField:'ON COURT', liveBench:'BENCH', liveMinBy:'Total time — minutes and actions per player',
     liveEvents:'Event log', liveStart:'▶ Start', liveHalf:'⏱ End 1st half', liveReset:'↺ Reset',
     liveMinReg:'Minute (countdown):', liveFirstHalf:'1st half', liveSecondHalf:'2nd half',
     liveSwapHintTxt:'Tap the player going OFF (on court) then the one coming ON (from the bench). The ⚽ and 🟨 buttons log goal and foul.',
@@ -4283,7 +4304,7 @@ window.I18N = {
     liveStep1:'1 · Adversário', liveStep2:'2 · Convocados', liveAll:'Todos', liveNone:'Nenhum',
     liveCallHint:'Toque nos jogadores convocados. Só eles aparecerão na partida.',
     liveStartBtn:'▶ Iniciar partida', liveNewMatch:'↺ Nova partida', liveFinish:'🏁 Finalizar partida',
-    liveOnField:'EM QUADRA', liveBench:'BANCO', liveMinBy:'Minutos e ações por jogador',
+    liveOnField:'EM QUADRA', liveBench:'BANCO', liveMinBy:'Tempo total — minutos e ações por jogador',
     liveEvents:'Registro de eventos', liveStart:'▶ Iniciar', liveHalf:'⏱ Fim 1º tempo', liveReset:'↺ Reiniciar',
     liveMinReg:'Minuto (regressivo):', liveFirstHalf:'1º tempo', liveSecondHalf:'2º tempo',
     liveSwapHintTxt:'Toque no jogador que SAI (em quadra) e depois no que ENTRA (do banco). Os botões ⚽ e 🟨 registram gol e falta.',
@@ -7052,7 +7073,7 @@ window.__initEditor = function(){
     if(tpOnOk){ const fn=tpOnOk; tpOnOk=null; fn(regresivoToElapsed(tpMin,tpSec), tpMin, tpSec); }
   });
 
-  function ensure(pid){ if(!state[pid]) state[pid] = {onCourt:false, acc1:0, acc2:0, lastInAt:null, goals:0, fouls1:0, fouls2:0, cards:0, shots:0}; if(state[pid].goals===undefined) state[pid].goals=0; if(state[pid].cards===undefined) state[pid].cards=0; if(state[pid].shots===undefined) state[pid].shots=0; if(state[pid].fouls1===undefined) state[pid].fouls1=0; if(state[pid].fouls2===undefined) state[pid].fouls2=0; if(state[pid].fouls!==undefined && state[pid].fouls1===0 && state[pid].fouls2===0){ /* compat: partido viejo con fouls único → lo tratamos como del 1er tiempo */ state[pid].fouls1=state[pid].fouls; } return state[pid]; }
+  function ensure(pid){ if(!state[pid]) state[pid] = {onCourt:false, acc1:0, acc2:0, lastInAt:null, goals:0, fouls1:0, fouls2:0, cards:0, shots:0}; if(state[pid].goals===undefined) state[pid].goals=0; if(state[pid].cards===undefined) state[pid].cards=0; if(state[pid].shots===undefined) state[pid].shots=0; if(state[pid].fouls1===undefined) state[pid].fouls1=0; if(state[pid].fouls2===undefined) state[pid].fouls2=0; if(state[pid].stints===undefined) state[pid].stints=[]; if(state[pid].fouls!==undefined && state[pid].fouls1===0 && state[pid].fouls2===0){ /* compat: partido viejo con fouls único → lo tratamos como del 1er tiempo */ state[pid].fouls1=state[pid].fouls; } return state[pid]; }
   // faltas del tiempo que se está jugando (lo que se muestra en pantalla)
   function foulsNow(pid){ const st=ensure(pid); return currentHalf===1 ? (st.fouls1||0) : (st.fouls2||0); }
   // faltas totales del partido (para guardar en el historial)
@@ -7174,7 +7195,12 @@ window.__initEditor = function(){
     const st = ensure(pid);
     if(st.onCourt && st.lastInAt!==null){
       const dt = nowSeconds() - st.lastInAt;
-      if(currentHalf===1) st.acc1 += Math.max(0,dt); else st.acc2 += Math.max(0,dt);
+      const dur = Math.max(0, dt);
+      if(currentHalf===1) st.acc1 += dur; else st.acc2 += dur;
+      // Guardamos el detalle de esta entrada (cuánto duró y en qué tiempo),
+      // para el cuadro "Entradas parciales". No afecta los totales.
+      if(!st.stints) st.stints = [];
+      st.stints.push({ half: currentHalf, dur: dur });
     }
     st.onCourt=false; st.lastInAt=null; st.entroMin=null; st.entroSeg=null;
   }
@@ -7436,6 +7462,89 @@ window.__initEditor = function(){
     guardarPartidoLocal();   // autoguardado local tras cada acción
   }
 
+  // Devuelve las entradas (stints) de un jugador, incluyendo la que esté en curso,
+  // con subtotales por tiempo. Reutilizada por el cuadro, el Excel y el PDF.
+  function stintsDeJugador(pid){
+    const st = ensure(pid);
+    const stints = (st.stints || []).slice();
+    if(st.onCourt && st.lastInAt !== null){
+      stints.push({ half: currentHalf, dur: Math.max(0, nowSeconds() - st.lastInAt), enCurso: true });
+    }
+    let sum1 = 0, sum2 = 0;
+    stints.forEach(s => { if(s.half === 1) sum1 += s.dur; else sum2 += s.dur; });
+    return { stints, sum1, sum2, total: sum1 + sum2 };
+  }
+
+  // ----- Cuadro "Entradas parciales": detalle de cada vez que estuvo en cancha -----
+  function renderPartial(){
+    const cont = document.getElementById('livePartial');
+    if(!cont) return;
+    if(squad.length === 0){ cont.innerHTML = '<p class="rd-empty">Sin jugadores.</p>'; return; }
+    let html = '';
+    squad.forEach(p => {
+      const st = ensure(p.id);
+      // Copiamos las entradas ya cerradas
+      const stints = (st.stints || []).slice();
+      // Si sigue en cancha, agregamos la entrada EN CURSO (tiempo hasta ahora)
+      if(st.onCourt && st.lastInAt !== null){
+        const dur = Math.max(0, nowSeconds() - st.lastInAt);
+        stints.push({ half: currentHalf, dur: dur, enCurso: true });
+      }
+      // Si no jugó nada, lo mostramos igual pero con aviso
+      const numTxt = p.number ? '#' + escapeHtml(String(p.number)) + ' ' : '';
+      html += '<div class="lp-player">';
+      html += '<div class="lp-name">' + numTxt + escapeHtml(p.name) + (st.onCourt ? ' <span class="lp-oncourt">● en cancha</span>' : '') + '</div>';
+
+      if(!stints.length){
+        html += '<div class="lp-empty">No entró todavía.</div>';
+        html += '</div>';
+        return;
+      }
+
+      // Entradas del 1er tiempo
+      const t1 = stints.filter(s => s.half === 1);
+      const t2 = stints.filter(s => s.half === 2);
+      let sum1 = 0, sum2 = 0;
+      let nEntrada = 0;
+
+      if(t1.length){
+        t1.forEach(s => {
+          nEntrada++;
+          sum1 += s.dur;
+          html += '<div class="lp-stint">' + ordinal(nEntrada) + ' entrada' + (s.enCurso ? ' <span class="lp-live">(en curso)</span>' : '') + ' <span class="lp-dur">' + fmtClock(s.dur) + '</span></div>';
+        });
+        html += '<div class="lp-subtotal">Total 1er tiempo <span>' + fmtClock(sum1) + '</span></div>';
+      }
+      if(t2.length){
+        t2.forEach(s => {
+          nEntrada++;
+          sum2 += s.dur;
+          html += '<div class="lp-stint">' + ordinal(nEntrada) + ' entrada' + (s.enCurso ? ' <span class="lp-live">(en curso)</span>' : '') + ' <span class="lp-dur">' + fmtClock(s.dur) + '</span></div>';
+        });
+        html += '<div class="lp-subtotal">Total 2do tiempo <span>' + fmtClock(sum2) + '</span></div>';
+      }
+      html += '<div class="lp-total">Total partido <span>' + fmtClock(sum1 + sum2) + '</span></div>';
+      html += '</div>';
+    });
+    cont.innerHTML = html;
+  }
+
+  // 1ª, 2ª, 3ª...
+  function ordinal(n){ return n + 'ª'; }
+
+  // Botón para mostrar/ocultar el cuadro parcial
+  document.getElementById('livePartialBtn') && document.getElementById('livePartialBtn').addEventListener('click', () => {
+    const wrap = document.getElementById('livePartialWrap');
+    if(!wrap) return;
+    const abierto = wrap.style.display !== 'none';
+    if(abierto){ wrap.style.display = 'none'; }
+    else { wrap.style.display = ''; renderPartial(); wrap.scrollIntoView({behavior:'smooth', block:'nearest'}); }
+  });
+  document.getElementById('livePartialToggle') && document.getElementById('livePartialToggle').addEventListener('click', () => {
+    const wrap = document.getElementById('livePartialWrap');
+    if(wrap) wrap.style.display = 'none';
+  });
+
   function renderTotals(){
     const cont=document.getElementById('liveTotals'); if(!cont) return;
     if(squad.length===0){ cont.innerHTML='<p class="rd-empty">Sin jugadores.</p>'; return; }
@@ -7447,6 +7556,9 @@ window.__initEditor = function(){
       row.innerHTML=`<span class="ltr-name"><small>${escapeHtml(p.number?'#'+p.number:'')}</small>${escapeHtml(p.name)}</span><span data-t1="${p.id}">${fmtClock(time1(p.id))}</span><span data-t2="${p.id}">${fmtClock(time2(p.id))}</span><span class="ltr-total" data-tt="${p.id}">${fmtClock(timeTotal(p.id))}</span><span data-g="${p.id}">${ensure(p.id).goals||0}</span><span data-sh="${p.id}">${ensure(p.id).shots||0}</span><span data-f="${p.id}">${foulsTotal(p.id)}</span><span data-c="${p.id}">${ensure(p.id).cards||0}</span>`;
       cont.appendChild(row);
     });
+    // Si el cuadro de entradas parciales está abierto, lo refrescamos también.
+    const pw = document.getElementById('livePartialWrap');
+    if(pw && pw.style.display !== 'none') renderPartial();
   }
   // ----- Exportar el partido en vivo a Excel (minutos + eventos) -----
   function exportarLiveExcel(){
@@ -7498,6 +7610,33 @@ window.__initEditor = function(){
       });
       const ws2 = window.XLSX.utils.aoa_to_sheet(filas2);
       window.XLSX.utils.book_append_sheet(wb, ws2, 'Eventos');
+
+      // Hoja 3: entradas parciales (cada vez que un jugador estuvo en cancha)
+      const head3 = ['#','Jugador','Entrada N°','Tiempo','Duración','Subtotal período','Total partido'];
+      const filas3 = [head3];
+      squad.forEach(p => {
+        const info = stintsDeJugador(p.id);
+        if(!info.stints.length){
+          filas3.push([ p.number?String(p.number):'', p.name||'', '—', '—', 'No entró', '', minToStr(0) ]);
+          return;
+        }
+        let n = 0;
+        info.stints.forEach(s => {
+          n++;
+          const periodo = s.half === 1 ? '1er tiempo' : '2do tiempo';
+          const subtotal = s.half === 1 ? info.sum1 : info.sum2;
+          filas3.push([
+            p.number?String(p.number):'', p.name||'',
+            n + 'ª' + (s.enCurso ? ' (en curso)' : ''),
+            periodo,
+            minToStr(s.dur),
+            minToStr(subtotal),
+            minToStr(info.total)
+          ]);
+        });
+      });
+      const ws3 = window.XLSX.utils.aoa_to_sheet(filas3);
+      window.XLSX.utils.book_append_sheet(wb, ws3, 'Entradas parciales');
 
       // Nombre del archivo: vs Rival + fecha
       const hoy = new Date().toISOString().slice(0,10);
@@ -8137,6 +8276,15 @@ window.__initEditor = function(){
       }
     }catch(e){ /* ante cualquier error, En Vivo usa los tags por defecto: no rompe nada */ }
   }
+
+  // Para el PDF: asegura que el cuadro de entradas parciales esté visible y
+  // actualizado antes de imprimir, así SIEMPRE sale en el papel (aunque esté cerrado).
+  window.__prepararParcialesParaPDF = function(){
+    const wrap = document.getElementById('livePartialWrap');
+    if(!wrap) return;
+    wrap.style.display = '';
+    renderPartial();
+  };
 
   window.__initLiveOnce=function(){
     if(!started){ started=true; renderLog(); }
@@ -13979,6 +14127,10 @@ function escapeHtml(s){
 window.__exportarSeccionPDF = function(idSeccion, titulo){
   const sec = document.getElementById(idSeccion);
   if(!sec){ toast('No se pudo preparar el PDF'); return; }
+  // En Vivo: mostramos el cuadro de entradas parciales para que salga en el PDF.
+  if(idSeccion === 'section-live' && window.__prepararParcialesParaPDF){
+    window.__prepararParcialesParaPDF();
+  }
   // Encabezado temporal para el papel
   const viejo = sec.querySelector('.print-header');
   if(viejo) viejo.remove();
