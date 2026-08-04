@@ -6177,22 +6177,28 @@ window.__initEditor = function(){
   function drawPitch(){
     const g = document.createElementNS(SVGNS, 'g');
     g.setAttribute('id', 'pitch');
-    // Fondo parquet (tablas de madera)
+    // El modo entrenamiento usa cancha AZUL (para diferenciarla de un vistazo);
+    // el modo jugadas mantiene el piso de parquet (madera).
+    const esEntren = (window.__boardMode === 'entrenamiento');
+    const COL = esEntren
+      ? { base:'#0d3d4f', a:'#104453', b:'#0b3646', linea:'rgba(160,90,40,0.0)' }  // azul petróleo (contrasta con fichas celestes)
+      : { base:'#c8925a', a:'#cd9860', b:'#c28a52', linea:'rgba(120,80,40,0.25)' }; // parquet
+    // Fondo
     const bg = document.createElementNS(SVGNS,'rect');
     bg.setAttribute('x',0); bg.setAttribute('y',0); bg.setAttribute('width',W); bg.setAttribute('height',H);
-    bg.setAttribute('fill','#c8925a');
+    bg.setAttribute('fill',COL.base);
     g.appendChild(bg);
-    // Tablas verticales alternas (parquet)
+    // Tablas verticales alternas (parquet en madera; franjas sutiles en azul)
     const plankW = W/17;
     for(let i=0;i<17;i++){
       const r = document.createElementNS(SVGNS,'rect');
       r.setAttribute('x', i*plankW); r.setAttribute('y',0); r.setAttribute('width',plankW); r.setAttribute('height',H);
-      r.setAttribute('fill', i%2===0 ? '#cd9860' : '#c28a52');
+      r.setAttribute('fill', i%2===0 ? COL.a : COL.b);
       g.appendChild(r);
-      // línea sutil entre tablas
+      // línea sutil entre tablas (solo en madera; en azul queda transparente)
       const l = document.createElementNS(SVGNS,'line');
       l.setAttribute('x1', i*plankW); l.setAttribute('y1',0); l.setAttribute('x2', i*plankW); l.setAttribute('y2',H);
-      l.setAttribute('stroke','rgba(120,80,40,0.25)'); l.setAttribute('stroke-width','1');
+      l.setAttribute('stroke', COL.linea); l.setAttribute('stroke-width','1');
       g.appendChild(l);
     }
     const line = (x1,y1,x2,y2) => {
@@ -6496,6 +6502,8 @@ window.__initEditor = function(){
     if(nE) nE.style.display = esEntren ? '' : 'none';
     // Herramientas de entrenamiento (solo visibles en ese modo)
     document.querySelectorAll('.board-tool-train').forEach(el => { el.style.display = esEntren ? '' : 'none'; });
+    // Redibujar la cancha para aplicar el color según el modo (azul en entrenamiento).
+    if(typeof render === 'function') render();
   }
   document.getElementById('modeJugadas') && document.getElementById('modeJugadas').addEventListener('click', () => setBoardMode('jugadas'));
   document.getElementById('modeEntrenamiento') && document.getElementById('modeEntrenamiento').addEventListener('click', () => setBoardMode('entrenamiento'));
@@ -8003,8 +8011,36 @@ window.__initEditor = function(){
   });
 
   let started=false;
+  // Carga los tags de origen de gol (incluidos los personalizados del entrenador)
+  // directamente desde goal_origins, SIN depender de que se haya visitado Estadísticas.
+  // Solo consulta si window.__origins todavía no está poblado para esta categoría.
+  async function cargarOriginsSiFaltan(){
+    try{
+      // Si ya están cargados (por haber pasado por Estadísticas), no hacemos nada.
+      if(Array.isArray(window.__origins) && window.__origins.length) return;
+      const sb = window.__sb;
+      if(!sb || !window.__getClubId) return;
+      const clubId = await window.__getClubId();
+      if(!clubId) return;
+      const cat = catActual();
+      let oq = sb.from('goal_origins').select('*').eq('club_id', clubId);
+      oq = cat ? oq.eq('categoria', cat) : oq.is('categoria', null);
+      const oRes = await oq;
+      if(oRes && oRes.data && oRes.data.length && oRes.data[0].name){
+        try{
+          const parsed = JSON.parse(oRes.data[0].name);
+          if(Array.isArray(parsed) && parsed.length){ window.__origins = parsed; }
+        }catch(e){ /* si el JSON está roto, dejamos que use los por defecto */ }
+      }
+    }catch(e){ /* ante cualquier error, En Vivo usa los tags por defecto: no rompe nada */ }
+  }
+
   window.__initLiveOnce=function(){
     if(!started){ started=true; renderLog(); }
+    // Cargar los tags de origen de gol (incluidos los personalizados) por las dudas
+    // de que no se haya pasado por Estadísticas. No bloquea: los tags se usan recién
+    // al marcar un gol, así que hay tiempo de sobra para que lleguen.
+    cargarOriginsSiFaltan();
     updateClockType();
     // ¿Quedó un partido a medias (corte de wifi, salida sin querer)? Lo retomamos solo.
     if(inSetup && hayPartidoGuardado()){
@@ -8032,7 +8068,7 @@ window.__initEditor = function(){
   document.addEventListener('visibilitychange', function(){ if(document.hidden && !inSetup) guardarPartidoLocal(); });
   window.addEventListener('pagehide', function(){ if(!inSetup) guardarPartidoLocal(); });
   if(window.__onCategorySubscribe){
-    window.__onCategorySubscribe(()=>{ if(started && inSetup){ setupCalled={}; matchRival=''; matchLinkId=null; updateClockType(); loadSquad(); } }, 'live');
+    window.__onCategorySubscribe(()=>{ if(started && inSetup){ setupCalled={}; matchRival=''; matchLinkId=null; updateClockType(); loadSquad(); window.__origins = null; cargarOriginsSiFaltan(); } }, 'live');
   }
 })();
 
