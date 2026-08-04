@@ -665,6 +665,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .rd-field:last-child{margin-bottom:0;}
 .rd-field span{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;}
 .rd-field textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:7px;color:var(--chalk);padding:9px 11px;font-family:'Inter',sans-serif;font-size:13px;line-height:1.5;resize:vertical;}
+#wkObjetivo,#wkPuntos{min-height:100px;}
 .rd-field textarea:focus{outline:none;border-color:var(--accent-2);}
 .rd-two{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 @media (max-width:520px){.rd-two{grid-template-columns:1fr;}}
@@ -3333,8 +3334,8 @@ body.editor-active #screen-editor{ display:block; }
       </div>
 
       <div class="rd-card">
-        <label class="rd-field"><span>Objetivo de la semana</span><textarea id="wkObjetivo" rows="2" placeholder="Qué buscás trabajar esta semana..."></textarea></label>
-        <label class="rd-field"><span>Puntos fuertes del próximo rival</span><textarea id="wkPuntos" rows="2" placeholder="Lo que hay que tener en cuenta del rival..."></textarea></label>
+        <label class="rd-field"><span>Objetivo de la semana</span><textarea id="wkObjetivo" rows="4" placeholder="Qué buscás trabajar esta semana..."></textarea></label>
+        <label class="rd-field"><span>Puntos fuertes del próximo rival</span><textarea id="wkPuntos" rows="4" placeholder="Lo que hay que tener en cuenta del rival..."></textarea></label>
         <div class="rd-field">
           <span>Aspectos tácticos trabajados</span>
           <div class="tac-checks">
