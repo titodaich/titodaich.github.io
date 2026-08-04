@@ -2697,6 +2697,13 @@ body.editor-active #screen-editor{ display:block; }
   .clip-thumb-wrap > *{ position:absolute; top:0; left:0; width:100%; height:100%; }
   #aiPreviewEl{ height:0; padding-top:56.25%; }
 }
+#installBanner{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:12000;display:flex;align-items:center;gap:12px;background:var(--panel-2,#1B2C3D);border:1px solid var(--line,#33495E);border-left:4px solid var(--accent-2,#2F8FCB);border-radius:12px;padding:12px 14px;box-shadow:0 8px 30px rgba(0,0,0,0.4);animation:ibUp .35s ease;}
+@keyframes ibUp{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+#installBanner .ib-ico{font-size:24px;flex-shrink:0;}
+#installBanner .ib-txt{flex:1;font-size:13px;color:var(--chalk,#dfe8f0);line-height:1.4;}
+#installBanner .ib-txt b{font-family:'Oswald',sans-serif;font-size:15px;}
+#installBanner .ib-txt span{color:var(--muted,#7C8B99);font-size:12.5px;}
+#installBanner .ib-close{flex-shrink:0;background:transparent;border:none;color:var(--muted,#7C8B99);font-size:16px;cursor:pointer;padding:4px 8px;align-self:flex-start;}
 </style>
 </head>
 <body>
@@ -15310,15 +15317,59 @@ document.getElementById('exportEachBtn').addEventListener('click', async () => {
     link.rel = 'manifest'; link.href = mURL;
     document.head.appendChild(link);
 
-    // Service worker mínimo (necesario para que sea instalable). Se registra desde un blob.
+    // Service worker REAL (archivo sw.js) — necesario para offline de verdad.
+    // Un SW embebido en blob no puede cachear la app; por eso usamos un archivo.
+    // Si sw.js no existe todavía en el server, esto falla silencioso y la app
+    // sigue andando igual que antes (online).
     if('serviceWorker' in navigator){
-      var swCode = "self.addEventListener('install', function(e){ self.skipWaiting(); });" +
-                   "self.addEventListener('activate', function(e){ e.waitUntil(self.clients.claim()); });" +
-                   "self.addEventListener('fetch', function(e){ /* passthrough: la app ya maneja su propio offline */ });";
-      var swBlob = new Blob([swCode], { type: 'text/javascript' });
-      var swURL = URL.createObjectURL(swBlob);
-      navigator.serviceWorker.register(swURL).catch(function(){ /* si falla, la app sigue andando igual */ });
+      window.addEventListener('load', function(){
+        var swPath = new URL('sw.js', window.location.href).href;
+        navigator.serviceWorker.register(swPath).catch(function(){ /* si falla, la app sigue andando igual (modo online) */ });
+      });
     }
+  }catch(e){ /* si algo falla, no rompe la app */ }
+})();
+
+// ===== BANNER "INSTALAR APP" (discreto, solo móvil, solo 1 vez) =====
+(function(){
+  try{
+    // No mostrar si ya está instalada (corre en modo standalone).
+    var standalone = window.matchMedia('(display-mode: standalone)').matches
+      || window.navigator.standalone === true;
+    if(standalone) return;
+
+    // Solo en móvil/tablet.
+    var esMovil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if(!esMovil) return;
+
+    // Si el usuario ya lo cerró antes, no insistir.
+    try{ if(localStorage.getItem('benchone_install_dismissed') === '1') return; }catch(e){}
+
+    var esIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    var instrucciones = esIOS
+      ? 'Tocá <b>Compartir</b> y después <b>“Agregar a inicio”</b>.'
+      : 'Tocá el menú <b>⋮</b> y después <b>“Instalar app”</b>.';
+
+    function mostrarBanner(){
+      if(document.getElementById('installBanner')) return;
+      var b = document.createElement('div');
+      b.id = 'installBanner';
+      b.innerHTML =
+        '<div class="ib-ico">📲</div>' +
+        '<div class="ib-txt"><b>Instalá Benchone</b><br><span>' + instrucciones + '</span></div>' +
+        '<button class="ib-close" aria-label="Cerrar">✕</button>';
+      document.body.appendChild(b);
+      b.querySelector('.ib-close').addEventListener('click', function(){
+        b.remove();
+        try{ localStorage.setItem('benchone_install_dismissed', '1'); }catch(e){}
+      });
+      // Se cierra solo a los 12s si no lo tocan (no molesta).
+      setTimeout(function(){ if(b.parentNode) b.remove(); }, 12000);
+    }
+
+    // Esperamos a que la app cargue y el usuario esté logueado un ratito,
+    // para no aparecer encima del login. 4s es un buen respiro.
+    window.addEventListener('load', function(){ setTimeout(mostrarBanner, 4000); });
   }catch(e){ /* si algo falla, no rompe la app */ }
 })();
 </script>
