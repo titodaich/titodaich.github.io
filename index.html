@@ -2704,9 +2704,26 @@ body.editor-active #screen-editor{ display:block; }
 #installBanner .ib-txt b{font-family:'Oswald',sans-serif;font-size:15px;}
 #installBanner .ib-txt span{color:var(--muted,#7C8B99);font-size:12.5px;}
 #installBanner .ib-close{flex-shrink:0;background:transparent;border:none;color:var(--muted,#7C8B99);font-size:16px;cursor:pointer;padding:4px 8px;align-self:flex-start;}
+#benchoneSplash{position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#10161C;transition:opacity .4s ease;}
+#benchoneSplash.oculto{opacity:0;pointer-events:none;}
+#benchoneSplash img{width:110px;height:110px;object-fit:contain;animation:splashPulse 1.4s ease-in-out infinite;}
+#benchoneSplash .splash-name{font-family:'Oswald',sans-serif;font-size:26px;font-weight:700;letter-spacing:3px;color:#E8EEF3;}
+#benchoneSplash .splash-dots{display:flex;gap:7px;}
+#benchoneSplash .splash-dots span{width:8px;height:8px;border-radius:50%;background:#2F8FCB;animation:splashDot 1.2s ease-in-out infinite;}
+#benchoneSplash .splash-dots span:nth-child(2){animation-delay:.2s;}
+#benchoneSplash .splash-dots span:nth-child(3){animation-delay:.4s;}
+@keyframes splashPulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.06);opacity:.85;}}
+@keyframes splashDot{0%,100%{opacity:.3;transform:translateY(0);}50%{opacity:1;transform:translateY(-4px);}}
 </style>
 </head>
 <body>
+
+<!-- Pantalla de carga (splash): tapa el negro inicial con el logo mientras carga. -->
+<div id="benchoneSplash">
+  <img src="logo.png" alt="Benchone" onerror="this.style.display='none'">
+  <div class="splash-name">BENCHONE</div>
+  <div class="splash-dots"><span></span><span></span><span></span></div>
+</div>
 
 <!-- Fondo de cancha de futsal (marca de agua sutil, detrás de todo) -->
 <svg class="cancha-bg" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -5002,6 +5019,9 @@ window.__initEditor = function(){
       if(target === 'stats' && window.__loadStatsOnce){ window.__loadStatsOnce(); }
       if(target === 'board' && window.__initBoardOnce){ window.__initBoardOnce(); }
       if(target === 'live' && window.__initLiveOnce){ window.__initLiveOnce(); }
+      // Mantener la pantalla encendida SOLO en En Vivo (se apaga sola en el resto).
+      if(target === 'live'){ if(window.__wakeOn) window.__wakeOn(); }
+      else { if(window.__wakeOff) window.__wakeOff(); }
       if(window.__trackSection) window.__trackSection(target);
       // Si esta sección quedó desactualizada por un cambio de categoría o
       // temporada, la refrescamos ahora (y no antes, para no colgar la app).
@@ -15330,7 +15350,50 @@ document.getElementById('exportEachBtn').addEventListener('click', async () => {
   }catch(e){ /* si algo falla, no rompe la app */ }
 })();
 
-// ===== BANNER "INSTALAR APP" (discreto, solo móvil, solo 1 vez) =====
+// ===== WAKE LOCK: mantener pantalla encendida en En Vivo =====
+(function(){
+  var wl = null;          // el WakeLockSentinel activo
+  var wantLock = false;   // si En Vivo lo pidió (para re-adquirir al volver)
+  function soportado(){ return ('wakeLock' in navigator); }
+  async function pedir(){
+    if(!soportado() || !wantLock) return;
+    try{
+      wl = await navigator.wakeLock.request('screen');
+      // Si el sistema lo suelta (cambiar de app, etc.), limpiamos la referencia.
+      wl.addEventListener('release', function(){ wl = null; });
+    }catch(e){ /* sin permiso o no soportado: la app sigue igual */ }
+  }
+  window.__wakeOn = function(){
+    wantLock = true;
+    pedir();
+  };
+  window.__wakeOff = function(){
+    wantLock = false;
+    if(wl){ try{ wl.release(); }catch(e){} wl = null; }
+  };
+  // Al volver a la app (pestaña visible de nuevo), re-pedimos si hacía falta,
+  // porque el sistema suelta el wake lock cuando la app pasa a segundo plano.
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'visible' && wantLock && !wl){ pedir(); }
+  });
+})();
+
+// ===== OCULTAR SPLASH cuando la app cargó =====
+(function(){
+  try{
+    function ocultarSplash(){
+      var s = document.getElementById('benchoneSplash');
+      if(!s) return;
+      s.classList.add('oculto');
+      setTimeout(function(){ if(s.parentNode) s.remove(); }, 500);
+    }
+    // Lo ocultamos cuando la ventana terminó de cargar (con un mínimo para que
+    // no titile si carga muy rápido). Red de seguridad: a los 6s se va igual.
+    if(document.readyState === 'complete'){ setTimeout(ocultarSplash, 300); }
+    else { window.addEventListener('load', function(){ setTimeout(ocultarSplash, 300); }); }
+    setTimeout(ocultarSplash, 6000); // por las dudas, nunca queda pegado
+  }catch(e){ var s=document.getElementById('benchoneSplash'); if(s) s.remove(); }
+})();
 (function(){
   try{
     // No mostrar si ya está instalada (corre en modo standalone).
