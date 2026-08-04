@@ -2704,6 +2704,12 @@ body.editor-active #screen-editor{ display:block; }
 #installBanner .ib-txt b{font-family:'Oswald',sans-serif;font-size:15px;}
 #installBanner .ib-txt span{color:var(--muted,#7C8B99);font-size:12.5px;}
 #installBanner .ib-close{flex-shrink:0;background:transparent;border:none;color:var(--muted,#7C8B99);font-size:16px;cursor:pointer;padding:4px 8px;align-self:flex-start;}
+#blockBanner{position:fixed;left:12px;right:12px;top:calc(12px + env(safe-area-inset-top,0px));z-index:12500;display:flex;align-items:center;gap:12px;background:var(--panel-2,#1B2C3D);border:1px solid rgba(224,169,59,0.5);border-left:4px solid #E0A93B;border-radius:12px;padding:12px 14px;box-shadow:0 8px 30px rgba(0,0,0,0.45);animation:ibUp .35s ease;}
+#blockBanner .bb-ico{font-size:22px;flex-shrink:0;}
+#blockBanner .bb-txt{flex:1;font-size:12.5px;color:var(--chalk,#dfe8f0);line-height:1.45;}
+#blockBanner .bb-txt b{font-family:'Oswald',sans-serif;}
+#blockBanner .bb-txt span{color:var(--muted,#7C8B99);}
+#blockBanner .bb-close{flex-shrink:0;background:transparent;border:none;color:var(--muted,#7C8B99);font-size:16px;cursor:pointer;padding:4px 8px;align-self:flex-start;}
 #benchoneSplash{position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#10161C;transition:opacity .4s ease;}
 #benchoneSplash.oculto{opacity:0;pointer-events:none;}
 #benchoneSplash img{width:110px;height:110px;object-fit:contain;animation:splashPulse 1.4s ease-in-out infinite;}
@@ -4969,6 +4975,14 @@ document.getElementById('forgotLink').addEventListener('click', async (e) => {
 
 function traducirError(error){
   const m = (error && error.message) || '';
+  // Error de red: típico de firewall de wifi (club/colegio) que bloquea la conexión.
+  if(m.includes('Failed to fetch') || m.includes('NetworkError') || m.includes('Load failed') || m.includes('network')){
+    var esIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    var comoInstalar = esIOS
+      ? 'en Safari, tocá Compartir y después “Agregar a inicio”'
+      : 'en Chrome, tocá el menú ⋮ y después “Instalar aplicación”';
+    return '⚠️ No pudimos conectar. Si estás en el wifi de un club o colegio, puede estar bloqueando la app.\n\nProbá:\n• Usar los datos móviles del teléfono\n• Instalar Benchone (' + comoInstalar + ')';
+  }
   if(m.includes('Invalid login credentials')) return 'Email o contraseña incorrectos.';
   if(m.includes('User already registered')) return 'Ya existe una cuenta con ese email. Iniciá sesión.';
   if(m.includes('Password should be')) return 'La contraseña debe tener al menos 6 caracteres.';
@@ -15430,6 +15444,9 @@ document.getElementById('exportEachBtn').addEventListener('click', async () => {
     setTimeout(ocultarSplash, 6000); // por las dudas, nunca queda pegado
   }catch(e){ var s=document.getElementById('benchoneSplash'); if(s) s.remove(); }
 })();
+
+// (El aviso de bloqueo por firewall NO aparece proactivamente: solo se muestra
+//  cuando alguien intenta entrar y la conexión falla de verdad — ver traducirError.)
 (function(){
   try{
     // No mostrar si ya está instalada (corre en modo standalone).
@@ -15441,13 +15458,16 @@ document.getElementById('exportEachBtn').addEventListener('click', async () => {
     var esMovil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     if(!esMovil) return;
 
-    // Si el usuario ya lo cerró antes, no insistir.
-    try{ if(localStorage.getItem('benchone_install_dismissed') === '1') return; }catch(e){}
+    // Si lo cerró hace poco (menos de 5 días), no insistir todavía. Después reaparece.
+    try{
+      var cerradoAt = parseInt(localStorage.getItem('benchone_install_dismissed_at')||'0', 10);
+      if(cerradoAt && (Date.now() - cerradoAt) < 5*24*60*60*1000) return;
+    }catch(e){}
 
     var esIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
     var instrucciones = esIOS
-      ? 'Tocá <b>Compartir</b> y después <b>“Agregar a inicio”</b>.'
-      : 'Tocá el menú <b>⋮</b> y después <b>“Instalar app”</b>.';
+      ? 'En Safari, tocá <b>Compartir</b> y después <b>“Agregar a inicio”</b>.'
+      : 'En Chrome, tocá el menú <b>⋮</b> y después <b>“Instalar aplicación”</b>.';
 
     function mostrarBanner(){
       if(document.getElementById('installBanner')) return;
@@ -15455,15 +15475,18 @@ document.getElementById('exportEachBtn').addEventListener('click', async () => {
       b.id = 'installBanner';
       b.innerHTML =
         '<div class="ib-ico">📲</div>' +
-        '<div class="ib-txt"><b>Instalá Benchone</b><br><span>' + instrucciones + '</span></div>' +
+        '<div class="ib-txt"><b>Instalá Benchone en tu teléfono</b><br><span>' + instrucciones +
+        ' Así abre más rápido y funciona aunque el wifi falle.</span></div>' +
         '<button class="ib-close" aria-label="Cerrar">✕</button>';
       document.body.appendChild(b);
       b.querySelector('.ib-close').addEventListener('click', function(){
         b.remove();
-        try{ localStorage.setItem('benchone_install_dismissed', '1'); }catch(e){}
+        // Guardamos la fecha del cierre: vuelve a aparecer recién en unos días,
+        // así insiste amablemente sin molestar en cada apertura.
+        try{ localStorage.setItem('benchone_install_dismissed_at', String(Date.now())); }catch(e){}
       });
-      // Se cierra solo a los 12s si no lo tocan (no molesta).
-      setTimeout(function(){ if(b.parentNode) b.remove(); }, 12000);
+      // Ya NO se cierra solo: se queda hasta que el usuario lo cierre, para que
+      // no se pierda. Instalar es la mejor defensa contra el bloqueo del wifi.
     }
 
     // Esperamos a que la app cargue y el usuario esté logueado un ratito,
