@@ -1804,6 +1804,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .pwd-body .field{margin-bottom:14px;}
 @media (max-width:600px){ #pwdBtn .btn-txt{display:none;} }
 .cloud-modal-overlay{position:fixed;inset:0;background:rgba(10,15,20,0.82);display:flex;align-items:center;justify-content:center;z-index:60;padding:20px;}
+.causa-preview{font-size:26px;min-height:40px;display:flex;align-items:center;justify-content:center;background:var(--bg);border:1px solid var(--line);border-radius:9px;margin-bottom:10px;letter-spacing:2px;}
+.causa-emoji-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:6px;}
+.causa-emoji{font-size:22px;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:8px 0;cursor:pointer;transition:all .12s ease;}
+.causa-emoji:hover{border-color:var(--accent-2,#2F8FCB);}
+.causa-emoji.sel{background:rgba(47,143,203,0.22);border-color:var(--accent-2,#2F8FCB);transform:scale(1.05);}
+.causa-input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--chalk,#dfe8f0);padding:10px 12px;font-size:14px;font-family:'Inter',sans-serif;}
+.causa-input:focus{outline:none;border-color:var(--accent-2,#2F8FCB);}
 .cloud-modal{background:var(--panel);border:1px solid var(--line);border-radius:14px;width:100%;max-width:540px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;}
 /* El contenido del modal scrollea; el encabezado y los botones quedan fijos */
 .cloud-modal > div:not(.cloud-modal-head){overflow-y:auto;-webkit-overflow-scrolling:touch;min-height:0;}
@@ -1987,6 +1994,9 @@ body.modo-lectura .section-content textarea:read-only{
 .tele-color{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;}
 .tele-color.active{border-color:#fff;}
 .tele-actions{margin-bottom:12px;}
+.tele-dur-wrap{display:flex;align-items:center;gap:5px;}
+.tele-dur-lbl{font-size:12px;color:var(--muted,#7C8B99);}
+.tele-dur{background:var(--bg);border:1px solid var(--line);color:var(--chalk,#dfe8f0);border-radius:7px;padding:6px 8px;font-size:13px;cursor:pointer;}
 .video-placeholder{
   position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   font-family:'Oswald',sans-serif;font-size:22px;text-transform:uppercase;letter-spacing:1px;
@@ -3018,6 +3028,15 @@ body.editor-active #screen-editor{ display:block; }
           <button class="tele-tool" data-shape="arrow" title="Flecha">➤</button>
         </span>
         <span class="tele-colors" id="teleColors"></span>
+        <span class="tele-dur-wrap" title="Cuántos segundos dura cada dibujo en el video exportado">
+          <span class="tele-dur-lbl">Dura</span>
+          <select class="tele-dur" id="teleDur">
+            <option value="2">2s</option>
+            <option value="3" selected>3s</option>
+            <option value="5">5s</option>
+            <option value="8">8s</option>
+          </select>
+        </span>
         <button class="btn small" id="teleUndo" title="Deshacer">↩</button>
         <button class="btn small" id="teleClear" title="Borrar todo">🗑</button>
       </div>
@@ -10413,6 +10432,103 @@ window.__initEditor = function(){
   function saveCustomCauses(){
     try{ localStorage.setItem('bo_att_causes', JSON.stringify(attCustomCauses)); }catch(e){}
   }
+
+  // Modal para crear una causa de ausencia: elegís uno o varios emojis (tocando)
+  // y le ponés un nombre. Reemplaza a los prompts de antes.
+  function abrirNuevaCausa(){
+    // Emojis sugeridos para motivos de ausencia (podés tocar varios)
+    const SUGERIDOS = [
+      '🎓','📚','📝','✏️','🏫',          // estudio
+      '💼','🔧','👷','🏢','💻','🚚',      // trabajo
+      '⚽','🏅','🎽','🇦🇷','🏳️','🏆','🏋️',     // selección / deporte
+      '🤕','🤒','🚑','😷','🦷','🏥','🤧', // salud
+      '✈️','🏖️','🚗','🚌','🗺️',          // viaje
+      '👨‍👩‍👧','⛪','🎉','😴','🌧️','🚫','❓'  // otros
+    ];
+    let seleccion = [];   // emojis elegidos, en orden
+    let m = document.getElementById('causaModal');
+    if(m) m.remove();
+    m = document.createElement('div');
+    m.id = 'causaModal';
+    m.className = 'cloud-modal-overlay';
+    m.style.display = 'flex';
+    m.innerHTML = `
+      <div class="cloud-modal" style="max-width:420px;">
+        <div class="cloud-modal-head">
+          <h3>Nueva causa de ausencia</h3>
+          <button class="cloud-close" id="causaClose">✕</button>
+        </div>
+        <div style="padding:6px 2px;">
+          <label class="cal-field-lbl">Emoji(s) — tocá uno o varios</label>
+          <div class="causa-preview" id="causaPreview">—</div>
+          <div class="causa-emoji-grid" id="causaGrid"></div>
+          <label class="cal-field-lbl" style="margin-top:12px;display:block;">¿No está en la lista? Pegá o escribí el emoji acá</label>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="causaEmojiLibre" maxlength="8" placeholder="Ej: 🇧🇷 🍔 🎮" class="causa-input" style="flex:1;">
+            <button class="btn small" id="causaEmojiAdd">Agregar</button>
+          </div>
+          <label class="cal-field-lbl" style="margin-top:14px;display:block;">Nombre corto</label>
+          <input type="text" id="causaNombre" maxlength="20" placeholder="Ej: Estudio, Trabajo, Viaje..." class="causa-input">
+          <div class="summary-actions" style="margin-top:16px;">
+            <button class="btn small" id="causaCancel">Cancelar</button>
+            <button class="btn small primary" id="causaSave">Guardar causa</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(m);
+
+    const grid = m.querySelector('#causaGrid');
+    const preview = m.querySelector('#causaPreview');
+    function refreshPreview(){ preview.textContent = seleccion.length ? seleccion.join('') : '—'; }
+    SUGERIDOS.forEach(e => {
+      const b = document.createElement('button');
+      b.className = 'causa-emoji';
+      b.textContent = e;
+      b.addEventListener('click', () => {
+        const i = seleccion.indexOf(e);
+        if(i >= 0){ seleccion.splice(i,1); b.classList.remove('sel'); }   // tocar de nuevo lo saca
+        else {
+          if(seleccion.length >= 3){ toast('Máximo 3 emojis'); return; }   // límite razonable
+          seleccion.push(e); b.classList.add('sel');
+        }
+        refreshPreview();
+      });
+      grid.appendChild(b);
+    });
+
+    const cerrar = () => m.remove();
+    // Campo libre: agregar un emoji que no esté en la grilla
+    const libreInput = m.querySelector('#causaEmojiLibre');
+    const libreBtn = m.querySelector('#causaEmojiAdd');
+    function agregarLibre(){
+      const val = (libreInput.value || '').trim();
+      if(!val) return;
+      if(seleccion.length >= 3){ toast('Máximo 3 emojis'); return; }
+      if(seleccion.indexOf(val) >= 0){ toast('Ese emoji ya está'); libreInput.value=''; return; }
+      seleccion.push(val);
+      refreshPreview();
+      libreInput.value = '';
+      grid.querySelectorAll('.causa-emoji').forEach(b => { if(b.textContent === val) b.classList.add('sel'); });
+    }
+    libreBtn.addEventListener('click', agregarLibre);
+    libreInput.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); agregarLibre(); } });
+    m.querySelector('#causaClose').addEventListener('click', cerrar);
+    m.querySelector('#causaCancel').addEventListener('click', cerrar);
+    m.addEventListener('click', e => { if(e.target === m) cerrar(); });
+    m.querySelector('#causaSave').addEventListener('click', () => {
+      const nombre = (m.querySelector('#causaNombre').value || '').trim();
+      if(!seleccion.length){ toast('Elegí al menos un emoji'); return; }
+      if(!nombre){ toast('Poné un nombre'); return; }
+      const id = 'c' + Date.now().toString(36);
+      attCustomCauses.push({ id, emoji: seleccion.join('').slice(0,8), nombre: nombre.slice(0,20) });
+      saveCustomCauses();
+      if(window.__invalidateAttendance) window.__invalidateAttendance();
+      cerrar();
+      renderAttendance();
+      toast('Causa agregada');
+    });
+    setTimeout(() => { const n = m.querySelector('#causaNombre'); if(n) n.focus(); }, 100);
+  }
   function attCustomById(code){
     // code viene como 'custom:<id>'
     const id = code.slice(7);
@@ -10935,18 +11051,9 @@ window.__initEditor = function(){
     // ---- Eventos: agregar causa personalizada ----
     const addBtn = wrap.querySelector('#attCauseAdd');
     if(addBtn){
-      addBtn.addEventListener('click', () => {
-        const emoji = (prompt('Emoji de la causa (ej: 🎓):') || '').trim();
-        if(!emoji) return;
-        const nombre = (prompt('Nombre corto de la causa (ej: Estudio):') || '').trim();
-        if(!nombre) return;
-        const id = 'c' + Date.now().toString(36);
-        attCustomCauses.push({ id, emoji: emoji.slice(0,4), nombre: nombre.slice(0,20) });
-        saveCustomCauses();
-        if(window.__invalidateAttendance) window.__invalidateAttendance();
-        renderAttendance();
-      });
+      addBtn.addEventListener('click', abrirNuevaCausa);
     }
+    // (definición de abrirNuevaCausa más abajo, en el scope del módulo)
     // ---- Eventos: borrar causa personalizada ----
     wrap.querySelectorAll('.att-cause-del').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -15483,7 +15590,9 @@ function downloadBlob(blob, name){
     const p = rel(e.changedTouches ? {clientX:e.changedTouches[0].clientX, clientY:e.changedTouches[0].clientY} : e);
     // Ignorar toques mínimos (sin arrastrar)
     if(Math.abs(p.x-startX) < 0.01 && Math.abs(p.y-startY) < 0.01){ redraw(); return; }
-    window.teleShapes.push({ shape, color, x1:startX, y1:startY, x2:p.x, y2:p.y, t: video.currentTime || 0 });
+    const durSel = document.getElementById('teleDur');
+    const dur = durSel ? parseFloat(durSel.value) : 3;
+    window.teleShapes.push({ shape, color, x1:startX, y1:startY, x2:p.x, y2:p.y, t: video.currentTime || 0, dur: dur });
     redraw();
   }
 
@@ -15626,6 +15735,17 @@ function drawLoop(){
   const ctx = exportCanvas.getContext('2d');
   if(renderState.type === 'video'){
     ctx.drawImage(videoEl, 0, 0, exportCanvas.width, exportCanvas.height);
+    // Telestration: dibujar las figuras cuyo tramo [t, t+dur] cubra el momento
+    // actual del video. Así cada dibujo aparece en su segundo y dura lo elegido.
+    if(window.teleShapes && window.teleShapes.length && window.__teleDrawShape){
+      const tNow = videoEl.currentTime || 0;
+      window.teleShapes.forEach(s => {
+        const ini = s.t || 0, fin = ini + (s.dur || 3);
+        if(tNow >= ini && tNow <= fin){
+          window.__teleDrawShape(ctx, s, exportCanvas.width, exportCanvas.height);
+        }
+      });
+    }
     if(renderState.note) drawCaption(ctx, exportCanvas, renderState.note);
   } else if(renderState.type === 'separator'){
     drawSeparatorFrame(ctx, exportCanvas, renderState.item);
