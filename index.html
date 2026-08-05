@@ -1996,6 +1996,13 @@ body.modo-lectura .section-content textarea:read-only{
 .tele-color{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;}
 .tele-color.active{border-color:#fff;}
 .tele-actions{margin-bottom:12px;}
+.video-playback-bar{display:flex;flex-wrap:wrap;gap:14px;align-items:center;background:var(--panel-2,#1B2C3D);border:1px solid var(--line);border-radius:9px;padding:9px 12px;margin-bottom:10px;}
+.vpb-group{display:flex;align-items:center;gap:5px;}
+.vpb-lbl{font-size:11px;color:var(--muted,#7C8B99);margin-right:2px;}
+.vpb-btn{background:var(--bg);border:1px solid var(--line);color:var(--chalk,#dfe8f0);border-radius:7px;padding:6px 10px;font-size:12.5px;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:all .12s ease;}
+.vpb-btn:hover{border-color:var(--accent-2,#2F8FCB);}
+.vpb-speed.active{background:rgba(47,143,203,0.22);border-color:var(--accent-2,#2F8FCB);color:var(--accent-2,#2F8FCB);font-weight:600;}
+.vpb-seek:active{background:rgba(47,143,203,0.15);}
 .tele-dur-wrap{display:flex;align-items:center;gap:5px;}
 .tele-dur-lbl{font-size:12px;color:var(--muted,#7C8B99);}
 .tele-dur{background:var(--bg);border:1px solid var(--line);color:var(--chalk,#dfe8f0);border-radius:7px;padding:6px 8px;font-size:13px;cursor:pointer;}
@@ -3051,6 +3058,27 @@ body.editor-active #screen-editor{ display:block; }
       </div>
       <div class="tele-actions">
         <button class="btn small" id="teleDrawBtn">✏ Dibujar sobre el video</button>
+      </div>
+      <div class="video-playback-bar" id="videoPlaybackBar">
+        <div class="vpb-group">
+          <span class="vpb-lbl">Velocidad</span>
+          <button class="vpb-btn vpb-speed" data-speed="0.5">0.5×</button>
+          <button class="vpb-btn vpb-speed active" data-speed="1">1×</button>
+          <button class="vpb-btn vpb-speed" data-speed="1.5">1.5×</button>
+          <button class="vpb-btn vpb-speed" data-speed="2">2×</button>
+        </div>
+        <div class="vpb-group">
+          <span class="vpb-lbl">Atrás</span>
+          <button class="vpb-btn vpb-seek" data-seek="-5">−5s</button>
+          <button class="vpb-btn vpb-seek" data-seek="-10">−10s</button>
+          <button class="vpb-btn vpb-seek" data-seek="-30">−30s</button>
+        </div>
+        <div class="vpb-group">
+          <span class="vpb-lbl">Adelante</span>
+          <button class="vpb-btn vpb-seek" data-seek="5">+5s</button>
+          <button class="vpb-btn vpb-seek" data-seek="10">+10s</button>
+          <button class="vpb-btn vpb-seek" data-seek="30">+30s</button>
+        </div>
       </div>
       <div class="timecode"><small>Tiempo actual — <span id="activeVideoLabel">sin video</span></small><span id="currentTimeDisplay">00:00</span></div>
       <div class="record-status" id="recordStatus">Tocá un tag para iniciar la jugada</div>
@@ -14312,9 +14340,12 @@ let itemCounter = 0;
 const videoEl = document.getElementById('videoEl');
 const exportCanvas = document.getElementById('exportCanvas');
 
-let marking = false;
+let marking = false;   // (se mantiene: true si hay AL MENOS una grabación activa)
 let tagsLocked = false;
 let markStartTime = 0;
+// Grabaciones activas al mismo tiempo: { tagId: tiempoDeInicio }. Permite marcar
+// una jugada con varios tags a la vez (ej. "ataque posicional" + "Messi").
+let activeMarks = {};
 
 let seqPlaying = false;
 let seqIndex = 0;
@@ -14534,7 +14565,7 @@ function renderVideoList(){
         document.getElementById('videoPlaceholder').style.display = 'flex';
         document.getElementById('activeVideoLabel').textContent = 'sin video';
         if(videos.length > 0) setActiveVideo(videos[0].id);
-        else { marking = false; renderTags(); updateRecordStatus(); }
+        else { marking = false; activeMarks = {}; renderTags(); renderPlayerTags(); updateRecordStatus(); }
       }
       renderVideoList();
       renderItems();
@@ -14564,8 +14595,8 @@ function renderTags(){
   grid.innerHTML = '';
   tags.forEach((tag, i) => {
     const chip = document.createElement('div');
-    const isRecordingThis = marking && tag.id === activeTagId;
-    const isDimmed = marking && tag.id !== activeTagId;
+    const isRecordingThis = activeMarks[tag.id] !== undefined;
+    const isDimmed = false;  // con marcas simultáneas ya no atenuamos los demás
     const tagClipCount = items.filter(it => it.type === 'clip' && it.tagId === tag.id).length;
     chip.className = 'tag-chip'
       + (tag.id === activeTagId && !marking ? ' active' : '')
@@ -14608,8 +14639,8 @@ function renderPlayerTags(){
   grid.innerHTML = '';
   playerTags.forEach((tag) => {
     const chip = document.createElement('div');
-    const isRecordingThis = marking && tag.id === activeTagId;
-    const isDimmed = marking && tag.id !== activeTagId;
+    const isRecordingThis = activeMarks[tag.id] !== undefined;
+    const isDimmed = false;  // con marcas simultáneas ya no atenuamos los demás
     const tagClipCount = items.filter(it => it.type === 'clip' && it.tagId === tag.id).length;
     chip.className = 'tag-chip' + (isRecordingThis ? ' recording' : '') + (isDimmed ? ' dimmed' : '');
     chip.style.setProperty('--tag-color', tag.color);
@@ -14919,9 +14950,15 @@ document.addEventListener('keydown', (e) => {
 
 function updateRecordStatus(){
   const statusEl = document.getElementById('recordStatus');
-  if(marking){
-    const tagName = (function(){ var _t = findAnyTag(activeTagId); return _t ? _t.name : ''; })();
-    statusEl.textContent = '● Grabando "'+tagName+'" — tocá de nuevo para cortar';
+  const activos = Object.keys(activeMarks);
+  if(activos.length > 0){
+    if(activos.length === 1){
+      const nombre = (findAnyTag(activos[0])||{name:''}).name;
+      statusEl.textContent = '● Grabando "'+nombre+'" — tocá de nuevo para cortar';
+    } else {
+      const nombres = activos.map(id => (findAnyTag(id)||{name:'?'}).name).join(', ');
+      statusEl.textContent = '● Grabando '+activos.length+' a la vez ('+nombres+') — tocá cada uno para cortar';
+    }
     statusEl.classList.add('recording');
   } else {
     statusEl.textContent = activeVideoId ? 'Tocá un tag para iniciar la jugada' : 'Cargá un video primero';
@@ -14937,41 +14974,43 @@ function updateClipCounter(){
 function handleTagClick(tagId){
   if(tagsLocked){ toast(window.t('mExpFirst')); return; }
   if(!activeVideoId){ toast(window.t('mLoadVideoFirst')); return; }
-  if(!marking){
-    activeTagId = tagId;
-    markStartTime = videoEl.currentTime;
+
+  // Si este tag NO está grabando todavía → iniciar su grabación.
+  if(activeMarks[tagId] === undefined){
+    activeMarks[tagId] = videoEl.currentTime;
     marking = true;
+    activeTagId = tagId;
     const tagName = findAnyTag(tagId).name;
-    toast('Marcando "'+tagName+'" desde '+fmt(markStartTime));
+    toast('Marcando "'+tagName+'" desde '+fmt(videoEl.currentTime));
     renderTags();
     renderPlayerTags();
     updateRecordStatus();
     return;
   }
-  // ya está grabando
-  if(tagId !== activeTagId){
-    toast('Ya estás grabando "'+findAnyTag(activeTagId).name+'". Tocá ese mismo para cortar.');
-    return;
-  }
+
+  // Si YA está grabando este tag → cortar su grabación y guardar el recorte.
+  const startMark = activeMarks[tagId];
   const end = videoEl.currentTime;
-  marking = false;
-  if(Math.abs(end - markStartTime) < 0.5){
+  delete activeMarks[tagId];
+  marking = Object.keys(activeMarks).length > 0;   // sigue habiendo otras marcas?
+  if(Math.abs(end - startMark) < 0.5){
     toast(window.t('mClipShort'));
     renderTags();
     renderPlayerTags();
     updateRecordStatus();
     return;
   }
-  const start = Math.min(markStartTime, end);
-  const finish = Math.max(markStartTime, end);
+  const start = Math.min(startMark, end);
+  const finish = Math.max(startMark, end);
   itemCounter++;
-  items.push({ id:'item'+itemCounter, type:'clip', tagId: activeTagId, videoId: activeVideoId, start, end: finish, note:'', inTimeline:false, name:'' });
+  items.push({ id:'item'+itemCounter, type:'clip', tagId: tagId, videoId: activeVideoId, start, end: finish, note:'', inTimeline:false, name:'' });
   renderItems();
   renderTags();
+  renderPlayerTags();
   updateRecordStatus();
   updateClipCounter();
   const n = items.filter(it => it.type === 'clip').length;
-  toast('Recorte #'+n+' guardado ("'+tags.find(t=>t.id===activeTagId).name+'", '+fmt(start)+' – '+fmt(finish)+')');
+  toast('Recorte #'+n+' guardado ("'+findAnyTag(tagId).name+'", '+fmt(start)+' – '+fmt(finish)+')');
 }
 
 // ---------------- ADD SEPARATOR ----------------
@@ -15676,6 +15715,40 @@ function downloadBlob(blob, name){
   document.body.removeChild(a);
   setTimeout(()=> URL.revokeObjectURL(url), 4000);
 }
+
+// ---------------- CONTROLES DE REPRODUCCIÓN: velocidad y saltos ----------------
+(function(){
+  const bar = document.getElementById('videoPlaybackBar');
+  const video = document.getElementById('videoEl');
+  if(!bar || !video) return;
+
+  // Velocidad (0.5 cámara lenta, 1 normal, 1.5, 2)
+  bar.querySelectorAll('.vpb-speed').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const sp = parseFloat(btn.dataset.speed);
+      video.playbackRate = sp;
+      bar.querySelectorAll('.vpb-speed').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  // Saltos de tiempo (adelante / atrás)
+  bar.querySelectorAll('.vpb-seek').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const delta = parseFloat(btn.dataset.seek);
+      if(isNaN(video.duration)) return;
+      let t = video.currentTime + delta;
+      t = Math.max(0, Math.min(video.duration, t));
+      video.currentTime = t;
+    });
+  });
+
+  // Al cargar un video nuevo, volver a velocidad normal y marcar el botón 1×
+  video.addEventListener('loadedmetadata', () => {
+    video.playbackRate = 1;
+    bar.querySelectorAll('.vpb-speed').forEach(b => b.classList.toggle('active', b.dataset.speed === '1'));
+  });
+})();
 
 // ---------------- TELESTRATION: dibujar sobre el video ----------------
 // Paso 1: herramienta de dibujo (rectángulo, círculo, flecha) sobre el video
