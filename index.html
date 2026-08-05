@@ -907,6 +907,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .live-clock-bar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:16px;}
 .live-clock{font-family:'JetBrains Mono',monospace;font-size:38px;font-weight:700;color:var(--chalk);letter-spacing:1px;min-width:130px;}
 .live-clock.running{color:var(--success);}
+.live-clock.manual{color:var(--accent-2,#2F8FCB);}
+.live-clock-label{font-family:'Inter',sans-serif;font-size:11px;color:var(--accent-2,#2F8FCB);margin-top:1px;font-weight:600;letter-spacing:0.3px;}
 .live-clock-type{font-family:'JetBrains Mono',monospace;font-size:11px;margin-top:2px;padding:2px 8px;border-radius:6px;display:inline-block;}
 .live-clock-type.parado{color:var(--accent);border:1px solid var(--accent);}
 .live-clock-type.corrido{color:var(--accent-2);border:1px solid var(--accent-2);}
@@ -3713,6 +3715,7 @@ body.editor-active #screen-editor{ display:block; }
       <div class="live-clock-bar">
         <div class="live-clock-main">
           <div class="live-clock" id="liveClock">00:00</div>
+          <div class="live-clock-label" id="liveClockLabel" style="display:none;">☝ minuto que marcás</div>
           <div class="live-clock-type" id="liveClockType"></div>
         </div>
         <div class="live-clock-btns" id="liveAutoCtrls">
@@ -7166,12 +7169,20 @@ window.__initEditor = function(){
   }
   function updateClockUI(){
     const el = document.getElementById('liveClock'); if(!el) return;
+    const lbl = document.getElementById('liveClockLabel');
     if(clockType==='parado'){
-      el.textContent = currentHalf===1 ? '1º T' : '2º T';
+      // En reloj parado NO hay cronómetro: el número grande es el MINUTO que marca
+      // el DT (con los botones +1'/−1'). Así queda claro que es una referencia
+      // manual, no un tiempo que corre solo.
+      el.textContent = manualMin + "'";
       el.classList.remove('running');
+      el.classList.add('manual');
+      if(lbl){ lbl.textContent = '☝ minuto que marcás'; lbl.style.display = ''; }
     } else {
       el.textContent = fmtClock(clockSeconds);
       el.classList.toggle('running', clockRunning);
+      el.classList.remove('manual');
+      if(lbl) lbl.style.display = 'none';
     }
     const t = document.getElementById('liveClockToggle');
     if(t) t.textContent = clockRunning ? window.t('livePause') : window.t('liveStart');
