@@ -4529,6 +4529,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
   }
 
   // Devuelve una promesa que resuelve cuando (al menos) Supabase cargó.
+  // Exponemos un reintento de Supabase para usarlo si el primer intento falló
+  // (ej. app instalada abriendo con señal intermitente).
+  window.__reintentarSupabase = function(){ return loadWithFallback(LIBS.supabase); };
   return (async () => {
     const [okSupabase] = await Promise.all([
       loadWithFallback(LIBS.supabase),
@@ -4830,6 +4833,12 @@ let sb = null;
 // Inicializa Supabase una vez que el cargador de librerías terminó (con respaldos de CDN).
 async function initSupabase(){
   await (window.__libsReady || Promise.resolve());
+  // Si la librería no cargó (señal intermitente al abrir la app instalada),
+  // reintentamos una vez más antes de rendirnos. Con el service worker cacheando
+  // la librería, este reintento casi siempre la toma del cache y funciona.
+  if(!window.supabase && window.__reintentarSupabase){
+    try{ await window.__reintentarSupabase(); }catch(e){}
+  }
   try{
     if(!window.supabase) throw new Error('No se pudo cargar Supabase desde ningún servidor.');
     // Reutilizamos un único cliente global para evitar múltiples instancias.

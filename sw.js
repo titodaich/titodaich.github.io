@@ -8,7 +8,13 @@
    Es el único mantenimiento que pide el offline.
    ══════════════════════════════════════════════════════════════ */
 
-const CACHE_VERSION = 'benchone-v1';
+const CACHE_VERSION = 'benchone-v2';
+
+// CDNs de librerías (Supabase, jszip, xlsx). Se cachean con "cache-first": la
+// primera vez que cargan bien quedan guardadas, y después cargan al instante sin
+// depender de bajarlas de nuevo. Esto evita el error "no se pudo cargar el servicio
+// de acceso" cuando la app instalada abre con señal intermitente.
+const LIB_CDN_HOSTS = ['cdn.jsdelivr.net', 'unpkg.com', 'cdnjs.cloudflare.com'];
 
 // Archivos que forman "la app". Se guardan para que abra sin internet.
 const APP_SHELL = [
@@ -54,8 +60,26 @@ self.addEventListener('fetch', function(event){
 
   const url = new URL(req.url);
 
-  // Todo lo que no sea de nuestro propio origen (Supabase, fuentes de Google,
-  // etc.) pasa directo a la red, sin tocar el cache.
+  // Librerías de CDN (Supabase-js, jszip, xlsx): cache-first. Si ya están guardadas,
+  // se usan al instante (aunque la señal sea mala); si no, se bajan y se guardan.
+  // Esto es lo que evita que la app instalada falle al cargar el login.
+  if(LIB_CDN_HOSTS.indexOf(url.hostname) !== -1){
+    event.respondWith(
+      caches.match(req).then(function(hit){
+        if(hit) return hit;   // ya guardada: al instante
+        return fetch(req).then(function(res){
+          const copy = res.clone();
+          caches.open(CACHE_VERSION).then(function(cache){ cache.put(req, copy).catch(function(){}); });
+          return res;
+        });
+      })
+    );
+    return;
+  }
+
+  // Todo lo demás que no sea de nuestro propio origen (Supabase datos/login, fuentes
+  // de Google, etc.) pasa directo a la red, sin tocar el cache. Así los datos y el
+  // login están siempre frescos.
   if(url.origin !== self.location.origin){
     return; // el navegador maneja la petición normalmente
   }
