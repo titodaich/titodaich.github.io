@@ -2044,6 +2044,7 @@ body.modo-lectura .section-content textarea:read-only{
 .log-add.is-in{color:var(--success);border-color:var(--success);}
 .log-preview{flex-basis:100%;margin-top:8px;}
 .log-preview-video{width:100%;max-width:320px;border-radius:8px;background:#000;display:block;}
+.log-preview-draw{margin-top:8px;}
 .log-preview-msg{font-size:11px;color:var(--muted);font-style:italic;}
 .bench.drop-target{outline:2px dashed var(--accent-2);outline-offset:4px;border-radius:10px;}
 /* Editor de tags del video */
@@ -2150,6 +2151,12 @@ body.modo-lectura .section-content textarea:read-only{
 }
 
 .tag-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.player-tags-section{margin-top:14px;border-top:1px solid var(--line);padding-top:12px;}
+.player-tags-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;background:var(--panel-2,#1B2C3D);border:1px solid var(--line);border-radius:9px;padding:11px 14px;color:var(--chalk,#dfe8f0);font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:0.5px;cursor:pointer;}
+.player-tags-toggle:hover{border-color:var(--accent-2,#2F8FCB);}
+.ptt-arrow{color:var(--accent-2,#2F8FCB);font-size:14px;}
+.player-tags-body{margin-top:12px;}
+.player-tags-hint{font-size:12px;color:var(--muted,#7C8B99);margin-bottom:10px;font-style:italic;}
 .tag-grid.locked{opacity:0.5;pointer-events:none;}
 .tag-chip{position:relative;display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:9px 10px;cursor:pointer;transition:border-color .15s ease, background .15s ease;min-width:0;overflow:hidden;}
 .tag-chip:hover{border-color:var(--muted);}
@@ -3018,7 +3025,7 @@ body.editor-active #screen-editor{ display:block; }
     <section class="panel">
       <h2><span class="n">02</span> Empezá a editar</h2>
       <div class="video-frame" id="videoFrame">
-        <video id="videoEl" controls style="display:none;"></video>
+        <video id="videoEl" controls playsinline webkit-playsinline style="display:none;"></video>
         <canvas id="teleCanvas" class="tele-canvas" style="display:none;"></canvas>
         <div class="preview-separator-overlay" id="previewSeparatorOverlay"></div>
         <div class="video-placeholder" id="videoPlaceholder">Subilo</div>
@@ -3048,7 +3055,25 @@ body.editor-active #screen-editor{ display:block; }
       <div class="timecode"><small>Tiempo actual — <span id="activeVideoLabel">sin video</span></small><span id="currentTimeDisplay">00:00</span></div>
       <div class="record-status" id="recordStatus">Tocá un tag para iniciar la jugada</div>
       <div class="mark-hint">Tocá el mismo tag de nuevo para cortar · Atajo: <kbd>espacio</kbd></div>
-      <div class="tag-grid" id="tagGrid"></div>
+      <div class="player-tags-section" id="matchTagsSection">
+        <button class="player-tags-toggle" id="matchTagsToggle">
+          <span>🏷️ Recortes de partido</span>
+          <span class="ptt-arrow" id="mttArrow">▴</span>
+        </button>
+        <div class="player-tags-body" id="matchTagsBody" style="display:block;">
+          <div class="tag-grid" id="tagGrid"></div>
+        </div>
+      </div>
+      <div class="player-tags-section" id="playerTagsSection">
+        <button class="player-tags-toggle" id="playerTagsToggle">
+          <span>👥 Botonera del jugador</span>
+          <span class="ptt-arrow" id="pttArrow">▾</span>
+        </button>
+        <div class="player-tags-body" id="playerTagsBody" style="display:none;">
+          <div class="player-tags-hint">Pulsá un jugador para iniciar el corte y pulsalo de nuevo para cerrarlo. Tocá el ✎ para ponerle el nombre.</div>
+          <div class="tag-grid" id="playerTagGrid"></div>
+        </div>
+      </div>
       <div class="tag-grid-actions"><button class="btn small" id="editVideoTagsBtn">🏷️ Mis tags</button></div>
       <div class="clip-counter" id="clipCounter">0 recortes guardados</div>
     </section>
@@ -14163,6 +14188,14 @@ const DEFAULT_TAG_NAMES = [
 let tags = DEFAULT_TAG_NAMES.map((name, i) => ({ id: 'tag' + i, name, color: TAG_PALETTE[i] }));
 let activeTagId = tags[0].id;
 
+// ---------- BOTONERA DE JUGADORES (14 botones, editables) ----------
+// Funcionan igual que los tags de partido: pulsás para iniciar el corte y
+// pulsás de nuevo para cerrarlo. Sirven para juntar los clips de un jugador.
+const DEFAULT_PLAYER_NAMES = Array.from({length:14}, (_,i) => 'Jugador ' + (i+1));
+let playerTags = DEFAULT_PLAYER_NAMES.map((name, i) => ({ id: 'ply' + i, name, color: '#2F8FCB', isPlayer:true }));
+// Busca un tag por id tanto en los tags de partido como en los jugadores.
+function findAnyTag(id){ return tags.find(t=>t.id===id) || playerTags.find(t=>t.id===id) || null; }
+
 // ---------- TAGS PERSONALIZADOS (por club, guardados en la base) ----------
 async function cargarTagsGuardados(){
   try{
@@ -14558,6 +14591,84 @@ function renderTags(){
   });
 }
 renderTags();
+
+// Botonera de jugadores: misma mecánica que los tags, en su propia grilla.
+function renderPlayerTags(){
+  const grid = document.getElementById('playerTagGrid');
+  if(!grid) return;
+  grid.innerHTML = '';
+  playerTags.forEach((tag) => {
+    const chip = document.createElement('div');
+    const isRecordingThis = marking && tag.id === activeTagId;
+    const isDimmed = marking && tag.id !== activeTagId;
+    const tagClipCount = items.filter(it => it.type === 'clip' && it.tagId === tag.id).length;
+    chip.className = 'tag-chip' + (isRecordingThis ? ' recording' : '') + (isDimmed ? ' dimmed' : '');
+    chip.style.setProperty('--tag-color', tag.color);
+    chip.tabIndex = 0;
+    chip.innerHTML = `
+      <span class="tag-swatch"></span>
+      <span class="tag-name">${escapeHtml(tag.name)}</span>
+      <span class="tag-num">${tagClipCount}</span>
+      <button class="tag-rename-btn" data-action="rename" title="Renombrar">✎</button>
+    `;
+    chip.addEventListener('click', (e) => {
+      if(e.target.closest('[data-action="rename"]')) return;
+      handleTagClick(tag.id);
+    });
+    chip.querySelector('[data-action="rename"]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const nameEl = chip.querySelector('.tag-name');
+      const input = document.createElement('input');
+      input.className = 'tag-name-input';
+      input.value = tag.name;
+      input.style.setProperty('--tag-color', tag.color);
+      chip.replaceChild(input, nameEl);
+      input.focus(); input.select();
+      function commit(){ tag.name = input.value.trim() || tag.name; savePlayerTags(); renderPlayerTags(); renderItems(); }
+      input.addEventListener('blur', commit);
+      input.addEventListener('keydown', ev => { if(ev.key==='Enter') commit(); });
+    });
+    grid.appendChild(chip);
+  });
+}
+// Guardar/cargar los nombres de jugadores (localStorage, por ahora)
+function savePlayerTags(){
+  try{ localStorage.setItem('bo_video_players', JSON.stringify(playerTags.map(p=>({id:p.id,name:p.name})))); }catch(e){}
+}
+function loadPlayerTags(){
+  try{
+    const r = localStorage.getItem('bo_video_players');
+    if(r){ const saved = JSON.parse(r); saved.forEach(s => { const p = playerTags.find(x=>x.id===s.id); if(p) p.name = s.name; }); }
+  }catch(e){}
+}
+loadPlayerTags();
+renderPlayerTags();
+// Toggle abrir/cerrar la botonera de jugadores
+(function(){
+  const toggle = document.getElementById('playerTagsToggle');
+  const body = document.getElementById('playerTagsBody');
+  const arrow = document.getElementById('pttArrow');
+  if(toggle && body){
+    toggle.addEventListener('click', () => {
+      const abierto = body.style.display !== 'none';
+      body.style.display = abierto ? 'none' : 'block';
+      if(arrow) arrow.textContent = abierto ? '▾' : '▴';
+    });
+  }
+})();
+// Toggle abrir/cerrar la botonera de recortes de partido (arranca ABIERTA)
+(function(){
+  const toggle = document.getElementById('matchTagsToggle');
+  const body = document.getElementById('matchTagsBody');
+  const arrow = document.getElementById('mttArrow');
+  if(toggle && body){
+    toggle.addEventListener('click', () => {
+      const abierto = body.style.display !== 'none';
+      body.style.display = abierto ? 'none' : 'block';
+      if(arrow) arrow.textContent = abierto ? '▾' : '▴';
+    });
+  }
+})();
 // Cargar los tags personalizados del club (si los hay)
 if(window.__sb) setTimeout(cargarTagsGuardados, 600);
 
@@ -14800,8 +14911,8 @@ document.addEventListener('keydown', (e) => {
 function updateRecordStatus(){
   const statusEl = document.getElementById('recordStatus');
   if(marking){
-    const tagName = (function(){ var _t = tags.find(t=>t.id===activeTagId); return _t ? _t.name : ''; })();
-    statusEl.textContent = '● Grabando "'+tagName+'" — tocá el tag de nuevo para cortar';
+    const tagName = (function(){ var _t = findAnyTag(activeTagId); return _t ? _t.name : ''; })();
+    statusEl.textContent = '● Grabando "'+tagName+'" — tocá de nuevo para cortar';
     statusEl.classList.add('recording');
   } else {
     statusEl.textContent = activeVideoId ? 'Tocá un tag para iniciar la jugada' : 'Cargá un video primero';
@@ -14821,15 +14932,16 @@ function handleTagClick(tagId){
     activeTagId = tagId;
     markStartTime = videoEl.currentTime;
     marking = true;
-    const tagName = tags.find(t=>t.id===tagId).name;
+    const tagName = findAnyTag(tagId).name;
     toast('Marcando "'+tagName+'" desde '+fmt(markStartTime));
     renderTags();
+    renderPlayerTags();
     updateRecordStatus();
     return;
   }
   // ya está grabando
   if(tagId !== activeTagId){
-    toast('Ya estás grabando "'+tags.find(t=>t.id===activeTagId).name+'". Tocá ese mismo tag para cortar.');
+    toast('Ya estás grabando "'+findAnyTag(activeTagId).name+'". Tocá ese mismo para cortar.');
     return;
   }
   const end = videoEl.currentTime;
@@ -14837,6 +14949,7 @@ function handleTagClick(tagId){
   if(Math.abs(end - markStartTime) < 0.5){
     toast(window.t('mClipShort'));
     renderTags();
+    renderPlayerTags();
     updateRecordStatus();
     return;
   }
@@ -14967,7 +15080,7 @@ function updateClipLog(){
     return;
   }
   log.innerHTML = clips.map((it, idx) => {
-    const tag = tags.find(t => t.id === it.tagId);
+    const tag = findAnyTag(it.tagId);
     const nombre = it.name || (tag ? tag.name : '?');
     const yaEsta = !!it.inTimeline;
     return `<div class="clip-log-row${yaEsta?' en-linea':''}" data-log-id="${it.id}" draggable="true" style="--tag-color:${tag ? tag.color : '#888'}">
@@ -14981,6 +15094,7 @@ function updateClipLog(){
         <button class="log-btn log-add${yaEsta?' is-in':''}" data-log-action="add" title="${yaEsta?'Quitar de la línea de tiempo':'Agregar a la línea de tiempo'}">${yaEsta?'✓':'＋'}</button>
         <button class="log-btn" data-log-action="rename" title="Renombrar este recorte">✎</button>
         <button class="log-btn log-trim" data-log-action="trim" title="Achicar / ajustar la duración de este recorte">✂</button>
+        <button class="log-btn log-draw" data-log-action="draw" title="Dibujar sobre este recorte (círculos, flechas)">✏️</button>
         <button class="log-btn" data-log-action="export" title="Exportar este clip">⬇</button>
         <button class="log-btn" data-log-action="del" title="Borrar del registro">✕</button>
       </span>
@@ -15028,6 +15142,26 @@ function updateClipLog(){
     const btnTrim = row.querySelector('[data-log-action="trim"]');
     if(btnTrim) btnTrim.addEventListener('click', (e) => { e.stopPropagation(); abrirEditorRecorte(item); });
 
+    // Dibujar sobre este recorte (telestration): carga el recorte en el
+    // reproductor, lo posiciona en su inicio y activa el modo dibujo.
+    const btnDraw = row.querySelector('[data-log-action="draw"]');
+    if(btnDraw) btnDraw.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      try{
+        if(item.videoId && item.videoId !== activeVideoId){
+          const v = videos.find(x => x.id === item.videoId);
+          if(!v || v.missing){ toast('Falta subir de nuevo el video de este recorte.'); return; }
+          await setActiveVideo(item.videoId);
+        }
+        videoEl.currentTime = item.start;
+        videoEl.pause();
+        // Llevamos la vista al reproductor y activamos el modo dibujo
+        const frame = document.getElementById('videoFrame');
+        if(frame) frame.scrollIntoView({ behavior:'smooth', block:'center' });
+        if(window.__teleActivar) window.__teleActivar(true);
+      }catch(err){ console.error('draw clip', err); toast('No se pudo abrir el dibujo'); }
+    });
+
     // Borrar del registro (y de la línea si estaba)
     row.querySelector('[data-log-action="del"]').addEventListener('click', (e) => {
       e.stopPropagation();
@@ -15041,7 +15175,7 @@ function updateClipLog(){
     // Renombrar SOLO este recorte (nunca el tag original)
     row.querySelector('[data-log-action="rename"]').addEventListener('click', (e) => {
       e.stopPropagation();
-      const tag = tags.find(t => t.id === item.tagId);
+      const tag = findAnyTag(item.tagId);
       const tagEl = row.querySelector('[data-log-tag]');
       const actual = item.name || (tag ? tag.name : '');
       const input = document.createElement('input');
@@ -15192,7 +15326,8 @@ function trimCerrar(){
 function montarPreviewEnRegistro(item, box){
   const video = videos.find(v => v.id === item.videoId);
   if(!video){ box.innerHTML = '<div class="log-preview-msg">No se encuentra el video de este recorte.</div>'; return; }
-  box.innerHTML = '<video class="log-preview-video" playsinline controls muted></video>';
+  box.innerHTML = '<video class="log-preview-video" playsinline controls muted></video>'
+    + '<button class="btn small log-preview-draw">✏️ Dibujar sobre este recorte</button>';
   const v = box.querySelector('video');
   v.src = video.url;
   v.currentTime = item.start;
@@ -15200,6 +15335,23 @@ function montarPreviewEnRegistro(item, box){
   v.addEventListener('loadedmetadata', () => { v.currentTime = item.start; });
   v.addEventListener('timeupdate', () => { if(v.currentTime >= stopAt){ v.pause(); v.currentTime = item.start; } });
   v.play().catch(()=>{});
+  // Botón: lleva este recorte al reproductor grande y activa el dibujo
+  const drawBtn = box.querySelector('.log-preview-draw');
+  if(drawBtn) drawBtn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    try{
+      if(item.videoId && item.videoId !== activeVideoId){
+        const vv = videos.find(x => x.id === item.videoId);
+        if(!vv || vv.missing){ toast('Falta subir de nuevo el video de este recorte.'); return; }
+        await setActiveVideo(item.videoId);
+      }
+      videoEl.currentTime = item.start;
+      videoEl.pause();
+      const frame = document.getElementById('videoFrame');
+      if(frame) frame.scrollIntoView({ behavior:'smooth', block:'center' });
+      if(window.__teleActivar) window.__teleActivar(true);
+    }catch(err){ console.error('draw preview', err); toast('No se pudo abrir el dibujo'); }
+  });
 }
 
 function renderItems(){
@@ -15232,7 +15384,7 @@ function renderItems(){
     card.tabIndex = 0;
 
     if(item.type === 'clip'){
-      const tag = tags.find(t => t.id === item.tagId) || tags[0];
+      const tag = findAnyTag(item.tagId) || tags[0];
       const srcVideo = videos.find(v => v.id === item.videoId);
       card.className = 'item-card clip-card';
       card.style.setProperty('--tag-color', tag.color);
@@ -15496,7 +15648,7 @@ document.getElementById('exportJsonBtn').addEventListener('click', () => {
         return {
           orden: i+1, tipo:'recorte',
           video: vid ? vid.name : null,
-          tag: tags.find(t=>t.id===it.tagId).name,
+          tag: (findAnyTag(it.tagId)||{name:"?"}).name,
           inicio: fmt(it.start), fin: fmt(it.end),
           inicio_seg: Math.round(it.start*10)/10, fin_seg: Math.round(it.end*10)/10,
           descripcion: it.note || ''
@@ -15615,14 +15767,17 @@ function downloadBlob(blob, name){
   canvas.addEventListener('touchend', onUp);
 
   // Activar / desactivar el modo dibujo
-  drawBtn.addEventListener('click', () => {
-    teleOn = !teleOn;
+  function setTele(on){
+    teleOn = on;
     canvas.style.display = teleOn ? 'block' : 'none';
     toolbar.style.display = teleOn ? 'flex' : 'none';
     drawBtn.textContent = teleOn ? '✓ Terminar dibujo' : '✏ Dibujar sobre el video';
     drawBtn.classList.toggle('primary', teleOn);
     if(teleOn){ if(!video.paused) video.pause(); fitCanvas(); }
-  });
+  }
+  drawBtn.addEventListener('click', () => setTele(!teleOn));
+  // Permite activar el dibujo desde afuera (ej. botón ✏️ de un recorte)
+  window.__teleActivar = function(on){ setTele(on !== false); };
 
   // Herramientas (figuras)
   toolbar.querySelectorAll('.tele-tool').forEach(b => {
@@ -15860,6 +16015,7 @@ function hideOverlay(){ overlay.classList.remove('show'); }
 function toggleExportButtons(disabled){
   tagsLocked = disabled;
   document.getElementById('tagGrid').classList.toggle('locked', disabled);
+  const pg = document.getElementById('playerTagGrid'); if(pg) pg.classList.toggle('locked', disabled);
   document.getElementById('exportSeqBtn').disabled = disabled || items.length===0;
   document.getElementById('exportEachBtn').disabled = disabled || !items.some(i=>i.type==='clip');
   document.getElementById('playSeqBtn').disabled = disabled || items.length===0;
