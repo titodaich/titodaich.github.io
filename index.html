@@ -7060,6 +7060,7 @@ window.__initEditor = function(){
         ts: Date.now(),
         ownerUser: window.__currentUserId || null,
         ownerClub: window.__clubIdCache || null,
+        matchAuthorId,
         categoria: (window.__getActiveCategory && window.__getActiveCategory()) || '',
         clockSeconds, clockRunning, clockAnchor,
         swapOutId, squad, allSquad,
@@ -7122,6 +7123,7 @@ window.__initEditor = function(){
       setupCalled = snap.setupCalled||{};
       matchRival = snap.matchRival||'';
       matchLinkId = (snap.matchLinkId!=null)?snap.matchLinkId:null;
+      matchAuthorId = (snap.matchAuthorId!=null)?snap.matchAuthorId:(window.__currentUserId||null);
       inSetup = false;
       manualMin = (snap.manualMin!=null)?snap.manualMin:halfMinutes;
       goalsAgainstManual = snap.goalsAgainstManual||0;
@@ -7143,6 +7145,7 @@ window.__initEditor = function(){
   let setupCalled = {};          // { pid: true } convocados elegidos en el setup
   let matchRival = '';           // nombre del rival elegido
   let matchLinkId = null;        // id del partido linkeado
+  let matchAuthorId = null;      // autor del partido (se fija al iniciar, sobrevive al guardado local)
   let inSetup = true;
   // Marcador manual (lo que NO se deduce de los jugadores):
   let goalsAgainstManual = 0;    // goles en contra (se cargan a mano) — NO se resetean
@@ -7981,8 +7984,17 @@ window.__initEditor = function(){
     if(!arr.length) return 0;
     let subidas = 0;
     const quedan = [];
+    // Si algún partido en cola no tiene autor, lo completamos con la sesión actual
+    // antes de subirlo (así no se sube ningún partido como "Sin autor").
+    let uidSesion = null;
+    try{
+      const { data:{ session } } = await sb.auth.getSession();
+      if(session && session.user) uidSesion = session.user.id;
+    }catch(e){}
+    if(!uidSesion) uidSesion = window.__currentUserId || null;
     for(const item of arr){
       const { __localId, ...payload } = item;
+      if(!payload.created_by && uidSesion) payload.created_by = uidSesion;
       try{
         const res = await sb.from('live_sessions').insert(payload).select('id').single();
         if(res && res.error){ quedan.push(item); }   // no se pudo: la dejamos para el próximo intento
@@ -8003,6 +8015,14 @@ window.__initEditor = function(){
 
   async function finishAndArchive(matchId, rivalName){
     const clubId = await window.__getClubId();
+    // Red de seguridad: si por lo que sea no tenemos autor, lo recuperamos de la sesión.
+    if(!matchAuthorId){
+      try{
+        const { data:{ session } } = await window.__sb.auth.getSession();
+        if(session && session.user) matchAuthorId = session.user.id;
+      }catch(e){}
+      if(!matchAuthorId) matchAuthorId = window.__currentUserId || null;
+    }
     const cat = (window.__getActiveCategory && window.__getActiveCategory()) || null;
     const totals = totalsSnapshot();
     // Guardamos el marcador del rival dentro de totals, sin tocar el esquema de la BD.
@@ -8013,7 +8033,7 @@ window.__initEditor = function(){
       club_id: clubId, categoria: cat, temporada: (window.__getTemporada ? window.__getTemporada() : new Date().getFullYear()), name: rivalName,
       match_id: matchId || null, half_minutes: halfMinutes,
       events, totals,
-      created_by: (window.__currentUserId || null)
+      created_by: (matchAuthorId || window.__currentUserId || null)
     };
 
     // PASO 1: guardar SIEMPRE en el teléfono primero. Pase lo que pase, no se pierde.
@@ -8247,6 +8267,17 @@ window.__initEditor = function(){
     goalsAgainstManual=0; foulsAgainst1=0; foulsAgainst2=0;
     shotsFor1=0; shotsFor2=0; shotsAgainst1=0; shotsAgainst2=0;
     inSetup=false;
+    // Fijar el AUTOR del partido ahora, al arrancar (acá seguro hay sesión activa).
+    // Así el autor queda registrado aunque después se retome el partido o __currentUserId
+    // no esté disponible al finalizar. Preferimos el id ya conocido y confirmamos con la sesión.
+    matchAuthorId = window.__currentUserId || null;
+    (async function(){
+      try{
+        const { data:{ session } } = await window.__sb.auth.getSession();
+        if(session && session.user) matchAuthorId = session.user.id;
+      }catch(e){}
+      guardarPartidoLocal();  // reguardar con el autor ya fijado
+    })();
     borrarPartidoGuardado();   // arranca limpio: descartamos cualquier partido viejo guardado
     document.getElementById('liveSetup').style.display='none';
     document.getElementById('liveActive').style.display='block';
