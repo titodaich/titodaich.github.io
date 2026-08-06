@@ -4953,7 +4953,7 @@ async function ensureMembership(userId, fallbackClubName){
     // Método principal: función del servidor que crea club + membresía de forma segura.
     try{
       const { data, error: rpcErr } = await sb.rpc('crear_mi_espacio', { nombre_club: fallbackClubName || 'Mi club' });
-      if(!rpcErr && data){ window.__clubIdCache = data; return { ok:true, clubId: data, created:true }; }
+      if(!rpcErr && data){ window.__clubIdCache = data; window.__clubIdCacheUser = userId; return { ok:true, clubId: data, created:true }; }
       if(rpcErr && !/function|does not exist|not find/i.test(rpcErr.message||'')){
         console.error('crear_mi_espacio:', rpcErr);
         return { ok:false, reason:'rpc', error:rpcErr };
@@ -4971,10 +4971,10 @@ async function ensureMembership(userId, fallbackClubName){
       console.error('No se pudo crear la membresía:', memErr);
       return { ok:false, reason:'membership_insert', error:memErr };
     }
-    window.__clubIdCache = club.id;
+    window.__clubIdCache = club.id; window.__clubIdCacheUser = userId;
     return { ok:true, clubId: club.id, created:true };
   } else {
-    window.__clubIdCache = memberships[0].club_id;
+    window.__clubIdCache = memberships[0].club_id; window.__clubIdCacheUser = userId;
     return { ok:true, clubId: memberships[0].club_id, created:false };
   }
 }
@@ -7058,6 +7058,8 @@ window.__initEditor = function(){
       const snap = {
         v: 1,
         ts: Date.now(),
+        ownerUser: window.__currentUserId || null,
+        ownerClub: window.__clubIdCache || null,
         categoria: (window.__getActiveCategory && window.__getActiveCategory()) || '',
         clockSeconds, clockRunning, clockAnchor,
         swapOutId, squad, allSquad,
@@ -7070,11 +7072,27 @@ window.__initEditor = function(){
       safeStorage.setItem(LIVE_SAVE_KEY, JSON.stringify(snap));
     }catch(e){ /* storage lleno o bloqueado: no rompemos el partido por esto */ }
   }
+  // Seguridad: un partido guardado localmente SOLO puede retomarse por el mismo
+  // usuario y club que lo empezó. Si en el mismo dispositivo entra otra cuenta,
+  // no debe ver ni retomar el partido a medias de la cuenta anterior.
+  function partidoGuardadoEsDeOtro(snap){
+    try{
+      const uActual = window.__currentUserId || null;
+      const cActual = window.__clubIdCache || null;
+      // Partidos viejos (sin dueño registrado): por seguridad los tratamos como ajenos
+      // si ya hay un usuario logueado distinto de null.
+      if(snap.ownerUser === undefined) return false; // guardado por versión previa: no bloqueamos (raro)
+      if(snap.ownerUser && uActual && snap.ownerUser !== uActual) return true;
+      if(snap.ownerClub && cActual && snap.ownerClub !== cActual) return true;
+      return false;
+    }catch(e){ return false; }
+  }
   function hayPartidoGuardado(){
     try{
       const raw = safeStorage.getItem(LIVE_SAVE_KEY);
       if(!raw) return false;
       const snap = JSON.parse(raw);
+      if(partidoGuardadoEsDeOtro(snap)) return false;   // es de otra cuenta: no existe para mí
       // válido si tiene un partido en curso con jugadores
       return snap && snap.inSetup===false && snap.squad && snap.squad.length>0;
     }catch(e){ return false; }
@@ -7084,6 +7102,7 @@ window.__initEditor = function(){
       const raw = safeStorage.getItem(LIVE_SAVE_KEY);
       if(!raw) return false;
       const snap = JSON.parse(raw);
+      if(partidoGuardadoEsDeOtro(snap)) return false;   // nunca restaurar el partido de otra cuenta
       if(!snap || snap.inSetup!==false || !snap.squad || !snap.squad.length) return false;
       __restaurando = true;
       // restaurar todas las variables
@@ -13644,14 +13663,14 @@ try{
       // ¿ya existe una membresía? (por si se creó en otro intento)
       try{
         const { data: mem } = await sb.from('memberships').select('club_id').eq('user_id', userId).limit(1);
-        if(mem && mem.length){ window.__clubIdCache = mem[0].club_id; return { ok:true, clubId: mem[0].club_id }; }
+        if(mem && mem.length){ window.__clubIdCache = mem[0].club_id; window.__clubIdCacheUser = userId; return { ok:true, clubId: mem[0].club_id }; }
       }catch(e){ /* seguimos e intentamos crear */ }
 
       // Método principal: función del servidor que crea club + membresía de forma segura,
       // esquivando las políticas de lectura (evita el error de "row-level security").
       try{
         const { data, error } = await sb.rpc('crear_mi_espacio', { nombre_club: nombre });
-        if(!error && data){ window.__clubIdCache = data; return { ok:true, clubId: data }; }
+        if(!error && data){ window.__clubIdCache = data; window.__clubIdCacheUser = userId; return { ok:true, clubId: data }; }
         if(error && !/function|does not exist|not find/i.test(error.message||'')){
           // la función existe pero devolvió otro error: lo reportamos
           return { ok:false, error };
@@ -13664,7 +13683,7 @@ try{
       if(clubErr) return { ok:false, error: clubErr };
       const { error: memErr } = await sb.from('memberships').insert({ club_id: club.id, user_id: userId, role: 'owner' });
       if(memErr) return { ok:false, error: memErr };
-      window.__clubIdCache = club.id;
+      window.__clubIdCache = club.id; window.__clubIdCacheUser = userId;
       return { ok:true, clubId: club.id };
     }
 
