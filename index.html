@@ -6682,8 +6682,26 @@ window.__initEditor = function(){
   });
 
   // ----- CAMBIO DE MODO: jugadas / entrenamiento -----
+  // Cada modo mantiene su PROPIO conjunto de elementos. Así, los conos/arcos/apoyos
+  // que agregás en entrenamiento no aparecen en la pizarra de partido, y cada pizarra
+  // conserva su posicionamiento por separado.
+  const boardStates = { jugadas: null, entrenamiento: null };
   window.__boardMode = 'jugadas';
   function setBoardMode(modo){
+    const modoAnterior = window.__boardMode;
+    // Si de verdad cambiamos de modo, guardamos el estado actual y cargamos el del otro.
+    if(modo !== modoAnterior){
+      // Guardar los elementos del modo que dejamos.
+      boardStates[modoAnterior] = JSON.parse(JSON.stringify(tokens));
+      // Cargar los del modo al que entramos (o armar el inicial si es la primera vez).
+      if(boardStates[modo]){
+        tokens = JSON.parse(JSON.stringify(boardStates[modo]));
+      } else {
+        // Primera vez en este modo: partido arranca con la formación default;
+        // entrenamiento arranca solo con los jugadores base (sin conos/arcos aún).
+        tokens = defaultTokens();
+      }
+    }
     window.__boardMode = modo;
     const esEntren = (modo === 'entrenamiento');
     // Botones de modo
@@ -6826,6 +6844,22 @@ window.__initEditor = function(){
   };
   function playPlay(play){
     if(playingTimer) return;
+    // Poner la pizarra en el modo que corresponde a esta jugada (partido o entrenamiento),
+    // para que los elementos y el color de cancha coincidan con lo grabado.
+    const modoDeLaJugada = ((play.tipo||'jugada') === 'entrenamiento') ? 'entrenamiento' : 'jugadas';
+    if(window.__boardMode !== modoDeLaJugada){
+      // Guardamos el estado del modo actual antes de cambiar (sin pisar los tokens de la jugada).
+      boardStates[window.__boardMode] = JSON.parse(JSON.stringify(tokens));
+      window.__boardMode = modoDeLaJugada;
+      const esE = (modoDeLaJugada === 'entrenamiento');
+      document.getElementById('modeJugadas') && document.getElementById('modeJugadas').classList.toggle('active', !esE);
+      document.getElementById('modeEntrenamiento') && document.getElementById('modeEntrenamiento').classList.toggle('active', esE);
+      const nJ = document.getElementById('boardNoteJugadas');
+      const nE = document.getElementById('boardNoteEntrenamiento');
+      if(nJ) nJ.style.display = esE ? 'none' : '';
+      if(nE) nE.style.display = esE ? '' : 'none';
+      document.querySelectorAll('.board-tool-train').forEach(el => { el.style.display = esE ? '' : 'none'; });
+    }
     // mostrar la descripción sobre la cancha (si tiene)
     const descShow = document.getElementById('boardDescShow');
     if(descShow){
