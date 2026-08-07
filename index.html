@@ -3622,10 +3622,10 @@ body.editor-active #screen-editor{ display:block; }
       <button class="board-mode-btn" id="modeEntrenamiento" data-mode="entrenamiento">🏋 Pizarra de entrenamiento</button>
     </div>
     <div class="board-note" id="boardNoteJugadas">
-      💡 <b>Modo jugadas.</b> Dibujá y grabá jugadas de partido moviendo los jugadores y la pelota. Ideal para explicar salidas, presiones y movimientos.
+      💡 <b>Modo jugadas.</b> Dibujá y grabá jugadas de partido moviendo los jugadores y la pelota. Ideal para explicar salidas, presiones y movimientos. Después podés <b>exportar cada jugada como video (.mp4)</b> para compartirla.
     </div>
     <div class="board-note" id="boardNoteEntrenamiento" style="display:none;">
-      💡 <b>Modo entrenamiento.</b> Diseñá ejercicios: sumá <b>jugadores de apoyo</b> (verdes), <b>conos</b> y <b>arcos</b> extra, y armá el espacio moviéndolos por la cancha. <span style="color:var(--muted);">Doble clic sobre un cono, arco o apoyo para quitarlo.</span>
+      💡 <b>Modo entrenamiento.</b> Diseñá ejercicios: sumá <b>jugadores de apoyo</b> (verdes), <b>conos</b> y <b>arcos</b> extra, y armá el espacio moviéndolos por la cancha. <span style="color:var(--muted);">Doble clic sobre un cono, arco o apoyo para quitarlo. Después podés exportar el ejercicio como video (.mp4).</span>
     </div>
     <div class="board-toolbar">
       <button class="btn small" id="boardResetBtn">↺ Posición inicial</button>
@@ -7023,7 +7023,16 @@ window.__initEditor = function(){
           </div>
         `;
         item.querySelector('.bp-play').addEventListener('click', () => playPlay(play));
-        item.querySelector('.bp-export').addEventListener('click', () => exportPlay(play));
+        const btnExp = item.querySelector('.bp-export');
+        btnExp.addEventListener('click', async () => {
+          if(exportingPlay) return;
+          const txtOrig = btnExp.textContent;
+          btnExp.textContent = '⏳ Generando…';
+          btnExp.disabled = true;
+          try{ await exportPlay(play); }catch(e){ if(window.toast) toast('No se pudo exportar el video.'); }
+          btnExp.textContent = txtOrig;
+          btnExp.disabled = false;
+        });
         item.querySelector('.bp-del').addEventListener('click', async () => {
           if(!confirm('¿Eliminar "'+play.name+'"?')) return;
           if(play.dbId && window.__sb){ try{ await window.__sb.from('board_plays').delete().eq('id', play.dbId); }catch(e){} }
@@ -7038,15 +7047,131 @@ window.__initEditor = function(){
     pintar(listTrain, entrenamientos, 'Todavía no guardaste entrenamientos. En modo "entrenamiento", armá el ejercicio y tocá "● Grabar".');
   }
 
-  // Exportar la jugada como archivo .json (para guardar/compartir)
-  function exportPlay(play){
-    const data = JSON.stringify(play, null, 2);
-    const blob = new Blob([data], {type:'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = play.name.replace(/[^a-z0-9]/gi,'_') + '.json';
-    a.click();
-    URL.revokeObjectURL(url);
+  // Exportar la jugada como VIDEO (mp4 si el navegador lo soporta, si no webm).
+  // Reproduce la jugada rasterizando el propio tablero SVG a un canvas y grabándolo,
+  // así el video sale idéntico a lo que se ve en pantalla (cancha, fichas, conos, etc.).
+  let exportingPlay = false;
+  async function exportPlay(play){
+    if(exportingPlay){ toast('Ya hay una exportación en curso. Esperá a que termine.'); return; }
+    if(!play || !play.frames || play.frames.length < 2){ toast('Esta jugada no tiene animación para exportar.'); return; }
+    if(typeof MediaRecorder === 'undefined' || !HTMLCanvasElement.prototype.captureStream){
+      toast('Tu navegador no permite exportar video. Probá con Chrome o Edge.');
+      return;
+    }
+    exportingPlay = true;
+    return await new Promise((resolveExport) => {
+
+    // Recordar el estado actual para restaurarlo al terminar.
+    const modoPrevio = window.__boardMode;
+    const tokensPrevios = JSON.parse(JSON.stringify(tokens));
+
+    // Poner la pizarra en el modo de la jugada y sus fichas iniciales (para que la cancha
+    // y los elementos se dibujen como corresponde).
+    const modoJugada = ((play.tipo||'jugada') === 'entrenamiento') ? 'entrenamiento' : 'jugadas';
+    window.__boardMode = modoJugada;
+    tokens = JSON.parse(JSON.stringify(play.tokensSnapshot));
+    render();
+
+    // Escala de salida: el tablero es 680x400; multiplicamos para que el video se vea nítido.
+    const SC = 2;
+    const OUT_W = 680 * SC, OUT_H = 400 * SC;
+    const canvas = document.createElement('canvas');
+    canvas.width = OUT_W; canvas.height = OUT_H;
+    const ctx = canvas.getContext('2d');
+
+    // Elegir el mejor formato disponible (mp4 preferido).
+    const tipos = [
+      'video/mp4;codecs=avc1',
+      'video/mp4',
+      'video/webm;codecs=vp9',
+      'video/webm;codecs=vp8',
+      'video/webm'
+    ];
+    let mime = '';
+    for(const t of tipos){ if(MediaRecorder.isTypeSupported(t)){ mime = t; break; } }
+    const esMp4 = mime.indexOf('mp4') !== -1;
+    const ext = esMp4 ? 'mp4' : 'webm';
+
+    const stream = canvas.captureStream(30);
+    let rec;
+    try{ rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined); }
+    catch(e){ exportingPlay = false; window.__boardMode = modoPrevio; tokens = tokensPrevios; render(); toast('No se pudo iniciar la grabación en este navegador.'); resolveExport(); return; }
+
+    const chunks = [];
+    rec.ondataavailable = (ev) => { if(ev.data && ev.data.size) chunks.push(ev.data); };
+
+    // Convierte el SVG actual del tablero en una imagen y la dibuja en el canvas.
+    const svgEl = document.getElementById('futsalBoard');
+    function svgToImage(){
+      return new Promise((resolve) => {
+        const clone = svgEl.cloneNode(true);
+        clone.setAttribute('width', OUT_W);
+        clone.setAttribute('height', OUT_H);
+        clone.setAttribute('viewBox', '0 0 680 400');
+        const xml = new XMLSerializer().serializeToString(clone);
+        const svg64 = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(xml)));
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+        img.src = svg64;
+      });
+    }
+
+    // Muestra un aviso de progreso.
+    toast('Generando video de la jugada… mantené la pestaña abierta.');
+
+    rec.start();
+
+    const dur = play.frames[play.frames.length-1].t;   // duración total en ms
+    const startAt = performance.now();
+
+    // Bucle de animación: aplica las posiciones del frame correspondiente, redibuja el SVG,
+    // lo pasa al canvas, y repite hasta terminar la jugada.
+    async function tick(){
+      const elapsed = performance.now() - startAt;
+      // Buscar el frame correspondiente al tiempo transcurrido.
+      let frame = play.frames[0];
+      for(let i=0;i<play.frames.length;i++){ if(play.frames[i].t <= elapsed) frame = play.frames[i]; else break; }
+      // Aplicar posiciones al SVG real.
+      tokens.forEach(t => {
+        const p = frame.positions[t.id];
+        if(p){
+          t.x = p.x; t.y = p.y;
+          const el = svg.querySelector(`[data-id="${t.id}"]`);
+          if(el) el.setAttribute('transform',`translate(${t.x},${t.y})`);
+        }
+      });
+      // Rasterizar el SVG y dibujarlo en el canvas.
+      const img = await svgToImage();
+      if(img){ ctx.clearRect(0,0,OUT_W,OUT_H); ctx.drawImage(img, 0, 0, OUT_W, OUT_H); }
+
+      if(elapsed < dur + 200){
+        requestAnimationFrame(tick);
+      } else {
+        // Fin: detener la grabación y descargar.
+        rec.stop();
+      }
+    }
+
+    rec.onstop = () => {
+      const blob = new Blob(chunks, { type: mime || 'video/webm' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = play.name.replace(/[^a-z0-9]/gi,'_') + '.' + ext;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      // Restaurar el estado previo de la pizarra.
+      window.__boardMode = modoPrevio;
+      tokens = tokensPrevios;
+      render();
+      exportingPlay = false;
+      toast(esMp4 ? 'Video .mp4 listo ✓' : 'Video .webm listo ✓ (se abre en cualquier reproductor)');
+      resolveExport();
+    };
+
+    requestAnimationFrame(tick);
+    });
   }
 
   // Inicializar
