@@ -7209,19 +7209,28 @@ window.__initEditor = function(){
   // Guarda todo el estado en el propio dispositivo (funciona sin internet).
   // Si se corta la conexión, se cierra Safari o salís sin querer, al volver a
   // En Vivo se retoma automáticamente donde quedaste.
-  const LIVE_SAVE_KEY = 'benchone_live_encurso';
+  const LIVE_SAVE_KEY = 'benchone_live_encurso';   // clave vieja (compatibilidad)
+  // Cada partido a medias se guarda con una clave propia por club + usuario + categoría,
+  // así el DT de 4ta y el de 3era pueden dejar cada uno su partido preparado sin pisarse.
+  function liveSaveKey(cat){
+    const u = window.__currentUserId || 'anon';
+    const c = window.__clubIdCache || 'noclub';
+    const k = (cat!=null ? cat : ((window.__getActiveCategory && window.__getActiveCategory()) || '')) || 'sincat';
+    return 'benchone_live_encurso__' + c + '__' + u + '__' + k;
+  }
   let __restaurando = false;   // evita autoguardar mientras se restaura
   function guardarPartidoLocal(){
     if(__restaurando) return;
     if(inSetup) return;        // solo guardamos si hay un partido en curso
     try{
+      const cat = (window.__getActiveCategory && window.__getActiveCategory()) || '';
       const snap = {
         v: 1,
         ts: Date.now(),
         ownerUser: window.__currentUserId || null,
         ownerClub: window.__clubIdCache || null,
         matchAuthorId,
-        categoria: (window.__getActiveCategory && window.__getActiveCategory()) || '',
+        categoria: cat,
         clockSeconds, clockRunning, clockAnchor,
         swapOutId, squad, allSquad,
         clockType, halfMinutes, currentHalf, halfSplitAt,
@@ -7230,40 +7239,52 @@ window.__initEditor = function(){
         goalsAgainstManual, foulsAgainst1, foulsAgainst2,
         shotsFor1, shotsFor2, shotsAgainst1, shotsAgainst2
       };
-      safeStorage.setItem(LIVE_SAVE_KEY, JSON.stringify(snap));
+      safeStorage.setItem(liveSaveKey(cat), JSON.stringify(snap));
     }catch(e){ /* storage lleno o bloqueado: no rompemos el partido por esto */ }
   }
   // Seguridad: un partido guardado localmente SOLO puede retomarse por el mismo
-  // usuario y club que lo empezó. Si en el mismo dispositivo entra otra cuenta,
-  // no debe ver ni retomar el partido a medias de la cuenta anterior.
+  // usuario, club Y CATEGORÍA que lo empezó. Así no se mezcla el partido de una
+  // categoría con el de otra dentro del mismo club.
   function partidoGuardadoEsDeOtro(snap){
     try{
       const uActual = window.__currentUserId || null;
       const cActual = window.__clubIdCache || null;
+      const catActual = (window.__getActiveCategory && window.__getActiveCategory()) || '';
       // Partidos viejos (sin dueño registrado): por seguridad los tratamos como ajenos
       // si ya hay un usuario logueado distinto de null.
       if(snap.ownerUser === undefined) return false; // guardado por versión previa: no bloqueamos (raro)
       if(snap.ownerUser && uActual && snap.ownerUser !== uActual) return true;
       if(snap.ownerClub && cActual && snap.ownerClub !== cActual) return true;
+      // La categoría del partido guardado debe coincidir con la categoría activa.
+      if(snap.categoria != null && catActual && snap.categoria !== catActual) return true;
       return false;
     }catch(e){ return false; }
   }
+  // Lee el partido guardado para la categoría actual (con fallback a la clave vieja).
+  function leerPartidoGuardado(){
+    try{
+      let raw = safeStorage.getItem(liveSaveKey());
+      if(!raw){
+        // Compatibilidad: puede haber un partido guardado con la clave vieja (única).
+        raw = safeStorage.getItem(LIVE_SAVE_KEY);
+      }
+      return raw ? JSON.parse(raw) : null;
+    }catch(e){ return null; }
+  }
   function hayPartidoGuardado(){
     try{
-      const raw = safeStorage.getItem(LIVE_SAVE_KEY);
-      if(!raw) return false;
-      const snap = JSON.parse(raw);
-      if(partidoGuardadoEsDeOtro(snap)) return false;   // es de otra cuenta: no existe para mí
+      const snap = leerPartidoGuardado();
+      if(!snap) return false;
+      if(partidoGuardadoEsDeOtro(snap)) return false;   // es de otra cuenta/categoría: no existe para mí
       // válido si tiene un partido en curso con jugadores
       return snap && snap.inSetup===false && snap.squad && snap.squad.length>0;
     }catch(e){ return false; }
   }
   function restaurarPartidoLocal(){
     try{
-      const raw = safeStorage.getItem(LIVE_SAVE_KEY);
-      if(!raw) return false;
-      const snap = JSON.parse(raw);
-      if(partidoGuardadoEsDeOtro(snap)) return false;   // nunca restaurar el partido de otra cuenta
+      const snap = leerPartidoGuardado();
+      if(!snap) return false;
+      if(partidoGuardadoEsDeOtro(snap)) return false;   // nunca restaurar el partido de otra cuenta/categoría
       if(!snap || snap.inSetup!==false || !snap.squad || !snap.squad.length) return false;
       __restaurando = true;
       // restaurar todas las variables
@@ -7292,10 +7313,21 @@ window.__initEditor = function(){
       shotsFor1 = snap.shotsFor1||0; shotsFor2 = snap.shotsFor2||0;
       shotsAgainst1 = snap.shotsAgainst1||0; shotsAgainst2 = snap.shotsAgainst2||0;
       __restaurando = false;
+      // Si veníamos de la clave vieja (única), migramos: guardamos con la clave
+      // nueva por categoría y borramos la vieja, para que no reaparezca en otra categoría.
+      try{
+        if(!safeStorage.getItem(liveSaveKey()) && safeStorage.getItem(LIVE_SAVE_KEY)){
+          guardarPartidoLocal();
+          safeStorage.removeItem(LIVE_SAVE_KEY);
+        }
+      }catch(e){}
       return true;
     }catch(e){ __restaurando = false; return false; }
   }
   function borrarPartidoGuardado(){
+    // Borramos la clave de la categoría actual y también la clave vieja (única),
+    // por si quedó un partido guardado con el formato anterior.
+    try{ safeStorage.removeItem(liveSaveKey()); }catch(e){}
     try{ safeStorage.removeItem(LIVE_SAVE_KEY); }catch(e){}
   }
   // Helper de toque. Mínimo y seguro: escucha 'click' (que en Safari 12 anda),
@@ -8321,14 +8353,22 @@ window.__initEditor = function(){
   });
 
   // ===== SETUP: cargar plantel y partidos para elegir =====
+  let __squadLoadSeq = 0;
   async function loadSquad(){
     const sb=window.__sb; if(!sb) return;
     const clubId=await window.__getClubId(); if(!clubId) return;
     const cat=(window.__getActiveCategory && window.__getActiveCategory())||null;
+    const seq = ++__squadLoadSeq;         // marca esta petición como la más reciente
     try{
       let q=sb.from('players').select('*').eq('club_id',clubId).eq('archivado',false);
       q=cat?q.eq('categoria',cat):q.is('categoria',null); if(window.__getTemporada) q=q.eq('temporada',window.__getTemporada());
       const {data}=await q;
+      // Si mientras esperábamos la respuesta cambió la categoría (llegó otra petición
+      // más nueva), descartamos este resultado viejo para no mezclar planteles.
+      if(seq !== __squadLoadSeq) return;
+      // Además, confirmamos que la categoría no cambió durante la espera.
+      const catAhora=(window.__getActiveCategory && window.__getActiveCategory())||null;
+      if(catAhora !== cat) return;
       allSquad=(data||[]).map(p=>({id:p.id,name:p.name,number:p.number||'',position:p.position||'',photo:p.photo||''}));
       renderSetup();
     }catch(e){ console.error('live squad',e); }
@@ -8688,7 +8728,9 @@ window.__initEditor = function(){
         toast('↩️ Retomamos el partido donde lo dejaste');
       }
     } else if(inSetup){
-      document.getElementById('liveSetup').style.display='block'; document.getElementById('liveActive').style.display='none'; loadSquad();
+      document.getElementById('liveSetup').style.display='block'; document.getElementById('liveActive').style.display='none';
+      allSquad = [];       // limpiar plantel anterior para no mostrar el de otra categoría
+      loadSquad();         // cargar el plantel de la categoría activa AHORA
     }
     // por si quedó algún partido sin subir de una vez anterior, intentamos ahora
     if(typeof flushPending === 'function') flushPending(false);
@@ -8700,7 +8742,20 @@ window.__initEditor = function(){
   document.addEventListener('visibilitychange', function(){ if(document.hidden && !inSetup) guardarPartidoLocal(); });
   window.addEventListener('pagehide', function(){ if(!inSetup) guardarPartidoLocal(); });
   if(window.__onCategorySubscribe){
-    window.__onCategorySubscribe(()=>{ if(started && inSetup){ setupCalled={}; matchRival=''; matchLinkId=null; updateClockType(); loadSquad(); window.__origins = null; cargarOriginsSiFaltan(); } }, 'live');
+    window.__onCategorySubscribe(()=>{
+      // Al cambiar de categoría, el plantel de convocados DEBE recargarse con los
+      // jugadores de la nueva categoría. Limpiamos la selección anterior para no
+      // arrastrar convocados de otra categoría, y recargamos el plantel.
+      // (No exigimos "started": aunque no se haya entrado aún al módulo, dejamos
+      //  el estado limpio para que al entrar cargue lo correcto.)
+      if(inSetup){
+        setupCalled = {}; matchRival = ''; matchLinkId = null;
+        allSquad = [];               // vaciar el plantel viejo para que no se muestre por error
+        updateClockType();
+        loadSquad();                 // recargar plantel de la categoría nueva
+        window.__origins = null; cargarOriginsSiFaltan();
+      }
+    }, 'live');
   }
 })();
 
@@ -9945,7 +10000,16 @@ window.__initEditor = function(){
     document.getElementById('posClose').addEventListener('click', () => { cerrar(); callback(null); });
     m.addEventListener('click', e => { if(e.target === m){ cerrar(); callback(null); } });
     document.getElementById('posSkip').addEventListener('click', () => { cerrar(); callback(''); });
-    document.getElementById('posSave').addEventListener('click', () => { cerrar(); callback(seleccion.join(', ')); });
+    document.getElementById('posSave').addEventListener('click', () => {
+      // Si tocó "Guardar" sin elegir ninguna posición, probablemente se olvidó:
+      // le preguntamos en vez de guardar vacío sin querer (esto evita que un jugador
+      // quede "sin posición cargada" por accidente).
+      if(seleccion.length === 0){
+        if(!confirm('No elegiste ninguna posición. ¿Querés dejar al jugador SIN posición cargada?\n\n(Si fue sin querer, tocá Cancelar y elegí una posición.)')) return;
+      }
+      cerrar();
+      callback(seleccion.join(', '));
+    });
   }
 
   function renderSquad(){
