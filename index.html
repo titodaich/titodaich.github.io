@@ -7215,7 +7215,18 @@ window.__initEditor = function(){
   function liveSaveKey(cat){
     const u = window.__currentUserId || 'anon';
     const c = window.__clubIdCache || 'noclub';
-    const k = (cat!=null ? cat : ((window.__getActiveCategory && window.__getActiveCategory()) || '')) || 'sincat';
+    // Si hay un partido EN CURSO, usamos SU categoría fija (matchCategoria), no la de
+    // la barra: así, si el DT cambia de categoría con un partido abierto, el partido
+    // se sigue guardando bajo su propia categoría y no se contamina.
+    let k;
+    if(cat != null){
+      k = cat;
+    } else if(!inSetup && matchCategoria != null){
+      k = matchCategoria;
+    } else {
+      k = (window.__getActiveCategory && window.__getActiveCategory()) || '';
+    }
+    k = k || 'sincat';
     return 'benchone_live_encurso__' + c + '__' + u + '__' + k;
   }
   let __restaurando = false;   // evita autoguardar mientras se restaura
@@ -7230,6 +7241,7 @@ window.__initEditor = function(){
         ownerUser: window.__currentUserId || null,
         ownerClub: window.__clubIdCache || null,
         matchAuthorId,
+        matchCategoria,
         categoria: cat,
         clockSeconds, clockRunning, clockAnchor,
         swapOutId, squad, allSquad,
@@ -7305,6 +7317,7 @@ window.__initEditor = function(){
       matchRival = snap.matchRival||'';
       matchLinkId = (snap.matchLinkId!=null)?snap.matchLinkId:null;
       matchAuthorId = (snap.matchAuthorId!=null)?snap.matchAuthorId:(window.__currentUserId||null);
+      matchCategoria = (snap.matchCategoria!=null)?snap.matchCategoria:(snap.categoria||((window.__getActiveCategory && window.__getActiveCategory())||''));
       inSetup = false;
       manualMin = (snap.manualMin!=null)?snap.manualMin:halfMinutes;
       goalsAgainstManual = snap.goalsAgainstManual||0;
@@ -7338,6 +7351,7 @@ window.__initEditor = function(){
   let matchRival = '';           // nombre del rival elegido
   let matchLinkId = null;        // id del partido linkeado
   let matchAuthorId = null;      // autor del partido (se fija al iniciar, sobrevive al guardado local)
+  let matchCategoria = null;     // categoría del partido (se fija al iniciar; NO cambia aunque muevas la barra)
   let inSetup = true;
   // Marcador manual (lo que NO se deduce de los jugadores):
   let goalsAgainstManual = 0;    // goles en contra (se cargan a mano) — NO se resetean
@@ -7353,6 +7367,10 @@ window.__initEditor = function(){
   };
 
   function updateClockType(){
+    // Si hay un partido EN CURSO, el tipo de reloj YA quedó fijado al arrancar según
+    // su categoría. No lo recalculamos (si no, al cambiar la barra de categoría se
+    // rompería el reloj del partido abierto).
+    if(!inSetup) { updateClockUI(); return; }
     const cat = (window.__getActiveCategory && window.__getActiveCategory()) || '';
     const parado = (cat === '1era' || cat === '3era');
     clockType = parado ? 'parado' : 'corrido';
@@ -8132,7 +8150,7 @@ window.__initEditor = function(){
     // Registrar el evento del gol en contra (para poder etiquetar cómo fue)
     const evento = { t:nowSeconds(), type:'goalAgainst', pid:null, inName:'Rival', outName:'', half:currentHalf, origen:null };
     events.unshift(evento);
-    renderScoreboard(); renderLog();
+    renderScoreboard(); renderLog(); guardarPartidoLocal();
     // Abrir el cartelito de "cómo fue el gol en contra"
     abrirSelectorOrigenGol(evento, 'Rival', true);
   });
@@ -8145,14 +8163,14 @@ window.__initEditor = function(){
       const idx = events.findIndex(e => e.type==='goalAgainst');
       if(idx>=0) events.splice(idx,1);
     }
-    renderScoreboard(); renderLog();
+    renderScoreboard(); renderLog(); guardarPartidoLocal();
   });
-  bindMini('sbFAplus', ()=>{ if(currentHalf===1) foulsAgainst1++; else foulsAgainst2++; renderScoreboard(); });
-  bindMini('sbFAminus',()=>{ if(currentHalf===1) foulsAgainst1=Math.max(0,foulsAgainst1-1); else foulsAgainst2=Math.max(0,foulsAgainst2-1); renderScoreboard(); });
-  bindMini('sbSFplus', ()=>{ if(currentHalf===1) shotsFor1++; else shotsFor2++; renderScoreboard(); });
-  bindMini('sbSFminus',()=>{ if(currentHalf===1) shotsFor1=Math.max(0,shotsFor1-1); else shotsFor2=Math.max(0,shotsFor2-1); renderScoreboard(); });
-  bindMini('sbSAplus', ()=>{ if(currentHalf===1) shotsAgainst1++; else shotsAgainst2++; renderScoreboard(); });
-  bindMini('sbSAminus',()=>{ if(currentHalf===1) shotsAgainst1=Math.max(0,shotsAgainst1-1); else shotsAgainst2=Math.max(0,shotsAgainst2-1); renderScoreboard(); });
+  bindMini('sbFAplus', ()=>{ if(currentHalf===1) foulsAgainst1++; else foulsAgainst2++; renderScoreboard(); guardarPartidoLocal(); });
+  bindMini('sbFAminus',()=>{ if(currentHalf===1) foulsAgainst1=Math.max(0,foulsAgainst1-1); else foulsAgainst2=Math.max(0,foulsAgainst2-1); renderScoreboard(); guardarPartidoLocal(); });
+  bindMini('sbSFplus', ()=>{ if(currentHalf===1) shotsFor1++; else shotsFor2++; renderScoreboard(); guardarPartidoLocal(); });
+  bindMini('sbSFminus',()=>{ if(currentHalf===1) shotsFor1=Math.max(0,shotsFor1-1); else shotsFor2=Math.max(0,shotsFor2-1); renderScoreboard(); guardarPartidoLocal(); });
+  bindMini('sbSAplus', ()=>{ if(currentHalf===1) shotsAgainst1++; else shotsAgainst2++; renderScoreboard(); guardarPartidoLocal(); });
+  bindMini('sbSAminus',()=>{ if(currentHalf===1) shotsAgainst1=Math.max(0,shotsAgainst1-1); else shotsAgainst2=Math.max(0,shotsAgainst2-1); renderScoreboard(); guardarPartidoLocal(); });
 
   // ===== Cola local de sesiones pendientes (a prueba de cortes de señal) =====
   const PENDING_KEY = 'ce_live_pending';
@@ -8467,6 +8485,9 @@ window.__initEditor = function(){
     goalsAgainstManual=0; foulsAgainst1=0; foulsAgainst2=0;
     shotsFor1=0; shotsFor2=0; shotsAgainst1=0; shotsAgainst2=0;
     inSetup=false;
+    // Fijar la CATEGORÍA del partido ahora (queda pegada a este partido aunque
+    // después muevas la barra de categorías).
+    matchCategoria = (window.__getActiveCategory && window.__getActiveCategory()) || '';
     // Fijar el AUTOR del partido ahora, al arrancar (acá seguro hay sesión activa).
     // Así el autor queda registrado aunque después se retome el partido o __currentUserId
     // no esté disponible al finalizar. Preferimos el id ya conocido y confirmamos con la sesión.
@@ -8509,6 +8530,7 @@ window.__initEditor = function(){
     const evento = { t:nowSeconds(), type:'goal', pid, inName:jugadorNombre, outName:'', half:currentHalf, origen:null };
     events.unshift(evento);
     renderField(); renderTotals(); renderLog(); renderScoreboard();
+    guardarPartidoLocal();
     toast(window.t('mGoalOf')+jugadorNombre);
     // Abrir el cartelito rápido de "cómo fue el gol"
     abrirSelectorOrigenGol(evento, jugadorNombre);
@@ -8591,6 +8613,7 @@ window.__initEditor = function(){
     const st=ensure(pid); if(currentHalf===1) st.fouls1++; else st.fouls2++;
     events.unshift({ t:nowSeconds(), type:'foul', pid, inName:(squad.find(p=>p.id===pid)||{}).name||'', outName:'', half:currentHalf });
     renderField(); renderTotals(); renderLog(); renderScoreboard();
+    guardarPartidoLocal();
     toast(window.t('mFoulOf')+((squad.find(p=>p.id===pid)||{}).name||''));
   }
   function addShot(pid){
@@ -8599,12 +8622,14 @@ window.__initEditor = function(){
     if(currentHalf===1) shotsFor1++; else shotsFor2++;
     events.unshift({ t:nowSeconds(), type:'shot', pid, inName:(squad.find(p=>p.id===pid)||{}).name||'', outName:'', half:currentHalf });
     renderField(); renderTotals(); renderLog(); renderScoreboard();
+    guardarPartidoLocal();
     toast('🎯 Remate de '+((squad.find(p=>p.id===pid)||{}).name||''));
   }
   function addCard(pid){
     const st=ensure(pid); st.cards++;
     events.unshift({ t:nowSeconds(), type:'card', pid, inName:(squad.find(p=>p.id===pid)||{}).name||'', outName:'', half:currentHalf });
     renderField(); renderTotals(); renderLog(); renderScoreboard();
+    guardarPartidoLocal();
     toast(window.t('mCardTo')+((squad.find(p=>p.id===pid)||{}).name||''));
   }
   // ----- Restar (corregir un dato cargado por error) -----
@@ -8620,6 +8645,7 @@ window.__initEditor = function(){
     st.goals--;
     quitarUltimoEvento(pid, 'goal');
     renderField(); renderTotals(); renderLog(); renderScoreboard();
+    guardarPartidoLocal();
     toast('➖ Gol restado a '+((squad.find(p=>p.id===pid)||{}).name||''));
   }
   function restarFoul(pid){
@@ -8629,6 +8655,7 @@ window.__initEditor = function(){
     if(currentHalf===1) st.fouls1--; else st.fouls2--;
     quitarUltimoEvento(pid, 'foul');
     renderField(); renderTotals(); renderLog(); renderScoreboard();
+    guardarPartidoLocal();
     toast('➖ Falta restada a '+((squad.find(p=>p.id===pid)||{}).name||''));
   }
   function restarShot(pid){
@@ -8664,6 +8691,7 @@ window.__initEditor = function(){
     else { toast('No se puede deshacer este evento.'); return; }
     events.shift();
     renderField(); renderTotals(); renderLog(); renderScoreboard();
+    guardarPartidoLocal();
     toast('↩ '+msg);
   }
 
