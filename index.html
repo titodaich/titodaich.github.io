@@ -1574,6 +1574,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .calls-cell.reason-enfermedad{background:rgba(155,111,203,0.16);}
 .calls-cell.reason-viaje{background:rgba(47,143,203,0.14);}
 .calls-cell.reason-suspension{background:rgba(240,85,63,0.22);}
+.calls-cell.reason-custom{background:rgba(155,111,203,0.16);}
 .calls-legend{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.9;}
 
 /* ===== PRESENTISMO (planilla mensual) ===== */
@@ -11454,6 +11455,8 @@ window.__initEditor = function(){
   }
 
   function renderCalls(){
+    // Cargar las causas personalizadas (las mismas de Presentismo) para poder usarlas acá.
+    loadCustomCauses();
     const wrap = document.getElementById('callsWrap');
     if(squad.length === 0){
       wrap.innerHTML = '<div class="calls-empty">Primero cargá jugadores en el Plantel.</div>';
@@ -11485,9 +11488,10 @@ window.__initEditor = function(){
       tbody += `<tr><td class="player-name-cell"><span class="pn-num">${escapeHtml(p.number||'')}</span> ${escapeHtml(p.name)}</td>`;
       ordered.forEach(m => {
         const st = (m.calls && m.calls[p.id]) || '';
-        const cls = st==='yes'?'yes':(st==='no'?'no':(st?'reason reason-'+st:''));
-        const icon = st==='yes'?'✓':(st==='no'?'✕':(st==='lesion'?'🚑':(st==='enfermedad'?'🤒':(st==='viaje'?'✈️':(st==='suspension'?'🟥':'')))));
-        const title = st==='yes'?'Citado':(st==='no'?'No citado (decisión técnica)':(st==='lesion'?'Ausente por lesión':(st==='enfermedad'?'Ausente por enfermedad':(st==='viaje'?'Ausente por viaje':(st==='suspension'?'Ausente por suspensión':'Sin marcar')))));
+        const esCustom = st && st.startsWith('custom:');
+        const cls = st==='yes'?'yes':(st==='no'?'no':(st?(esCustom?'reason reason-custom':'reason reason-'+st):''));
+        const icon = attIcon(st);
+        const title = st==='yes'?'Citado':(st==='no'?'No citado (decisión técnica)':(st?attStName(st):'Sin marcar'));
         tbody += `<td class="calls-cell ${cls}" data-match="${m.id}" data-player="${p.id}" title="${title}">${icon}</td>`;
       });
       const total = matches.reduce((acc,m) => acc + ((m.calls && m.calls[p.id]==='yes')?1:0), 0);
@@ -11505,9 +11509,11 @@ window.__initEditor = function(){
         tbody += `<tr class="inv-row"><td class="player-name-cell"><span class="pn-num">${escapeHtml(inv.number||'')}</span> ${escapeHtml(inv.name)} <span class="inv-badge">sube de ${escapeHtml(inv.fromCat||'otra')}</span> <span class="inv-quitar" data-quitar="${inv.id}" title="Quitar de la convocatoria">✕ quitar</span></td>`;
         ordered.forEach(m => {
           const st = (m.calls && m.calls[inv.id]) || '';
-          const cls = st==='yes'?'yes':(st==='no'?'no':(st?'reason reason-'+st:''));
-          const icon = st==='yes'?'✓':(st==='no'?'✕':(st==='lesion'?'🚑':(st==='enfermedad'?'🤒':(st==='viaje'?'✈️':(st==='suspension'?'🟥':'')))));
-          tbody += `<td class="calls-cell ${cls}" data-match="${m.id}" data-player="${inv.id}">${icon}</td>`;
+          const esCustom = st && st.startsWith('custom:');
+          const cls = st==='yes'?'yes':(st==='no'?'no':(st?(esCustom?'reason reason-custom':'reason reason-'+st):''));
+          const icon = attIcon(st);
+          const ttl = st==='yes'?'Citado':(st==='no'?'No citado (decisión técnica)':(st?attStName(st):'Sin marcar'));
+          tbody += `<td class="calls-cell ${cls}" data-match="${m.id}" data-player="${inv.id}" title="${ttl}">${icon}</td>`;
         });
         const total = matches.reduce((acc,m) => acc + ((m.calls && m.calls[inv.id]==='yes')?1:0), 0);
         tbody += `<td class="total-col">${total}</td></tr>`;
@@ -11523,7 +11529,9 @@ window.__initEditor = function(){
     wrap.appendChild(topBar);
     const legend = document.createElement('div');
     legend.className = 'calls-legend';
-    legend.innerHTML = 'Tocá una celda para cambiar: <span class="cl-i cl-yes">✓ Citado</span> <span class="cl-i cl-no">✕ No citado (decisión)</span> <span class="cl-i cl-les">🚑 Lesión</span> <span class="cl-i cl-enf">🤒 Enfermedad</span> <span class="cl-i cl-via">✈️ Viaje</span> <span class="cl-i cl-sus">🟥 Suspensión</span>';
+    let legItems = 'Tocá una celda para cambiar: <span class="cl-i cl-yes">✓ Citado</span> <span class="cl-i cl-no">✕ No citado (decisión)</span> <span class="cl-i cl-les">🚑 Lesión</span> <span class="cl-i cl-enf">🤒 Enfermedad</span> <span class="cl-i cl-via">✈️ Viaje</span> <span class="cl-i cl-sus">🟥 Suspensión</span>';
+    attCustomCauses.forEach(c => { legItems += ' <span class="cl-i cl-cust">'+c.emoji+' '+escapeHtml(c.nombre)+'</span>'; });
+    legend.innerHTML = legItems;
     wrap.appendChild(legend);
     wrap.appendChild(table);
 
@@ -11536,8 +11544,10 @@ window.__initEditor = function(){
     });
 
     // Click en cada celda: cicla por todos los estados
-    // vacío → sí → no(decisión) → lesión → enfermedad → viaje → suspensión → vacío
-    const CICLO = ['', 'yes', 'no', 'lesion', 'enfermedad', 'viaje', 'suspension'];
+    // vacío → sí → no(decisión) → lesión → enfermedad → viaje → suspensión → [causas personalizadas] → vacío
+    // Las causas personalizadas son las mismas que creás en Presentismo, así se usan en los dos lados.
+    const CICLO = ['', 'yes', 'no', 'lesion', 'enfermedad', 'viaje', 'suspension']
+      .concat(attCustomCauses.map(c => 'custom:'+c.id));
     wrap.querySelectorAll('.calls-cell').forEach(cell => {
       cell.addEventListener('click', () => {
         const m = matches.find(x => x.id === cell.dataset.match);
