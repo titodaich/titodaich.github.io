@@ -5119,7 +5119,33 @@ form.addEventListener('submit', async (e) => {
     }
   } else {
     submitBtn.textContent = 'Entrando…';
-    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    // Login con REINTENTOS automáticos: en datos móviles a veces hay microcortes
+    // de red que se resuelven en 1-2 segundos. En vez de mostrar el error de una,
+    // reintentamos hasta 3 veces (solo si el fallo es de red, no si la clave está mal).
+    async function loginConReintentos(intentos){
+      let ultimoError = null;
+      for(let i = 0; i < intentos; i++){
+        try{
+          const res = await sb.auth.signInWithPassword({ email, password });
+          // Si es un error de credenciales (clave/email), NO reintentamos: es inútil.
+          if(res.error){
+            const msg = (res.error.message || '').toLowerCase();
+            const esDeRed = msg.includes('failed to fetch') || msg.includes('networkerror') || msg.includes('load failed') || msg.includes('network') || msg.includes('timeout');
+            if(!esDeRed) return res;         // error real (ej: clave incorrecta) → devolvemos ya
+            ultimoError = res.error;         // error de red → guardamos y reintentamos
+          } else {
+            return res;                       // login OK
+          }
+        }catch(e){ ultimoError = e; }
+        // Esperamos un poco antes de reintentar (0.8s, 1.6s), dándole tiempo a la red.
+        if(i < intentos - 1){
+          if(i === 0) submitBtn.textContent = 'Reintentando…';
+          await new Promise(r => setTimeout(r, 800 * (i + 1)));
+        }
+      }
+      return { data:null, error: ultimoError || new Error('network') };
+    }
+    const { data, error } = await loginConReintentos(3);
     submitBtn.disabled = false;
     submitBtn.textContent = 'Entrar';
     if(error){ showError(traducirError(error)); return; }
@@ -5162,7 +5188,7 @@ function traducirError(error){
     var comoInstalar = esIOS
       ? 'en Safari, tocá Compartir y después “Agregar a inicio”'
       : 'en Chrome, tocá el menú ⋮ y después “Instalar aplicación”';
-    return '⚠️ No pudimos conectar. Si estás en el wifi de un club o colegio, puede estar bloqueando la app.\n\nProbá:\n• Usar los datos móviles del teléfono\n• Instalar Benchone (' + comoInstalar + ')';
+    return '⚠️ No pudimos conectar (probamos varias veces). Puede ser una señal débil o inestable en este momento.\n\nProbá:\n• Esperar unos segundos y tocar Entrar de nuevo\n• Cambiar de wifi a datos móviles (o al revés)\n• Si estás en el wifi de un club o colegio, puede estar bloqueando la app\n• Reinstalar Benchone (' + comoInstalar + ')';
   }
   if(m.includes('Invalid login credentials')) return 'Email o contraseña incorrectos.';
   if(m.includes('User already registered')) return 'Ya existe una cuenta con ese email. Iniciá sesión.';
