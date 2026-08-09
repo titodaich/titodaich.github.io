@@ -16823,15 +16823,27 @@ document.getElementById('exportEachBtn').addEventListener('click', async () => {
     link.rel = 'manifest'; link.href = mURL;
     document.head.appendChild(link);
 
-    // Service worker REAL (archivo sw.js) — necesario para offline de verdad.
-    // Un SW embebido en blob no puede cachear la app; por eso usamos un archivo.
-    // Si sw.js no existe todavía en el server, esto falla silencioso y la app
-    // sigue andando igual que antes (online).
+    // ── Service worker DESACTIVADO a propósito ──
+    // El offline vía service worker causaba que, en iPhone, la app instalada
+    // (que usa el motor de Safari) mostrara "no estás conectado a Internet"
+    // aunque hubiera señal, por un SW viejo que quedaba atascado y no se podía
+    // limpiar fácil. Como la app necesita internet igual (login y datos en la
+    // nube), el offline aportaba poco. Por eso lo quitamos.
+    //
+    // Además AUTO-REPARAMOS: si el teléfono todavía tiene un SW viejo instalado,
+    // acá lo desregistramos y borramos sus cachés. Así, apenas el usuario abre la
+    // app una vez con internet, queda arreglado solo, sin tener que hacer nada.
     if('serviceWorker' in navigator){
-      window.addEventListener('load', function(){
-        var swPath = new URL('sw.js', window.location.href).href;
-        navigator.serviceWorker.register(swPath).catch(function(){ /* si falla, la app sigue andando igual (modo online) */ });
-      });
+      navigator.serviceWorker.getRegistrations().then(function(regs){
+        regs.forEach(function(reg){ reg.unregister().catch(function(){}); });
+      }).catch(function(){});
+    }
+    if(window.caches && caches.keys){
+      caches.keys().then(function(keys){
+        keys.forEach(function(k){
+          if(String(k).indexOf('benchone') !== -1) caches.delete(k).catch(function(){});
+        });
+      }).catch(function(){});
     }
   }catch(e){ /* si algo falla, no rompe la app */ }
 })();
