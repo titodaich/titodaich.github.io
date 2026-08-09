@@ -659,7 +659,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .rd-col{display:flex;flex-direction:column;gap:16px;}
 .rd-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;}
 .rd-card h3{font-family:'Oswald',sans-serif;font-size:14px;text-transform:uppercase;letter-spacing:0.8px;margin:0 0 14px;color:var(--muted);}
-.rd-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.rd-card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
 .rd-card-head h3{margin:0;}
 .rd-field{display:block;margin-bottom:14px;}
 .rd-field:last-child{margin-bottom:0;}
@@ -1002,6 +1002,16 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .live-totals-head span:not(:first-child),.live-total-row span:not(:first-child){text-align:center;font-family:'JetBrains Mono',monospace;}
 .live-totals{margin-top:6px;}
 .live-total-row{padding:8px 10px;border-bottom:1px solid rgba(51,73,94,0.4);font-size:13px;}
+/* Minutaje manual (editable) */
+.mm-manual-head,.mm-manual-row{display:grid;grid-template-columns:1fr 72px 72px 60px;gap:8px;align-items:center;}
+.mm-manual-head{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line);}
+.mm-manual-head span:not(:first-child){text-align:center;}
+.mm-manual-row{padding:6px 10px;border-bottom:1px solid rgba(51,73,94,0.4);font-size:13px;}
+.mm-manual-row .mm-name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mm-manual-row .mm-name small{color:var(--muted);font-weight:400;font-family:'JetBrains Mono',monospace;font-size:10px;margin-right:4px;}
+.mm-manual-row input{width:100%;min-height:40px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;color:var(--chalk);font-family:'JetBrains Mono',monospace;font-size:14px;text-align:center;padding:6px;}
+.mm-manual-row input:focus{outline:none;border-color:var(--accent-2);}
+.mm-manual-row .mm-total{text-align:center;font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent-2);}
 .live-total-row .ltr-name{font-weight:600;}
 .live-total-row .ltr-name small{color:var(--muted);font-weight:400;font-family:'JetBrains Mono',monospace;font-size:10px;margin-right:5px;}
 .live-total-row .ltr-total{color:var(--accent-2);font-weight:700;}
@@ -1385,7 +1395,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .g-detail{width:100%;margin-top:8px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-family:'Inter',sans-serif;font-size:12px;padding:7px 9px;}
 .g-detail:focus{outline:none;border-color:var(--accent-2);}
 .g-detail::placeholder{color:var(--muted);}
-.origin-tags{display:flex;flex-wrap:wrap;gap:5px;}
+.origin-tags{display:flex;flex-wrap:wrap;gap:8px;}
 .tags-banner{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
   background:linear-gradient(135deg, rgba(47,143,203,0.12), rgba(47,143,203,0.05));
   border:1px solid rgba(47,143,203,0.35);border-radius:12px;padding:14px 18px;margin-bottom:16px;}
@@ -1394,11 +1404,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .tags-banner-sub{font-size:12px;color:var(--muted);}
 .tags-banner .btn{flex-shrink:0;background:var(--accent-2);border-color:var(--accent-2);color:#10161C;font-weight:600;}
 .tags-banner .btn:hover{filter:brightness(1.08);}
-.origin-tag{background:var(--panel-2);border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:5px 10px;font-size:12px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .12s ease;}
+.origin-tag{background:var(--panel-2);border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:9px 14px;font-size:13px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .12s ease;min-height:40px;display:inline-flex;align-items:center;}
 .origin-tag:hover{color:var(--chalk);border-color:var(--muted);}
 .origin-tag.active{background:var(--accent-2);border-color:var(--accent-2);color:#10161C;font-weight:600;}
-.origin-subs{width:100%;display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;padding-top:6px;border-top:1px dashed var(--line);}
-.origin-sub{background:transparent;border:1px solid var(--accent-2);color:var(--accent-2);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;transition:all .12s ease;}
+.origin-subs{width:100%;display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);}
+.origin-sub{background:transparent;border:1px solid var(--accent-2);color:var(--accent-2);border-radius:8px;padding:8px 14px;font-size:12px;cursor:pointer;transition:all .12s ease;min-height:38px;display:inline-flex;align-items:center;}
 .origin-sub:hover{background:rgba(47,143,203,0.12);}
 .origin-sub.active{background:var(--accent-2);color:#10161C;font-weight:600;}
 .sub-breakdown{margin-top:6px;padding-left:12px;display:flex;flex-direction:column;gap:3px;}
@@ -2338,7 +2348,7 @@ body.editor-active #screen-editor{ display:block; }
   .goal-row-top .g-player{flex:1 1 100%;min-width:0;}
   .goal-row-top .g-min{width:auto;flex:1 1 auto;min-width:0;}
   .goal-row-v,.goal-row-top,.origin-tags,.g-detail{max-width:100%;box-sizing:border-box;}
-  .origin-tag{font-size:11px;padding:5px 8px;}
+  .origin-tag{font-size:13px;padding:9px 13px;}
 
   /* Sub-pestañas de estadísticas: scroll horizontal */
   .stats-subnav{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:6px;}
@@ -2421,7 +2431,7 @@ body.editor-active #screen-editor{ display:block; }
 
   /* --- 1. Botones cómodos para el dedo (mínimo 40px de alto) --- */
   .btn{min-height:42px; padding:10px 16px; font-size:13.5px;}
-  .btn.small{min-height:40px; padding:9px 14px; font-size:12.5px;}
+  .btn.small{min-height:44px; padding:10px 16px; font-size:12.5px; flex-shrink:0;}
   .stats-subtab{min-height:42px; padding:10px 14px; font-size:12.5px;}
   .cat-chip{min-height:38px; display:inline-flex; align-items:center;}
   .nav-tab{min-height:52px;}
@@ -2600,7 +2610,7 @@ body.editor-active #screen-editor{ display:block; }
 
 @media (max-width:400px){
   .btn{padding:10px 13px; font-size:13px;}
-  .btn.small{padding:9px 11px; font-size:12px;}
+  .btn.small{min-height:44px; padding:10px 14px; font-size:12.5px; flex-shrink:0;}
   .stats-subtab{padding:10px 11px; font-size:12px;}
 }
 
@@ -4552,12 +4562,18 @@ document.addEventListener('DOMContentLoaded', ()=>{
     }
   };
 
-  function loadScript(url){
+  // Carga un <script> con TIMEOUT. Sin esto, un CDN lento por datos móviles
+  // puede tardar 30-60s en disparar onerror y dejar la app colgada al abrir.
+  function loadScript(url, timeoutMs){
     return new Promise((resolve, reject) => {
       const s = document.createElement('script');
+      let listo = false;
+      const timer = setTimeout(() => {
+        if(!listo){ listo = true; s.onload = s.onerror = null; reject(new Error('timeout ' + url)); }
+      }, timeoutMs || 8000);
       s.src = url;
-      s.onload = () => resolve(url);
-      s.onerror = () => reject(new Error('falló ' + url));
+      s.onload = () => { if(!listo){ listo = true; clearTimeout(timer); resolve(url); } };
+      s.onerror = () => { if(!listo){ listo = true; clearTimeout(timer); reject(new Error('falló ' + url)); } };
       document.head.appendChild(s);
     });
   }
@@ -4566,23 +4582,29 @@ document.addEventListener('DOMContentLoaded', ()=>{
     if(lib.check()) return true;
     for(const url of lib.urls){
       try{
-        await loadScript(url);
+        await loadScript(url, 8000);
         if(lib.check()) return true;
       }catch(e){ /* probar el siguiente */ }
     }
     return false;
   }
 
-  // Devuelve una promesa que resuelve cuando (al menos) Supabase cargó.
-  // Exponemos un reintento de Supabase para usarlo si el primer intento falló
-  // (ej. app instalada abriendo con señal intermitente).
+  // Reintento de Supabase disponible por si el primer intento falló (raro, ya
+  // que Supabase viaja EMBEBIDO en la app; window.supabase existe antes de esto).
   window.__reintentarSupabase = function(){ return loadWithFallback(LIBS.supabase); };
+
+  // jszip y xlsx se usan SOLO para exportar (Excel/ZIP), mucho después del login.
+  // Las cargamos en SEGUNDO PLANO para que NUNCA bloqueen el arranque ni el
+  // login. Los exportadores ya chequean si window.XLSX / JSZip existen antes de
+  // usarlas, así que si el usuario exporta antes de que terminen, avisan solas.
+  (function cargarExtrasEnBackground(){
+    try{ loadWithFallback(LIBS.jszip); }catch(e){}
+    try{ loadWithFallback(LIBS.xlsx); }catch(e){}
+  })();
+
+  // El arranque SOLO espera a Supabase (que ya está embebido → resuelve al toque).
   return (async () => {
-    const [okSupabase] = await Promise.all([
-      loadWithFallback(LIBS.supabase),
-      loadWithFallback(LIBS.jszip),
-      loadWithFallback(LIBS.xlsx)
-    ]);
+    const okSupabase = await loadWithFallback(LIBS.supabase);
     return { supabase: okSupabase };
   })();
 })();
@@ -5006,7 +5028,15 @@ async function guardarPerfil(userId, email, perfil){
   await initSupabase();
   if(!sb) return;
   try{
-    const { data: { session } } = await sb.auth.getSession();
+    // Blindaje de arranque: getSession() puede colgarse si la app abre con
+    // señal lenta (datos móviles) mientras intenta refrescar un token viejo.
+    // Le damos como máximo 4s: si tarda más, seguimos y mostramos el login
+    // igual (el usuario siempre puede entrar), en vez de quedar en el splash.
+    const sesionConTimeout = Promise.race([
+      sb.auth.getSession(),
+      new Promise((resolve) => setTimeout(() => resolve({ data: { session: null } }), 4000))
+    ]);
+    const { data: { session } } = await sesionConTimeout;
     if(session){
       // Verificar suspensión
       try{
@@ -8335,7 +8365,7 @@ window.__initEditor = function(){
     let golesFavor = 0;
     const goleadores = [];
     Object.keys(totals).forEach(name => {
-      if(name === '__rival') return;
+      if(name === '__rival' || name === '__manual') return;
       const g = totals[name] && totals[name].goals;
       if(g > 0){ golesFavor += g; goleadores.push({ name, g }); }
     });
@@ -8552,6 +8582,11 @@ window.__initEditor = function(){
   // ===== Gol / Falta =====
   function addGoal(pid){
     const st=ensure(pid); st.goals++;
+    // Un gol es, por definición, un remate que entró: sumamos el remate
+    // automáticamente (al jugador y al total del equipo del tiempo actual),
+    // igual que se hace con el gol en contra del rival.
+    st.shots=(st.shots||0)+1;
+    if(currentHalf===1) shotsFor1++; else shotsFor2++;
     const jugadorNombre = (squad.find(p=>p.id===pid)||{}).name||'';
     const evento = { t:nowSeconds(), type:'goal', pid, inName:jugadorNombre, outName:'', half:currentHalf, origen:null };
     events.unshift(evento);
@@ -8669,6 +8704,12 @@ window.__initEditor = function(){
     const st=ensure(pid);
     if((st.goals||0)<=0){ toast('No hay goles para restar'); return; }
     st.goals--;
+    // Al restar el gol, restamos también el remate que se había sumado con él
+    // (sin bajar de 0), para que gol y remate queden coherentes.
+    if((st.shots||0)>0){
+      st.shots--;
+      if(currentHalf===1){ if(shotsFor1>0) shotsFor1--; } else { if(shotsFor2>0) shotsFor2--; }
+    }
     quitarUltimoEvento(pid, 'goal');
     renderField(); renderTotals(); renderLog(); renderScoreboard();
     guardarPartidoLocal();
@@ -10355,18 +10396,131 @@ window.__initEditor = function(){
     try{
       const clubId = await window.__getClubId(); if(!clubId) return;
       const { data } = await sb.from('live_sessions').select('*').eq('club_id', clubId).eq('match_id', matchId).order('created_at',{ascending:false});
-      if(!data || data.length===0) return;   // no hay minutaje para este partido
-      const s = data[0];
-      const totals = s.totals || {};
-      const rows = Object.keys(totals).filter(k=>k!=='__rival').map(name=>({name, ...totals[name]})).sort((a,b)=>(b.total||0)-(a.total||0));
-      if(rows.length===0) return;
-      let html = `<div class="live-totals-head" style="margin-top:4px;"><span>Jugador</span><span>1er T</span><span>2do T</span><span>Total</span></div>`;
-      rows.forEach(r=>{
-        html += `<div class="live-total-row"><span class="ltr-name">${escapeHtml(r.name)}</span><span>${fmtMinM(r.t1)}</span><span>${fmtMinM(r.t2)}</span><span class="ltr-total">${fmtMinM(r.total)}</span></div>`;
+      const s = (data && data.length) ? data[0] : null;
+      const esManual = s && s.totals && s.totals.__manual === true;
+
+      // Caso A: hay minutaje de 🔴 En Vivo (no manual) → SOLO LECTURA, como siempre.
+      if(s && !esManual){
+        const totals = s.totals || {};
+        const rows = Object.keys(totals).filter(k=>k!=='__rival'&&k!=='__manual').map(name=>({name, ...totals[name]})).sort((a,b)=>(b.total||0)-(a.total||0));
+        if(rows.length===0) return;
+        let html = `<div class="live-totals-head" style="margin-top:4px;"><span>Jugador</span><span>1er T</span><span>2do T</span><span>Total</span></div>`;
+        rows.forEach(r=>{
+          html += `<div class="live-total-row"><span class="ltr-name">${escapeHtml(r.name)}</span><span>${fmtMinM(r.t1)}</span><span>${fmtMinM(r.t2)}</span><span class="ltr-total">${fmtMinM(r.total)}</span></div>`;
+        });
+        body.innerHTML = html;
+        src.textContent = 'Cargado desde 🔴 En vivo (no editable)';
+        card.style.display = 'block';
+        return;
+      }
+
+      // Caso B: NO hay minutaje de En Vivo → plantilla MANUAL editable.
+      // Armamos la lista de convocados: plantel de la categoría + invitados del partido.
+      let jugadores = (squad||[]).map(p=>({id:p.id, name:p.name, number:p.number||''}));
+      if(currentMatch && Array.isArray(currentMatch.invitados)){
+        currentMatch.invitados.forEach(inv=>{
+          if(inv && inv.id && !jugadores.some(j=>j.id===inv.id)) jugadores.push({id:inv.id, name:inv.name, number:inv.number||''});
+        });
+      }
+      if(jugadores.length===0){ card.style.display='none'; return; }
+
+      // Valores previos ya cargados a mano (si los hay), por nombre. Guardados en
+      // segundos (como En Vivo) para que el resto de la app los lea igual; acá los
+      // mostramos en minutos enteros.
+      const prev = (esManual && s.totals) ? s.totals : {};
+      const min = (seg)=> Math.round((seg||0)/60);
+
+      let html = `<p class="scout-sub" style="margin:0 0 12px;">Cargá a mano los minutos de cada jugador. El total se calcula solo. Se guarda cuando tocás <b>Guardar minutaje</b>.</p>`;
+      html += `<div class="mm-manual-head"><span>Jugador</span><span>1er T</span><span>2do T</span><span>Total</span></div>`;
+      jugadores.forEach(j=>{
+        const pv = prev[j.name] || {};
+        html += `<div class="mm-manual-row" data-name="${escapeHtml(j.name)}">
+          <span class="mm-name">${j.number?('<small>#'+escapeHtml(String(j.number))+'</small> '):''}${escapeHtml(j.name)}</span>
+          <input class="mm-t1" type="number" inputmode="numeric" min="0" placeholder="0" value="${pv.t1?min(pv.t1):''}">
+          <input class="mm-t2" type="number" inputmode="numeric" min="0" placeholder="0" value="${pv.t2?min(pv.t2):''}">
+          <span class="mm-total">0</span>
+        </div>`;
       });
+      html += `<div style="margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <button class="btn primary" id="mmSaveBtn">💾 Guardar minutaje</button>
+        <span class="rd-saved" id="mmSavedMsg"></span>
+      </div>`;
       body.innerHTML = html;
-      src.textContent = 'Cargado desde 🔴 En vivo';
+      src.textContent = 'Carga manual (sin En Vivo)';
       card.style.display = 'block';
+
+      // Recalcular el total de cada fila al escribir.
+      function recalcRow(row){
+        const t1 = parseInt(row.querySelector('.mm-t1').value||'0',10) || 0;
+        const t2 = parseInt(row.querySelector('.mm-t2').value||'0',10) || 0;
+        row.querySelector('.mm-total').textContent = (t1 + t2);
+      }
+      body.querySelectorAll('.mm-manual-row').forEach(row=>{
+        recalcRow(row);
+        row.querySelector('.mm-t1').addEventListener('input', ()=>recalcRow(row));
+        row.querySelector('.mm-t2').addEventListener('input', ()=>recalcRow(row));
+      });
+
+      // Guardar: construimos totals en el MISMO formato que En Vivo (segundos),
+      // marcado con __manual:true, y lo insertamos/actualizamos en live_sessions.
+      const saveBtn = body.querySelector('#mmSaveBtn');
+      const savedMsg = body.querySelector('#mmSavedMsg');
+      if(saveBtn) saveBtn.addEventListener('click', async ()=>{
+        saveBtn.disabled = true; if(savedMsg) savedMsg.textContent = 'Guardando…';
+        const totals = { __manual: true };
+        let jugadoresConMinutos = 0;
+        body.querySelectorAll('.mm-manual-row').forEach(row=>{
+          const name = row.dataset.name;
+          const t1 = (parseInt(row.querySelector('.mm-t1').value||'0',10)||0) * 60; // a segundos
+          const t2 = (parseInt(row.querySelector('.mm-t2').value||'0',10)||0) * 60;
+          // Solo guardamos a los jugadores que tengan minutos cargados (>0).
+          // Los que quedan en cero NO se incluyen: no computan en ficha ni anuales.
+          if(t1 + t2 > 0){
+            totals[name] = { t1, t2, total:t1+t2, goals:0, fouls:0, fouls1:0, fouls2:0, cards:0, shots:0, number:'' };
+            jugadoresConMinutos++;
+          }
+        });
+        const rivalName = (currentMatch && currentMatch.rival) ? currentMatch.rival : 'Partido';
+        try{
+          const { data:{ session } } = await sb.auth.getSession();
+
+          // Si NO hay ningún jugador con minutos, no debe computar nada.
+          if(jugadoresConMinutos === 0){
+            // Si había una sesión manual guardada antes y ahora quedó toda en cero,
+            // la borramos para que deje de aparecer en minutaje/ficha/anuales.
+            if(esManual && s && s.id){
+              await sb.from('live_sessions').delete().eq('id', s.id);
+              toast('Minutaje vacío: se quitó de las estadísticas');
+            } else {
+              toast('No cargaste minutos: no se guardó nada');
+            }
+            loadMatchMinutes(matchId);
+            return;
+          }
+
+          // Conservamos el marcador del rival solo si ya existía (no lo pisamos).
+          if(prev.__rival) totals.__rival = prev.__rival;
+
+          if(esManual && s && s.id){
+            const { error } = await sb.from('live_sessions').update({ totals, name:rivalName, updated_at:new Date().toISOString() }).eq('id', s.id);
+            if(error) throw error;
+          } else {
+            const { error } = await sb.from('live_sessions').insert({
+              club_id: clubId, categoria: catActual(), temporada:(window.__getTemporada?window.__getTemporada():new Date().getFullYear()),
+              name: rivalName, match_id: matchId, events: [], totals, created_by: session?session.user.id:null
+            });
+            if(error) throw error;
+          }
+          if(savedMsg) savedMsg.textContent = 'Guardado ✓';
+          toast('Minutaje guardado');
+          loadMatchMinutes(matchId); // recargar (ahora ya existe la sesión manual)
+        }catch(e){
+          console.error('guardar minutaje manual', e);
+          if(savedMsg) savedMsg.textContent = '';
+          toast('No se pudo guardar el minutaje');
+          saveBtn.disabled = false;
+        }
+      });
     }catch(e){ /* si falla (ej: falta columna), no mostrar nada */ }
   }
 
@@ -10713,9 +10867,11 @@ window.__initEditor = function(){
     const tb=table.querySelector('tbody');
     sessions.forEach(s=>{
       const when=s.created_at?new Date(s.created_at).toLocaleDateString('es-AR'):'';
-      const nJug=s.totals?Object.keys(s.totals).filter(k=>k!=='__rival').length:0;
+      const nJug=s.totals?Object.keys(s.totals).filter(k=>k!=='__rival'&&k!=='__manual').length:0;
+      const esManual = s.totals && s.totals.__manual === true;
+      const origenBadge = esManual ? ' <small style="color:var(--muted);font-weight:400;">✎ manual</small>' : ' <small style="color:var(--accent-2);font-weight:400;">🔴 en vivo</small>';
       const tr=document.createElement('tr');
-      tr.innerHTML=`<td data-label="Partido"><span class="mt-fecha-badge">${escapeHtml(s.name||'Partido')}</span></td><td class="mt-fecha" data-label="Fecha">${when}</td><td data-label="Jugadores">${nJug} jugadores</td><td class="mt-open"><button class="btn small mt-open-btn">Ver detalle →</button></td><td class="mt-del"><button class="mt-del-btn" title="Borrar este partido" aria-label="Borrar">✕</button></td>`;
+      tr.innerHTML=`<td data-label="Partido"><span class="mt-fecha-badge">${escapeHtml(s.name||'Partido')}</span>${origenBadge}</td><td class="mt-fecha" data-label="Fecha">${when}</td><td data-label="Jugadores">${nJug} jugadores</td><td class="mt-open"><button class="btn small mt-open-btn">Ver detalle →</button></td><td class="mt-del"><button class="mt-del-btn" title="Borrar este partido" aria-label="Borrar">✕</button></td>`;
       tr.querySelector('.mt-open-btn').addEventListener('click',()=>showMinutesDetail(s));
       tr.querySelector('.mt-del-btn').addEventListener('click',async()=>{
         if(!confirm('¿Borrar el minutaje de "'+(s.name||'Partido')+'"? Esta acción no se puede deshacer.')) return;
@@ -10742,7 +10898,7 @@ window.__initEditor = function(){
     const totals=s.totals||{};
     const rival = totals.__rival || { goalsAgainst:0, foulsAgainst:0 };
     // ordenar por total desc (excluyendo la entrada especial del rival)
-    const rows=Object.keys(totals).filter(k=>k!=='__rival').map(name=>({name, ...totals[name]})).sort((a,b)=>(b.total||0)-(a.total||0));
+    const rows=Object.keys(totals).filter(k=>k!=='__rival'&&k!=='__manual').map(name=>({name, ...totals[name]})).sort((a,b)=>(b.total||0)-(a.total||0));
     // marcador: goles/faltas a favor son la suma de los jugadores
     let golesFavor=0, faltasFavor=0;
     rows.forEach(r=>{ golesFavor+=(r.goals||0); faltasFavor+=(r.fouls||0); });
@@ -12021,14 +12177,14 @@ window.__initEditor = function(){
         totalFor += (rival.shotsFor != null ? rival.shotsFor : ((rival.shotsFor1||0)+(rival.shotsFor2||0)));
         totalAgainst += (rival.shotsAgainst != null ? rival.shotsAgainst : ((rival.shotsAgainst1||0)+(rival.shotsAgainst2||0)));
         Object.keys(t).forEach(name => {
-          if(name === '__rival') return;
+          if(name === '__rival' || name === '__manual') return;
           const sh = t[name] && t[name].shots;
           if(sh) porJugador[name] = (porJugador[name]||0) + sh;
         });
         // Goles/tarjetas: solo si la sesión NO está vinculada a un partido.
         if(!s.match_id){
           Object.keys(t).forEach(name => {
-            if(name === '__rival') return;
+            if(name === '__rival' || name === '__manual') return;
             const g = t[name] && t[name].goals;
             const c = t[name] && t[name].cards;
             if(g) golesLive[name] = (golesLive[name]||0) + g;
@@ -13231,7 +13387,7 @@ window.__initEditor = function(){
     sessions.forEach(s => {
       const t = s.totals || {};
       Object.keys(t).forEach(name => {
-        if(name === '__rival') return;
+        if(name === '__rival' || name === '__manual') return;
         if(!stat[name]) return;   // jugador que ya no está en el plantel
         const tot = t[name].total || 0;
         if(tot > 0){ stat[name].minutos += tot; stat[name].sesiones++; }

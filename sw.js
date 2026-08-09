@@ -8,7 +8,14 @@
    Es el único mantenimiento que pide el offline.
    ══════════════════════════════════════════════════════════════ */
 
-const CACHE_VERSION = 'benchone-v2';
+const CACHE_VERSION = 'benchone-v3';
+
+// Cuánto esperamos a la red antes de abrir la copia guardada (en ms).
+// Esto es lo que evita que la APP INSTALADA se quede colgada al abrir
+// cuando la señal de datos móviles es lenta o hace un microcorte:
+// si en este tiempo la red no respondió, servimos lo guardado y la app
+// abre igual. Con wifi rápido, la red gana siempre y ni se nota.
+const NET_TIMEOUT_MS = 3500;
 
 // CDNs de librerías (Supabase, jszip, xlsx). Se cachean con "cache-first": la
 // primera vez que cargan bien quedan guardadas, y después cargan al instante sin
@@ -47,11 +54,38 @@ self.addEventListener('activate', function(event){
   );
 });
 
+// Helper: hace un fetch que "se rinde" si la red tarda más de NET_TIMEOUT_MS.
+// Devuelve la respuesta de red si llega a tiempo; si no, rechaza para que
+// el que llama pueda ir al cache. No aborta la descarga real: si termina un
+// poco después, igual la guardamos para la próxima.
+function fetchConTimeout(req){
+  return new Promise(function(resolve, reject){
+    var listo = false;
+    var timer = setTimeout(function(){
+      if(!listo){ listo = true; reject(new Error('net-timeout')); }
+    }, NET_TIMEOUT_MS);
+
+    fetch(req).then(function(res){
+      clearTimeout(timer);
+      // Guardamos una copia fresca aunque el timeout ya haya disparado.
+      try{
+        var copy = res.clone();
+        caches.open(CACHE_VERSION).then(function(cache){ cache.put(req, copy).catch(function(){}); });
+      }catch(e){}
+      if(!listo){ listo = true; resolve(res); }
+    }).catch(function(err){
+      clearTimeout(timer);
+      if(!listo){ listo = true; reject(err); }
+    });
+  });
+}
+
 // Estrategia de red:
 //  - Peticiones a Supabase / APIs externas: SIEMPRE de la red (nunca cache).
 //    Así los datos están siempre frescos y no rompemos el login/guardado.
-//  - La app en sí (html/css/js/img del mismo origen): "network-first" con
-//    respaldo a cache. Si hay internet, ve lo último; si no, abre lo guardado.
+//  - La app en sí (html/css/js/img del mismo origen): "network-first con
+//    TIMEOUT" con respaldo a cache. Si hay internet rápido, ve lo último;
+//    si la red tarda (datos móviles flojos) o no hay, abre lo guardado.
 self.addEventListener('fetch', function(event){
   const req = event.request;
 
@@ -84,19 +118,16 @@ self.addEventListener('fetch', function(event){
     return; // el navegador maneja la petición normalmente
   }
 
-  // App del mismo origen: network-first con respaldo a cache.
+  // App del mismo origen: network-first CON TIMEOUT y respaldo a cache.
+  // Si la red responde a tiempo → versión fresca (y se guarda copia).
+  // Si la red tarda demasiado o falla → abrimos lo guardado; si es una
+  // navegación y no hay copia exacta, caemos al index.html guardado.
   event.respondWith(
-    fetch(req).then(function(res){
-      // Guardamos una copia fresca para el próximo offline.
-      const copy = res.clone();
-      caches.open(CACHE_VERSION).then(function(cache){
-        cache.put(req, copy).catch(function(){});
-      });
-      return res;
-    }).catch(function(){
-      // Sin internet: servimos lo guardado. Si es una navegación, el index.
+    fetchConTimeout(req).catch(function(){
       return caches.match(req).then(function(hit){
-        return hit || caches.match('./index.html');
+        if(hit) return hit;
+        if(req.mode === 'navigate') return caches.match('./index.html');
+        return caches.match('./index.html'); // último respaldo razonable
       });
     })
   );
