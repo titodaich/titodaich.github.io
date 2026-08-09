@@ -9683,7 +9683,7 @@ window.__initEditor = function(){
       let pq = sb.from('players').select('*').eq('club_id', clubId);
       pq = cat ? pq.eq('categoria', cat) : pq.is('categoria', null);
       const pRes = await pq;
-      const todos = (pRes.data||[]).map(p => ({ id:p.id, name:p.name, number:p.number||'', position:p.position||'', photo:p.photo||'', att_excluido: !!p.att_excluido, archivado: !!p.archivado }));
+      const todos = (pRes.data||[]).map(p => ({ id:p.id, name:p.name, number:p.number||'', position:p.position||'', photo:p.photo||'', att_excluido: !!p.att_excluido, archivado: !!p.archivado, anio_nacimiento: p.anio_nacimiento||null, pierna: p.pierna||null, notas: p.notas||null, nacimiento: p.nacimiento||null }));
       // squad = solo los ACTIVOS (los archivados no aparecen en ninguna lista).
       squad = todos.filter(p => !p.archivado);
       // Guardamos los archivados aparte para el panel "Archivo".
