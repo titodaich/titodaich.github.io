@@ -10971,6 +10971,12 @@ window.__initEditor = function(){
       if(!arr.includes(matchId)){ arr.push(matchId); localStorage.setItem(claveDescartados(), JSON.stringify(arr)); }
     }catch(e){}
   }
+  function restaurarPendiente(matchId){
+    try{
+      const arr = obtenerPendientesDescartados().filter(id => id !== matchId);
+      localStorage.setItem(claveDescartados(), JSON.stringify(arr));
+    }catch(e){}
+  }
   // Abre el partido en el editor de estadísticas para cargar el minutaje a mano.
   function abrirPartidoParaMinutaje(matchId){
     const m = (matches||[]).find(x=>x.id===matchId);
@@ -11232,6 +11238,9 @@ window.__initEditor = function(){
         try{
           const { error }=await sbx.from('live_sessions').delete().eq('id', s.id);
           if(error){ toast('No se pudo borrar'); return; }
+          // Si la sesión estaba vinculada a un partido, lo marcamos como descartado
+          // para que NO reaparezca como "pendiente" apenas se borra el minutaje.
+          if(s.match_id) descartarPendiente(s.match_id);
           toast('Partido borrado');
           renderMinutes();
         }catch(e){ console.error('del minutes lista', e); toast('No se pudo borrar'); }
@@ -11239,6 +11248,43 @@ window.__initEditor = function(){
       tb.appendChild(tr);
     });
     list.appendChild(table);
+
+    // Botón para ver los partidos OCULTOS (descartados) y poder restaurarlos.
+    const ocultosIds = obtenerPendientesDescartados();
+    const ocultos = (matches||[]).filter(m => ocultosIds.includes(m.id));
+    if(ocultos.length > 0){
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'margin-top:14px;';
+      wrap.innerHTML = `<button class="btn small" id="mtVerOcultos" style="opacity:.8;">👁 Ver partidos ocultos (${ocultos.length})</button>
+        <div id="mtOcultosBox" style="display:none;margin-top:10px;"></div>`;
+      list.appendChild(wrap);
+      const box = wrap.querySelector('#mtOcultosBox');
+      wrap.querySelector('#mtVerOcultos').addEventListener('click', ()=>{
+        if(box.style.display==='none'){
+          let h = '<table class="match-table minutes-table"><tbody>';
+          ocultos.forEach(m=>{
+            const when = m.date ? new Date(m.date+'T00:00:00').toLocaleDateString('es-AR') : '';
+            h += `<tr data-id="${escapeHtml(m.id)}"><td data-label="Partido"><span class="mt-fecha-badge">${escapeHtml(m.rival||'Partido')}</span> <small style="color:var(--muted);">oculto</small></td><td class="mt-fecha" data-label="Fecha">${when}</td><td></td><td class="mt-open"><button class="btn small mt-restore-btn">↩ Restaurar</button></td><td></td></tr>`;
+          });
+          h += '</tbody></table>';
+          box.innerHTML = h;
+          box.querySelectorAll('.mt-restore-btn').forEach(b=>{
+            b.addEventListener('click', ()=>{
+              const id = b.closest('tr').dataset.id;
+              restaurarPendiente(id);
+              toast('Partido restaurado');
+              renderMinutes();
+            });
+          });
+          box.style.display='block';
+          wrap.querySelector('#mtVerOcultos').textContent = 'Ocultar lista';
+        } else {
+          box.style.display='none';
+          wrap.querySelector('#mtVerOcultos').textContent = `👁 Ver partidos ocultos (${ocultos.length})`;
+        }
+      });
+    }
+
     renderMinutesCharts();   // gráficos y comparativas, debajo de la lista
   }
 
@@ -17146,27 +17192,26 @@ document.getElementById('exportEachBtn').addEventListener('click', async () => {
     link.rel = 'manifest'; link.href = mURL;
     document.head.appendChild(link);
 
-    // ── Service worker DESACTIVADO a propósito ──
-    // El offline vía service worker causaba que, en iPhone, la app instalada
-    // (que usa el motor de Safari) mostrara "no estás conectado a Internet"
-    // aunque hubiera señal, por un SW viejo que quedaba atascado y no se podía
-    // limpiar fácil. Como la app necesita internet igual (login y datos en la
-    // nube), el offline aportaba poco. Por eso lo quitamos.
-    //
-    // Además AUTO-REPARAMOS: si el teléfono todavía tiene un SW viejo instalado,
-    // acá lo desregistramos y borramos sus cachés. Así, apenas el usuario abre la
-    // app una vez con internet, queda arreglado solo, sin tener que hacer nada.
-    if('serviceWorker' in navigator){
-      navigator.serviceWorker.getRegistrations().then(function(regs){
-        regs.forEach(function(reg){ reg.unregister().catch(function(){}); });
-      }).catch(function(){});
-    }
+    // ── Service worker: OFFLINE reactivado (versión blindada) ──
+    // Antes de registrar el SW nuevo, LIMPIAMOS cualquier caché viejo de Benchone
+    // (los de versiones anteriores rotas). El SW nuevo maneja su propia versión,
+    // pero borrar acá los caches viejos ayuda a que teléfonos "envenenados" con
+    // la versión rota se destraben solos al abrir la app con internet.
     if(window.caches && caches.keys){
       caches.keys().then(function(keys){
         keys.forEach(function(k){
-          if(String(k).indexOf('benchone') !== -1) caches.delete(k).catch(function(){});
+          // Borramos caches de versiones viejas (v1, v2, v3), no el actual.
+          if(String(k).indexOf('benchone') !== -1 && k !== 'benchone-v4'){ caches.delete(k).catch(function(){}); }
         });
       }).catch(function(){});
+    }
+    // Registramos el service worker real (sw.js). Si el archivo no está en el
+    // server, esto falla en silencio y la app sigue andando online.
+    if('serviceWorker' in navigator){
+      window.addEventListener('load', function(){
+        var swPath = new URL('sw.js', window.location.href).href;
+        navigator.serviceWorker.register(swPath).catch(function(){ /* si falla, la app sigue online */ });
+      });
     }
   }catch(e){ /* si algo falla, no rompe la app */ }
 })();

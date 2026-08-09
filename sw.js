@@ -1,40 +1,116 @@
 /* ══════════════════════════════════════════════════════════════
-   BENCHONE — Service Worker NEUTRALIZADO (auto-desinstalable)
+   BENCHONE — Service Worker (offline BLINDADO)
 
-   El offline por service worker causaba, en iPhone, que la app
-   instalada mostrara "no estás conectado a Internet" aunque
-   hubiera señal (un SW viejo quedaba atascado). Como la app
-   necesita internet igual (login y datos en la nube), lo quitamos.
+   ▓▓▓ IMPORTANTE — CADA VEZ QUE PUBLIQUES CAMBIOS ▓▓▓
+   Subí el número de CACHE_VERSION (v4 → v5 → v6 ...).
+   Si no lo cambiás, los usuarios que ya instalaron la app pueden
+   seguir viendo la versión vieja guardada en su teléfono.
 
-   Este archivo YA NO cachea nada. Su única función es LIMPIAR:
-   se activa, borra todos los cachés viejos de Benchone y se
-   desregistra solo. Así, cualquier teléfono que todavía tenga un
-   service worker viejo queda arreglado apenas abre la app.
+   Este SW está diseñado para que NUNCA muestre el error
+   "no estás conectado a Internet" por su culpa: ante cualquier
+   fallo de red, sirve la copia guardada, y si no la tiene, va a
+   la red directo. Nunca devuelve una respuesta vacía.
    ══════════════════════════════════════════════════════════════ */
 
+const CACHE_VERSION = 'benchone-v4';
+
+// Cuánto esperamos a la red antes de abrir la copia guardada (ms).
+// Evita que la app instalada se cuelgue al abrir con señal lenta.
+const NET_TIMEOUT_MS = 3500;
+
+const LIB_CDN_HOSTS = ['cdn.jsdelivr.net', 'unpkg.com', 'cdnjs.cloudflare.com'];
+const APP_SHELL = ['./', './index.html', './logo.png'];
+
 self.addEventListener('install', function(event){
-  self.skipWaiting(); // no esperar: activar de inmediato
+  self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_VERSION).then(function(cache){
+      return Promise.all(APP_SHELL.map(function(url){
+        return cache.add(url).catch(function(){});
+      }));
+    })
+  );
 });
 
 self.addEventListener('activate', function(event){
   event.waitUntil(
     caches.keys().then(function(keys){
-      // Borramos todos los cachés (los de Benchone y cualquier otro que hubiéramos dejado).
-      return Promise.all(keys.map(function(k){ return caches.delete(k); }));
-    }).then(function(){
-      return self.clients.claim();
-    }).then(function(){
-      // Nos desregistramos: a partir de acá, el navegador maneja todo directo
-      // a la red, como si nunca hubiera habido service worker.
-      return self.registration.unregister();
-    }).then(function(){
-      // Recargamos las pestañas abiertas para que tomen la app sin SW.
-      return self.clients.matchAll({ type: 'window' }).then(function(clients){
-        clients.forEach(function(client){ try{ client.navigate(client.url); }catch(e){} });
-      });
-    }).catch(function(){})
+      return Promise.all(keys.map(function(k){
+        if(k !== CACHE_VERSION) return caches.delete(k);
+      }));
+    }).then(function(){ return self.clients.claim(); })
   );
 });
 
-// No interceptamos NINGUNA petición: todo pasa directo a la red.
-// (Sin handler de 'fetch', el navegador se encarga normalmente.)
+// fetch con timeout: se rinde si la red tarda más de NET_TIMEOUT_MS,
+// pero igual guarda la respuesta si llega tarde (para el próximo offline).
+function fetchConTimeout(req){
+  return new Promise(function(resolve, reject){
+    var listo = false;
+    var timer = setTimeout(function(){
+      if(!listo){ listo = true; reject(new Error('net-timeout')); }
+    }, NET_TIMEOUT_MS);
+    fetch(req).then(function(res){
+      clearTimeout(timer);
+      try{
+        var copy = res.clone();
+        caches.open(CACHE_VERSION).then(function(cache){ cache.put(req, copy).catch(function(){}); });
+      }catch(e){}
+      if(!listo){ listo = true; resolve(res); }
+    }).catch(function(err){
+      clearTimeout(timer);
+      if(!listo){ listo = true; reject(err); }
+    });
+  });
+}
+
+self.addEventListener('fetch', function(event){
+  const req = event.request;
+  if(req.method !== 'GET'){ return; }
+  const url = new URL(req.url);
+
+  // Librerías de CDN (Supabase, jszip, xlsx): cache-first.
+  if(LIB_CDN_HOSTS.indexOf(url.hostname) !== -1){
+    event.respondWith(
+      caches.match(req).then(function(hit){
+        if(hit) return hit;
+        return fetch(req).then(function(res){
+          const copy = res.clone();
+          caches.open(CACHE_VERSION).then(function(cache){ cache.put(req, copy).catch(function(){}); });
+          return res;
+        });
+      })
+    );
+    return;
+  }
+
+  // Otros orígenes (Supabase datos/login, fuentes): directo a la red.
+  if(url.origin !== self.location.origin){ return; }
+
+  // NAVEGACIÓN (abrir la app): BLINDADO — nunca devuelve vacío.
+  if(req.mode === 'navigate'){
+    event.respondWith(
+      fetchConTimeout(req).catch(function(){
+        return caches.match(req).then(function(hit){
+          if(hit) return hit;
+          return caches.match('./index.html').then(function(idx){
+            if(idx) return idx;
+            return fetch(req); // último recurso: red sin timeout
+          });
+        });
+      })
+    );
+    return;
+  }
+
+  // Resto de recursos del mismo origen (css/js/img): network-first con timeout,
+  // con respaldo a cache y, si no hay, a la red directo.
+  event.respondWith(
+    fetchConTimeout(req).catch(function(){
+      return caches.match(req).then(function(hit){
+        if(hit) return hit;
+        return fetch(req).catch(function(){ return caches.match('./index.html'); });
+      });
+    })
+  );
+});
