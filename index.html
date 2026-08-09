@@ -659,7 +659,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .rd-col{display:flex;flex-direction:column;gap:16px;}
 .rd-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;}
 .rd-card h3{font-family:'Oswald',sans-serif;font-size:14px;text-transform:uppercase;letter-spacing:0.8px;margin:0 0 14px;color:var(--muted);}
-.rd-card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+.rd-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
 .rd-card-head h3{margin:0;}
 .rd-field{display:block;margin-bottom:14px;}
 .rd-field:last-child{margin-bottom:0;}
@@ -1002,16 +1002,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .live-totals-head span:not(:first-child),.live-total-row span:not(:first-child){text-align:center;font-family:'JetBrains Mono',monospace;}
 .live-totals{margin-top:6px;}
 .live-total-row{padding:8px 10px;border-bottom:1px solid rgba(51,73,94,0.4);font-size:13px;}
-/* Minutaje manual (editable) */
-.mm-manual-head,.mm-manual-row{display:grid;grid-template-columns:1fr 72px 72px 60px;gap:8px;align-items:center;}
-.mm-manual-head{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line);}
-.mm-manual-head span:not(:first-child){text-align:center;}
-.mm-manual-row{padding:6px 10px;border-bottom:1px solid rgba(51,73,94,0.4);font-size:13px;}
-.mm-manual-row .mm-name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.mm-manual-row .mm-name small{color:var(--muted);font-weight:400;font-family:'JetBrains Mono',monospace;font-size:10px;margin-right:4px;}
-.mm-manual-row input{width:100%;min-height:40px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;color:var(--chalk);font-family:'JetBrains Mono',monospace;font-size:14px;text-align:center;padding:6px;}
-.mm-manual-row input:focus{outline:none;border-color:var(--accent-2);}
-.mm-manual-row .mm-total{text-align:center;font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent-2);}
 .live-total-row .ltr-name{font-weight:600;}
 .live-total-row .ltr-name small{color:var(--muted);font-weight:400;font-family:'JetBrains Mono',monospace;font-size:10px;margin-right:5px;}
 .live-total-row .ltr-total{color:var(--accent-2);font-weight:700;}
@@ -1395,14 +1385,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .g-detail{width:100%;margin-top:8px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-family:'Inter',sans-serif;font-size:12px;padding:7px 9px;}
 .g-detail:focus{outline:none;border-color:var(--accent-2);}
 .g-detail::placeholder{color:var(--muted);}
-.origin-tags{display:flex;flex-wrap:wrap;gap:8px;}
-.novedad-cartel{display:flex;gap:12px;align-items:flex-start;background:color-mix(in srgb, var(--accent-2) 12%, var(--panel-2));border:1px solid var(--accent-2);border-radius:12px;padding:14px 16px;margin-bottom:18px;}
-.novedad-cartel .nc-ico{font-size:20px;line-height:1.2;flex-shrink:0;}
-.novedad-cartel .nc-body{flex:1;min-width:0;}
-.novedad-cartel .nc-title{font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;color:var(--chalk);margin:0 0 4px;text-transform:uppercase;letter-spacing:.3px;}
-.novedad-cartel .nc-text{font-size:13px;color:var(--muted);line-height:1.5;margin:0;}
-.novedad-cartel .nc-close{background:transparent;border:none;color:var(--muted);font-size:18px;cursor:pointer;flex-shrink:0;padding:0 4px;line-height:1;}
-.novedad-cartel .nc-close:hover{color:var(--chalk);}
+.origin-tags{display:flex;flex-wrap:wrap;gap:5px;}
 .tags-banner{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
   background:linear-gradient(135deg, rgba(47,143,203,0.12), rgba(47,143,203,0.05));
   border:1px solid rgba(47,143,203,0.35);border-radius:12px;padding:14px 18px;margin-bottom:16px;}
@@ -1411,11 +1394,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .tags-banner-sub{font-size:12px;color:var(--muted);}
 .tags-banner .btn{flex-shrink:0;background:var(--accent-2);border-color:var(--accent-2);color:#10161C;font-weight:600;}
 .tags-banner .btn:hover{filter:brightness(1.08);}
-.origin-tag{background:var(--panel-2);border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:9px 14px;font-size:13px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .12s ease;min-height:40px;display:inline-flex;align-items:center;}
+.origin-tag{background:var(--panel-2);border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:5px 10px;font-size:12px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .12s ease;}
 .origin-tag:hover{color:var(--chalk);border-color:var(--muted);}
 .origin-tag.active{background:var(--accent-2);border-color:var(--accent-2);color:#10161C;font-weight:600;}
-.origin-subs{width:100%;display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);}
-.origin-sub{background:transparent;border:1px solid var(--accent-2);color:var(--accent-2);border-radius:8px;padding:8px 14px;font-size:12px;cursor:pointer;transition:all .12s ease;min-height:38px;display:inline-flex;align-items:center;}
+.origin-subs{width:100%;display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;padding-top:6px;border-top:1px dashed var(--line);}
+.origin-sub{background:transparent;border:1px solid var(--accent-2);color:var(--accent-2);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;transition:all .12s ease;}
 .origin-sub:hover{background:rgba(47,143,203,0.12);}
 .origin-sub.active{background:var(--accent-2);color:#10161C;font-weight:600;}
 .sub-breakdown{margin-top:6px;padding-left:12px;display:flex;flex-direction:column;gap:3px;}
@@ -1519,45 +1502,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .record-note{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:8px;line-height:1.4;}
 /* Anuales: conversión destacada con gráfico */
 .annual-featured{border-color:var(--accent-2);}
-/* Gráficos de minutaje */
-.mch-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
-.mch-tab{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:8px 14px;font-family:'Oswald',sans-serif;font-size:12.5px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;cursor:pointer;min-height:40px;}
-.mch-tab.active{background:var(--accent);border-color:var(--accent);color:#10161C;}
-.mch-card{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;}
-.mch-card h4{font-family:'Oswald',sans-serif;font-size:15px;color:var(--chalk);margin:0 0 4px;}
-.mch-sub{font-size:12px;color:var(--muted);margin:0 0 14px;}
-.mch-controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
-.mch-controls select{background:var(--bg);border:1px solid var(--line);color:var(--chalk);border-radius:8px;padding:9px 10px;font-size:13px;min-height:40px;flex:1;min-width:120px;}
-.mch-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
-.mch-bar-name{flex:0 0 90px;font-size:12px;color:var(--chalk);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.mch-bar-track{flex:1;height:22px;background:var(--bg);border-radius:6px;overflow:hidden;display:flex;min-width:70px;}
-.mch-bar-t1{height:100%;background:var(--accent);}
-.mch-bar-t2{height:100%;background:var(--accent-2);}
-.mch-bar-val{flex:0 0 auto;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);min-width:54px;text-align:right;}
-.mch-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--muted);}
-.mch-legend span{display:inline-flex;align-items:center;gap:6px;}
-.mch-dot{width:12px;height:12px;border-radius:3px;display:inline-block;}
-.mch-dot.t1{background:var(--accent);}
-.mch-dot.t2{background:var(--accent-2);}
-.mch-empty{color:var(--muted);font-size:13px;text-align:center;padding:20px;}
-.mch-cmp-cols{display:flex;gap:10px;align-items:flex-end;height:200px;padding-top:10px;}
-.mch-cmp-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:100%;}
-.mch-cmp-stack{width:70%;max-width:60px;display:flex;flex-direction:column;justify-content:flex-end;height:100%;border-radius:6px 6px 0 0;overflow:hidden;}
-.mch-cmp-t1{background:var(--accent);width:100%;}
-.mch-cmp-t2{background:var(--accent-2);width:100%;}
-.mch-cmp-name{font-size:11px;color:var(--chalk);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
-.mch-cmp-tot{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent-2);font-weight:700;}
-/* Barras verticales (columnas hacia arriba) del reparto por jugador */
-.mch-vbars{display:flex;gap:8px;align-items:flex-end;height:220px;padding-top:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
-.mch-vbar-col{flex:0 0 auto;min-width:42px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:100%;}
-.mch-vbar-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
-.mch-vbar-stack{width:32px;display:flex;flex-direction:column;justify-content:flex-end;height:100%;border-radius:6px 6px 0 0;overflow:hidden;min-height:2px;}
-.mch-vbar-t1{background:var(--accent);width:100%;}
-.mch-vbar-t2{background:var(--accent-2);width:100%;}
-.mch-vbar-name{font-size:10px;color:var(--chalk);text-align:center;max-width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-/* Botón borrar de la lista de minutaje: visible y claro también en escritorio */
-.minutes-table .mt-del-btn{border:1px solid var(--line);opacity:1;color:var(--danger,#f0553f);background:rgba(240,85,63,0.06);}
-.minutes-table .mt-del-btn:hover{background:rgba(240,85,63,0.16);border-color:rgba(240,85,63,0.5);}
 .chart-row{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:8px;}
 .chart-bars{flex:1;min-width:180px;}
 .donut-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;}
@@ -1961,7 +1905,10 @@ body.modo-lectura .section-content textarea:read-only{
 .plan-badge{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;padding:2px 8px;border-radius:20px;white-space:nowrap;}
 .plan-featured{border-color:var(--accent);background:linear-gradient(180deg,rgba(229,52,42,0.08),var(--panel-2));}
 .plan-featured .plan-badge{background:var(--success);}
-@media (max-width:480px){.plans-grid-3{grid-template-columns:1fr;}}
+.plans-grid-2{grid-template-columns:1fr 1fr;max-width:440px;margin-left:auto;margin-right:auto;}
+.plan-promo{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--success);color:#0B1219;font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;padding:2px 9px;border-radius:20px;white-space:nowrap;}
+.plan-promo-nota{font-size:10.5px;line-height:1.35;color:var(--success);font-weight:600;margin-top:2px;}
+@media (max-width:480px){.plans-grid-3{grid-template-columns:1fr;}.plans-grid-2{grid-template-columns:1fr;}}
 .plans-contact{text-align:center;margin:18px 0 0;font-size:13px;color:var(--muted);}
 .plan-hint{display:block;font-family:'Inter',sans-serif;font-size:10.5px;color:var(--muted);opacity:0.75;margin-top:3px;line-height:1.3;}
 /* Bloque de pago por transferencia (alias de MercadoPago) */
@@ -2394,7 +2341,7 @@ body.editor-active #screen-editor{ display:block; }
   .goal-row-top .g-player{flex:1 1 100%;min-width:0;}
   .goal-row-top .g-min{width:auto;flex:1 1 auto;min-width:0;}
   .goal-row-v,.goal-row-top,.origin-tags,.g-detail{max-width:100%;box-sizing:border-box;}
-  .origin-tag{font-size:13px;padding:9px 13px;}
+  .origin-tag{font-size:11px;padding:5px 8px;}
 
   /* Sub-pestañas de estadísticas: scroll horizontal */
   .stats-subnav{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:6px;}
@@ -2477,7 +2424,7 @@ body.editor-active #screen-editor{ display:block; }
 
   /* --- 1. Botones cómodos para el dedo (mínimo 40px de alto) --- */
   .btn{min-height:42px; padding:10px 16px; font-size:13.5px;}
-  .btn.small{min-height:44px; padding:10px 16px; font-size:12.5px; flex-shrink:0;}
+  .btn.small{min-height:40px; padding:9px 14px; font-size:12.5px;}
   .stats-subtab{min-height:42px; padding:10px 14px; font-size:12.5px;}
   .cat-chip{min-height:38px; display:inline-flex; align-items:center;}
   .nav-tab{min-height:52px;}
@@ -2656,7 +2603,7 @@ body.editor-active #screen-editor{ display:block; }
 
 @media (max-width:400px){
   .btn{padding:10px 13px; font-size:13px;}
-  .btn.small{min-height:44px; padding:10px 14px; font-size:12.5px; flex-shrink:0;}
+  .btn.small{padding:9px 11px; font-size:12px;}
   .stats-subtab{padding:10px 11px; font-size:12px;}
 }
 
@@ -3293,6 +3240,11 @@ body.editor-active #screen-editor{ display:block; }
           </div>
         </div>
 
+        <div class="rd-card" id="matchMinutesCard" style="display:none;margin-top:16px;">
+          <div class="rd-card-head"><h3>⏱ Minutos jugados</h3><span class="rd-saved" id="matchMinutesSrc"></span></div>
+          <div id="matchMinutesBody"></div>
+        </div>
+
         <div class="rd-footer">
           <button class="btn danger-outline" id="deleteMatchBtn" data-i18n="delMatch">Eliminar partido</button>
           <div style="display:flex;gap:10px;align-items:center;">
@@ -3349,17 +3301,7 @@ body.editor-active #screen-editor{ display:block; }
           <p class="scout-sub" data-i18n="minutesSub">Minutos jugados por partido. Se cargan solos al guardar desde 🔴 En vivo.</p>
         </div>
       </div>
-      <div class="novedad-cartel" data-nov="minutaje">
-        <span class="nc-ico">🆕</span>
-        <div class="nc-body">
-          <p class="nc-title">Novedad: carga de minutaje</p>
-          <p class="nc-text">Cargá los minutos de cada partido a mano (1er y 2do tiempo por jugador) o dejá que se carguen solos con 🔴 En Vivo. Los partidos que te faltan aparecen como <b>⏳ pendientes</b>: tocá "Cargar minutos" para completarlos. Todo se refleja en la ficha del jugador y en las estadísticas anuales.</p>
-        </div>
-        <button class="nc-close" aria-label="Cerrar">✕</button>
-      </div>
       <div id="minutesList"></div>
-      <div id="minutesEditor" style="display:none;"></div>
-      <div id="minutesCharts"></div>
       <div id="minutesDetail" style="display:none;"></div>
     </div>
 
@@ -3381,14 +3323,6 @@ body.editor-active #screen-editor{ display:block; }
           <h2 class="scout-title" data-i18n="playerTitle">Ficha del jugador</h2>
           <p class="scout-sub" data-i18n="playerSub">Elegí un jugador y mirá su evolución partido a partido.</p>
         </div>
-      </div>
-      <div class="novedad-cartel" data-nov="ficha">
-        <span class="nc-ico">🆕</span>
-        <div class="nc-body">
-          <p class="nc-title">Novedad: minutos en la ficha</p>
-          <p class="nc-text">Ahora la ficha muestra los <b>minutos jugados</b> del jugador: su reparto entre 1er y 2do tiempo, y cómo fueron variando partido a partido. Se alimenta solo con lo que cargás en Minutaje o En Vivo.</p>
-        </div>
-        <button class="nc-close" aria-label="Cerrar">✕</button>
       </div>
       <div class="player-picker-bar">
         <label class="player-picker-label" data-i18n="playerPick">Jugador:</label>
@@ -4391,7 +4325,7 @@ window.I18N = {
     mPickVideo:'Elegí un video (se suben en la pestaña 🎬 Video).', mClipDiscarded:'Recorte descartado del timeline.',
     mSepAdded:'Separador agregado al final. Arrastralo para ubicarlo donde quieras.',
     mSeqExported:'Secuencia exportada.', mExportCancel:'Exportación cancelada.',
-    mNoRecSupport:'Tu navegador no soporta grabación de video en vivo.', subEndingTitle:'Tu prueba está por terminar.', subEndingMsg:'Te quedan {d} días. Activá tu cuenta para no perder el acceso.', subExpiredTitle:'Tu período venció.', subExpiredMsg:'Podés seguir viendo tus datos, pero para cargar nuevos necesitás activar tu cuenta.', subPayBtn:'Activar cuenta', plansTitle:'Activá tu cuenta', plansSub:'Elegí el plan y pagá con Mercado Pago. Apenas confirmemos el pago, activamos tu cuenta.', plan1:'1 mes', plan3:'3 meses', plan6:'6 meses', plan12:'12 meses', planGo:'Pagar', plansContact:'¿Dudas o querés pagar de otra forma?',
+    mNoRecSupport:'Tu navegador no soporta grabación de video en vivo.', subEndingTitle:'Tu fase demo está por terminar.', subEndingMsg:'Te quedan {d} días de acceso gratis. Sumate a Benchone para continuar utilizando tus herramientas.', subExpiredTitle:'Terminó tu fase demo.', subExpiredMsg:'Podés seguir viendo tus datos, pero para cargar nuevos necesitás sumarte a Benchone.', subPayBtn:'Sumate a Benchone', plansTitle:'Sumate a Benchone', plansSub:'Elegí el plan y pagá con Mercado Pago. Apenas confirmemos el pago, tu cuenta queda activa.', plan1:'1 mes', plan3:'3 meses', plan6:'6 meses', plan12:'12 meses', planGo:'Sumate', plansContact:'¿Dudas o querés pagar de otra forma?',
   },
   en: {
     saveCloud:'☁ Save to cloud', myMatches:'☁ My matches', loadFile:'Load file', saveFile:'Save file',
@@ -4472,7 +4406,7 @@ window.I18N = {
     mPickVideo:'Pick a video (upload them in the 🎬 Video tab).', mClipDiscarded:'Clip removed from the timeline.',
     mSepAdded:'Separator added at the end. Drag it wherever you want.',
     mSeqExported:'Sequence exported.', mExportCancel:'Export canceled.',
-    mNoRecSupport:'Your browser does not support live video recording.', subEndingTitle:'Your trial is ending.', subEndingMsg:'{d} days left. Activate your account to keep access.', subExpiredTitle:'Your period has expired.', subExpiredMsg:'You can still view your data, but to add new data you need to activate your account.', subPayBtn:'Activate account', plansTitle:'Activate your account', plansSub:'Choose a plan and pay. As soon as we confirm the payment, we activate your account.', plan1:'1 month', plan3:'3 months', plan6:'6 months', plan12:'12 months', planGo:'Pay', plansContact:'Questions or another payment method?',
+    mNoRecSupport:'Your browser does not support live video recording.', subEndingTitle:'Your demo phase is ending.', subEndingMsg:'{d} days of free access left. Join Benchone to keep using your tools.', subExpiredTitle:'Your demo phase ended.', subExpiredMsg:'You can still view your data, but to add new data you need to join Benchone.', subPayBtn:'Join Benchone', plansTitle:'Join Benchone', plansSub:'Choose a plan and pay. As soon as we confirm the payment, your account is active.', plan1:'1 month', plan3:'3 months', plan6:'6 months', plan12:'12 months', planGo:'Join', plansContact:'Questions or another payment method?',
   },
   pt: {
     saveCloud:'☁ Salvar na nuvem', myMatches:'☁ Meus jogos', loadFile:'Carregar arquivo', saveFile:'Salvar arquivo',
@@ -4553,7 +4487,7 @@ window.I18N = {
     mPickVideo:'Escolha um vídeo (envie-os na aba 🎬 Vídeo).', mClipDiscarded:'Corte removido da linha do tempo.',
     mSepAdded:'Separador adicionado ao final. Arraste-o para onde quiser.',
     mSeqExported:'Sequência exportada.', mExportCancel:'Exportação cancelada.',
-    mNoRecSupport:'Seu navegador não suporta gravação de vídeo ao vivo.', subEndingTitle:'Seu teste está terminando.', subEndingMsg:'Faltam {d} dias. Ative sua conta para não perder o acesso.', subExpiredTitle:'Seu período expirou.', subExpiredMsg:'Você ainda pode ver seus dados, mas para adicionar novos precisa ativar sua conta.', subPayBtn:'Ativar conta', plansTitle:'Ative sua conta', plansSub:'Escolha o plano e pague. Assim que confirmarmos o pagamento, ativamos sua conta.', plan1:'1 mês', plan3:'3 meses', plan6:'6 meses', plan12:'12 meses', planGo:'Pagar', plansContact:'Dúvidas ou outra forma de pagamento?',
+    mNoRecSupport:'Seu navegador não suporta gravação de vídeo ao vivo.', subEndingTitle:'Sua fase demo está terminando.', subEndingMsg:'Faltam {d} dias de acesso grátis. Junte-se ao Benchone para continuar usando suas ferramentas.', subExpiredTitle:'Sua fase demo terminou.', subExpiredMsg:'Você ainda pode ver seus dados, mas para adicionar novos precisa se juntar ao Benchone.', subPayBtn:'Junte-se ao Benchone', plansTitle:'Junte-se ao Benchone', plansSub:'Escolha o plano e pague. Assim que confirmarmos o pagamento, sua conta fica ativa.', plan1:'1 mês', plan3:'3 meses', plan6:'6 meses', plan12:'12 meses', planGo:'Juntar-se', plansContact:'Dúvidas ou outra forma de pagamento?',
   }
 };
 window.__lang = (function(){ try{ return localStorage.getItem('ce_lang') || 'es'; }catch(e){ return 'es'; } })();
@@ -4621,18 +4555,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
     }
   };
 
-  // Carga un <script> con TIMEOUT. Sin esto, un CDN lento por datos móviles
-  // puede tardar 30-60s en disparar onerror y dejar la app colgada al abrir.
-  function loadScript(url, timeoutMs){
+  function loadScript(url){
     return new Promise((resolve, reject) => {
       const s = document.createElement('script');
-      let listo = false;
-      const timer = setTimeout(() => {
-        if(!listo){ listo = true; s.onload = s.onerror = null; reject(new Error('timeout ' + url)); }
-      }, timeoutMs || 8000);
       s.src = url;
-      s.onload = () => { if(!listo){ listo = true; clearTimeout(timer); resolve(url); } };
-      s.onerror = () => { if(!listo){ listo = true; clearTimeout(timer); reject(new Error('falló ' + url)); } };
+      s.onload = () => resolve(url);
+      s.onerror = () => reject(new Error('falló ' + url));
       document.head.appendChild(s);
     });
   }
@@ -4641,29 +4569,23 @@ document.addEventListener('DOMContentLoaded', ()=>{
     if(lib.check()) return true;
     for(const url of lib.urls){
       try{
-        await loadScript(url, 8000);
+        await loadScript(url);
         if(lib.check()) return true;
       }catch(e){ /* probar el siguiente */ }
     }
     return false;
   }
 
-  // Reintento de Supabase disponible por si el primer intento falló (raro, ya
-  // que Supabase viaja EMBEBIDO en la app; window.supabase existe antes de esto).
+  // Devuelve una promesa que resuelve cuando (al menos) Supabase cargó.
+  // Exponemos un reintento de Supabase para usarlo si el primer intento falló
+  // (ej. app instalada abriendo con señal intermitente).
   window.__reintentarSupabase = function(){ return loadWithFallback(LIBS.supabase); };
-
-  // jszip y xlsx se usan SOLO para exportar (Excel/ZIP), mucho después del login.
-  // Las cargamos en SEGUNDO PLANO para que NUNCA bloqueen el arranque ni el
-  // login. Los exportadores ya chequean si window.XLSX / JSZip existen antes de
-  // usarlas, así que si el usuario exporta antes de que terminen, avisan solas.
-  (function cargarExtrasEnBackground(){
-    try{ loadWithFallback(LIBS.jszip); }catch(e){}
-    try{ loadWithFallback(LIBS.xlsx); }catch(e){}
-  })();
-
-  // El arranque SOLO espera a Supabase (que ya está embebido → resuelve al toque).
   return (async () => {
-    const okSupabase = await loadWithFallback(LIBS.supabase);
+    const [okSupabase] = await Promise.all([
+      loadWithFallback(LIBS.supabase),
+      loadWithFallback(LIBS.jszip),
+      loadWithFallback(LIBS.xlsx)
+    ]);
     return { supabase: okSupabase };
   })();
 })();
@@ -4731,8 +4653,8 @@ window.__PAY = {
   // ══════════════════════════════════════════════════════════════
   enabled: false,
 
-  whatsapp: '',                 // ej: '5491122334455' (código país, sin + ni espacios)
-  aliasMP: '',                  // tu alias de MercadoPago, para pagos por transferencia
+  whatsapp: '5491164517593', // Lucas (CABA 11 6451-7593)
+  aliasMP: 'lucas.titod',     // alias de MercadoPago de Lucas
   currency: 'ars',             // moneda que se MUESTRA por defecto: 'ars' (Argentina) o 'usd' (exterior)
   showPrices: false,           // ← poné true cuando quieras MOSTRAR los precios en la pantalla de planes
 
@@ -4746,9 +4668,10 @@ window.__PAY = {
       desc:'Para el DT que dirige una o dos categorías.',
       feature:'Todas las herramientas incluidas.',
       durations: [
-        { months:1, ars:18000, usd:15, mpLink:'', stripeLink:'' },
-        { months:6, ars:96000, usd:80, mpLink:'', stripeLink:'' },
-        { months:12, ars:168000, usd:140, mpLink:'', stripeLink:'' }
+        { months:1, ars:20000, usd:15, mpLink:'', stripeLink:'' },
+        { months:3, ars:52000, usd:42, mpLink:'', stripeLink:'', promo:'Oferta lanzamiento', promoNota:'Ideal para cerrar la temporada y comenzar la que viene. Incluye hasta enero.' },
+        { months:6, ars:96000, usd:80, mpLink:'', stripeLink:'', oculta:true },
+        { months:12, ars:168000, usd:140, mpLink:'', stripeLink:'', oculta:true }
       ]
     },
     multi: {
@@ -4757,18 +4680,20 @@ window.__PAY = {
       feature:'Todas las herramientas incluidas.',
       durations: [
         { months:1, ars:22000, usd:18, mpLink:'', stripeLink:'' },
-        { months:6, ars:120000, usd:100, mpLink:'', stripeLink:'' },
-        { months:12, ars:216000, usd:180, mpLink:'', stripeLink:'' }
+        { months:3, ars:60000, usd:48, mpLink:'', stripeLink:'', promo:'Oferta lanzamiento', promoNota:'Ideal para cerrar la temporada y comenzar la que viene. Incluye hasta enero.' },
+        { months:6, ars:120000, usd:100, mpLink:'', stripeLink:'', oculta:true },
+        { months:12, ars:216000, usd:180, mpLink:'', stripeLink:'', oculta:true }
       ]
     },
     club: {
       name:'Club', maxCategories:8, badge:'Mejor precio', note:'Todas las categorías',
-      desc:'Para coordinadores o clubes que gestionan todas las inferiores.',
+      desc:'Ideal para coordinadores y clubes que gestionan todas las inferiores.',
       feature:'Todas las herramientas incluidas.',
       durations: [
         { months:1, ars:25000, usd:21, mpLink:'', stripeLink:'' },
-        { months:6, ars:132000, usd:110, mpLink:'', stripeLink:'' },
-        { months:12, ars:240000, usd:200, mpLink:'', stripeLink:'' }
+        { months:3, ars:68000, usd:54, mpLink:'', stripeLink:'', promo:'Oferta lanzamiento', promoNota:'Ideal para cerrar la temporada y comenzar la que viene. Incluye hasta enero.' },
+        { months:6, ars:132000, usd:110, mpLink:'', stripeLink:'', oculta:true },
+        { months:12, ars:240000, usd:200, mpLink:'', stripeLink:'', oculta:true }
       ]
     }
   },
@@ -4848,7 +4773,21 @@ window.__planLink = function(packKey, dur){
   if(link) return link;
   const P = window.__PAY;
   const packName = (P.packs[packKey] && P.packs[packKey].name) || packKey;
-  if(P.whatsapp) return 'https://wa.me/'+P.whatsapp+'?text='+encodeURIComponent('Hola! Quiero activar mi cuenta de Cancha Edit — Pack '+packName+' ('+window.__durLabel(dur.months)+').');
+  if(P.whatsapp){
+    // Armamos un mensaje que IDENTIFICA al usuario, para que Lucas sepa exactamente
+    // qué cuenta activar aunque no conozca su nombre. Incluye email (identificador
+    // único de la cuenta), club y el pack + duración elegidos, más el precio.
+    const email = window.__currentUserEmail || '(sin email)';
+    const club = window.__clubNombre || '(sin club)';
+    const precio = (window.__fmtPrice ? window.__fmtPrice(dur) : '');
+    const msg =
+      '¡Hola Lucas! Ya hice el pago para activar mi cuenta de Benchone. 💳✅\n\n' +
+      '👤 Mi cuenta (email): ' + email + '\n' +
+      '🏫 Club: ' + club + '\n' +
+      '📦 Pack: ' + packName + ' — ' + window.__durLabel(dur.months) + (precio ? ' (' + precio + ')' : '') + '\n\n' +
+      'Te paso el comprobante. ¡Gracias!';
+    return 'https://wa.me/' + P.whatsapp + '?text=' + encodeURIComponent(msg);
+  }
   return '#';
 };
 // (compat) link genérico para el botón directo
@@ -4997,30 +4936,7 @@ const sourceField = document.getElementById('sourceField');
 const consentField = document.getElementById('consentField');
 const signupFields = [fullNameField, whatsappField, clubNameField, roleField, categoriesField, sourceField, consentField];
 
-function showError(msg){
-  successMsg.classList.remove('show');
-  errorMsg.textContent = msg;
-  errorMsg.classList.add('show');
-  // Si la app está INSTALADA (standalone) y el error es de conexión, el problema
-  // suele ser el modo app de iPhone por datos móviles. Ofrecemos abrir en el
-  // navegador, donde la conexión sí funciona. (En el navegador no aparece.)
-  try{
-    var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-    var esRed = /No pudimos conectar|conexión|conectar/i.test(msg);
-    var yaHay = document.getElementById('escapeNavegadorBtn');
-    if(standalone && esRed && !yaHay){
-      var b = document.createElement('button');
-      b.id = 'escapeNavegadorBtn';
-      b.textContent = '🌐 Abrir en el navegador';
-      b.style.cssText = 'display:block;width:100%;margin-top:12px;padding:13px;background:#2F8FCB;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;';
-      b.addEventListener('click', function(){
-        // Abrir la misma URL en el navegador (fuera del modo app instalado).
-        window.open(window.location.origin + window.location.pathname, '_blank');
-      });
-      errorMsg.parentNode && errorMsg.parentNode.insertBefore(b, errorMsg.nextSibling);
-    }
-  }catch(e){}
-}
+function showError(msg){ successMsg.classList.remove('show'); errorMsg.textContent = msg; errorMsg.classList.add('show'); }
 function showSuccess(msg){ errorMsg.classList.remove('show'); successMsg.textContent = msg; successMsg.classList.add('show'); }
 function clearMsgs(){ errorMsg.classList.remove('show'); successMsg.classList.remove('show'); }
 
@@ -5110,15 +5026,7 @@ async function guardarPerfil(userId, email, perfil){
   await initSupabase();
   if(!sb) return;
   try{
-    // Blindaje de arranque: getSession() puede colgarse si la app abre con
-    // señal lenta (datos móviles) mientras intenta refrescar un token viejo.
-    // Le damos como máximo 4s: si tarda más, seguimos y mostramos el login
-    // igual (el usuario siempre puede entrar), en vez de quedar en el splash.
-    const sesionConTimeout = Promise.race([
-      sb.auth.getSession(),
-      new Promise((resolve) => setTimeout(() => resolve({ data: { session: null } }), 4000))
-    ]);
-    const { data: { session } } = await sesionConTimeout;
+    const { data: { session } } = await sb.auth.getSession();
     if(session){
       // Verificar suspensión
       try{
@@ -8447,7 +8355,7 @@ window.__initEditor = function(){
     let golesFavor = 0;
     const goleadores = [];
     Object.keys(totals).forEach(name => {
-      if(name === '__rival' || name === '__manual') return;
+      if(name === '__rival') return;
       const g = totals[name] && totals[name].goals;
       if(g > 0){ golesFavor += g; goleadores.push({ name, g }); }
     });
@@ -8664,11 +8572,6 @@ window.__initEditor = function(){
   // ===== Gol / Falta =====
   function addGoal(pid){
     const st=ensure(pid); st.goals++;
-    // Un gol es, por definición, un remate que entró: sumamos el remate
-    // automáticamente (al jugador y al total del equipo del tiempo actual),
-    // igual que se hace con el gol en contra del rival.
-    st.shots=(st.shots||0)+1;
-    if(currentHalf===1) shotsFor1++; else shotsFor2++;
     const jugadorNombre = (squad.find(p=>p.id===pid)||{}).name||'';
     const evento = { t:nowSeconds(), type:'goal', pid, inName:jugadorNombre, outName:'', half:currentHalf, origen:null };
     events.unshift(evento);
@@ -8786,12 +8689,6 @@ window.__initEditor = function(){
     const st=ensure(pid);
     if((st.goals||0)<=0){ toast('No hay goles para restar'); return; }
     st.goals--;
-    // Al restar el gol, restamos también el remate que se había sumado con él
-    // (sin bajar de 0), para que gol y remate queden coherentes.
-    if((st.shots||0)>0){
-      st.shots--;
-      if(currentHalf===1){ if(shotsFor1>0) shotsFor1--; } else { if(shotsFor2>0) shotsFor2--; }
-    }
     quitarUltimoEvento(pid, 'goal');
     renderField(); renderTotals(); renderLog(); renderScoreboard();
     guardarPartidoLocal();
@@ -9639,21 +9536,6 @@ window.__initEditor = function(){
   function catActual(){ return (window.__getActiveCategory && window.__getActiveCategory()) || null; }
 
   // ----- Sub-navegación -----
-  // Carteles de novedad: cerrar y recordar (no reaparecen una vez cerrados).
-  (function initNovedades(){
-    try{
-      document.querySelectorAll('.novedad-cartel').forEach(function(cartel){
-        var key = 'benchone_nov_' + (cartel.dataset.nov||'x');
-        if(localStorage.getItem(key)==='1'){ cartel.style.display='none'; return; }
-        var btn = cartel.querySelector('.nc-close');
-        if(btn) btn.addEventListener('click', function(){
-          cartel.style.display='none';
-          try{ localStorage.setItem(key,'1'); }catch(e){}
-        });
-      });
-    }catch(e){}
-  })();
-
   document.querySelectorAll('.stats-subtab').forEach(tab => {
     tab.addEventListener('click', () => {
       const sub = tab.dataset.sub;
@@ -9683,7 +9565,7 @@ window.__initEditor = function(){
       let pq = sb.from('players').select('*').eq('club_id', clubId);
       pq = cat ? pq.eq('categoria', cat) : pq.is('categoria', null);
       const pRes = await pq;
-      const todos = (pRes.data||[]).map(p => ({ id:p.id, name:p.name, number:p.number||'', position:p.position||'', photo:p.photo||'', att_excluido: !!p.att_excluido, archivado: !!p.archivado, anio_nacimiento: p.anio_nacimiento||null, pierna: p.pierna||null, notas: p.notas||null, nacimiento: p.nacimiento||null }));
+      const todos = (pRes.data||[]).map(p => ({ id:p.id, name:p.name, number:p.number||'', position:p.position||'', photo:p.photo||'', att_excluido: !!p.att_excluido, archivado: !!p.archivado }));
       // squad = solo los ACTIVOS (los archivados no aparecen en ninguna lista).
       squad = todos.filter(p => !p.archivado);
       // Guardamos los archivados aparte para el panel "Archivo".
@@ -10479,26 +10361,11 @@ window.__initEditor = function(){
     document.getElementById('matchList').style.display = 'none';
     document.getElementById('matchDetail').style.display = 'block';
     window.scrollTo(0,0);
+    loadMatchMinutes(m.id);
   }
 
   const fmtMinM = (s) => { s=Math.round(s||0); const mm=Math.floor(s/60),x=s%60; return String(mm).padStart(2,'0')+':'+String(x).padStart(2,'0'); };
   async function loadMatchMinutes(matchId){
-    // Construimos el panel dentro de la solapa Minutaje (contenedor minutesEditor).
-    const editor = document.getElementById('minutesEditor');
-    if(!editor) return;
-    const m = (matches||[]).find(x=>x.id===matchId);
-    const titulo = m ? (m.rival||'Partido') : 'Partido';
-    editor.innerHTML = `<button class="btn small" id="minEdBack" style="margin-bottom:14px;">← Volver a la lista</button>
-      <div class="rd-card" id="matchMinutesCard" style="margin-bottom:16px;">
-        <div class="rd-card-head"><h3>⏱ ${escapeHtml(titulo)} — minutos</h3><span class="rd-saved" id="matchMinutesSrc"></span></div>
-        <div id="matchMinutesBody"></div>
-      </div>`;
-    const backBtn = editor.querySelector('#minEdBack');
-    if(backBtn) backBtn.addEventListener('click', ()=>{
-      editor.style.display='none'; editor.innerHTML='';
-      const list=document.getElementById('minutesList'); if(list) list.style.display='block';
-      renderMinutes();
-    });
     const card = document.getElementById('matchMinutesCard');
     const body = document.getElementById('matchMinutesBody');
     const src = document.getElementById('matchMinutesSrc');
@@ -10508,157 +10375,18 @@ window.__initEditor = function(){
     try{
       const clubId = await window.__getClubId(); if(!clubId) return;
       const { data } = await sb.from('live_sessions').select('*').eq('club_id', clubId).eq('match_id', matchId).order('created_at',{ascending:false});
-      const s = (data && data.length) ? data[0] : null;
-      const esManual = s && s.totals && s.totals.__manual === true;
-
-      // Caso A: hay minutaje de 🔴 En Vivo (no manual) → SOLO LECTURA, como siempre.
-      if(s && !esManual){
-        const totals = s.totals || {};
-        const rows = Object.keys(totals).filter(k=>k!=='__rival'&&k!=='__manual').map(name=>({name, ...totals[name]})).sort((a,b)=>(b.total||0)-(a.total||0));
-        if(rows.length===0) return;
-        let html = `<div class="live-totals-head" style="margin-top:4px;"><span>Jugador</span><span>1er T</span><span>2do T</span><span>Total</span></div>`;
-        rows.forEach(r=>{
-          html += `<div class="live-total-row"><span class="ltr-name">${escapeHtml(r.name)}</span><span>${fmtMinM(r.t1)}</span><span>${fmtMinM(r.t2)}</span><span class="ltr-total">${fmtMinM(r.total)}</span></div>`;
-        });
-        body.innerHTML = html;
-        src.textContent = 'Cargado desde 🔴 En vivo (no editable)';
-        card.style.display = 'block';
-        return;
-      }
-
-      // Caso B: NO hay minutaje de En Vivo → plantilla MANUAL editable.
-      // Mostramos los CITADOS en la convocatoria (calls[id]==='yes'). Si el partido
-      // no tiene convocatoria cargada, caemos al plantel completo (categoría +
-      // invitados) para que la plantilla nunca quede vacía.
-      const calls = (currentMatch && currentMatch.calls) ? currentMatch.calls : {};
-      const hayConvocatoria = Object.keys(calls).some(pid => calls[pid] === 'yes');
-
-      let jugadores = [];
-      if(hayConvocatoria){
-        // Solo los citados: recorremos plantel + invitados y filtramos por 'yes'.
-        (squad||[]).forEach(p=>{ if(calls[p.id] === 'yes') jugadores.push({id:p.id, name:p.name, number:p.number||''}); });
-        if(currentMatch && Array.isArray(currentMatch.invitados)){
-          currentMatch.invitados.forEach(inv=>{
-            if(inv && inv.id && calls[inv.id] === 'yes' && !jugadores.some(j=>j.id===inv.id)){
-              jugadores.push({id:inv.id, name:inv.name, number:inv.number||''});
-            }
-          });
-        }
-      } else {
-        // Sin convocatoria cargada → plantel completo + invitados.
-        jugadores = (squad||[]).map(p=>({id:p.id, name:p.name, number:p.number||''}));
-        if(currentMatch && Array.isArray(currentMatch.invitados)){
-          currentMatch.invitados.forEach(inv=>{
-            if(inv && inv.id && !jugadores.some(j=>j.id===inv.id)) jugadores.push({id:inv.id, name:inv.name, number:inv.number||''});
-          });
-        }
-      }
-      if(jugadores.length===0){ body.innerHTML='<p class="rd-empty">Este partido no tiene jugadores citados ni plantel para cargar minutos.</p>'; card.style.display='block'; return; }
-
-      // Valores previos ya cargados a mano (si los hay), por nombre. Guardados en
-      // segundos (como En Vivo) para que el resto de la app los lea igual; acá los
-      // mostramos en minutos enteros.
-      const prev = (esManual && s.totals) ? s.totals : {};
-      const min = (seg)=> Math.round((seg||0)/60);
-
-      let html = `<p class="scout-sub" style="margin:0 0 12px;">${hayConvocatoria ? 'Jugadores citados en la convocatoria. ' : 'Plantel completo (no cargaste convocatoria). '}Cargá a mano los minutos de cada uno. El total se calcula solo. Se guarda cuando tocás <b>Guardar minutaje</b>.</p>`;
-      html += `<div class="mm-manual-head"><span>Jugador</span><span>1er T</span><span>2do T</span><span>Total</span></div>`;
-      jugadores.forEach(j=>{
-        const pv = prev[j.name] || {};
-        html += `<div class="mm-manual-row" data-name="${escapeHtml(j.name)}">
-          <span class="mm-name">${j.number?('<small>#'+escapeHtml(String(j.number))+'</small> '):''}${escapeHtml(j.name)}</span>
-          <input class="mm-t1" type="number" inputmode="numeric" min="0" placeholder="0" value="${pv.t1?min(pv.t1):''}">
-          <input class="mm-t2" type="number" inputmode="numeric" min="0" placeholder="0" value="${pv.t2?min(pv.t2):''}">
-          <span class="mm-total">0</span>
-        </div>`;
+      if(!data || data.length===0) return;   // no hay minutaje para este partido
+      const s = data[0];
+      const totals = s.totals || {};
+      const rows = Object.keys(totals).filter(k=>k!=='__rival').map(name=>({name, ...totals[name]})).sort((a,b)=>(b.total||0)-(a.total||0));
+      if(rows.length===0) return;
+      let html = `<div class="live-totals-head" style="margin-top:4px;"><span>Jugador</span><span>1er T</span><span>2do T</span><span>Total</span></div>`;
+      rows.forEach(r=>{
+        html += `<div class="live-total-row"><span class="ltr-name">${escapeHtml(r.name)}</span><span>${fmtMinM(r.t1)}</span><span>${fmtMinM(r.t2)}</span><span class="ltr-total">${fmtMinM(r.total)}</span></div>`;
       });
-      html += `<div style="margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <button class="btn primary" id="mmSaveBtn">💾 Guardar minutaje</button>
-        <span class="rd-saved" id="mmSavedMsg"></span>
-      </div>`;
       body.innerHTML = html;
-      src.textContent = 'Carga manual (sin En Vivo)';
+      src.textContent = 'Cargado desde 🔴 En vivo';
       card.style.display = 'block';
-
-      // Recalcular el total de cada fila al escribir.
-      function recalcRow(row){
-        const t1 = parseInt(row.querySelector('.mm-t1').value||'0',10) || 0;
-        const t2 = parseInt(row.querySelector('.mm-t2').value||'0',10) || 0;
-        row.querySelector('.mm-total').textContent = (t1 + t2);
-      }
-      body.querySelectorAll('.mm-manual-row').forEach(row=>{
-        recalcRow(row);
-        row.querySelector('.mm-t1').addEventListener('input', ()=>recalcRow(row));
-        row.querySelector('.mm-t2').addEventListener('input', ()=>recalcRow(row));
-      });
-
-      // Guardar: construimos totals en el MISMO formato que En Vivo (segundos),
-      // marcado con __manual:true, y lo insertamos/actualizamos en live_sessions.
-      const saveBtn = body.querySelector('#mmSaveBtn');
-      const savedMsg = body.querySelector('#mmSavedMsg');
-      if(saveBtn) saveBtn.addEventListener('click', async ()=>{
-        saveBtn.disabled = true; if(savedMsg) savedMsg.textContent = 'Guardando…';
-        const totals = { __manual: true };
-        let jugadoresConMinutos = 0;
-        body.querySelectorAll('.mm-manual-row').forEach(row=>{
-          const name = row.dataset.name;
-          const t1 = (parseInt(row.querySelector('.mm-t1').value||'0',10)||0) * 60; // a segundos
-          const t2 = (parseInt(row.querySelector('.mm-t2').value||'0',10)||0) * 60;
-          // Solo guardamos a los jugadores que tengan minutos cargados (>0).
-          // Los que quedan en cero NO se incluyen: no computan en ficha ni anuales.
-          if(t1 + t2 > 0){
-            totals[name] = { t1, t2, total:t1+t2, goals:0, fouls:0, fouls1:0, fouls2:0, cards:0, shots:0, number:'' };
-            jugadoresConMinutos++;
-          }
-        });
-        const rivalName = (currentMatch && currentMatch.rival) ? currentMatch.rival : 'Partido';
-        try{
-          const { data:{ session } } = await sb.auth.getSession();
-
-          // Si NO hay ningún jugador con minutos, no debe computar nada.
-          if(jugadoresConMinutos === 0){
-            // Si había una sesión manual guardada antes y ahora quedó toda en cero,
-            // la borramos para que deje de aparecer en minutaje/ficha/anuales.
-            if(esManual && s && s.id){
-              await sb.from('live_sessions').delete().eq('id', s.id);
-              toast('Minutaje vacío: se quitó de las estadísticas');
-            } else {
-              toast('No cargaste minutos: no se guardó nada');
-            }
-            const editor2=document.getElementById('minutesEditor');
-            if(editor2){ editor2.style.display='none'; editor2.innerHTML=''; }
-            const list2=document.getElementById('minutesList'); if(list2) list2.style.display='block';
-            renderMinutes();
-            return;
-          }
-
-          // Conservamos el marcador del rival solo si ya existía (no lo pisamos).
-          if(prev.__rival) totals.__rival = prev.__rival;
-
-          if(esManual && s && s.id){
-            const { error } = await sb.from('live_sessions').update({ totals, name:rivalName, updated_at:new Date().toISOString() }).eq('id', s.id);
-            if(error) throw error;
-          } else {
-            const { error } = await sb.from('live_sessions').insert({
-              club_id: clubId, categoria: catActual(), temporada:(window.__getTemporada?window.__getTemporada():new Date().getFullYear()),
-              name: rivalName, match_id: matchId, events: [], totals, created_by: session?session.user.id:null
-            });
-            if(error) throw error;
-          }
-          if(savedMsg) savedMsg.textContent = 'Guardado ✓';
-          toast('Minutaje guardado');
-          // Volvemos a la lista para ver el partido ya como cargado.
-          const editor=document.getElementById('minutesEditor');
-          if(editor){ editor.style.display='none'; editor.innerHTML=''; }
-          const list=document.getElementById('minutesList'); if(list) list.style.display='block';
-          renderMinutes();
-        }catch(e){
-          console.error('guardar minutaje manual', e);
-          if(savedMsg) savedMsg.textContent = '';
-          toast('No se pudo guardar el minutaje');
-          saveBtn.disabled = false;
-        }
-      });
     }catch(e){ /* si falla (ej: falta columna), no mostrar nada */ }
   }
 
@@ -10982,215 +10710,6 @@ window.__initEditor = function(){
   }
 
   // ========== MINUTAJE ==========
-  // Partidos "pendientes" que el DT descartó de la lista de minutaje (no quiere
-  // cargarlos). Se recuerda localmente por club para que no reaparezcan.
-  function claveDescartados(){ return 'benchone_min_descartados_' + (window.__clubIdCache||'x'); }
-  function obtenerPendientesDescartados(){
-    try{ return JSON.parse(localStorage.getItem(claveDescartados())||'[]'); }catch(e){ return []; }
-  }
-  function descartarPendiente(matchId){
-    try{
-      const arr = obtenerPendientesDescartados();
-      if(!arr.includes(matchId)){ arr.push(matchId); localStorage.setItem(claveDescartados(), JSON.stringify(arr)); }
-    }catch(e){}
-  }
-  function restaurarPendiente(matchId){
-    try{
-      const arr = obtenerPendientesDescartados().filter(id => id !== matchId);
-      localStorage.setItem(claveDescartados(), JSON.stringify(arr));
-    }catch(e){}
-  }
-  // Abre el partido en el editor de estadísticas para cargar el minutaje a mano.
-  function abrirPartidoParaMinutaje(matchId){
-    const m = (matches||[]).find(x=>x.id===matchId);
-    if(!m){ toast('No se encontró el partido'); return; }
-    // Mostramos la plantilla de carga DENTRO de la solapa Minutaje (sin ir a Partidos).
-    currentMatch = m;   // loadMatchMinutes usa currentMatch para citados/invitados
-    const list = document.getElementById('minutesList');
-    const editor = document.getElementById('minutesEditor');
-    const charts = document.getElementById('minutesCharts');
-    if(list) list.style.display = 'none';
-    if(charts) charts.style.display = 'none';
-    if(editor){ editor.style.display = 'block'; editor.innerHTML = '<p class="rd-empty">Cargando…</p>'; }
-    loadMatchMinutes(matchId);
-    if(editor) editor.scrollIntoView({behavior:'smooth', block:'start'});
-  }
-
-  // ===== GRÁFICOS DE MINUTAJE =====
-  // Estado de la UI de gráficos (qué vista y qué selección), para no perderlo al redibujar.
-  window.__mchState = window.__mchState || { vista:'anio', partidoId:'', jugador:'', cmp:[], evoJugador:'' };
-
-  // Devuelve, para una lista de sesiones, un mapa {nombre:{t1,t2,total}} en MINUTOS.
-  function mchAgregarMinutos(sesiones){
-    const acc = {};
-    (sesiones||[]).forEach(s=>{
-      const t = s.totals || {};
-      Object.keys(t).forEach(name=>{
-        if(name==='__rival'||name==='__manual') return;
-        const j = t[name]; if(!j) return;
-        const t1 = Math.round((j.t1||0)/60), t2 = Math.round((j.t2||0)/60);
-        if(t1+t2<=0) return;
-        if(!acc[name]) acc[name] = { t1:0, t2:0, total:0 };
-        acc[name].t1 += t1; acc[name].t2 += t2; acc[name].total += (t1+t2);
-      });
-    });
-    return acc;
-  }
-
-  function mchEscapar(s){ return escapeHtml(String(s||'')); }
-
-  async function renderMinutesCharts(){
-    const cont = document.getElementById('minutesCharts');
-    if(!cont) return;
-    // Cargamos las sesiones de minutaje (reusa cache si renderMinutes ya corrió).
-    let sessions = window.__minSessions || null;
-    if(!sessions){
-      try{
-        const sb=window.__sb; const clubId=await window.__getClubId();
-        const cat=window.__getActiveCategory?window.__getActiveCategory():null;
-        if(sb&&clubId){
-          let q=sb.from('live_sessions').select('*').eq('club_id',clubId);
-          q=cat?q.eq('categoria',cat):q.is('categoria',null);
-          if(window.__getTemporada) q=q.eq('temporada',window.__getTemporada());
-          const {data}=await q;
-          sessions=data||[]; window.__minSessions=sessions;
-        } else { sessions=[]; }
-      }catch(e){ sessions=[]; }
-    }
-    sessions = (sessions||[]).filter(s=>s.totals);
-    const st = window.__mchState;
-
-    // Sesiones con datos de minutos (excluye vacías).
-    const conMin = sessions.filter(s=>{
-      const t=s.totals||{}; return Object.keys(t).some(k=>k!=='__rival'&&k!=='__manual'&&t[k]&&((t[k].t1||0)+(t[k].t2||0))>0);
-    });
-    if(conMin.length===0){ cont.innerHTML=''; return; }
-
-    // Sesiones según la vista: todo el año, o un partido puntual.
-    let sesionesUsar = conMin;
-    if(st.vista==='partido'){
-      if(!st.partidoId) st.partidoId = conMin[0].id;
-      sesionesUsar = conMin.filter(s=>s.id===st.partidoId);
-    }
-    const datos = mchAgregarMinutos(sesionesUsar);           // {nombre:{t1,t2,total}}
-    const nombres = Object.keys(datos).sort((a,b)=>datos[b].total-datos[a].total);
-
-    // ---- Cabecera: pestañas Año / Partido + selector de partido ----
-    let html = `<div class="mch-tabs">
-      <button class="mch-tab ${st.vista==='anio'?'active':''}" data-mv="anio">📅 Año</button>
-      <button class="mch-tab ${st.vista==='partido'?'active':''}" data-mv="partido">⚽ Por partido</button>
-    </div>`;
-
-    if(st.vista==='partido'){
-      html += `<div class="mch-controls"><select id="mchPartidoSel">`;
-      conMin.forEach(s=>{
-        const fecha = s.created_at?new Date(s.created_at).toLocaleDateString('es-AR'):'';
-        html += `<option value="${mchEscapar(s.id)}" ${s.id===st.partidoId?'selected':''}>${mchEscapar(s.name||'Partido')}${fecha?(' · '+fecha):''}</option>`;
-      });
-      html += `</select></div>`;
-    }
-
-    const maxTotal = nombres.length ? datos[nombres[0]].total : 0;
-
-    // ---- Gráfico 1: Reparto 1T vs 2T del equipo (COLUMNAS verticales apiladas) ----
-    html += `<div class="mch-card"><h4>⏱ Reparto 1er vs 2do tiempo</h4>
-      <p class="mch-sub">${st.vista==='anio'?'Acumulado del año.':'Este partido.'} Cada columna es un jugador; la altura son sus minutos.</p>`;
-    if(nombres.length===0){ html += `<p class="mch-empty">Sin minutos cargados.</p>`; }
-    else {
-      let sumT1=0, sumT2=0;
-      nombres.forEach(n=>{ sumT1+=datos[n].t1; sumT2+=datos[n].t2; });
-      html += `<div class="mch-vbars">`;
-      nombres.forEach(n=>{
-        const d = datos[n];
-        const hCol = maxTotal ? (d.total/maxTotal*100) : 0;
-        const hT2 = d.total ? (d.t2/d.total*100) : 0;
-        const hT1 = d.total ? (d.t1/d.total*100) : 0;
-        html += `<div class="mch-vbar-col">
-          <span class="mch-vbar-val">${d.total}′</span>
-          <div class="mch-vbar-stack" style="height:${hCol}%">
-            <div class="mch-vbar-t2" style="height:${hT2}%"></div>
-            <div class="mch-vbar-t1" style="height:${hT1}%"></div>
-          </div>
-          <span class="mch-vbar-name">${mchEscapar(n)}</span>
-        </div>`;
-      });
-      html += `</div>`;
-      const tot = sumT1+sumT2;
-      const pctT1 = tot?Math.round(sumT1/tot*100):0, pctT2 = tot?Math.round(sumT2/tot*100):0;
-      html += `<div class="mch-legend">
-        <span><span class="mch-dot t1"></span>1er tiempo — ${sumT1}′ (${pctT1}%)</span>
-        <span><span class="mch-dot t2"></span>2do tiempo — ${sumT2}′ (${pctT2}%)</span>
-      </div>`;
-    }
-    html += `</div>`;
-
-    // ---- Gráfico 2: Comparar 2-3 jugadores (columnas apiladas) ----
-    html += `<div class="mch-card"><h4>👥 Comparar jugadores</h4>
-      <p class="mch-sub">Elegí hasta 3 jugadores para comparar sus minutos (1er + 2do tiempo).</p>
-      <div class="mch-controls">`;
-    for(let i=0;i<3;i++){
-      const sel = st.cmp[i]||'';
-      html += `<select class="mchCmpSel" data-i="${i}"><option value="">— jugador ${i+1} —</option>`;
-      nombres.forEach(n=>{ html += `<option value="${mchEscapar(n)}" ${n===sel?'selected':''}>${mchEscapar(n)}</option>`; });
-      html += `</select>`;
-    }
-    html += `</div>`;
-    const elegidos = st.cmp.filter(n=>n&&datos[n]);
-    if(elegidos.length===0){ html += `<p class="mch-empty">Elegí jugadores arriba para compararlos.</p>`; }
-    else {
-      const maxCmp = Math.max(...elegidos.map(n=>datos[n].total),1);
-      html += `<div class="mch-cmp-cols">`;
-      elegidos.forEach(n=>{
-        const d = datos[n];
-        const h1 = d.total?(d.t1/maxCmp*100):0;
-        const h2 = d.total?(d.t2/maxCmp*100):0;
-        html += `<div class="mch-cmp-col">
-          <span class="mch-cmp-tot">${d.total}′</span>
-          <div class="mch-cmp-stack" style="height:${(d.total/maxCmp*100)}%">
-            <div class="mch-cmp-t2" style="height:${d.total?(d.t2/d.total*100):0}%"></div>
-            <div class="mch-cmp-t1" style="height:${d.total?(d.t1/d.total*100):0}%"></div>
-          </div>
-          <span class="mch-cmp-name">${mchEscapar(n)}</span>
-        </div>`;
-      });
-      html += `</div>
-      <div class="mch-legend">
-        <span><span class="mch-dot t1"></span>1er tiempo</span>
-        <span><span class="mch-dot t2"></span>2do tiempo</span>
-      </div>`;
-    }
-    html += `</div>`;
-
-    cont.innerHTML = html;
-
-    // ---- Listeners ----
-    cont.querySelectorAll('.mch-tab').forEach(b=>b.addEventListener('click',()=>{ st.vista=b.dataset.mv; renderMinutesCharts(); }));
-    const pSel = cont.querySelector('#mchPartidoSel'); if(pSel) pSel.addEventListener('change',()=>{ st.partidoId=pSel.value; renderMinutesCharts(); });
-    cont.querySelectorAll('.mchCmpSel').forEach(se=>se.addEventListener('change',()=>{ st.cmp[parseInt(se.dataset.i,10)]=se.value; renderMinutesCharts(); }));
-  }
-
-  // Mini gráfico de líneas en SVG para la evolución.
-  function mchLineChart(serie){
-    if(!serie.length) return `<p class="mch-empty">Sin partidos.</p>`;
-    const W=Math.max(serie.length*70,280), H=180, pad=28;
-    const maxV = Math.max(...serie.map(p=>p.min),1);
-    const stepX = serie.length>1?(W-pad*2)/(serie.length-1):0;
-    const px = i => pad + stepX*i;
-    const py = v => H-pad - (v/maxV)*(H-pad*2);
-    let pts = serie.map((p,i)=>`${px(i)},${py(p.min)}`).join(' ');
-    let dots='', labels='';
-    serie.forEach((p,i)=>{
-      dots += `<circle cx="${px(i)}" cy="${py(p.min)}" r="4" fill="var(--accent-2)"/>`;
-      dots += `<text x="${px(i)}" y="${py(p.min)-9}" text-anchor="middle" font-size="11" fill="var(--chalk)" font-family="monospace">${p.min}′</text>`;
-      const lbl = p.label.length>8?p.label.slice(0,8)+'…':p.label;
-      labels += `<text x="${px(i)}" y="${H-8}" text-anchor="middle" font-size="10" fill="var(--muted)">${mchEscapar(lbl)}</text>`;
-    });
-    return `<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><svg viewBox="0 0 ${W} ${H}" style="width:${W}px;max-width:none;height:${H}px;">
-      <polyline points="${pts}" fill="none" stroke="var(--accent-2)" stroke-width="2.5"/>
-      ${dots}${labels}
-    </svg></div>`;
-  }
-
   const fmtMin = (s) => { s=Math.round(s||0); const m=Math.floor(s/60),x=s%60; return String(m).padStart(2,'0')+':'+String(x).padStart(2,'0'); };
   async function renderMinutes(){
     const list=document.getElementById('minutesList');
@@ -11207,52 +10726,16 @@ window.__initEditor = function(){
       const {data}=await q.order('created_at',{ascending:false});
       sessions=data||[];
     }catch(e){ list.innerHTML='<p class="rd-empty">No se pudo cargar (¿corriste live-columns.sql?).</p>'; return; }
-
-    // Guardamos las sesiones por si otras vistas (ficha, anuales) las reusan.
-    window.__minSessions = sessions;
-
-    // Partidos de la sección "Partidos" que NO tienen sesión de minutaje todavía:
-    // los mostramos como PENDIENTES para cargar a mano. No ocupan lugar en la base
-    // hasta que el DT cargue algo. Se pueden descartar (se recuerda en el equipo).
-    const idsConSesion = new Set(sessions.filter(s=>s.match_id).map(s=>s.match_id));
-    const descartados = obtenerPendientesDescartados();
-    const pendientes = (matches||[]).filter(m =>
-      !idsConSesion.has(m.id) && !descartados.includes(m.id)
-    ).sort((a,b)=>{
-      const da=a.date||'', db=b.date||'';
-      if(da&&db) return db.localeCompare(da);
-      if(da) return -1; if(db) return 1;
-      return (b.createdAt||'').localeCompare(a.createdAt||'');
-    });
-
-    if(sessions.length===0 && pendientes.length===0){ list.innerHTML='<p class="rd-empty">Todavía no hay partidos ni minutajes. Creá un partido en 📊 Estadísticas o terminá uno en 🔴 En vivo.</p>'; return; }
+    if(sessions.length===0){ list.innerHTML='<p class="rd-empty">Todavía no hay minutajes. Terminá un partido en 🔴 En vivo y guardalo.</p>'; return; }
     list.innerHTML='';
     const table=document.createElement('table'); table.className='match-table minutes-table';
     table.innerHTML='<thead><tr><th>Partido</th><th class="mt-fecha">Fecha</th><th>Jugadores</th><th class="mt-open"></th><th class="mt-del"></th></tr></thead><tbody></tbody>';
     const tb=table.querySelector('tbody');
-
-    // Primero los PENDIENTES (para que el DT los vea arriba y los complete).
-    pendientes.forEach(m=>{
-      const when = m.date ? new Date(m.date+'T00:00:00').toLocaleDateString('es-AR') : '';
-      const tr=document.createElement('tr');
-      tr.innerHTML=`<td data-label="Partido"><span class="mt-fecha-badge">${escapeHtml(m.rival||'Partido')}</span> <small style="color:var(--warn,#e0a800);font-weight:400;">⏳ pendiente</small></td><td class="mt-fecha" data-label="Fecha">${when}</td><td data-label="Jugadores">Sin cargar</td><td class="mt-open"><button class="btn small mt-open-btn">Cargar minutos →</button></td><td class="mt-del"><button class="mt-del-btn" title="Descartar de la lista" aria-label="Descartar">✕</button></td>`;
-      tr.querySelector('.mt-open-btn').addEventListener('click',()=>{ abrirPartidoParaMinutaje(m.id); });
-      tr.querySelector('.mt-del-btn').addEventListener('click',()=>{
-        if(!confirm('¿Descartar "'+(m.rival||'Partido')+'" de la lista de minutaje? Podés volver a mostrarlo si cargás minutos desde el partido.')) return;
-        descartarPendiente(m.id);
-        toast('Partido descartado de minutaje');
-        renderMinutes();
-      });
-      tb.appendChild(tr);
-    });
-
     sessions.forEach(s=>{
       const when=s.created_at?new Date(s.created_at).toLocaleDateString('es-AR'):'';
-      const nJug=s.totals?Object.keys(s.totals).filter(k=>k!=='__rival'&&k!=='__manual').length:0;
-      const esManual = s.totals && s.totals.__manual === true;
-      const origenBadge = esManual ? ' <small style="color:var(--muted);font-weight:400;">✎ manual</small>' : ' <small style="color:var(--accent-2);font-weight:400;">🔴 en vivo</small>';
+      const nJug=s.totals?Object.keys(s.totals).filter(k=>k!=='__rival').length:0;
       const tr=document.createElement('tr');
-      tr.innerHTML=`<td data-label="Partido"><span class="mt-fecha-badge">${escapeHtml(s.name||'Partido')}</span>${origenBadge}</td><td class="mt-fecha" data-label="Fecha">${when}</td><td data-label="Jugadores">${nJug} jugadores</td><td class="mt-open"><button class="btn small mt-open-btn">Ver detalle →</button></td><td class="mt-del"><button class="mt-del-btn" title="Borrar este partido" aria-label="Borrar">✕</button></td>`;
+      tr.innerHTML=`<td data-label="Partido"><span class="mt-fecha-badge">${escapeHtml(s.name||'Partido')}</span></td><td class="mt-fecha" data-label="Fecha">${when}</td><td data-label="Jugadores">${nJug} jugadores</td><td class="mt-open"><button class="btn small mt-open-btn">Ver detalle →</button></td><td class="mt-del"><button class="mt-del-btn" title="Borrar este partido" aria-label="Borrar">✕</button></td>`;
       tr.querySelector('.mt-open-btn').addEventListener('click',()=>showMinutesDetail(s));
       tr.querySelector('.mt-del-btn').addEventListener('click',async()=>{
         if(!confirm('¿Borrar el minutaje de "'+(s.name||'Partido')+'"? Esta acción no se puede deshacer.')) return;
@@ -11261,9 +10744,6 @@ window.__initEditor = function(){
         try{
           const { error }=await sbx.from('live_sessions').delete().eq('id', s.id);
           if(error){ toast('No se pudo borrar'); return; }
-          // Si la sesión estaba vinculada a un partido, lo marcamos como descartado
-          // para que NO reaparezca como "pendiente" apenas se borra el minutaje.
-          if(s.match_id) descartarPendiente(s.match_id);
           toast('Partido borrado');
           renderMinutes();
         }catch(e){ console.error('del minutes lista', e); toast('No se pudo borrar'); }
@@ -11271,44 +10751,6 @@ window.__initEditor = function(){
       tb.appendChild(tr);
     });
     list.appendChild(table);
-
-    // Botón para ver los partidos OCULTOS (descartados) y poder restaurarlos.
-    const ocultosIds = obtenerPendientesDescartados();
-    const ocultos = (matches||[]).filter(m => ocultosIds.includes(m.id));
-    if(ocultos.length > 0){
-      const wrap = document.createElement('div');
-      wrap.style.cssText = 'margin-top:14px;';
-      wrap.innerHTML = `<button class="btn small" id="mtVerOcultos" style="opacity:.8;">👁 Ver partidos ocultos (${ocultos.length})</button>
-        <div id="mtOcultosBox" style="display:none;margin-top:10px;"></div>`;
-      list.appendChild(wrap);
-      const box = wrap.querySelector('#mtOcultosBox');
-      wrap.querySelector('#mtVerOcultos').addEventListener('click', ()=>{
-        if(box.style.display==='none'){
-          let h = '<table class="match-table minutes-table"><tbody>';
-          ocultos.forEach(m=>{
-            const when = m.date ? new Date(m.date+'T00:00:00').toLocaleDateString('es-AR') : '';
-            h += `<tr data-id="${escapeHtml(m.id)}"><td data-label="Partido"><span class="mt-fecha-badge">${escapeHtml(m.rival||'Partido')}</span> <small style="color:var(--muted);">oculto</small></td><td class="mt-fecha" data-label="Fecha">${when}</td><td></td><td class="mt-open"><button class="btn small mt-restore-btn">↩ Restaurar</button></td><td></td></tr>`;
-          });
-          h += '</tbody></table>';
-          box.innerHTML = h;
-          box.querySelectorAll('.mt-restore-btn').forEach(b=>{
-            b.addEventListener('click', ()=>{
-              const id = b.closest('tr').dataset.id;
-              restaurarPendiente(id);
-              toast('Partido restaurado');
-              renderMinutes();
-            });
-          });
-          box.style.display='block';
-          wrap.querySelector('#mtVerOcultos').textContent = 'Ocultar lista';
-        } else {
-          box.style.display='none';
-          wrap.querySelector('#mtVerOcultos').textContent = `👁 Ver partidos ocultos (${ocultos.length})`;
-        }
-      });
-    }
-
-    renderMinutesCharts();   // gráficos y comparativas, debajo de la lista
   }
 
   function showMinutesDetail(s){
@@ -11320,7 +10762,7 @@ window.__initEditor = function(){
     const totals=s.totals||{};
     const rival = totals.__rival || { goalsAgainst:0, foulsAgainst:0 };
     // ordenar por total desc (excluyendo la entrada especial del rival)
-    const rows=Object.keys(totals).filter(k=>k!=='__rival'&&k!=='__manual').map(name=>({name, ...totals[name]})).sort((a,b)=>(b.total||0)-(a.total||0));
+    const rows=Object.keys(totals).filter(k=>k!=='__rival').map(name=>({name, ...totals[name]})).sort((a,b)=>(b.total||0)-(a.total||0));
     // marcador: goles/faltas a favor son la suma de los jugadores
     let golesFavor=0, faltasFavor=0;
     rows.forEach(r=>{ golesFavor+=(r.goals||0); faltasFavor+=(r.fouls||0); });
@@ -12599,14 +12041,14 @@ window.__initEditor = function(){
         totalFor += (rival.shotsFor != null ? rival.shotsFor : ((rival.shotsFor1||0)+(rival.shotsFor2||0)));
         totalAgainst += (rival.shotsAgainst != null ? rival.shotsAgainst : ((rival.shotsAgainst1||0)+(rival.shotsAgainst2||0)));
         Object.keys(t).forEach(name => {
-          if(name === '__rival' || name === '__manual') return;
+          if(name === '__rival') return;
           const sh = t[name] && t[name].shots;
           if(sh) porJugador[name] = (porJugador[name]||0) + sh;
         });
         // Goles/tarjetas: solo si la sesión NO está vinculada a un partido.
         if(!s.match_id){
           Object.keys(t).forEach(name => {
-            if(name === '__rival' || name === '__manual') return;
+            if(name === '__rival') return;
             const g = t[name] && t[name].goals;
             const c = t[name] && t[name].cards;
             if(g) golesLive[name] = (golesLive[name]||0) + g;
@@ -12972,55 +12414,8 @@ window.__initEditor = function(){
     const avisoSinPartidos = sinPartidos
       ? '<div class="annual-empty" style="margin-bottom:16px;">Todavía no cargaste partidos en esta categoría. Las estadísticas y los gráficos van a aparecer cuando cargues el primero.</div>'
       : '';
-    // ---- Gráfico de MINUTOS del jugador (individual): reparto 1T/2T + evolución ----
-    // Usamos liveTodas (todas las sesiones con minutos de este jugador).
-    const minSerie = (liveTodas||[])
-      .map(s => {
-        const t = (s.totals && s.totals[playerName]) || null;
-        if(!t) return null;
-        const t1 = Math.round((t.t1||0)/60), t2 = Math.round((t.t2||0)/60);
-        if(t1+t2<=0) return null;
-        return { label:s.name||'Partido', orden:s.created_at||'', t1, t2, total:t1+t2 };
-      })
-      .filter(Boolean)
-      .sort((a,b)=>String(a.orden).localeCompare(String(b.orden)));
-
-    let minutosBox = '';
-    if(minSerie.length>0){
-      const sumT1 = minSerie.reduce((a,x)=>a+x.t1,0);
-      const sumT2 = minSerie.reduce((a,x)=>a+x.t2,0);
-      const totMin = sumT1+sumT2;
-      const pct1 = totMin?Math.round(sumT1/totMin*100):0, pct2 = totMin?Math.round(sumT2/totMin*100):0;
-      // Línea de evolución (minutos totales por partido)
-      const maxV = Math.max(...minSerie.map(x=>x.total),1);
-      const W=Math.max(minSerie.length*70,280), H=170, pad=26;
-      const stepX = minSerie.length>1?(W-pad*2)/(minSerie.length-1):0;
-      const px = i => pad + stepX*i, py = v => H-pad-(v/maxV)*(H-pad*2);
-      const pts = minSerie.map((p,i)=>`${px(i)},${py(p.total)}`).join(' ');
-      let dots='', labels='';
-      minSerie.forEach((p,i)=>{
-        dots += `<circle cx="${px(i)}" cy="${py(p.total)}" r="4" fill="var(--accent-2)"/>`;
-        dots += `<text x="${px(i)}" y="${py(p.total)-9}" text-anchor="middle" font-size="11" fill="var(--chalk)" font-family="monospace">${p.total}′</text>`;
-        const lbl = p.label.length>8?p.label.slice(0,8)+'…':p.label;
-        labels += `<text x="${px(i)}" y="${H-7}" text-anchor="middle" font-size="10" fill="var(--muted)">${escapeHtml(lbl)}</text>`;
-      });
-      minutosBox = `<div class="pc-chart-card">
-        <h3 class="pc-chart-title">⏱ Minutos jugados</h3>
-        <div class="mch-legend" style="margin:0 0 12px;">
-          <span><span class="mch-dot t1"></span>1er tiempo — ${sumT1}′ (${pct1}%)</span>
-          <span><span class="mch-dot t2"></span>2do tiempo — ${sumT2}′ (${pct2}%)</span>
-          <span><b style="color:var(--chalk);">Total: ${totMin}′</b></span>
-        </div>
-        <div class="pc-chart-scroll"><svg viewBox="0 0 ${W} ${H}" style="width:${W}px;max-width:none;height:${H}px;">
-          <polyline points="${pts}" fill="none" stroke="var(--accent-2)" stroke-width="2.5"/>
-          ${dots}${labels}
-        </svg></div>
-        <p class="pc-chart-foot">Evolución de minutos por partido. El reparto 1er/2do tiempo es del acumulado.</p>
-      </div>`;
-    }
-
     cont2.innerHTML = cabecera + (sinPartidos ? avisoSinPartidos : resumen) + extras
-                    + (sinPartidos ? '' : (barsChart + lineChart + minutosBox))
+                    + (sinPartidos ? '' : (barsChart + lineChart))
                     + seguimientoBox;
     // Cargar las secciones nuevas (son asíncronas, se llenan solas)
     renderDatosPersonales(player);
@@ -13856,7 +13251,7 @@ window.__initEditor = function(){
     sessions.forEach(s => {
       const t = s.totals || {};
       Object.keys(t).forEach(name => {
-        if(name === '__rival' || name === '__manual') return;
+        if(name === '__rival') return;
         if(!stat[name]) return;   // jugador que ya no está en el plantel
         const tot = t[name].total || 0;
         if(tot > 0){ stat[name].minutos += tot; stat[name].sesiones++; }
@@ -14745,23 +14140,34 @@ try{
     }catch(e){ /* silencioso */ }
   };
 
-  function mostrarPedidoWhatsapp(userId){
+  function mostrarPedidoWhatsapp(userId, opts){
+    opts = opts || {};
+    const obligatorio = !!opts.obligatorio;   // en el pago: no se puede saltear
+    const onSaved = typeof opts.onSaved === 'function' ? opts.onSaved : null;
     if(document.getElementById('waAskModal')) return;
     const m = document.createElement('div');
     m.id = 'waAskModal';
     m.className = 'plans-overlay';
+    // El texto y el botón "Ahora no" cambian según sea obligatorio (pago) o no (aviso normal).
+    const intro = obligatorio
+      ? 'Para activar tu cuenta necesitamos tu WhatsApp: es donde te confirmamos el pago y te avisamos cuando esté por vencer.'
+      : 'Lo usamos solo para avisarte cosas de tu cuenta (por ejemplo, cuando esté por vencer). No se comparte con nadie.';
+    const btnLater = obligatorio
+      ? ''
+      : '<button id="waAskLater" style="width:100%;margin-top:10px;background:transparent;border:none;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline;">Ahora no</button>';
     m.innerHTML = `<div class="plans-box" style="max-width:400px;text-align:left;">
-      <h2 style="font-size:20px;">📱 Completá tu WhatsApp</h2>
-      <p style="color:var(--muted);font-size:14px;line-height:1.5;margin:8px 0 14px;">Lo usamos solo para avisarte cosas de tu cuenta (por ejemplo, cuando esté por vencer). No se comparte con nadie.</p>
+      <h2 style="font-size:20px;">📱 ${obligatorio ? 'Confirmá tu WhatsApp' : 'Completá tu WhatsApp'}</h2>
+      <p style="color:var(--muted);font-size:14px;line-height:1.5;margin:8px 0 14px;">${intro}</p>
       <input type="tel" id="waAskInput" placeholder="11 2345-6789" autocomplete="tel" style="width:100%;padding:11px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);color:var(--chalk);font-size:15px;box-sizing:border-box;">
       <div id="waAskErr" style="color:var(--danger);font-size:12px;margin-top:6px;display:none;">Poné un número válido (al menos 8 dígitos).</div>
-      <button class="btn-primary" id="waAskSave" style="width:100%;margin-top:14px;">Guardar</button>
-      <button id="waAskLater" style="width:100%;margin-top:10px;background:transparent;border:none;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline;">Ahora no</button>
+      <button class="btn-primary" id="waAskSave" style="width:100%;margin-top:14px;">Guardar y continuar</button>
+      ${btnLater}
     </div>`;
     document.body.appendChild(m);
     const input = document.getElementById('waAskInput');
     input.focus();
-    document.getElementById('waAskLater').addEventListener('click', ()=>{
+    const later = document.getElementById('waAskLater');
+    if(later) later.addEventListener('click', ()=>{
       sessionStorage.setItem('waAsked', '1');   // no volver a molestar esta sesión
       m.remove();
     });
@@ -14774,12 +14180,30 @@ try{
         sessionStorage.setItem('waAsked', '1');
         m.remove();
         try{ if(window.toast) window.toast('¡Gracias! WhatsApp guardado.'); }catch(_){}
+        if(onSaved) onSaved(val);
       }catch(e){
         const errEl = document.getElementById('waAskErr');
         if(errEl){ errEl.textContent = 'No se pudo guardar. Probá de nuevo.'; errEl.style.display='block'; }
       }
     });
   }
+
+  // Exige el WhatsApp antes de dejar pagar. Devuelve una promesa que se resuelve
+  // cuando el usuario ya tiene WhatsApp (sea porque ya lo tenía o porque lo cargó ahora).
+  // Si el usuario cierra sin cargarlo, la promesa NO se resuelve (no puede pagar sin número).
+  window.__exigirWhatsappParaPago = async function(){
+    try{
+      const { data: { session } } = await sb.auth.getSession();
+      if(!session) return true;   // sin sesión no bloqueamos (caso raro)
+      const { data } = await sb.from('profiles').select('whatsapp').eq('id', session.user.id).single();
+      const wa = (data && data.whatsapp || '').replace(/[^\d]/g, '');
+      if(wa.length >= 8) return true;   // ya tiene: puede pagar
+      // No tiene: se lo pedimos obligatorio y esperamos a que lo cargue.
+      return await new Promise((resolve)=>{
+        mostrarPedidoWhatsapp(session.user.id, { obligatorio:true, onSaved:()=>resolve(true) });
+      });
+    }catch(e){ return true; }   // ante error, no bloqueamos el pago
+  };
 
   // Chequea el estado de la suscripción y muestra el cartel si corresponde
   window.__checkSubscription = async function(){
@@ -14804,7 +14228,14 @@ try{
               pack: prof.pack || 'entrenador'
             };
             const mp = document.getElementById('myPlanBtn');
-            if(mp){ mp.style.display = ''; mp.onclick = () => window.__openMyPlan(); }
+            if(mp){
+              mp.style.display = '';
+              // Si todavía está en fase demo (no pagó), el botón invita a sumarse y va
+              // directo a los planes. Si ya está activo (pagó), muestra "Mi plan".
+              const yaActivo = (prof.sub_status === 'active');
+              mp.textContent = yaActivo ? '💳 Mi plan' : '💳 Sumate';
+              mp.onclick = () => yaActivo ? window.__openMyPlan() : (window.__openPlansModal && window.__openPlansModal());
+            }
             const dias = Math.ceil((new Date(prof.sub_until).getTime() - Date.now())/(1000*60*60*24));
             // renderSubBanner ya maneja todo: aviso si faltan días, bloqueo si venció.
             renderSubBanner(prof.sub_status || 'trial', dias);
@@ -14909,7 +14340,13 @@ try{
         document.body.insertBefore(banner, document.body.firstChild);
       }
       banner.className = 'sub-banner expired';
-      banner.innerHTML = `<span class="sb-icon">🔒</span><span class="sb-text"><b>Tu licencia expiró.</b> Podés ver y exportar todo lo que cargaste, pero no cargar datos nuevos hasta renovar.</span><button class="sb-btn" id="sbPayBtn">Renovar</button>`;
+      // Igual que arriba: si YA había pagado ('active'), no es "fase demo" sino
+      // plan vencido → mensaje de renovación. Si estaba en demo, fin de demo.
+      if(status === 'active'){
+        banner.innerHTML = `<span class="sb-icon">🔒</span><span class="sb-text"><b>Tu plan venció.</b> Podés seguir viendo tus datos, pero para cargar contenido nuevo, renová tu plan. Pagá y envianos el comprobante por WhatsApp.</span><button class="sb-btn" id="sbPayBtn">Renovar</button>`;
+      } else {
+        banner.innerHTML = `<span class="sb-icon">🔒</span><span class="sb-text"><b>Terminó tu fase demo.</b> Podés seguir viendo tus datos, pero para cargar contenido nuevo, sumate a Benchone. Pagá y envianos el comprobante por WhatsApp.</span><button class="sb-btn" id="sbPayBtn">Sumate</button>`;
+      }
       const pb = document.getElementById('sbPayBtn');
       if(pb) pb.addEventListener('click', openPlansModal);
       return;
@@ -14927,7 +14364,7 @@ try{
       const txt = restantes <= 0
         ? 'Hoy es el último día para renovar.'
         : (restantes === 1 ? 'Te queda 1 día para renovar.' : 'Te quedan ' + restantes + ' días para renovar.');
-      banner.innerHTML = `<span class="sb-icon">⚠️</span><span class="sb-text"><b>Tu licencia expiró.</b> ${txt} Después vas a poder ver tus datos pero no cargar nuevos.</span><button class="sb-btn" id="sbPayBtn">Renovar</button>`;
+      banner.innerHTML = `<span class="sb-icon">⚠️</span><span class="sb-text"><b>Terminó tu fase demo.</b> ${txt} Después vas a poder ver tus datos pero no cargar nuevos.</span><button class="sb-btn" id="sbPayBtn">Sumate</button>`;
       const pb = document.getElementById('sbPayBtn');
       if(pb) pb.addEventListener('click', openPlansModal);
       return;
@@ -14935,15 +14372,24 @@ try{
 
     // ── AL DÍA ──
     if(!porVencer){ if(banner) banner.remove(); return; }
-    // Por vencer (<=7 días): banner de aviso suave
+    // Por vencer (<=7 días): banner de aviso suave.
     if(!banner){
       banner = document.createElement('div');
       banner.id = 'subBanner';
       document.body.insertBefore(banner, document.body.firstChild);
     }
     banner.className = 'sub-banner warning';
-    const msg = window.t('subEndingMsg').replace('{d}', daysLeft);
-    banner.innerHTML = `<span class="sb-icon">⏳</span><span class="sb-text"><b>${window.t('subEndingTitle')}</b> ${msg}</span><button class="sb-btn" id="sbPayBtn">${window.t('subPayBtn')}</button>`;
+    // OJO: distinguir según si ya pagó o sigue en demo.
+    //  - 'active' = YA PAGÓ: si su plan está por vencer, es un aviso de RENOVACIÓN
+    //    (no de "fase demo", que sería incorrecto y confuso para alguien que pagó).
+    //  - cualquier otro (trial): sigue en fase demo → aviso de fin de demo.
+    if(status === 'active'){
+      const dTxt = daysLeft === 1 ? 'Te queda 1 día' : ('Te quedan ' + daysLeft + ' días');
+      banner.innerHTML = `<span class="sb-icon">🔔</span><span class="sb-text"><b>Tu plan está por vencer.</b> ${dTxt} de tu plan actual. Renová para seguir usando Benchone sin interrupciones. Pagá y envianos el comprobante por WhatsApp.</span><button class="sb-btn" id="sbPayBtn">Renovar</button>`;
+    } else {
+      const msg = window.t('subEndingMsg').replace('{d}', daysLeft);
+      banner.innerHTML = `<span class="sb-icon">⏳</span><span class="sb-text"><b>${window.t('subEndingTitle')}</b> ${msg}</span><button class="sb-btn" id="sbPayBtn">${window.t('subPayBtn')}</button>`;
+    }
     const payBtn = document.getElementById('sbPayBtn');
     if(payBtn) payBtn.addEventListener('click', openPlansModal);
   }
@@ -14958,16 +14404,22 @@ try{
     if(window.__modoLecturaActivo) return;
     window.__modoLecturaActivo = true;
 
-    const mensaje = 'Tu licencia expiró. Renová tu plan para seguir cargando datos.';
+    const mensaje = 'Terminó tu fase demo. Sumate a Benchone para seguir cargando datos.';
 
     // Selectores de todo lo que MODIFICA datos
     const bloquear = [
       '#addWeekBtn', '#addFechaBtn', '#openAdjBtn', '#newSeasonBtn',
       '#saveCloudBtn', '#liveStartBtn', '#clubEscudoBtn',
       '.btn-add-player', '.btn-new-match', '.sq-add', '.rd-add',
-      '[id^=add]', '[id^=new]', '[id^=save]',
+      // Ids que EMPIEZAN con add/new/save
+      '[id^=add]', '[id^=new]', '[id^=save]', '[id^=New]', '[id^=Add]', '[id^=Save]',
+      // Ids que CONTIENEN Save/Add/Guardar en cualquier parte (ej: adjSaveBtn, calSaveBtn,
+      // boardAddHome, causaSave, datosSave). Esto cierra los agujeros del patrón anterior.
+      '[id*=Save]', '[id*=save]', '[id*=Add]', '[id*=Guardar]', '[id*=guardar]',
+      'button[id*=Btn][id*=dj]',
+      // Botones de borrar
       '.sq-del', '.mt-del', '.week-del', '.scout-del', '.btn-del-match',
-      '.bp-del', '.rc-del-btn', '.ex-del', '.g-remove'
+      '.bp-del', '.rc-del-btn', '.ex-del', '.g-remove', '[class*=-del]'
     ].join(',');
 
     function marcar(){
@@ -15050,7 +14502,7 @@ try{
         <span class="pa-label">O transferí a este alias de MercadoPago:</span>
         <span class="pa-alias" id="plansAlias">${P.aliasMP}</span>
         <button class="pa-copy" id="plansAliasCopy">Copiar</button>
-        <span class="pa-note">Después avisanos por WhatsApp y activamos tu cuenta.</span>
+        <span class="pa-note">Pagá al alias y envianos el comprobante por WhatsApp. Apenas lo confirmamos, activamos tu cuenta.</span>
       </div>` : '';
     // Cartel para los amigos fundadores (texto quitado; el descuento sigue aplicándose)
     const fundadorLine = '';
@@ -15117,19 +14569,40 @@ try{
     function renderPaso2(packKey){
       const pk = P.packs[packKey]; if(!pk) return renderPaso1();
       let cards = '';
-      (pk.durations||[]).forEach(dur=>{
+      // Solo mostramos las duraciones NO ocultas (6 y 12 quedan guardadas para septiembre).
+      const visibles = (pk.durations||[]).filter(dur => !dur.oculta);
+      visibles.forEach(dur=>{
         const link = window.__planLink ? window.__planLink(packKey, dur) : (waLink||'#');
         // En 1 mes el total y el mensual son lo mismo: mostramos "$ X" arriba y "$ X/mes" abajo
-        // para que la comparación entre las tres columnas sea directa.
+        // para que la comparación entre las columnas sea directa.
         const priceHtml = (P.showPrices && window.__fmtPrice) ? `<span class="plan-price">${window.__fmtPrice(dur)}</span>` : '';
         const perMonth = (P.showPrices && dur.ars) ? `<span class="plan-permonth">$ ${Math.round(window.__conDescuento(dur.ars)/dur.months).toLocaleString('es-AR')}/mes</span>` : '';
-        const destacado = dur.months === 12 ? ' plan-featured' : '';
-        cards += `<a class="plan-card${destacado}" href="${link}" target="_blank" rel="noopener"><span class="plan-label">${window.__durLabel(dur.months)}</span>${priceHtml}${perMonth}<span class="plan-go">${window.t('planGo')} →</span></a>`;
+        // La duración con promo (3 meses) queda destacada y lleva etiqueta + nota.
+        const destacado = dur.promo ? ' plan-featured' : '';
+        const promoBadge = dur.promo ? `<span class="plan-promo">${dur.promo}</span>` : '';
+        const promoNota = dur.promoNota ? `<span class="plan-promo-nota">${dur.promoNota}</span>` : '';
+        cards += `<a class="plan-card${destacado}" href="${link}" target="_blank" rel="noopener" data-paylink="1">${promoBadge}<span class="plan-label">${window.__durLabel(dur.months)}</span>${priceHtml}${perMonth}${promoNota}<span class="plan-go">${window.t('planGo')} →</span></a>`;
       });
-      modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><button class="plans-back" id="plansBack">← Volver a los packs</button><h2>Pack ${pk.name}</h2><p class="plans-sub">${pk.note||''} · Elegí por cuánto tiempo.</p>${fundadorLine}${codigoLineHTML()}<div class="plans-grid plans-grid-3">${cards}</div>${contactLine}${aliasLine}${legalLine}</div>`;
+      // Con 2 duraciones (1 y 3 meses) usamos grilla de 2 columnas; si hubiera 3+, la de 3.
+      const gridClass = visibles.length <= 2 ? 'plans-grid plans-grid-2' : 'plans-grid plans-grid-3';
+      modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><button class="plans-back" id="plansBack">← Volver a los packs</button><h2>Pack ${pk.name}</h2><p class="plans-sub">${pk.note||''} · Elegí por cuánto tiempo.</p>${fundadorLine}${codigoLineHTML()}<div class="${gridClass}">${cards}</div>${contactLine}${aliasLine}${legalLine}</div>`;
       wire();
       const back = document.getElementById('plansBack');
       if(back) back.addEventListener('click', renderPaso1);
+      // Antes de abrir el link de pago, exigimos el WhatsApp (si no lo tiene cargado).
+      // Así, de todos los que pagan, guardamos su número sí o sí.
+      modal.querySelectorAll('a[data-paylink]').forEach(a=>{
+        a.addEventListener('click', async (e)=>{
+          if(window.__exigirWhatsappParaPago){
+            const destino = a.getAttribute('href');
+            e.preventDefault();   // frenamos la apertura hasta tener el WhatsApp
+            const ok = await window.__exigirWhatsappParaPago();
+            if(ok && destino && destino !== '#'){
+              window.open(destino, '_blank', 'noopener');
+            }
+          }
+        });
+      });
     }
 
     function wire(){
@@ -17215,25 +16688,14 @@ document.getElementById('exportEachBtn').addEventListener('click', async () => {
     link.rel = 'manifest'; link.href = mURL;
     document.head.appendChild(link);
 
-    // ── Service worker: OFFLINE reactivado (versión blindada) ──
-    // Antes de registrar el SW nuevo, LIMPIAMOS cualquier caché viejo de Benchone
-    // (los de versiones anteriores rotas). El SW nuevo maneja su propia versión,
-    // pero borrar acá los caches viejos ayuda a que teléfonos "envenenados" con
-    // la versión rota se destraben solos al abrir la app con internet.
-    if(window.caches && caches.keys){
-      caches.keys().then(function(keys){
-        keys.forEach(function(k){
-          // Borramos caches de versiones viejas (v1, v2, v3), no el actual.
-          if(String(k).indexOf('benchone') !== -1 && k !== 'benchone-v5'){ caches.delete(k).catch(function(){}); }
-        });
-      }).catch(function(){});
-    }
-    // Registramos el service worker real (sw.js). Si el archivo no está en el
-    // server, esto falla en silencio y la app sigue andando online.
+    // Service worker REAL (archivo sw.js) — necesario para offline de verdad.
+    // Un SW embebido en blob no puede cachear la app; por eso usamos un archivo.
+    // Si sw.js no existe todavía en el server, esto falla silencioso y la app
+    // sigue andando igual que antes (online).
     if('serviceWorker' in navigator){
       window.addEventListener('load', function(){
         var swPath = new URL('sw.js', window.location.href).href;
-        navigator.serviceWorker.register(swPath).catch(function(){ /* si falla, la app sigue online */ });
+        navigator.serviceWorker.register(swPath).catch(function(){ /* si falla, la app sigue andando igual (modo online) */ });
       });
     }
   }catch(e){ /* si algo falla, no rompe la app */ }
