@@ -4997,7 +4997,30 @@ const sourceField = document.getElementById('sourceField');
 const consentField = document.getElementById('consentField');
 const signupFields = [fullNameField, whatsappField, clubNameField, roleField, categoriesField, sourceField, consentField];
 
-function showError(msg){ successMsg.classList.remove('show'); errorMsg.textContent = msg; errorMsg.classList.add('show'); }
+function showError(msg){
+  successMsg.classList.remove('show');
+  errorMsg.textContent = msg;
+  errorMsg.classList.add('show');
+  // Si la app está INSTALADA (standalone) y el error es de conexión, el problema
+  // suele ser el modo app de iPhone por datos móviles. Ofrecemos abrir en el
+  // navegador, donde la conexión sí funciona. (En el navegador no aparece.)
+  try{
+    var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    var esRed = /No pudimos conectar|conexión|conectar/i.test(msg);
+    var yaHay = document.getElementById('escapeNavegadorBtn');
+    if(standalone && esRed && !yaHay){
+      var b = document.createElement('button');
+      b.id = 'escapeNavegadorBtn';
+      b.textContent = '🌐 Abrir en el navegador';
+      b.style.cssText = 'display:block;width:100%;margin-top:12px;padding:13px;background:#2F8FCB;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;';
+      b.addEventListener('click', function(){
+        // Abrir la misma URL en el navegador (fuera del modo app instalado).
+        window.open(window.location.origin + window.location.pathname, '_blank');
+      });
+      errorMsg.parentNode && errorMsg.parentNode.insertBefore(b, errorMsg.nextSibling);
+    }
+  }catch(e){}
+}
 function showSuccess(msg){ errorMsg.classList.remove('show'); successMsg.textContent = msg; successMsg.classList.add('show'); }
 function clearMsgs(){ errorMsg.classList.remove('show'); successMsg.classList.remove('show'); }
 
@@ -17201,7 +17224,7 @@ document.getElementById('exportEachBtn').addEventListener('click', async () => {
       caches.keys().then(function(keys){
         keys.forEach(function(k){
           // Borramos caches de versiones viejas (v1, v2, v3), no el actual.
-          if(String(k).indexOf('benchone') !== -1 && k !== 'benchone-v4'){ caches.delete(k).catch(function(){}); }
+          if(String(k).indexOf('benchone') !== -1 && k !== 'benchone-v5'){ caches.delete(k).catch(function(){}); }
         });
       }).catch(function(){});
     }
