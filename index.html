@@ -1396,6 +1396,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .g-detail:focus{outline:none;border-color:var(--accent-2);}
 .g-detail::placeholder{color:var(--muted);}
 .origin-tags{display:flex;flex-wrap:wrap;gap:8px;}
+.novedad-cartel{display:flex;gap:12px;align-items:flex-start;background:color-mix(in srgb, var(--accent-2) 12%, var(--panel-2));border:1px solid var(--accent-2);border-radius:12px;padding:14px 16px;margin-bottom:18px;}
+.novedad-cartel .nc-ico{font-size:20px;line-height:1.2;flex-shrink:0;}
+.novedad-cartel .nc-body{flex:1;min-width:0;}
+.novedad-cartel .nc-title{font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;color:var(--chalk);margin:0 0 4px;text-transform:uppercase;letter-spacing:.3px;}
+.novedad-cartel .nc-text{font-size:13px;color:var(--muted);line-height:1.5;margin:0;}
+.novedad-cartel .nc-close{background:transparent;border:none;color:var(--muted);font-size:18px;cursor:pointer;flex-shrink:0;padding:0 4px;line-height:1;}
+.novedad-cartel .nc-close:hover{color:var(--chalk);}
 .tags-banner{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
   background:linear-gradient(135deg, rgba(47,143,203,0.12), rgba(47,143,203,0.05));
   border:1px solid rgba(47,143,203,0.35);border-radius:12px;padding:14px 18px;margin-bottom:16px;}
@@ -1540,6 +1547,17 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .mch-cmp-t2{background:var(--accent-2);width:100%;}
 .mch-cmp-name{font-size:11px;color:var(--chalk);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
 .mch-cmp-tot{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent-2);font-weight:700;}
+/* Barras verticales (columnas hacia arriba) del reparto por jugador */
+.mch-vbars{display:flex;gap:8px;align-items:flex-end;height:220px;padding-top:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.mch-vbar-col{flex:0 0 auto;min-width:42px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:100%;}
+.mch-vbar-val{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.mch-vbar-stack{width:32px;display:flex;flex-direction:column;justify-content:flex-end;height:100%;border-radius:6px 6px 0 0;overflow:hidden;min-height:2px;}
+.mch-vbar-t1{background:var(--accent);width:100%;}
+.mch-vbar-t2{background:var(--accent-2);width:100%;}
+.mch-vbar-name{font-size:10px;color:var(--chalk);text-align:center;max-width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+/* Botón borrar de la lista de minutaje: visible y claro también en escritorio */
+.minutes-table .mt-del-btn{border:1px solid var(--line);opacity:1;color:var(--danger,#f0553f);background:rgba(240,85,63,0.06);}
+.minutes-table .mt-del-btn:hover{background:rgba(240,85,63,0.16);border-color:rgba(240,85,63,0.5);}
 .chart-row{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:8px;}
 .chart-bars{flex:1;min-width:180px;}
 .donut-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;}
@@ -3242,11 +3260,6 @@ body.editor-active #screen-editor{ display:block; }
           </div>
         </div>
 
-        <div class="rd-card" id="matchMinutesCard" style="display:none;margin-bottom:16px;">
-          <div class="rd-card-head"><h3>⏱ Minutos jugados</h3><span class="rd-saved" id="matchMinutesSrc"></span></div>
-          <div id="matchMinutesBody"></div>
-        </div>
-
         <div class="tags-banner">
           <div class="tags-banner-text">
             <span class="tags-banner-title">🏷️ Tags de origen del gol</span>
@@ -3336,8 +3349,17 @@ body.editor-active #screen-editor{ display:block; }
           <p class="scout-sub" data-i18n="minutesSub">Minutos jugados por partido. Se cargan solos al guardar desde 🔴 En vivo.</p>
         </div>
       </div>
-      <div id="minutesCharts"></div>
+      <div class="novedad-cartel" data-nov="minutaje">
+        <span class="nc-ico">🆕</span>
+        <div class="nc-body">
+          <p class="nc-title">Novedad: carga de minutaje</p>
+          <p class="nc-text">Cargá los minutos de cada partido a mano (1er y 2do tiempo por jugador) o dejá que se carguen solos con 🔴 En Vivo. Los partidos que te faltan aparecen como <b>⏳ pendientes</b>: tocá "Cargar minutos" para completarlos. Todo se refleja en la ficha del jugador y en las estadísticas anuales.</p>
+        </div>
+        <button class="nc-close" aria-label="Cerrar">✕</button>
+      </div>
       <div id="minutesList"></div>
+      <div id="minutesEditor" style="display:none;"></div>
+      <div id="minutesCharts"></div>
       <div id="minutesDetail" style="display:none;"></div>
     </div>
 
@@ -3359,6 +3381,14 @@ body.editor-active #screen-editor{ display:block; }
           <h2 class="scout-title" data-i18n="playerTitle">Ficha del jugador</h2>
           <p class="scout-sub" data-i18n="playerSub">Elegí un jugador y mirá su evolución partido a partido.</p>
         </div>
+      </div>
+      <div class="novedad-cartel" data-nov="ficha">
+        <span class="nc-ico">🆕</span>
+        <div class="nc-body">
+          <p class="nc-title">Novedad: minutos en la ficha</p>
+          <p class="nc-text">Ahora la ficha muestra los <b>minutos jugados</b> del jugador: su reparto entre 1er y 2do tiempo, y cómo fueron variando partido a partido. Se alimenta solo con lo que cargás en Minutaje o En Vivo.</p>
+        </div>
+        <button class="nc-close" aria-label="Cerrar">✕</button>
       </div>
       <div class="player-picker-bar">
         <label class="player-picker-label" data-i18n="playerPick">Jugador:</label>
@@ -9586,6 +9616,21 @@ window.__initEditor = function(){
   function catActual(){ return (window.__getActiveCategory && window.__getActiveCategory()) || null; }
 
   // ----- Sub-navegación -----
+  // Carteles de novedad: cerrar y recordar (no reaparecen una vez cerrados).
+  (function initNovedades(){
+    try{
+      document.querySelectorAll('.novedad-cartel').forEach(function(cartel){
+        var key = 'benchone_nov_' + (cartel.dataset.nov||'x');
+        if(localStorage.getItem(key)==='1'){ cartel.style.display='none'; return; }
+        var btn = cartel.querySelector('.nc-close');
+        if(btn) btn.addEventListener('click', function(){
+          cartel.style.display='none';
+          try{ localStorage.setItem(key,'1'); }catch(e){}
+        });
+      });
+    }catch(e){}
+  })();
+
   document.querySelectorAll('.stats-subtab').forEach(tab => {
     tab.addEventListener('click', () => {
       const sub = tab.dataset.sub;
@@ -10411,11 +10456,26 @@ window.__initEditor = function(){
     document.getElementById('matchList').style.display = 'none';
     document.getElementById('matchDetail').style.display = 'block';
     window.scrollTo(0,0);
-    loadMatchMinutes(m.id);
   }
 
   const fmtMinM = (s) => { s=Math.round(s||0); const mm=Math.floor(s/60),x=s%60; return String(mm).padStart(2,'0')+':'+String(x).padStart(2,'0'); };
   async function loadMatchMinutes(matchId){
+    // Construimos el panel dentro de la solapa Minutaje (contenedor minutesEditor).
+    const editor = document.getElementById('minutesEditor');
+    if(!editor) return;
+    const m = (matches||[]).find(x=>x.id===matchId);
+    const titulo = m ? (m.rival||'Partido') : 'Partido';
+    editor.innerHTML = `<button class="btn small" id="minEdBack" style="margin-bottom:14px;">← Volver a la lista</button>
+      <div class="rd-card" id="matchMinutesCard" style="margin-bottom:16px;">
+        <div class="rd-card-head"><h3>⏱ ${escapeHtml(titulo)} — minutos</h3><span class="rd-saved" id="matchMinutesSrc"></span></div>
+        <div id="matchMinutesBody"></div>
+      </div>`;
+    const backBtn = editor.querySelector('#minEdBack');
+    if(backBtn) backBtn.addEventListener('click', ()=>{
+      editor.style.display='none'; editor.innerHTML='';
+      const list=document.getElementById('minutesList'); if(list) list.style.display='block';
+      renderMinutes();
+    });
     const card = document.getElementById('matchMinutesCard');
     const body = document.getElementById('matchMinutesBody');
     const src = document.getElementById('matchMinutesSrc');
@@ -10470,7 +10530,7 @@ window.__initEditor = function(){
           });
         }
       }
-      if(jugadores.length===0){ card.style.display='none'; return; }
+      if(jugadores.length===0){ body.innerHTML='<p class="rd-empty">Este partido no tiene jugadores citados ni plantel para cargar minutos.</p>'; card.style.display='block'; return; }
 
       // Valores previos ya cargados a mano (si los hay), por nombre. Guardados en
       // segundos (como En Vivo) para que el resto de la app los lea igual; acá los
@@ -10542,7 +10602,10 @@ window.__initEditor = function(){
             } else {
               toast('No cargaste minutos: no se guardó nada');
             }
-            loadMatchMinutes(matchId);
+            const editor2=document.getElementById('minutesEditor');
+            if(editor2){ editor2.style.display='none'; editor2.innerHTML=''; }
+            const list2=document.getElementById('minutesList'); if(list2) list2.style.display='block';
+            renderMinutes();
             return;
           }
 
@@ -10561,7 +10624,11 @@ window.__initEditor = function(){
           }
           if(savedMsg) savedMsg.textContent = 'Guardado ✓';
           toast('Minutaje guardado');
-          loadMatchMinutes(matchId); // recargar (ahora ya existe la sesión manual)
+          // Volvemos a la lista para ver el partido ya como cargado.
+          const editor=document.getElementById('minutesEditor');
+          if(editor){ editor.style.display='none'; editor.innerHTML=''; }
+          const list=document.getElementById('minutesList'); if(list) list.style.display='block';
+          renderMinutes();
         }catch(e){
           console.error('guardar minutaje manual', e);
           if(savedMsg) savedMsg.textContent = '';
@@ -10908,15 +10975,16 @@ window.__initEditor = function(){
   function abrirPartidoParaMinutaje(matchId){
     const m = (matches||[]).find(x=>x.id===matchId);
     if(!m){ toast('No se encontró el partido'); return; }
-    // Cambiamos del sub-tab Minutaje al sub-tab Partidos (mismo panel Estadísticas).
-    const tabMatches = document.querySelector('.stats-subtab[data-sub="matches"]');
-    if(tabMatches){
-      document.querySelectorAll('.stats-subtab').forEach(t => t.classList.toggle('active', t===tabMatches));
-      document.querySelectorAll('.stats-sub').forEach(s => s.classList.toggle('active', s.id === 'stats-matches'));
-    }
-    openMatch(matchId);   // abre el detalle del partido (y llama a loadMatchMinutes)
-    // Llevamos la vista al bloque de minutaje del partido.
-    setTimeout(()=>{ const c=document.getElementById('matchMinutesCard'); if(c) c.scrollIntoView({behavior:'smooth', block:'center'}); }, 450);
+    // Mostramos la plantilla de carga DENTRO de la solapa Minutaje (sin ir a Partidos).
+    currentMatch = m;   // loadMatchMinutes usa currentMatch para citados/invitados
+    const list = document.getElementById('minutesList');
+    const editor = document.getElementById('minutesEditor');
+    const charts = document.getElementById('minutesCharts');
+    if(list) list.style.display = 'none';
+    if(charts) charts.style.display = 'none';
+    if(editor){ editor.style.display = 'block'; editor.innerHTML = '<p class="rd-empty">Cargando…</p>'; }
+    loadMatchMinutes(matchId);
+    if(editor) editor.scrollIntoView({behavior:'smooth', block:'start'});
   }
 
   // ===== GRÁFICOS DE MINUTAJE =====
@@ -10942,10 +11010,25 @@ window.__initEditor = function(){
 
   function mchEscapar(s){ return escapeHtml(String(s||'')); }
 
-  function renderMinutesCharts(){
+  async function renderMinutesCharts(){
     const cont = document.getElementById('minutesCharts');
     if(!cont) return;
-    const sessions = (window.__minSessions||[]).filter(s=>s.totals);
+    // Cargamos las sesiones de minutaje (reusa cache si renderMinutes ya corrió).
+    let sessions = window.__minSessions || null;
+    if(!sessions){
+      try{
+        const sb=window.__sb; const clubId=await window.__getClubId();
+        const cat=window.__getActiveCategory?window.__getActiveCategory():null;
+        if(sb&&clubId){
+          let q=sb.from('live_sessions').select('*').eq('club_id',clubId);
+          q=cat?q.eq('categoria',cat):q.is('categoria',null);
+          if(window.__getTemporada) q=q.eq('temporada',window.__getTemporada());
+          const {data}=await q;
+          sessions=data||[]; window.__minSessions=sessions;
+        } else { sessions=[]; }
+      }catch(e){ sessions=[]; }
+    }
+    sessions = (sessions||[]).filter(s=>s.totals);
     const st = window.__mchState;
 
     // Sesiones con datos de minutos (excluye vacías).
@@ -10980,22 +11063,29 @@ window.__initEditor = function(){
 
     const maxTotal = nombres.length ? datos[nombres[0]].total : 0;
 
-    // ---- Gráfico 1: Reparto 1T vs 2T del equipo (barras apiladas por jugador) ----
+    // ---- Gráfico 1: Reparto 1T vs 2T del equipo (COLUMNAS verticales apiladas) ----
     html += `<div class="mch-card"><h4>⏱ Reparto 1er vs 2do tiempo</h4>
-      <p class="mch-sub">${st.vista==='anio'?'Acumulado del año.':'Este partido.'} Cada barra es un jugador; el color muestra en qué tiempo jugó.</p>`;
+      <p class="mch-sub">${st.vista==='anio'?'Acumulado del año.':'Este partido.'} Cada columna es un jugador; la altura son sus minutos.</p>`;
     if(nombres.length===0){ html += `<p class="mch-empty">Sin minutos cargados.</p>`; }
     else {
       let sumT1=0, sumT2=0;
+      nombres.forEach(n=>{ sumT1+=datos[n].t1; sumT2+=datos[n].t2; });
+      html += `<div class="mch-vbars">`;
       nombres.forEach(n=>{
-        const d = datos[n]; sumT1+=d.t1; sumT2+=d.t2;
-        const w1 = maxTotal? (d.t1/maxTotal*100):0;
-        const w2 = maxTotal? (d.t2/maxTotal*100):0;
-        html += `<div class="mch-bar-row">
-          <span class="mch-bar-name">${mchEscapar(n)}</span>
-          <span class="mch-bar-track"><span class="mch-bar-t1" style="width:${w1}%"></span><span class="mch-bar-t2" style="width:${w2}%"></span></span>
-          <span class="mch-bar-val">${d.total}′</span>
+        const d = datos[n];
+        const hCol = maxTotal ? (d.total/maxTotal*100) : 0;
+        const hT2 = d.total ? (d.t2/d.total*100) : 0;
+        const hT1 = d.total ? (d.t1/d.total*100) : 0;
+        html += `<div class="mch-vbar-col">
+          <span class="mch-vbar-val">${d.total}′</span>
+          <div class="mch-vbar-stack" style="height:${hCol}%">
+            <div class="mch-vbar-t2" style="height:${hT2}%"></div>
+            <div class="mch-vbar-t1" style="height:${hT1}%"></div>
+          </div>
+          <span class="mch-vbar-name">${mchEscapar(n)}</span>
         </div>`;
       });
+      html += `</div>`;
       const tot = sumT1+sumT2;
       const pctT1 = tot?Math.round(sumT1/tot*100):0, pctT2 = tot?Math.round(sumT2/tot*100):0;
       html += `<div class="mch-legend">
@@ -11042,34 +11132,12 @@ window.__initEditor = function(){
     }
     html += `</div>`;
 
-    // ---- Gráfico 3: Evolución de un jugador partido a partido (solo vista Año) ----
-    if(st.vista==='anio'){
-      const todosNombres = Object.keys(mchAgregarMinutos(conMin)).sort();
-      html += `<div class="mch-card"><h4>📈 Evolución de un jugador</h4>
-        <p class="mch-sub">Minutos totales por partido, a lo largo del año.</p>
-        <div class="mch-controls"><select id="mchEvoSel"><option value="">— elegí un jugador —</option>`;
-      todosNombres.forEach(n=>{ html += `<option value="${mchEscapar(n)}" ${n===st.evoJugador?'selected':''}>${mchEscapar(n)}</option>`; });
-      html += `</select></div>`;
-      if(!st.evoJugador){ html += `<p class="mch-empty">Elegí un jugador para ver su evolución.</p>`; }
-      else {
-        // Serie ordenada por fecha ascendente.
-        const serie = conMin.slice().sort((a,b)=>String(a.created_at||'').localeCompare(String(b.created_at||''))).map(s=>{
-          const j = s.totals[st.evoJugador];
-          const min = j? Math.round(((j.t1||0)+(j.t2||0))/60):0;
-          return { label:s.name||'Partido', min };
-        }).filter(x=>true);
-        html += mchLineChart(serie);
-      }
-      html += `</div>`;
-    }
-
     cont.innerHTML = html;
 
     // ---- Listeners ----
     cont.querySelectorAll('.mch-tab').forEach(b=>b.addEventListener('click',()=>{ st.vista=b.dataset.mv; renderMinutesCharts(); }));
     const pSel = cont.querySelector('#mchPartidoSel'); if(pSel) pSel.addEventListener('change',()=>{ st.partidoId=pSel.value; renderMinutesCharts(); });
     cont.querySelectorAll('.mchCmpSel').forEach(se=>se.addEventListener('change',()=>{ st.cmp[parseInt(se.dataset.i,10)]=se.value; renderMinutesCharts(); }));
-    const eSel = cont.querySelector('#mchEvoSel'); if(eSel) eSel.addEventListener('change',()=>{ st.evoJugador=eSel.value; renderMinutesCharts(); });
   }
 
   // Mini gráfico de líneas en SVG para la evolución.
@@ -11111,9 +11179,8 @@ window.__initEditor = function(){
       sessions=data||[];
     }catch(e){ list.innerHTML='<p class="rd-empty">No se pudo cargar (¿corriste live-columns.sql?).</p>'; return; }
 
-    // Guardamos las sesiones para los gráficos (los selects las reusan sin recargar).
+    // Guardamos las sesiones por si otras vistas (ficha, anuales) las reusan.
     window.__minSessions = sessions;
-    renderMinutesCharts();
 
     // Partidos de la sección "Partidos" que NO tienen sesión de minutaje todavía:
     // los mostramos como PENDIENTES para cargar a mano. No ocupan lugar en la base
@@ -11172,6 +11239,7 @@ window.__initEditor = function(){
       tb.appendChild(tr);
     });
     list.appendChild(table);
+    renderMinutesCharts();   // gráficos y comparativas, debajo de la lista
   }
 
   function showMinutesDetail(s){
@@ -12835,8 +12903,55 @@ window.__initEditor = function(){
     const avisoSinPartidos = sinPartidos
       ? '<div class="annual-empty" style="margin-bottom:16px;">Todavía no cargaste partidos en esta categoría. Las estadísticas y los gráficos van a aparecer cuando cargues el primero.</div>'
       : '';
+    // ---- Gráfico de MINUTOS del jugador (individual): reparto 1T/2T + evolución ----
+    // Usamos liveTodas (todas las sesiones con minutos de este jugador).
+    const minSerie = (liveTodas||[])
+      .map(s => {
+        const t = (s.totals && s.totals[playerName]) || null;
+        if(!t) return null;
+        const t1 = Math.round((t.t1||0)/60), t2 = Math.round((t.t2||0)/60);
+        if(t1+t2<=0) return null;
+        return { label:s.name||'Partido', orden:s.created_at||'', t1, t2, total:t1+t2 };
+      })
+      .filter(Boolean)
+      .sort((a,b)=>String(a.orden).localeCompare(String(b.orden)));
+
+    let minutosBox = '';
+    if(minSerie.length>0){
+      const sumT1 = minSerie.reduce((a,x)=>a+x.t1,0);
+      const sumT2 = minSerie.reduce((a,x)=>a+x.t2,0);
+      const totMin = sumT1+sumT2;
+      const pct1 = totMin?Math.round(sumT1/totMin*100):0, pct2 = totMin?Math.round(sumT2/totMin*100):0;
+      // Línea de evolución (minutos totales por partido)
+      const maxV = Math.max(...minSerie.map(x=>x.total),1);
+      const W=Math.max(minSerie.length*70,280), H=170, pad=26;
+      const stepX = minSerie.length>1?(W-pad*2)/(minSerie.length-1):0;
+      const px = i => pad + stepX*i, py = v => H-pad-(v/maxV)*(H-pad*2);
+      const pts = minSerie.map((p,i)=>`${px(i)},${py(p.total)}`).join(' ');
+      let dots='', labels='';
+      minSerie.forEach((p,i)=>{
+        dots += `<circle cx="${px(i)}" cy="${py(p.total)}" r="4" fill="var(--accent-2)"/>`;
+        dots += `<text x="${px(i)}" y="${py(p.total)-9}" text-anchor="middle" font-size="11" fill="var(--chalk)" font-family="monospace">${p.total}′</text>`;
+        const lbl = p.label.length>8?p.label.slice(0,8)+'…':p.label;
+        labels += `<text x="${px(i)}" y="${H-7}" text-anchor="middle" font-size="10" fill="var(--muted)">${escapeHtml(lbl)}</text>`;
+      });
+      minutosBox = `<div class="pc-chart-card">
+        <h3 class="pc-chart-title">⏱ Minutos jugados</h3>
+        <div class="mch-legend" style="margin:0 0 12px;">
+          <span><span class="mch-dot t1"></span>1er tiempo — ${sumT1}′ (${pct1}%)</span>
+          <span><span class="mch-dot t2"></span>2do tiempo — ${sumT2}′ (${pct2}%)</span>
+          <span><b style="color:var(--chalk);">Total: ${totMin}′</b></span>
+        </div>
+        <div class="pc-chart-scroll"><svg viewBox="0 0 ${W} ${H}" style="width:${W}px;max-width:none;height:${H}px;">
+          <polyline points="${pts}" fill="none" stroke="var(--accent-2)" stroke-width="2.5"/>
+          ${dots}${labels}
+        </svg></div>
+        <p class="pc-chart-foot">Evolución de minutos por partido. El reparto 1er/2do tiempo es del acumulado.</p>
+      </div>`;
+    }
+
     cont2.innerHTML = cabecera + (sinPartidos ? avisoSinPartidos : resumen) + extras
-                    + (sinPartidos ? '' : (barsChart + lineChart))
+                    + (sinPartidos ? '' : (barsChart + lineChart + minutosBox))
                     + seguimientoBox;
     // Cargar las secciones nuevas (son asíncronas, se llenan solas)
     renderDatosPersonales(player);
