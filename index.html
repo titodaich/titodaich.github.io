@@ -1512,6 +1512,34 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .record-note{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:8px;line-height:1.4;}
 /* Anuales: conversión destacada con gráfico */
 .annual-featured{border-color:var(--accent-2);}
+/* Gráficos de minutaje */
+.mch-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.mch-tab{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:8px 14px;font-family:'Oswald',sans-serif;font-size:12.5px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;cursor:pointer;min-height:40px;}
+.mch-tab.active{background:var(--accent);border-color:var(--accent);color:#10161C;}
+.mch-card{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;}
+.mch-card h4{font-family:'Oswald',sans-serif;font-size:15px;color:var(--chalk);margin:0 0 4px;}
+.mch-sub{font-size:12px;color:var(--muted);margin:0 0 14px;}
+.mch-controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.mch-controls select{background:var(--bg);border:1px solid var(--line);color:var(--chalk);border-radius:8px;padding:9px 10px;font-size:13px;min-height:40px;flex:1;min-width:120px;}
+.mch-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
+.mch-bar-name{flex:0 0 90px;font-size:12px;color:var(--chalk);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mch-bar-track{flex:1;height:22px;background:var(--bg);border-radius:6px;overflow:hidden;display:flex;min-width:70px;}
+.mch-bar-t1{height:100%;background:var(--accent);}
+.mch-bar-t2{height:100%;background:var(--accent-2);}
+.mch-bar-val{flex:0 0 auto;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);min-width:54px;text-align:right;}
+.mch-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--muted);}
+.mch-legend span{display:inline-flex;align-items:center;gap:6px;}
+.mch-dot{width:12px;height:12px;border-radius:3px;display:inline-block;}
+.mch-dot.t1{background:var(--accent);}
+.mch-dot.t2{background:var(--accent-2);}
+.mch-empty{color:var(--muted);font-size:13px;text-align:center;padding:20px;}
+.mch-cmp-cols{display:flex;gap:10px;align-items:flex-end;height:200px;padding-top:10px;}
+.mch-cmp-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:100%;}
+.mch-cmp-stack{width:70%;max-width:60px;display:flex;flex-direction:column;justify-content:flex-end;height:100%;border-radius:6px 6px 0 0;overflow:hidden;}
+.mch-cmp-t1{background:var(--accent);width:100%;}
+.mch-cmp-t2{background:var(--accent-2);width:100%;}
+.mch-cmp-name{font-size:11px;color:var(--chalk);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
+.mch-cmp-tot{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent-2);font-weight:700;}
 .chart-row{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:8px;}
 .chart-bars{flex:1;min-width:180px;}
 .donut-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;}
@@ -3308,6 +3336,7 @@ body.editor-active #screen-editor{ display:block; }
           <p class="scout-sub" data-i18n="minutesSub">Minutos jugados por partido. Se cargan solos al guardar desde 🔴 En vivo.</p>
         </div>
       </div>
+      <div id="minutesCharts"></div>
       <div id="minutesList"></div>
       <div id="minutesDetail" style="display:none;"></div>
     </div>
@@ -10890,6 +10919,181 @@ window.__initEditor = function(){
     setTimeout(()=>{ const c=document.getElementById('matchMinutesCard'); if(c) c.scrollIntoView({behavior:'smooth', block:'center'}); }, 450);
   }
 
+  // ===== GRÁFICOS DE MINUTAJE =====
+  // Estado de la UI de gráficos (qué vista y qué selección), para no perderlo al redibujar.
+  window.__mchState = window.__mchState || { vista:'anio', partidoId:'', jugador:'', cmp:[], evoJugador:'' };
+
+  // Devuelve, para una lista de sesiones, un mapa {nombre:{t1,t2,total}} en MINUTOS.
+  function mchAgregarMinutos(sesiones){
+    const acc = {};
+    (sesiones||[]).forEach(s=>{
+      const t = s.totals || {};
+      Object.keys(t).forEach(name=>{
+        if(name==='__rival'||name==='__manual') return;
+        const j = t[name]; if(!j) return;
+        const t1 = Math.round((j.t1||0)/60), t2 = Math.round((j.t2||0)/60);
+        if(t1+t2<=0) return;
+        if(!acc[name]) acc[name] = { t1:0, t2:0, total:0 };
+        acc[name].t1 += t1; acc[name].t2 += t2; acc[name].total += (t1+t2);
+      });
+    });
+    return acc;
+  }
+
+  function mchEscapar(s){ return escapeHtml(String(s||'')); }
+
+  function renderMinutesCharts(){
+    const cont = document.getElementById('minutesCharts');
+    if(!cont) return;
+    const sessions = (window.__minSessions||[]).filter(s=>s.totals);
+    const st = window.__mchState;
+
+    // Sesiones con datos de minutos (excluye vacías).
+    const conMin = sessions.filter(s=>{
+      const t=s.totals||{}; return Object.keys(t).some(k=>k!=='__rival'&&k!=='__manual'&&t[k]&&((t[k].t1||0)+(t[k].t2||0))>0);
+    });
+    if(conMin.length===0){ cont.innerHTML=''; return; }
+
+    // Sesiones según la vista: todo el año, o un partido puntual.
+    let sesionesUsar = conMin;
+    if(st.vista==='partido'){
+      if(!st.partidoId) st.partidoId = conMin[0].id;
+      sesionesUsar = conMin.filter(s=>s.id===st.partidoId);
+    }
+    const datos = mchAgregarMinutos(sesionesUsar);           // {nombre:{t1,t2,total}}
+    const nombres = Object.keys(datos).sort((a,b)=>datos[b].total-datos[a].total);
+
+    // ---- Cabecera: pestañas Año / Partido + selector de partido ----
+    let html = `<div class="mch-tabs">
+      <button class="mch-tab ${st.vista==='anio'?'active':''}" data-mv="anio">📅 Año</button>
+      <button class="mch-tab ${st.vista==='partido'?'active':''}" data-mv="partido">⚽ Por partido</button>
+    </div>`;
+
+    if(st.vista==='partido'){
+      html += `<div class="mch-controls"><select id="mchPartidoSel">`;
+      conMin.forEach(s=>{
+        const fecha = s.created_at?new Date(s.created_at).toLocaleDateString('es-AR'):'';
+        html += `<option value="${mchEscapar(s.id)}" ${s.id===st.partidoId?'selected':''}>${mchEscapar(s.name||'Partido')}${fecha?(' · '+fecha):''}</option>`;
+      });
+      html += `</select></div>`;
+    }
+
+    const maxTotal = nombres.length ? datos[nombres[0]].total : 0;
+
+    // ---- Gráfico 1: Reparto 1T vs 2T del equipo (barras apiladas por jugador) ----
+    html += `<div class="mch-card"><h4>⏱ Reparto 1er vs 2do tiempo</h4>
+      <p class="mch-sub">${st.vista==='anio'?'Acumulado del año.':'Este partido.'} Cada barra es un jugador; el color muestra en qué tiempo jugó.</p>`;
+    if(nombres.length===0){ html += `<p class="mch-empty">Sin minutos cargados.</p>`; }
+    else {
+      let sumT1=0, sumT2=0;
+      nombres.forEach(n=>{
+        const d = datos[n]; sumT1+=d.t1; sumT2+=d.t2;
+        const w1 = maxTotal? (d.t1/maxTotal*100):0;
+        const w2 = maxTotal? (d.t2/maxTotal*100):0;
+        html += `<div class="mch-bar-row">
+          <span class="mch-bar-name">${mchEscapar(n)}</span>
+          <span class="mch-bar-track"><span class="mch-bar-t1" style="width:${w1}%"></span><span class="mch-bar-t2" style="width:${w2}%"></span></span>
+          <span class="mch-bar-val">${d.total}′</span>
+        </div>`;
+      });
+      const tot = sumT1+sumT2;
+      const pctT1 = tot?Math.round(sumT1/tot*100):0, pctT2 = tot?Math.round(sumT2/tot*100):0;
+      html += `<div class="mch-legend">
+        <span><span class="mch-dot t1"></span>1er tiempo — ${sumT1}′ (${pctT1}%)</span>
+        <span><span class="mch-dot t2"></span>2do tiempo — ${sumT2}′ (${pctT2}%)</span>
+      </div>`;
+    }
+    html += `</div>`;
+
+    // ---- Gráfico 2: Comparar 2-3 jugadores (columnas apiladas) ----
+    html += `<div class="mch-card"><h4>👥 Comparar jugadores</h4>
+      <p class="mch-sub">Elegí hasta 3 jugadores para comparar sus minutos (1er + 2do tiempo).</p>
+      <div class="mch-controls">`;
+    for(let i=0;i<3;i++){
+      const sel = st.cmp[i]||'';
+      html += `<select class="mchCmpSel" data-i="${i}"><option value="">— jugador ${i+1} —</option>`;
+      nombres.forEach(n=>{ html += `<option value="${mchEscapar(n)}" ${n===sel?'selected':''}>${mchEscapar(n)}</option>`; });
+      html += `</select>`;
+    }
+    html += `</div>`;
+    const elegidos = st.cmp.filter(n=>n&&datos[n]);
+    if(elegidos.length===0){ html += `<p class="mch-empty">Elegí jugadores arriba para compararlos.</p>`; }
+    else {
+      const maxCmp = Math.max(...elegidos.map(n=>datos[n].total),1);
+      html += `<div class="mch-cmp-cols">`;
+      elegidos.forEach(n=>{
+        const d = datos[n];
+        const h1 = d.total?(d.t1/maxCmp*100):0;
+        const h2 = d.total?(d.t2/maxCmp*100):0;
+        html += `<div class="mch-cmp-col">
+          <span class="mch-cmp-tot">${d.total}′</span>
+          <div class="mch-cmp-stack" style="height:${(d.total/maxCmp*100)}%">
+            <div class="mch-cmp-t2" style="height:${d.total?(d.t2/d.total*100):0}%"></div>
+            <div class="mch-cmp-t1" style="height:${d.total?(d.t1/d.total*100):0}%"></div>
+          </div>
+          <span class="mch-cmp-name">${mchEscapar(n)}</span>
+        </div>`;
+      });
+      html += `</div>
+      <div class="mch-legend">
+        <span><span class="mch-dot t1"></span>1er tiempo</span>
+        <span><span class="mch-dot t2"></span>2do tiempo</span>
+      </div>`;
+    }
+    html += `</div>`;
+
+    // ---- Gráfico 3: Evolución de un jugador partido a partido (solo vista Año) ----
+    if(st.vista==='anio'){
+      const todosNombres = Object.keys(mchAgregarMinutos(conMin)).sort();
+      html += `<div class="mch-card"><h4>📈 Evolución de un jugador</h4>
+        <p class="mch-sub">Minutos totales por partido, a lo largo del año.</p>
+        <div class="mch-controls"><select id="mchEvoSel"><option value="">— elegí un jugador —</option>`;
+      todosNombres.forEach(n=>{ html += `<option value="${mchEscapar(n)}" ${n===st.evoJugador?'selected':''}>${mchEscapar(n)}</option>`; });
+      html += `</select></div>`;
+      if(!st.evoJugador){ html += `<p class="mch-empty">Elegí un jugador para ver su evolución.</p>`; }
+      else {
+        // Serie ordenada por fecha ascendente.
+        const serie = conMin.slice().sort((a,b)=>String(a.created_at||'').localeCompare(String(b.created_at||''))).map(s=>{
+          const j = s.totals[st.evoJugador];
+          const min = j? Math.round(((j.t1||0)+(j.t2||0))/60):0;
+          return { label:s.name||'Partido', min };
+        }).filter(x=>true);
+        html += mchLineChart(serie);
+      }
+      html += `</div>`;
+    }
+
+    cont.innerHTML = html;
+
+    // ---- Listeners ----
+    cont.querySelectorAll('.mch-tab').forEach(b=>b.addEventListener('click',()=>{ st.vista=b.dataset.mv; renderMinutesCharts(); }));
+    const pSel = cont.querySelector('#mchPartidoSel'); if(pSel) pSel.addEventListener('change',()=>{ st.partidoId=pSel.value; renderMinutesCharts(); });
+    cont.querySelectorAll('.mchCmpSel').forEach(se=>se.addEventListener('change',()=>{ st.cmp[parseInt(se.dataset.i,10)]=se.value; renderMinutesCharts(); }));
+    const eSel = cont.querySelector('#mchEvoSel'); if(eSel) eSel.addEventListener('change',()=>{ st.evoJugador=eSel.value; renderMinutesCharts(); });
+  }
+
+  // Mini gráfico de líneas en SVG para la evolución.
+  function mchLineChart(serie){
+    if(!serie.length) return `<p class="mch-empty">Sin partidos.</p>`;
+    const W=Math.max(serie.length*70,280), H=180, pad=28;
+    const maxV = Math.max(...serie.map(p=>p.min),1);
+    const stepX = serie.length>1?(W-pad*2)/(serie.length-1):0;
+    const px = i => pad + stepX*i;
+    const py = v => H-pad - (v/maxV)*(H-pad*2);
+    let pts = serie.map((p,i)=>`${px(i)},${py(p.min)}`).join(' ');
+    let dots='', labels='';
+    serie.forEach((p,i)=>{
+      dots += `<circle cx="${px(i)}" cy="${py(p.min)}" r="4" fill="var(--accent-2)"/>`;
+      dots += `<text x="${px(i)}" y="${py(p.min)-9}" text-anchor="middle" font-size="11" fill="var(--chalk)" font-family="monospace">${p.min}′</text>`;
+      const lbl = p.label.length>8?p.label.slice(0,8)+'…':p.label;
+      labels += `<text x="${px(i)}" y="${H-8}" text-anchor="middle" font-size="10" fill="var(--muted)">${mchEscapar(lbl)}</text>`;
+    });
+    return `<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><svg viewBox="0 0 ${W} ${H}" style="width:${W}px;max-width:none;height:${H}px;">
+      <polyline points="${pts}" fill="none" stroke="var(--accent-2)" stroke-width="2.5"/>
+      ${dots}${labels}
+    </svg></div>`;
+  }
+
   const fmtMin = (s) => { s=Math.round(s||0); const m=Math.floor(s/60),x=s%60; return String(m).padStart(2,'0')+':'+String(x).padStart(2,'0'); };
   async function renderMinutes(){
     const list=document.getElementById('minutesList');
@@ -10906,6 +11110,10 @@ window.__initEditor = function(){
       const {data}=await q.order('created_at',{ascending:false});
       sessions=data||[];
     }catch(e){ list.innerHTML='<p class="rd-empty">No se pudo cargar (¿corriste live-columns.sql?).</p>'; return; }
+
+    // Guardamos las sesiones para los gráficos (los selects las reusan sin recargar).
+    window.__minSessions = sessions;
+    renderMinutesCharts();
 
     // Partidos de la sección "Partidos" que NO tienen sesión de minutaje todavía:
     // los mostramos como PENDIENTES para cargar a mano. No ocupan lugar en la base
