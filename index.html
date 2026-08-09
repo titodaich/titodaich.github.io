@@ -10415,12 +10415,31 @@ window.__initEditor = function(){
       }
 
       // Caso B: NO hay minutaje de En Vivo → plantilla MANUAL editable.
-      // Armamos la lista de convocados: plantel de la categoría + invitados del partido.
-      let jugadores = (squad||[]).map(p=>({id:p.id, name:p.name, number:p.number||''}));
-      if(currentMatch && Array.isArray(currentMatch.invitados)){
-        currentMatch.invitados.forEach(inv=>{
-          if(inv && inv.id && !jugadores.some(j=>j.id===inv.id)) jugadores.push({id:inv.id, name:inv.name, number:inv.number||''});
-        });
+      // Mostramos los CITADOS en la convocatoria (calls[id]==='yes'). Si el partido
+      // no tiene convocatoria cargada, caemos al plantel completo (categoría +
+      // invitados) para que la plantilla nunca quede vacía.
+      const calls = (currentMatch && currentMatch.calls) ? currentMatch.calls : {};
+      const hayConvocatoria = Object.keys(calls).some(pid => calls[pid] === 'yes');
+
+      let jugadores = [];
+      if(hayConvocatoria){
+        // Solo los citados: recorremos plantel + invitados y filtramos por 'yes'.
+        (squad||[]).forEach(p=>{ if(calls[p.id] === 'yes') jugadores.push({id:p.id, name:p.name, number:p.number||''}); });
+        if(currentMatch && Array.isArray(currentMatch.invitados)){
+          currentMatch.invitados.forEach(inv=>{
+            if(inv && inv.id && calls[inv.id] === 'yes' && !jugadores.some(j=>j.id===inv.id)){
+              jugadores.push({id:inv.id, name:inv.name, number:inv.number||''});
+            }
+          });
+        }
+      } else {
+        // Sin convocatoria cargada → plantel completo + invitados.
+        jugadores = (squad||[]).map(p=>({id:p.id, name:p.name, number:p.number||''}));
+        if(currentMatch && Array.isArray(currentMatch.invitados)){
+          currentMatch.invitados.forEach(inv=>{
+            if(inv && inv.id && !jugadores.some(j=>j.id===inv.id)) jugadores.push({id:inv.id, name:inv.name, number:inv.number||''});
+          });
+        }
       }
       if(jugadores.length===0){ card.style.display='none'; return; }
 
@@ -10430,7 +10449,7 @@ window.__initEditor = function(){
       const prev = (esManual && s.totals) ? s.totals : {};
       const min = (seg)=> Math.round((seg||0)/60);
 
-      let html = `<p class="scout-sub" style="margin:0 0 12px;">Cargá a mano los minutos de cada jugador. El total se calcula solo. Se guarda cuando tocás <b>Guardar minutaje</b>.</p>`;
+      let html = `<p class="scout-sub" style="margin:0 0 12px;">${hayConvocatoria ? 'Jugadores citados en la convocatoria. ' : 'Plantel completo (no cargaste convocatoria). '}Cargá a mano los minutos de cada uno. El total se calcula solo. Se guarda cuando tocás <b>Guardar minutaje</b>.</p>`;
       html += `<div class="mm-manual-head"><span>Jugador</span><span>1er T</span><span>2do T</span><span>Total</span></div>`;
       jugadores.forEach(j=>{
         const pv = prev[j.name] || {};
@@ -10844,6 +10863,33 @@ window.__initEditor = function(){
   }
 
   // ========== MINUTAJE ==========
+  // Partidos "pendientes" que el DT descartó de la lista de minutaje (no quiere
+  // cargarlos). Se recuerda localmente por club para que no reaparezcan.
+  function claveDescartados(){ return 'benchone_min_descartados_' + (window.__clubIdCache||'x'); }
+  function obtenerPendientesDescartados(){
+    try{ return JSON.parse(localStorage.getItem(claveDescartados())||'[]'); }catch(e){ return []; }
+  }
+  function descartarPendiente(matchId){
+    try{
+      const arr = obtenerPendientesDescartados();
+      if(!arr.includes(matchId)){ arr.push(matchId); localStorage.setItem(claveDescartados(), JSON.stringify(arr)); }
+    }catch(e){}
+  }
+  // Abre el partido en el editor de estadísticas para cargar el minutaje a mano.
+  function abrirPartidoParaMinutaje(matchId){
+    const m = (matches||[]).find(x=>x.id===matchId);
+    if(!m){ toast('No se encontró el partido'); return; }
+    // Cambiamos del sub-tab Minutaje al sub-tab Partidos (mismo panel Estadísticas).
+    const tabMatches = document.querySelector('.stats-subtab[data-sub="matches"]');
+    if(tabMatches){
+      document.querySelectorAll('.stats-subtab').forEach(t => t.classList.toggle('active', t===tabMatches));
+      document.querySelectorAll('.stats-sub').forEach(s => s.classList.toggle('active', s.id === 'stats-matches'));
+    }
+    openMatch(matchId);   // abre el detalle del partido (y llama a loadMatchMinutes)
+    // Llevamos la vista al bloque de minutaje del partido.
+    setTimeout(()=>{ const c=document.getElementById('matchMinutesCard'); if(c) c.scrollIntoView({behavior:'smooth', block:'center'}); }, 450);
+  }
+
   const fmtMin = (s) => { s=Math.round(s||0); const m=Math.floor(s/60),x=s%60; return String(m).padStart(2,'0')+':'+String(x).padStart(2,'0'); };
   async function renderMinutes(){
     const list=document.getElementById('minutesList');
@@ -10860,11 +10906,42 @@ window.__initEditor = function(){
       const {data}=await q.order('created_at',{ascending:false});
       sessions=data||[];
     }catch(e){ list.innerHTML='<p class="rd-empty">No se pudo cargar (¿corriste live-columns.sql?).</p>'; return; }
-    if(sessions.length===0){ list.innerHTML='<p class="rd-empty">Todavía no hay minutajes. Terminá un partido en 🔴 En vivo y guardalo.</p>'; return; }
+
+    // Partidos de la sección "Partidos" que NO tienen sesión de minutaje todavía:
+    // los mostramos como PENDIENTES para cargar a mano. No ocupan lugar en la base
+    // hasta que el DT cargue algo. Se pueden descartar (se recuerda en el equipo).
+    const idsConSesion = new Set(sessions.filter(s=>s.match_id).map(s=>s.match_id));
+    const descartados = obtenerPendientesDescartados();
+    const pendientes = (matches||[]).filter(m =>
+      !idsConSesion.has(m.id) && !descartados.includes(m.id)
+    ).sort((a,b)=>{
+      const da=a.date||'', db=b.date||'';
+      if(da&&db) return db.localeCompare(da);
+      if(da) return -1; if(db) return 1;
+      return (b.createdAt||'').localeCompare(a.createdAt||'');
+    });
+
+    if(sessions.length===0 && pendientes.length===0){ list.innerHTML='<p class="rd-empty">Todavía no hay partidos ni minutajes. Creá un partido en 📊 Estadísticas o terminá uno en 🔴 En vivo.</p>'; return; }
     list.innerHTML='';
     const table=document.createElement('table'); table.className='match-table minutes-table';
     table.innerHTML='<thead><tr><th>Partido</th><th class="mt-fecha">Fecha</th><th>Jugadores</th><th class="mt-open"></th><th class="mt-del"></th></tr></thead><tbody></tbody>';
     const tb=table.querySelector('tbody');
+
+    // Primero los PENDIENTES (para que el DT los vea arriba y los complete).
+    pendientes.forEach(m=>{
+      const when = m.date ? new Date(m.date+'T00:00:00').toLocaleDateString('es-AR') : '';
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td data-label="Partido"><span class="mt-fecha-badge">${escapeHtml(m.rival||'Partido')}</span> <small style="color:var(--warn,#e0a800);font-weight:400;">⏳ pendiente</small></td><td class="mt-fecha" data-label="Fecha">${when}</td><td data-label="Jugadores">Sin cargar</td><td class="mt-open"><button class="btn small mt-open-btn">Cargar minutos →</button></td><td class="mt-del"><button class="mt-del-btn" title="Descartar de la lista" aria-label="Descartar">✕</button></td>`;
+      tr.querySelector('.mt-open-btn').addEventListener('click',()=>{ abrirPartidoParaMinutaje(m.id); });
+      tr.querySelector('.mt-del-btn').addEventListener('click',()=>{
+        if(!confirm('¿Descartar "'+(m.rival||'Partido')+'" de la lista de minutaje? Podés volver a mostrarlo si cargás minutos desde el partido.')) return;
+        descartarPendiente(m.id);
+        toast('Partido descartado de minutaje');
+        renderMinutes();
+      });
+      tb.appendChild(tr);
+    });
+
     sessions.forEach(s=>{
       const when=s.created_at?new Date(s.created_at).toLocaleDateString('es-AR'):'';
       const nJug=s.totals?Object.keys(s.totals).filter(k=>k!=='__rival'&&k!=='__manual').length:0;
