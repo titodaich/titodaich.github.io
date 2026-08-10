@@ -1610,6 +1610,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .inv-quitar{color:var(--muted);cursor:pointer;font-size:10px;margin-left:6px;font-family:'JetBrains Mono',monospace;}
 .inv-quitar:hover{color:var(--danger);}
 .calls-table .total-col{min-width:70px;}
+.calls-table .prev-col{min-width:64px;background:rgba(47,143,203,0.06);padding:4px;}
+.calls-table thead th.prev-col{font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent-2);}
+.calls-table .prev-input{width:48px;height:34px;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-family:'JetBrains Mono',monospace;font-size:14px;text-align:center;padding:2px;}
+.calls-table .prev-input:focus{outline:none;border-color:var(--accent-2);}
 .calls-table th,.calls-table td{border:1px solid var(--line);padding:0;text-align:center;}
 .calls-table thead th{background:var(--panel-2);font-family:'Oswald',sans-serif;padding:8px 10px;white-space:nowrap;color:var(--chalk);}
 .calls-table thead th.match-col{font-size:11px;min-width:80px;}
@@ -3448,10 +3452,6 @@ body.editor-active #screen-editor{ display:block; }
         <div class="adj-section" style="margin-top:14px;">
           <div class="rd-card-head"><h3 data-i18n="adjConceded">🥅 Cómo nos hicieron los goles</h3><button class="btn small" id="adjAddConceded" data-i18n="adjAddOrigin">+ Origen</button></div>
           <div id="adjConceded"></div>
-        </div>
-        <div class="adj-section" style="margin-top:14px;">
-          <div class="rd-card-head"><h3>📋 Partidos del 1er semestre (por jugador)</h3><button class="btn small" id="adjAddCitado">+ Jugador</button></div>
-          <div id="adjCitados"></div>
         </div>
       </div>
       <div style="padding:0 22px 22px;display:flex;justify-content:flex-end;">
@@ -12154,6 +12154,55 @@ window.__initEditor = function(){
     });
   }
 
+  // ----- Partidos previos (1er semestre) por jugador -----
+  // Se guardan en adjustment.citados (por nombre), el mismo dato que la ficha
+  // suma al contador "Citado". Así queda todo en un solo lugar.
+  function getPrevios(nombre){
+    if(!adjustment || !Array.isArray(adjustment.citados)) return 0;
+    const it = adjustment.citados.find(c => c && c.name === nombre);
+    return it ? (Number(it.citado)||0) : 0;
+  }
+  function setPrevios(nombre, val){
+    if(!adjustment.citados) adjustment.citados = [];
+    let it = adjustment.citados.find(c => c && c.name === nombre);
+    if(val > 0){
+      if(it) it.citado = val;
+      else adjustment.citados.push({ name:nombre, citado:val });
+    } else if(it){
+      adjustment.citados = adjustment.citados.filter(c => c.name !== nombre);
+    }
+  }
+  async function guardarPreviosEnNube(){
+    const sb = window.__sb; if(!sb) return;
+    try{
+      const clubId = await window.__getClubId(); if(!clubId) return;
+      const cat = catActual();
+      const payload = {
+        club_id: clubId, categoria: cat,
+        temporada: (window.__getTemporada ? window.__getTemporada() : new Date().getFullYear()),
+        scorers: adjustment.scorers||[], scored: adjustment.scored||[], conceded: adjustment.conceded||[],
+        citados: (adjustment.citados||[]).filter(c => c.name && c.citado),
+        matches_played: Number(adjustment.matchesPlayed)||0,
+        updated_at: new Date().toISOString()
+      };
+      let existing = adjRowId;
+      if(!existing){
+        let q = sb.from('stat_adjustments').select('id').eq('club_id', clubId);
+        q = cat ? q.eq('categoria', cat) : q.is('categoria', null);
+        if(window.__getTemporada) q = q.eq('temporada', window.__getTemporada());
+        const found = await q.limit(1);
+        if(found.data && found.data.length) existing = found.data[0].id;
+      }
+      if(existing){
+        await sb.from('stat_adjustments').update(payload).eq('id', existing);
+      } else {
+        const res = await sb.from('stat_adjustments').insert(payload).select('id').single();
+        if(res.data) adjRowId = res.data.id;
+      }
+      toast('Partidos previos guardados');
+    }catch(e){ console.error('guardar previos', e); toast('No se pudo guardar los previos'); }
+  }
+
   function renderCalls(){
     // Cargar las causas personalizadas (las mismas de Presentismo) para poder usarlas acá.
     loadCustomCauses();
@@ -12176,7 +12225,7 @@ window.__initEditor = function(){
     const table = document.createElement('table');
     table.className = 'calls-table';
     // Cabecera: primera celda (Jugador) + un partido por columna
-    let thead = '<thead><tr><th class="player-name-cell">Jugador</th>';
+    let thead = '<thead><tr><th class="player-name-cell">Jugador</th><th class="prev-col" title="Partidos jugados antes de usar la app (1er semestre)">Previos</th>';
     ordered.forEach((m, i) => {
       const when = m.date ? new Date(m.date+'T00:00:00').toLocaleDateString('es-AR') : '';
       thead += `<th class="match-col"><div class="mc-rival">Partido ${i+1}</div><div class="mc-sub">${m.rival?escapeHtml(m.rival):''}</div><div class="mc-date">${when}</div></th>`;
@@ -12185,7 +12234,9 @@ window.__initEditor = function(){
     // Cuerpo: una fila por jugador del plantel
     let tbody = '<tbody>';
     squad.forEach(p => {
+      const prevVal = getPrevios(p.name);
       tbody += `<tr><td class="player-name-cell"><span class="pn-num">${escapeHtml(p.number||'')}</span> ${escapeHtml(p.name)}</td>`;
+      tbody += `<td class="prev-col"><input class="prev-input" type="number" min="0" inputmode="numeric" data-pname="${escapeHtml(p.name)}" value="${prevVal||''}" placeholder="0"></td>`;
       ordered.forEach(m => {
         const st = (m.calls && m.calls[p.id]) || '';
         const esCustom = st && st.startsWith('custom:');
@@ -12194,7 +12245,8 @@ window.__initEditor = function(){
         const title = st==='yes'?'Citado':(st==='no'?'No citado (decisión técnica)':(st?attStName(st):'Sin marcar'));
         tbody += `<td class="calls-cell ${cls}" data-match="${m.id}" data-player="${p.id}" title="${title}">${icon}</td>`;
       });
-      const total = matches.reduce((acc,m) => acc + ((m.calls && m.calls[p.id]==='yes')?1:0), 0);
+      const totalApp = matches.reduce((acc,m) => acc + ((m.calls && m.calls[p.id]==='yes')?1:0), 0);
+      const total = totalApp + (prevVal||0);
       tbody += `<td class="total-col">${total}</td></tr>`;
     });
 
@@ -12204,9 +12256,10 @@ window.__initEditor = function(){
     matches.forEach(m => (m.invitados||[]).forEach(inv => { invMap[inv.id] = inv; }));
     const invitados = Object.values(invMap);
     if(invitados.length > 0){
-      tbody += `<tr class="inv-divider"><td colspan="${ordered.length + 2}" class="inv-divider-label">⬆ Subieron de otra categoría</td></tr>`;
+      tbody += `<tr class="inv-divider"><td colspan="${ordered.length + 3}" class="inv-divider-label">⬆ Subieron de otra categoría</td></tr>`;
       invitados.forEach(inv => {
         tbody += `<tr class="inv-row"><td class="player-name-cell"><span class="pn-num">${escapeHtml(inv.number||'')}</span> ${escapeHtml(inv.name)} <span class="inv-badge">sube de ${escapeHtml(inv.fromCat||'otra')}</span> <span class="inv-quitar" data-quitar="${inv.id}" title="Quitar de la convocatoria">✕ quitar</span></td>`;
+        tbody += `<td class="prev-col" style="color:var(--muted);">—</td>`;
         ordered.forEach(m => {
           const st = (m.calls && m.calls[inv.id]) || '';
           const esCustom = st && st.startsWith('custom:');
@@ -12238,6 +12291,27 @@ window.__initEditor = function(){
     // Listener del botón subir jugador
     const btnSubir = document.getElementById('btnSubirJugador');
     if(btnSubir) btnSubir.addEventListener('click', abrirSelectorInvitado);
+    // Listeners de la columna "Previos": al escribir, guardamos el número por jugador.
+    // Se guarda en el ajuste de la categoría (mismo lugar que ya suma al "Citado" de la ficha).
+    let prevGuardarTimer = null;
+    wrap.querySelectorAll('.prev-input').forEach(inp => {
+      inp.addEventListener('input', () => {
+        const nombre = inp.dataset.pname;
+        const val = parseInt(inp.value||'0',10) || 0;
+        setPrevios(nombre, val);
+        // Actualizamos el total de esa fila en vivo.
+        const row = inp.closest('tr');
+        if(row){
+          const pid = squad.find(x=>x.name===nombre);
+          const totalApp = pid ? matches.reduce((acc,m)=>acc+((m.calls&&m.calls[pid.id]==='yes')?1:0),0) : 0;
+          const tot = row.querySelector('.total-col');
+          if(tot) tot.textContent = totalApp + val;
+        }
+        // Guardar en la nube con un pequeño retraso (para no guardar en cada tecla).
+        clearTimeout(prevGuardarTimer);
+        prevGuardarTimer = setTimeout(guardarPreviosEnNube, 800);
+      });
+    });
     // Listeners de quitar invitado
     wrap.querySelectorAll('.inv-quitar').forEach(el => {
       el.addEventListener('click', (e) => { e.stopPropagation(); quitarInvitado(el.dataset.quitar); });
@@ -12328,27 +12402,10 @@ window.__initEditor = function(){
       row.querySelector('.adj-del').addEventListener('click', () => { adjustment.conceded.splice(i,1); renderAdjEditor(); });
       cc.appendChild(row);
     });
-    // Partidos citados previos (por jugador)
-    const ci = document.getElementById('adjCitados');
-    if(ci){
-      ci.innerHTML = '';
-      if(!adjustment.citados) adjustment.citados = [];
-      if(squad.length === 0){ ci.innerHTML = '<p class="rd-empty">Cargá jugadores en el Plantel para ajustar citados.</p>'; }
-      adjustment.citados.forEach((c, i) => {
-        const row = document.createElement('div');
-        row.className = 'adj-row';
-        row.innerHTML = `<select class="adj-name">${playerOpts(c.name)}</select><input class="adj-num" type="number" min="0" placeholder="citado" value="${c.citado||''}"><button class="adj-del">✕</button>`;
-        row.querySelector('.adj-name').addEventListener('change', e => c.name = e.target.value);
-        row.querySelector('.adj-num').addEventListener('input', e => c.citado = e.target.value);
-        row.querySelector('.adj-del').addEventListener('click', () => { adjustment.citados.splice(i,1); renderAdjEditor(); });
-        ci.appendChild(row);
-      });
-    }
   }
   document.getElementById('adjAddScorer').addEventListener('click', () => { adjustment.scorers.push({name:'',goals:''}); renderAdjEditor(); });
   document.getElementById('adjAddScored').addEventListener('click', () => { adjustment.scored.push({origin:'',count:''}); renderAdjEditor(); });
   document.getElementById('adjAddConceded').addEventListener('click', () => { adjustment.conceded.push({origin:'',count:''}); renderAdjEditor(); });
-  { const b=document.getElementById('adjAddCitado'); if(b) b.addEventListener('click', () => { if(!adjustment.citados) adjustment.citados=[]; adjustment.citados.push({name:'',citado:''}); renderAdjEditor(); }); }
 
   document.getElementById('adjSaveBtn').addEventListener('click', async () => {
     const btn = document.getElementById('adjSaveBtn');
