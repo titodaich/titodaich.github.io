@@ -3449,6 +3449,10 @@ body.editor-active #screen-editor{ display:block; }
           <div class="rd-card-head"><h3 data-i18n="adjConceded">🥅 Cómo nos hicieron los goles</h3><button class="btn small" id="adjAddConceded" data-i18n="adjAddOrigin">+ Origen</button></div>
           <div id="adjConceded"></div>
         </div>
+        <div class="adj-section" style="margin-top:14px;">
+          <div class="rd-card-head"><h3>✅ Partidos citados (previos)</h3><button class="btn small" id="adjAddCitado">+ Jugador</button></div>
+          <div id="adjCitados"></div>
+        </div>
       </div>
       <div style="padding:0 22px 22px;display:flex;justify-content:flex-end;">
         <button class="btn small primary" id="adjSaveBtn" data-i18n="adjSave">Guardar ajuste</button>
@@ -9618,7 +9622,7 @@ window.__initEditor = function(){
   let origins = [];      // formas de origen de gol (con subs)
   let originsRowId = null;
   let matches = [];      // partidos de la categoría
-  let adjustment = { scorers:[], scored:[], conceded:[], matchesPlayed:0 };   // resumen primer semestre
+  let adjustment = { scorers:[], scored:[], conceded:[], citados:[], matchesPlayed:0 };   // resumen primer semestre
   let adjRowId = null;   // id de la fila de ajuste en la nube
   let currentMatch = null;
   const saveTimers = {};
@@ -9727,13 +9731,13 @@ window.__initEditor = function(){
         aq = cat ? aq.eq('categoria', cat) : aq.is('categoria', null);
         const aRes = await aq;
         if(aRes.data && aRes.data.length){
-          adjustment = { scorers: aRes.data[0].scorers||[], scored: aRes.data[0].scored||[], conceded: aRes.data[0].conceded||[], matchesPlayed: aRes.data[0].matches_played||0 };
+          adjustment = { scorers: aRes.data[0].scorers||[], scored: aRes.data[0].scored||[], conceded: aRes.data[0].conceded||[], citados: aRes.data[0].citados||[], matchesPlayed: aRes.data[0].matches_played||0 };
           adjRowId = aRes.data[0].id;
         } else {
-          adjustment = { scorers:[], scored:[], conceded:[], matchesPlayed:0 };
+          adjustment = { scorers:[], scored:[], conceded:[], citados:[], matchesPlayed:0 };
           adjRowId = null;
         }
-      }catch(e){ adjustment = { scorers:[], scored:[], conceded:[], matchesPlayed:0 }; adjRowId = null; }
+      }catch(e){ adjustment = { scorers:[], scored:[], conceded:[], citados:[], matchesPlayed:0 }; adjRowId = null; }
       refreshActiveSub();
     }catch(e){ console.error('stats load', e); }
   }
@@ -12324,10 +12328,27 @@ window.__initEditor = function(){
       row.querySelector('.adj-del').addEventListener('click', () => { adjustment.conceded.splice(i,1); renderAdjEditor(); });
       cc.appendChild(row);
     });
+    // Partidos citados previos (por jugador)
+    const ci = document.getElementById('adjCitados');
+    if(ci){
+      ci.innerHTML = '';
+      if(!adjustment.citados) adjustment.citados = [];
+      if(squad.length === 0){ ci.innerHTML = '<p class="rd-empty">Cargá jugadores en el Plantel para ajustar citados.</p>'; }
+      adjustment.citados.forEach((c, i) => {
+        const row = document.createElement('div');
+        row.className = 'adj-row';
+        row.innerHTML = `<select class="adj-name">${playerOpts(c.name)}</select><input class="adj-num" type="number" min="0" placeholder="citado" value="${c.citado||''}"><button class="adj-del">✕</button>`;
+        row.querySelector('.adj-name').addEventListener('change', e => c.name = e.target.value);
+        row.querySelector('.adj-num').addEventListener('input', e => c.citado = e.target.value);
+        row.querySelector('.adj-del').addEventListener('click', () => { adjustment.citados.splice(i,1); renderAdjEditor(); });
+        ci.appendChild(row);
+      });
+    }
   }
   document.getElementById('adjAddScorer').addEventListener('click', () => { adjustment.scorers.push({name:'',goals:''}); renderAdjEditor(); });
   document.getElementById('adjAddScored').addEventListener('click', () => { adjustment.scored.push({origin:'',count:''}); renderAdjEditor(); });
   document.getElementById('adjAddConceded').addEventListener('click', () => { adjustment.conceded.push({origin:'',count:''}); renderAdjEditor(); });
+  { const b=document.getElementById('adjAddCitado'); if(b) b.addEventListener('click', () => { if(!adjustment.citados) adjustment.citados=[]; adjustment.citados.push({name:'',citado:''}); renderAdjEditor(); }); }
 
   document.getElementById('adjSaveBtn').addEventListener('click', async () => {
     const btn = document.getElementById('adjSaveBtn');
@@ -12341,10 +12362,12 @@ window.__initEditor = function(){
       adjustment.scorers = (adjustment.scorers||[]).filter(s => s.name && s.goals);
       adjustment.scored = (adjustment.scored||[]).filter(c => c.origin && c.count);
       adjustment.conceded = (adjustment.conceded||[]).filter(c => c.origin && c.count);
+      adjustment.citados = (adjustment.citados||[]).filter(c => c.name && c.citado);
       const cat = catActual();
       const payload = {
         club_id: clubId, categoria: cat, temporada: (window.__getTemporada ? window.__getTemporada() : new Date().getFullYear()),
         scorers: adjustment.scorers, scored: adjustment.scored, conceded: adjustment.conceded,
+        citados: adjustment.citados,
         matches_played: Number(adjustment.matchesPlayed)||0,
         updated_at: new Date().toISOString()
       };
@@ -12840,6 +12863,16 @@ window.__initEditor = function(){
         });
       }
     }catch(e){ golesAjuste = 0; }
+    // ---- Citados del AJUSTE INICIAL (partidos previos cargados a mano) ----
+    // Igual que los goles: se guardan por nombre. Los sumamos al contador "Citado".
+    let citadosAjuste = 0;
+    try{
+      if(adjustment && Array.isArray(adjustment.citados)){
+        adjustment.citados.forEach(c => {
+          if(c && c.name === playerName){ citadosAjuste += Number(c.citado) || 0; }
+        });
+      }
+    }catch(e){ citadosAjuste = 0; }
     let acc = 0;
     const perMatch = [];   // {label, goals, assists, cards, acc, wasCalled}
     // El ajuste inicial va PRIMERO en la línea de tiempo (es el semestre previo).
@@ -12859,6 +12892,8 @@ window.__initEditor = function(){
     });
     // Sumar los goles del ajuste al total de goles del jugador
     totGoals += golesAjuste;
+    // Sumar los partidos citados previos (ajuste) al contador de citado
+    called += citadosAjuste;
 
     // Si todavía no hay partidos, igual mostramos la ficha:
     // los datos personales, lesiones y evaluaciones no dependen de haber jugado.
