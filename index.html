@@ -611,6 +611,16 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 
 /* ===== SCOUTING ===== */
 .scout-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:22px;flex-wrap:wrap;}.scout-title{font-family:'Oswald',sans-serif;font-size:22px;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 4px;}
+.scout-subtab{background:var(--panel-2,#1B2C3D);border:1px solid var(--line);border-radius:9px;padding:9px 16px;color:var(--muted);font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:0.5px;cursor:pointer;transition:all .12s;}
+.scout-subtab.active{background:var(--accent-2,#2F8FCB);border-color:var(--accent-2,#2F8FCB);color:#fff;}
+.scout-subtab:hover:not(.active){border-color:var(--accent-2,#2F8FCB);color:var(--chalk);}
+.miequipo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;}
+.miequipo-card{background:var(--panel-2,#1B2C3D);border:1px solid var(--line);border-radius:12px;padding:16px 14px;cursor:pointer;transition:all .12s;text-align:center;}
+.miequipo-card:hover{border-color:var(--accent-2,#2F8FCB);transform:translateY(-2px);}
+.miequipo-card .me-num{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--accent-2,#2F8FCB);}
+.miequipo-card .me-name{font-family:'Oswald',sans-serif;font-size:15px;color:var(--chalk,#dfe8f0);margin-top:4px;}
+.miequipo-card .me-count{font-size:11px;color:var(--muted);margin-top:6px;}
+.miequipo-empty{color:var(--muted);font-style:italic;padding:20px 0;}
 .scout-sub{color:var(--muted);font-size:13px;margin:0;}
 .squad-info-card{display:flex;align-items:flex-start;gap:9px;background:rgba(47,143,203,0.10);border:1px solid rgba(47,143,203,0.35);border-radius:10px;padding:11px 13px;margin-top:6px;font-family:'Inter',sans-serif;font-size:13px;line-height:1.5;color:var(--chalk);max-width:640px;}
 .squad-info-ico{flex-shrink:0;font-size:15px;line-height:1.3;}
@@ -2099,6 +2109,9 @@ body.modo-lectura .section-content textarea:read-only{
 .clip-log-title{font-family:'Oswald',sans-serif;font-size:12px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:10px;}
 .clip-log{display:flex;flex-direction:column;gap:5px;max-height:340px;overflow-y:auto;}
 .clip-log-empty{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted);font-style:italic;}
+.vh-legend{list-style:none;padding:0;margin:8px 0 0;display:flex;flex-direction:column;gap:5px;}
+.vh-legend li{font-size:12.5px;color:var(--muted);line-height:1.4;}
+.vh-legend li b{color:var(--accent-2);display:inline-block;min-width:26px;}
 .clip-log-row{
   display:flex;align-items:center;gap:7px;
   font-family:'JetBrains Mono',monospace;font-size:11.5px;
@@ -2234,6 +2247,10 @@ body.modo-lectura .section-content textarea:read-only{
 .ptt-arrow{color:var(--accent-2,#2F8FCB);font-size:14px;}
 .player-tags-body{margin-top:12px;}
 .player-tags-hint{font-size:12px;color:var(--muted,#7C8B99);margin-bottom:10px;font-style:italic;}
+.botonera-switch{display:flex;gap:6px;margin-bottom:12px;}
+.bs-tab{flex:1;background:var(--panel-2,#1B2C3D);border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--muted);font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:.3px;cursor:pointer;transition:all .12s;}
+.bs-tab.active{background:var(--accent-2,#2F8FCB);border-color:var(--accent-2,#2F8FCB);color:#fff;}
+.bs-tab:hover:not(.active){border-color:var(--accent-2,#2F8FCB);color:var(--chalk);}
 .tag-grid.locked{opacity:0.5;pointer-events:none;}
 .tag-chip{position:relative;display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:9px 10px;cursor:pointer;transition:border-color .15s ease, background .15s ease;min-width:0;overflow:hidden;}
 .tag-chip:hover{border-color:var(--muted);}
@@ -3060,6 +3077,14 @@ body.editor-active #screen-editor{ display:block; }
 
   <!-- ===== SECCIÓN: VIDEO ===== -->
   <div class="section-content" id="section-video">
+  <div class="novedad-cartel" data-nov="video-scouting">
+    <span class="nc-ico">🆕</span>
+    <div class="nc-body">
+      <p class="nc-title">Novedad: video conectado con el plantel y el scouting</p>
+      <p class="nc-text">En la <b>botonera del jugador</b> ahora podés elegir entre <b>👥 Míos</b> (tu plantel real, con "Traer jugadores del plantel") y <b>🆚 Rival</b>. Y en cada recorte del registro, con <b>🏠</b> mandás la jugada a un jugador (aparece en Scouting → Mi Equipo) y con <b>⚔️</b> al rival de turno (aparece en su ficha de Scouting). Abrí "Cómo usar el módulo de Video" para ver qué hace cada botón.</p>
+    </div>
+    <button class="nc-close" aria-label="Cerrar">✕</button>
+  </div>
   <details class="video-help">
     <summary><span class="vh-ico">💡</span> Cómo usar el módulo de Video <span class="vh-hint">(tocá para abrir)</span></summary>
     <div class="vh-body">
@@ -3073,7 +3098,18 @@ body.editor-active #screen-editor{ display:block; }
       </div>
       <div class="vh-step">
         <b>3. Revisá tus recortes</b>
-        <p>Cada jugada que marcás aparece en el <b>Registro de recortes</b>. Ahí podés tocar la flecha (▸) para verla sin salir de la lista, renombrarla con el lapicito (✎) sin cambiar el tag original, <b>achicarla con la tijera (✂)</b> si quedó larga, descargarla suelta, o borrarla con la cruz (✕).</p>
+        <p>Cada jugada que marcás aparece en el <b>Registro de recortes</b>. Cada recorte tiene su fila de botones:</p>
+        <ul class="vh-legend">
+          <li><b>▸</b> Ver el recorte sin salir de la lista.</li>
+          <li><b>＋ / ✓</b> Agregar (o quitar) el recorte de la línea de tiempo del video final.</li>
+          <li><b>✎</b> Renombrar el recorte (sin cambiar el tag original).</li>
+          <li><b>✂</b> Achicar o ajustar la duración si quedó largo.</li>
+          <li><b>✏️</b> Dibujar sobre el recorte: flechas, círculos y líneas para señalar movimientos.</li>
+          <li><b>🏠</b> Enviar la jugada a <b>Mi Equipo</b> (elegís a qué jugador). Después la ves en Scouting → Mi Equipo.</li>
+          <li><b>⚔️</b> Enviar la jugada al <b>rival</b> que elegiste en la botonera. Aparece en la ficha del rival en Scouting.</li>
+          <li><b>⬇</b> Descargar el recorte suelto.</li>
+          <li><b>✕</b> Borrar el recorte del registro.</li>
+        </ul>
       </div>
       <div class="vh-step">
         <b>4. Armá el video final</b>
@@ -3179,8 +3215,22 @@ body.editor-active #screen-editor{ display:block; }
           <span class="ptt-arrow" id="pttArrow">▾</span>
         </button>
         <div class="player-tags-body" id="playerTagsBody" style="display:none;">
-          <div class="player-tags-hint">Pulsá un jugador para iniciar el corte y pulsalo de nuevo para cerrarlo. Tocá el ✎ para ponerle el nombre.</div>
-          <div class="tag-grid" id="playerTagGrid"></div>
+          <div class="botonera-switch">
+            <button class="bs-tab active" id="bsMios" data-bot="mios">👥 Míos</button>
+            <button class="bs-tab" id="bsRival" data-bot="rival">🆚 Rival</button>
+          </div>
+          <!-- Modo MÍOS -->
+          <div id="botoneraMios">
+            <div class="player-tags-hint">Pulsá un jugador para iniciar el corte y pulsalo de nuevo para cerrarlo. Tocá el ✎ para ponerle el nombre.</div>
+            <div style="margin-bottom:10px;"><button class="btn small" id="traerPlantelBtn">👥 Traer jugadores del plantel</button></div>
+            <div class="tag-grid" id="playerTagGrid"></div>
+          </div>
+          <!-- Modo RIVAL -->
+          <div id="botoneraRival" style="display:none;">
+            <div class="player-tags-hint">Elegí el rival de tus fichas de scouting. Las jugadas que marques quedan vinculadas a esa ficha.</div>
+            <div style="margin-bottom:10px;"><button class="btn small" id="elegirRivalBtn">🆚 Elegir rival</button> <span id="rivalElegidoLbl" style="font-size:12px;color:var(--accent-2);margin-left:6px;"></span></div>
+            <div class="tag-grid" id="rivalTagGrid"></div>
+          </div>
         </div>
       </div>
       <div class="tag-grid-actions"><button class="btn small" id="editVideoTagsBtn">🏷️ Mis tags</button></div>
@@ -3599,6 +3649,14 @@ body.editor-active #screen-editor{ display:block; }
 
   <!-- ===== SECCIÓN: SCOUTING ===== -->
   <div class="section-content" id="section-scouting">
+    <!-- Sub-navegación: Rivales / Mi Equipo -->
+    <div class="stats-subnav">
+      <button class="scout-subtab active" data-scoutsub="rivales">⚔️ Rival</button>
+      <button class="scout-subtab" data-scoutsub="miequipo">🏠 Mi Equipo</button>
+    </div>
+
+    <!-- ===== SOLAPA: RIVALES (lo de siempre) ===== -->
+    <div class="scout-pane" id="scout-rivales">
     <!-- Vista LISTA de rivales -->
     <div id="scoutList">
       <div class="scout-head">
@@ -3689,6 +3747,38 @@ body.editor-active #screen-editor{ display:block; }
         <span class="rd-saved" id="rdSaved">Los cambios se guardan solos</span>
       </div>
     </div>
+    </div><!-- /#scout-rivales -->
+
+    <!-- ===== SOLAPA: MI EQUIPO ===== -->
+    <div class="scout-pane" id="scout-miequipo" style="display:none;">
+      <div class="scout-head">
+        <div>
+          <h2 class="scout-title">🏠 Scouting · Mi Equipo</h2>
+          <p class="scout-sub">Tus jugadores del plantel. Tocá un jugador para ver sus jugadas en video.</p>
+        </div>
+        <button class="btn small" id="miEquipoRefresh">🔄 Actualizar</button>
+      </div>
+      <div class="novedad-cartel" data-nov="miequipo">
+        <span class="nc-ico">🆕</span>
+        <div class="nc-body">
+          <p class="nc-title">Novedad: Mi Equipo con video</p>
+          <p class="nc-text">Ahora podés ver las jugadas de cada jugador en un solo lugar. En el <b>editor de video</b>, tocá "👥 Traer jugadores del plantel", marcá los recortes con la botonera del jugador y guardá el proyecto. Los recortes aparecen acá, agrupados por jugador y por partido.</p>
+        </div>
+        <button class="nc-close" aria-label="Cerrar">✕</button>
+      </div>
+      <div id="miEquipoGrid" class="miequipo-grid"></div>
+      <!-- Detalle de un jugador (sus jugadas) -->
+      <div id="miEquipoDetail" style="display:none;">
+        <button class="btn small" id="miEquipoBack" style="margin-bottom:14px;">← Volver a Mi Equipo</button>
+        <div class="scout-head">
+          <div>
+            <h2 class="scout-title" id="miEquipoPlayerName">Jugador</h2>
+            <p class="scout-sub">Jugadas registradas en video para este jugador.</p>
+          </div>
+        </div>
+        <div id="miEquipoJugadas"></div>
+      </div>
+    </div><!-- /#scout-miequipo -->
   </div>
 
   <!-- ===== SECCIÓN: PIZARRA TÁCTICA ===== -->
@@ -4041,7 +4131,7 @@ body.editor-active #screen-editor{ display:block; }
 
       <div class="guide-card">
         <div class="gcard-head"><span>🎬</span><h3>Video</h3></div>
-        <p>Subís el partido y marcás las jugadas con un toque. Armás el video final arrastrando los recortes.</p>
+        <p>Subís el partido y marcás las jugadas con un toque. Armás el video final arrastrando los recortes. Con la <b>botonera de tu plantel</b>, marcás jugadas por jugador y las ves después en Scouting → Mi Equipo.</p>
         <div class="gcard-ex"><b>💡 Ejemplo:</b> el domingo grabaste el partido. El lunes marcás los 6 córners en contra, los exportás juntos y se los mostrás al equipo antes del entrenamiento.</div>
       </div>
 
@@ -4059,7 +4149,7 @@ body.editor-active #screen-editor{ display:block; }
 
       <div class="guide-card">
         <div class="gcard-head"><span>🔍</span><h3>Scouting</h3></div>
-        <p>Fichás rivales con análisis táctico (cómo atacan y defienden), pelota parada, sexta falta, penales, jugadores clave y material de referencia (fotos y videos).</p>
+        <p>Fichás rivales con análisis táctico (cómo atacan y defienden), pelota parada, sexta falta, penales, jugadores clave y material de referencia (fotos y videos). En <b>Mi Equipo</b> ves a cada jugador de tu plantel con sus jugadas en video, agrupadas por partido.</p>
         <div class="gcard-ex"><b>💡 Ejemplo:</b> el sábado jugás contra un equipo que ya enfrentaste. Abrís su ficha y releés: "sacan rápido de arco, pivot zurdo peligroso, en 6ta falta patea el 10 al palo derecho".</div>
       </div>
 
@@ -4367,7 +4457,7 @@ window.I18N = {
     trainTitle:'Planificación de entrenamientos', trainSub:'Una ficha por semana. Editá el nombre y las fechas desde cada recuadro, o abrí la semana para planificar en detalle.',
     addWeek:'+ Agregar semana', addExercise:'+ Agregar ejercicio', emptyWeek:'🗑 Eliminar semana', calTitle:'📅 Calendario de la temporada', calMatch:'Partido', calTrain:'Entrenamiento', calConcept:'Concepto', calType:'Tipo', calText:'Texto', calTextPh:'Ej. Copa Argentina - Fecha 1', calSave:'Guardar', calDelete:'Borrar', calEmpty:'Escribí algún texto.',
     // Scouting
-    scoutTitle:'Scouting de rivales', scoutSub:'Editá el rival y la fecha del partido desde cada recuadro, o abrí la ficha para el análisis completo.',
+    scoutTitle:'⚔️ Scouting · Rival', scoutSub:'Editá el rival y la fecha del partido desde cada recuadro, o abrí la ficha para el análisis completo.',
     addFecha:'+ Agregar partido', addKeyPlayer:'+ Agregar', addPhoto:'+ Foto', addVideo:'+ Video', genReport:'Generar informe',
     // Pizarra
     boardTitle:'Pizarra táctica', boardSub:'Movés las fichas y grabás jugadas animadas para tu equipo.', boardDescPh:'Descripción de la jugada (opcional): ej. Salida 3-1 por derecha, bloqueo del pivot...',
@@ -4451,7 +4541,7 @@ window.I18N = {
     adjScorers:'⚽ Scorers', adjAddScorer:'+ Scorer', adjScored:'🎯 How we score', adjConceded:'🥅 How we concede', adjAddOrigin:'+ Origin', adjSave:'Save adjustment',
     trainTitle:'Training planning', trainSub:'One card per week. Edit the name and dates in each box, or open the week to plan in detail.',
     addWeek:'+ Add week', addExercise:'+ Add exercise', emptyWeek:'🗑 Delete week', calTitle:'📅 Season calendar', calMatch:'Match', calTrain:'Training', calConcept:'Concept', calType:'Type', calText:'Text', calTextPh:'e.g. Copa Argentina - Round 1', calSave:'Save', calDelete:'Delete', calEmpty:'Write some text.',
-    scoutTitle:'Opponent scouting', scoutSub:'Edit the opponent and match date in each box, or open the card for full analysis.',
+    scoutTitle:'⚔️ Scouting · Opponent', scoutSub:'Edit the opponent and match date in each box, or open the card for full analysis.',
     addFecha:'+ Add match', addKeyPlayer:'+ Add', addPhoto:'+ Photo', addVideo:'+ Video', genReport:'Generate report',
     boardTitle:'Tactic board', boardSub:'Move the pieces and record animated plays for your team.', boardDescPh:'Play description (optional): e.g. 3-1 build-up on the right, pivot screen...',
     annConvert:'⚽ How we score', annConceded:'🥅 How we concede', annMore:'See more stats (scorers, assists, detail, cards)',
@@ -4532,7 +4622,7 @@ window.I18N = {
     adjScorers:'⚽ Artilheiros', adjAddScorer:'+ Artilheiro', adjScored:'🎯 Como fazemos os gols', adjConceded:'🥅 Como sofremos os gols', adjAddOrigin:'+ Origem', adjSave:'Salvar ajuste',
     trainTitle:'Planejamento de treinos', trainSub:'Um cartão por semana. Edite o nome e as datas em cada caixa, ou abra a semana para planejar em detalhe.',
     addWeek:'+ Adicionar semana', addExercise:'+ Adicionar exercício', emptyWeek:'🗑 Excluir semana', calTitle:'📅 Calendário da temporada', calMatch:'Jogo', calTrain:'Treino', calConcept:'Conceito', calType:'Tipo', calText:'Texto', calTextPh:'Ex. Copa Argentina - Rodada 1', calSave:'Salvar', calDelete:'Excluir', calEmpty:'Escreva algum texto.',
-    scoutTitle:'Scouting de adversários', scoutSub:'Edite o adversário e a data do jogo em cada caixa, ou abra o cartão para a análise completa.',
+    scoutTitle:'⚔️ Scouting · Adversário', scoutSub:'Edite o adversário e a data do jogo em cada caixa, ou abra o cartão para a análise completa.',
     addFecha:'+ Adicionar jogo', addKeyPlayer:'+ Adicionar', addPhoto:'+ Foto', addVideo:'+ Vídeo', genReport:'Gerar relatório',
     boardTitle:'Prancheta tática', boardSub:'Mova as peças e grave jogadas animadas para seu time.', boardDescPh:'Descrição da jogada (opcional): ex. Saída 3-1 pela direita, bloqueio do pivô...',
     annConvert:'⚽ Como marcamos', annConceded:'🥅 Como sofremos', annMore:'Ver mais estatísticas (artilheiros, assistências, detalhe, cartões)',
@@ -6388,6 +6478,7 @@ window.__initEditor = function(){
     renderMaterials();
     listView.style.display = 'none';
     detailView.style.display = 'block';
+    if(typeof cargarRecortesRival === 'function') cargarRecortesRival(r.id);
     // Mostrar qué fecha es en el título
     const badge = document.getElementById('rdFechaBadge');
     if(badge) badge.textContent = 'Fecha ' + r.fecha;
@@ -6540,6 +6631,36 @@ window.__initEditor = function(){
   if(window.__onCategorySubscribe){
     window.__onCategorySubscribe(() => { if(loadedOnce) loadFromCloud(); }, 'video');
   }
+
+  // Crea una ficha de rival nueva (usada desde el editor de video) y devuelve
+  // su id real de la base, para poder vincular las jugadas al instante.
+  window.__crearRivalDesdeVideo = async function(nombre){
+    try{
+      const sb = window.__sb || window.__sbClient;
+      if(!sb || !window.__getClubId) return null;
+      const cid = await window.__getClubId();
+      if(!cid) return null;
+      const cat = catActual();
+      const nextFecha = (rivals && rivals.length)
+        ? rivals.reduce((mx,r)=>Math.max(mx, r.fecha||0), 0) + 1 : 1;
+      const row = {
+        club_id: cid, categoria: cat,
+        temporada: (window.__getTemporada ? window.__getTemporada() : new Date().getFullYear()),
+        fecha: nextFecha, name: nombre || 'Rival nuevo',
+        updated_at: new Date().toISOString()
+      };
+      const { data, error } = await sb.from('scouting').upsert(row, { onConflict: 'club_id,categoria,fecha' }).select('id, name, fecha').single();
+      if(error){ console.error('crear rival', error); return null; }
+      // Sumarlo a la lista local para que aparezca al volver a scouting.
+      if(data){
+        const nuevo = makeFixture(data.fecha);
+        nuevo.id = data.id; nuevo.name = data.name;
+        if(rivals && !rivals.some(r=>r.fecha===data.fecha)) rivals.push(nuevo);
+        return { id: data.id, name: data.name };
+      }
+      return null;
+    }catch(e){ console.error('crear rival', e); return null; }
+  };
 
   renderList();
 })();
@@ -15435,10 +15556,15 @@ let activeTagId = tags[0].id;
 // ---------- BOTONERA DE JUGADORES (14 botones, editables) ----------
 // Funcionan igual que los tags de partido: pulsás para iniciar el corte y
 // pulsás de nuevo para cerrarlo. Sirven para juntar los clips de un jugador.
-const DEFAULT_PLAYER_NAMES = Array.from({length:14}, (_,i) => 'Jugador ' + (i+1));
+const DEFAULT_PLAYER_NAMES = Array.from({length:20}, (_,i) => 'Jugador ' + (i+1));
 let playerTags = DEFAULT_PLAYER_NAMES.map((name, i) => ({ id: 'ply' + i, name, color: '#2F8FCB', isPlayer:true }));
-// Busca un tag por id tanto en los tags de partido como en los jugadores.
-function findAnyTag(id){ return tags.find(t=>t.id===id) || playerTags.find(t=>t.id===id) || null; }
+// Botonera del RIVAL: tags genéricos (el rival no tiene plantel cargado). Se vinculan
+// a la ficha de scouting elegida (rivalElegido). Color rojo para distinguir de los propios.
+const DEFAULT_RIVAL_NAMES = ['Gol rival','Ataque rival','Defensa rival','Pelota parada','Contragolpe','Jugador peligroso','5 vs 4 rival','4 vs 5 rival'];
+let rivalTags = DEFAULT_RIVAL_NAMES.map((name, i) => ({ id: 'riv' + i, name, color: '#E5484D', isRival:true }));
+let rivalElegido = null; // { id, name } de la ficha de scouting elegida
+// Busca un tag por id en los tags de partido, los jugadores propios o los del rival.
+function findAnyTag(id){ return tags.find(t=>t.id===id) || playerTags.find(t=>t.id===id) || rivalTags.find(t=>t.id===id) || null; }
 
 // ---------- TAGS PERSONALIZADOS (por club, guardados en la base) ----------
 async function cargarTagsGuardados(){
@@ -15772,7 +15898,7 @@ function renderVideoList(){
         document.getElementById('videoPlaceholder').style.display = 'flex';
         document.getElementById('activeVideoLabel').textContent = 'sin video';
         if(videos.length > 0) setActiveVideo(videos[0].id);
-        else { marking = false; activeMarks = {}; renderTags(); renderPlayerTags(); updateRecordStatus(); }
+        else { marking = false; activeMarks = {}; renderTags(); renderPlayerTags(); if(typeof renderRivalTags==="function") renderRivalTags(); updateRecordStatus(); }
       }
       renderVideoList();
       renderItems();
@@ -15880,16 +16006,186 @@ function renderPlayerTags(){
 }
 // Guardar/cargar los nombres de jugadores (localStorage, por ahora)
 function savePlayerTags(){
-  try{ localStorage.setItem('bo_video_players', JSON.stringify(playerTags.map(p=>({id:p.id,name:p.name})))); }catch(e){}
+  try{ localStorage.setItem('bo_video_players', JSON.stringify(playerTags.map(p=>({id:p.id,name:p.name,plantelId:p.plantelId||null})))); }catch(e){}
 }
 function loadPlayerTags(){
   try{
     const r = localStorage.getItem('bo_video_players');
-    if(r){ const saved = JSON.parse(r); saved.forEach(s => { const p = playerTags.find(x=>x.id===s.id); if(p) p.name = s.name; }); }
+    if(r){ const saved = JSON.parse(r); saved.forEach(s => { const p = playerTags.find(x=>x.id===s.id); if(p){ p.name = s.name; if(s.plantelId) p.plantelId = s.plantelId; } }); }
   }catch(e){}
 }
 loadPlayerTags();
 renderPlayerTags();
+
+// ---------- BOTONERA DEL RIVAL ----------
+function renderRivalTags(){
+  const grid = document.getElementById('rivalTagGrid');
+  if(!grid) return;
+  grid.innerHTML = '';
+  rivalTags.forEach((tag) => {
+    const chip = document.createElement('div');
+    const isRecordingThis = activeMarks[tag.id] !== undefined;
+    const tagClipCount = items.filter(it => it.type === 'clip' && it.tagId === tag.id).length;
+    chip.className = 'tag-chip' + (isRecordingThis ? ' recording' : '');
+    chip.style.setProperty('--tag-color', tag.color);
+    chip.tabIndex = 0;
+    chip.innerHTML = `
+      <span class="tag-swatch"></span>
+      <span class="tag-name">${escapeHtml(tag.name)}</span>
+      <span class="tag-num">${tagClipCount}</span>
+      <button class="tag-rename-btn" data-action="rename" title="Renombrar">✎</button>
+    `;
+    chip.addEventListener('click', (e) => {
+      if(e.target.closest('[data-action="rename"]')) return;
+      if(!rivalElegido){ toast('Primero elegí el rival.'); return; }
+      handleTagClick(tag.id);
+    });
+    chip.querySelector('[data-action="rename"]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const nameEl = chip.querySelector('.tag-name');
+      const input = document.createElement('input');
+      input.className = 'tag-name-input'; input.value = tag.name;
+      input.style.setProperty('--tag-color', tag.color);
+      chip.replaceChild(input, nameEl);
+      input.focus(); input.select();
+      function commit(){ tag.name = input.value.trim() || tag.name; renderRivalTags(); renderItems(); }
+      input.addEventListener('blur', commit);
+      input.addEventListener('keydown', ev => { if(ev.key==='Enter') commit(); });
+    });
+    grid.appendChild(chip);
+  });
+}
+renderRivalTags();
+
+// Switch Míos / Rival (mismo zócalo, dos modos)
+(function(){
+  const tabs = document.querySelectorAll('.bs-tab');
+  const mios = document.getElementById('botoneraMios');
+  const rival = document.getElementById('botoneraRival');
+  tabs.forEach(t=>{
+    t.addEventListener('click', ()=>{
+      tabs.forEach(x=>x.classList.toggle('active', x===t));
+      const modo = t.dataset.bot;
+      if(mios) mios.style.display = (modo==='mios') ? '' : 'none';
+      if(rival) rival.style.display = (modo==='rival') ? '' : 'none';
+    });
+  });
+})();
+
+// Elegir el rival de las fichas de scouting ya cargadas
+async function abrirSelectorRival(){
+  try{
+    const sb = window.__sb || window.__sbClient;
+    const clubId = window.__getClubId ? await window.__getClubId() : null;
+    if(!sb || !clubId){ toast('No se pudo identificar tu club.'); return; }
+    let q = sb.from('scouting').select('id, name, fecha').eq('club_id', clubId);
+    if(window.__getTemporada) q = q.eq('temporada', window.__getTemporada());
+    const { data, error } = await q;
+    if(error) throw error;
+    const fichas = (data || []).filter(f => f.name && f.name.trim());
+    if(fichas.length === 0){ toast('No tenés fichas de rival cargadas. Creá una en Scouting → Rivales.'); return; }
+    // Modal simple de selección
+    const ov = document.createElement('div');
+    ov.className = 'plans-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:9999;';
+    let lista = fichas.map(f => `<button class="btn small" data-rid="${f.id}" data-rname="${escapeHtml(f.name)}" style="width:100%;text-align:left;margin-bottom:6px;">🆚 ${escapeHtml(f.name)}</button>`).join('');
+    ov.innerHTML = `<div style="background:var(--panel,#152230);border:1px solid var(--line);border-radius:14px;padding:20px;max-width:380px;width:90%;max-height:70vh;overflow-y:auto;">
+      <h3 style="font-family:'Oswald',sans-serif;margin:0 0 14px;color:var(--chalk);">Elegí el rival</h3>
+      ${lista}
+      <button class="btn small primary" id="selRivalNuevo" style="width:100%;margin:8px 0 4px;">+ Crear rival nuevo</button>
+      <button class="btn small" id="selRivalCancel" style="width:100%;margin-top:4px;background:transparent;">Cancelar</button>
+    </div>`;
+    document.body.appendChild(ov);
+    ov.querySelectorAll('[data-rid]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        rivalElegido = { id: b.dataset.rid, name: b.dataset.rname };
+        const lbl = document.getElementById('rivalElegidoLbl');
+        if(lbl) lbl.textContent = '✓ ' + rivalElegido.name;
+        ov.remove();
+        toast('Rival: ' + rivalElegido.name);
+      });
+    });
+    // Crear un rival nuevo desde acá
+    const btnNuevo = ov.querySelector('#selRivalNuevo');
+    if(btnNuevo) btnNuevo.addEventListener('click', async ()=>{
+      const nombre = prompt('Nombre del rival nuevo:');
+      if(!nombre || !nombre.trim()) return;
+      if(!window.__crearRivalDesdeVideo){ toast('No se pudo crear el rival.'); return; }
+      btnNuevo.disabled = true; btnNuevo.textContent = 'Creando…';
+      const nuevo = await window.__crearRivalDesdeVideo(nombre.trim());
+      if(nuevo && nuevo.id){
+        rivalElegido = { id: nuevo.id, name: nuevo.name };
+        const lbl = document.getElementById('rivalElegidoLbl');
+        if(lbl) lbl.textContent = '✓ ' + rivalElegido.name;
+        ov.remove();
+        toast('Rival creado: ' + rivalElegido.name);
+      }else{
+        btnNuevo.disabled = false; btnNuevo.textContent = '+ Crear rival nuevo';
+        toast('No se pudo crear el rival.');
+      }
+    });
+    ov.querySelector('#selRivalCancel').addEventListener('click', ()=> ov.remove());
+    ov.addEventListener('click', e=>{ if(e.target===ov) ov.remove(); });
+  }catch(e){ console.error('selector rival', e); toast('No se pudieron cargar las fichas.'); }
+}
+(function(){
+  const btn = document.getElementById('elegirRivalBtn');
+  if(btn) btn.addEventListener('click', abrirSelectorRival);
+})();
+
+// Trae los jugadores reales del plantel (temporada activa) y llena la botonera.
+// Cada botón queda con "#número Nombre". No borra los clips ya marcados.
+async function traerJugadoresDelPlantel(){
+  const btn = document.getElementById('traerPlantelBtn');
+  try{
+    const sb = window.__sb || window.__sbClient;
+    const clubId = window.__getClubId ? await window.__getClubId() : null;
+    if(!sb || !clubId){ if(window.toast) toast('No se pudo identificar tu club.'); return; }
+    if(btn){ btn.disabled = true; btn.textContent = 'Cargando…'; }
+    const temporada = window.__getTemporada ? await window.__getTemporada() : null;
+    let q = sb.from('players').select('*').eq('club_id', clubId).eq('archivado', false);
+    if(temporada) q = q.eq('temporada', temporada);
+    const { data, error } = await q;
+    if(error) throw error;
+    const jugadores = (data || []).filter(p => (p.name && p.name.trim()) || p.number);
+    if(jugadores.length === 0){
+      if(window.toast) toast('No hay jugadores en el plantel de esta temporada.');
+      if(btn){ btn.disabled = false; btn.textContent = '👥 Traer jugadores del plantel'; }
+      return;
+    }
+    // Ordenamos por número (los que tienen número primero, en orden).
+    jugadores.sort((a,b)=>{
+      const na = parseInt(a.number,10), nb = parseInt(b.number,10);
+      if(isNaN(na) && isNaN(nb)) return 0;
+      if(isNaN(na)) return 1;
+      if(isNaN(nb)) return -1;
+      return na - nb;
+    });
+    // Reconstruimos playerTags con los jugadores reales, conservando el id por índice
+    // para no perder los clips ya marcados a esos botones.
+    playerTags = jugadores.map((p, i) => ({
+      id: 'ply' + i,
+      name: ((p.number ? '#' + p.number + ' ' : '') + (p.name || 'Sin nombre')).trim(),
+      color: '#2F8FCB',
+      isPlayer: true,
+      plantelId: p.id || null
+    }));
+    if(playerTags.length === 0) playerTags = DEFAULT_PLAYER_NAMES.map((name,i)=>({id:'ply'+i,name,color:'#2F8FCB',isPlayer:true}));
+    savePlayerTags();
+    renderPlayerTags();
+    if(typeof renderItems === 'function') renderItems();
+    if(window.toast) toast('¡Listo! ' + jugadores.length + ' jugadores traídos del plantel.');
+  }catch(e){
+    console.error('traer plantel', e);
+    if(window.toast) toast('No se pudieron traer los jugadores.');
+  }finally{
+    if(btn){ btn.disabled = false; btn.textContent = '👥 Traer jugadores del plantel'; }
+  }
+}
+(function(){
+  const btn = document.getElementById('traerPlantelBtn');
+  if(btn) btn.addEventListener('click', traerJugadoresDelPlantel);
+})();
 // Toggle abrir/cerrar la botonera de jugadores
 (function(){
   const toggle = document.getElementById('playerTagsToggle');
@@ -15929,7 +16225,7 @@ document.getElementById('saveProjectBtn').addEventListener('click', () => {
     showCaptions: document.getElementById('captionsToggle').checked,
     items: items.map(it => {
       if(it.type === 'clip'){
-        return { type:'clip', id:it.id, tagId:it.tagId, videoId:it.videoId, start:it.start, end:it.end, note:it.note||'', inTimeline: it.inTimeline !== false, name: it.name||'', thumbnail: (it.thumbnail && it.thumbnail !== 'pending') ? it.thumbnail : null };
+        return { type:'clip', id:it.id, tagId:it.tagId, videoId:it.videoId, start:it.start, end:it.end, note:it.note||'', inTimeline: it.inTimeline !== false, name: it.name||'', rivalId: it.rivalId||null, rivalName: it.rivalName||null, thumbnail: (it.thumbnail && it.thumbnail !== 'pending') ? it.thumbnail : null };
       }
       return { type:'separator', id:it.id, title:it.title, note:it.note||'', image:it.image||null, duration:it.duration||3 };
     })
@@ -15950,7 +16246,7 @@ function buildProjectPayload(){
     tags: tags,
     items: items.map(it => {
       if(it.type === 'clip'){
-        return { type:'clip', id:it.id, tagId:it.tagId, videoId:it.videoId, start:it.start, end:it.end, note:it.note||'', inTimeline: it.inTimeline !== false, name: it.name||'', thumbnail: (it.thumbnail && it.thumbnail !== 'pending') ? it.thumbnail : null };
+        return { type:'clip', id:it.id, tagId:it.tagId, videoId:it.videoId, start:it.start, end:it.end, note:it.note||'', inTimeline: it.inTimeline !== false, name: it.name||'', rivalId: it.rivalId||null, rivalName: it.rivalName||null, thumbnail: (it.thumbnail && it.thumbnail !== 'pending') ? it.thumbnail : null };
       }
       return { type:'separator', id:it.id, title:it.title, note:it.note||'', image:it.image||null, duration:it.duration||3 };
     })
@@ -16005,9 +16301,67 @@ async function guardarVideoEnNube(silencioso){
     if(result.error){ console.error(result.error); if(!silencioso) toast('No se pudo guardar: ' + result.error.message); else mostrarEstadoGuardado('error'); return; }
     currentCloudProjectId = result.data.id;
     currentCloudProjectName = result.data.name;
+    // Sincronizar las jugadas vinculadas a jugadores del plantel (para "Mi Equipo").
+    try{ await sincronizarJugadasJugador(result.data.id, name); }catch(e){ console.error('sync jugadas', e); }
     if(silencioso) mostrarEstadoGuardado('guardado');
     else toast(window.t('mMatchSaved'));
   }catch(err){ console.error(err); if(!silencioso) toast(window.t('mSaveErr')); else mostrarEstadoGuardado('error'); }
+}
+
+// Guarda en la base las jugadas vinculadas a jugadores del plantel (para "Mi Equipo").
+// Camino liviano: solo la marca (jugador, proyecto, minutos), NO el video.
+// Reemplaza las jugadas previas de este proyecto para no duplicar.
+async function sincronizarJugadasJugador(projectId, projectName){
+  const sb = window.__sb || window.__sbClient;
+  if(!sb || !projectId) return;
+  const clubId = window.__getClubId ? await window.__getClubId() : null;
+  if(!clubId) return;
+  // Tomamos los clips cuyo tag es un jugador CON plantelId (los otros se ignoran).
+  const jugadas = [];
+  (items || []).forEach(it => {
+    if(it.type !== 'clip') return;
+    const pt = (typeof playerTags !== 'undefined') ? playerTags.find(p => p.id === it.tagId) : null;
+    if(pt && pt.plantelId){
+      jugadas.push({
+        club_id: clubId,
+        player_id: pt.plantelId,
+        project_id: projectId,
+        project_name: projectName || '',
+        tag_name: pt.name || '',
+        start_sec: (typeof it.start === 'number') ? it.start : null,
+        end_sec: (typeof it.end === 'number') ? it.end : null,
+        nota: it.note || ''
+      });
+    }
+  });
+  // Borramos las jugadas previas de este proyecto y reinsertamos las actuales.
+  await sb.from('jugadas_jugador').delete().eq('project_id', projectId);
+  if(jugadas.length > 0){
+    await sb.from('jugadas_jugador').insert(jugadas);
+  }
+  // ---- Jugadas del RIVAL (vinculadas a una ficha de scouting) ----
+  const jugadasRival = [];
+  (items || []).forEach(it => {
+    if(it.type !== 'clip') return;
+    if(it.rivalId){
+      const rt = (typeof rivalTags !== 'undefined') ? rivalTags.find(r => r.id === it.tagId) : null;
+      jugadasRival.push({
+        club_id: clubId,
+        scouting_id: it.rivalId,
+        rival_name: it.rivalName || '',
+        project_id: projectId,
+        project_name: projectName || '',
+        tag_name: (rt ? rt.name : '') || '',
+        start_sec: (typeof it.start === 'number') ? it.start : null,
+        end_sec: (typeof it.end === 'number') ? it.end : null,
+        nota: it.note || ''
+      });
+    }
+  });
+  await sb.from('jugadas_rival').delete().eq('project_id', projectId);
+  if(jugadasRival.length > 0){
+    await sb.from('jugadas_rival').insert(jugadasRival);
+  }
 }
 
 // Autoguardado con debounce: junta los cambios y guarda 1.5s después del último.
@@ -16210,7 +16564,10 @@ function handleTagClick(tagId){
   const start = Math.min(startMark, end);
   const finish = Math.max(startMark, end);
   itemCounter++;
-  items.push({ id:'item'+itemCounter, type:'clip', tagId: tagId, videoId: activeVideoId, start, end: finish, note:'', inTimeline:false, name:'' });
+  const esRival = rivalTags.some(r => r.id === tagId);
+  const clipNuevo = { id:'item'+itemCounter, type:'clip', tagId: tagId, videoId: activeVideoId, start, end: finish, note:'', inTimeline:false, name:'' };
+  if(esRival && rivalElegido){ clipNuevo.rivalId = rivalElegido.id; clipNuevo.rivalName = rivalElegido.name; }
+  items.push(clipNuevo);
   renderItems();
   renderTags();
   renderPlayerTags();
@@ -16327,6 +16684,81 @@ async function generateThumbnailFor(item){
   if(dataUrl) renderItems();
 }
 
+// Envía una acción a Mi Equipo: como "mi equipo" son muchos jugadores, pide elegir a cuál.
+async function enviarAccionAMiEquipo(item){
+  const sb = window.__sb || window.__sbClient;
+  if(!sb){ toast('No hay conexión.'); return; }
+  const clubId = window.__getClubId ? await window.__getClubId() : null;
+  if(!clubId){ toast('No se pudo identificar tu club.'); return; }
+  const tag = findAnyTag(item.tagId);
+  const nombreAccion = item.name || (tag ? tag.name : 'Jugada');
+  try{
+    const temporada = window.__getTemporada ? window.__getTemporada() : null;
+    let q = sb.from('players').select('id, name, number').eq('club_id', clubId).eq('archivado', false);
+    if(temporada) q = q.eq('temporada', temporada);
+    const { data } = await q;
+    const jugadores = (data||[]).filter(p => (p.name&&p.name.trim())||p.number);
+    if(jugadores.length===0){ toast('No hay jugadores en el plantel.'); return; }
+    jugadores.sort((a,b)=>{ const na=parseInt(a.number,10),nb=parseInt(b.number,10); if(isNaN(na))return 1; if(isNaN(nb))return -1; return na-nb; });
+    const prev = document.getElementById('scoutSendMenu'); if(prev) prev.remove();
+    const menu = document.createElement('div');
+    menu.id = 'scoutSendMenu';
+    menu.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:10000;';
+    menu.innerHTML = `<div style="background:var(--panel,#152230);border:1px solid var(--line);border-radius:14px;padding:20px;max-width:340px;width:90%;">
+      <h3 style="font-family:'Oswald',sans-serif;margin:0 0 6px;color:var(--chalk);">🏠 Enviar a Mi Equipo</h3>
+      <p style="color:var(--muted);font-size:13px;margin:0 0 12px;">"${escapeHtml(nombreAccion)}" — elegí el jugador:</p>
+      <div style="max-height:50vh;overflow-y:auto;">${jugadores.map(p=>`<button class="btn small" data-pid="${p.id}" data-pname="${escapeHtml(((p.number?'#'+p.number+' ':'')+(p.name||'')).trim())}" style="width:100%;text-align:left;margin-bottom:6px;">${escapeHtml(((p.number?'#'+p.number+' ':'')+(p.name||'Sin nombre')).trim())}</button>`).join('')}</div>
+      <button class="btn small" id="ssCancel" style="width:100%;margin-top:8px;background:transparent;">Cancelar</button>
+    </div>`;
+    document.body.appendChild(menu);
+    menu.addEventListener('click', e=>{ if(e.target===menu) menu.remove(); });
+    menu.querySelector('#ssCancel').addEventListener('click', ()=> menu.remove());
+    menu.querySelectorAll('[data-pid]').forEach(b=>{
+      b.addEventListener('click', async ()=>{
+        try{
+          await sb.from('jugadas_jugador').insert({
+            club_id: clubId, player_id: b.dataset.pid,
+            project_id: (typeof currentCloudProjectId!=='undefined'?currentCloudProjectId:null),
+            project_name: (typeof currentCloudProjectName!=='undefined'?currentCloudProjectName:'')||'',
+            tag_name: nombreAccion,
+            start_sec: (typeof item.start==='number'?item.start:null),
+            end_sec: (typeof item.end==='number'?item.end:null),
+            nota: item.note||''
+          });
+          menu.remove();
+          toast('✓ Enviado a ' + b.dataset.pname);
+        }catch(err){ console.error(err); toast('No se pudo enviar. ¿Corriste el SQL de Mi Equipo?'); }
+      });
+    });
+  }catch(e){ console.error(e); toast('No se pudieron cargar los jugadores.'); }
+}
+
+// Envía una acción al rival YA ELEGIDO en la botonera (directo, sin preguntar).
+async function enviarAccionAlRival(item){
+  const sb = window.__sb || window.__sbClient;
+  if(!sb){ toast('No hay conexión.'); return; }
+  if(!rivalElegido || !rivalElegido.id){
+    toast('Primero elegí el rival en la botonera 🆚 Rival (o creá uno).');
+    return;
+  }
+  const clubId = window.__getClubId ? await window.__getClubId() : null;
+  if(!clubId){ toast('No se pudo identificar tu club.'); return; }
+  const tag = findAnyTag(item.tagId);
+  const nombreAccion = item.name || (tag ? tag.name : 'Jugada');
+  try{
+    await sb.from('jugadas_rival').insert({
+      club_id: clubId, scouting_id: rivalElegido.id, rival_name: rivalElegido.name||'',
+      project_id: (typeof currentCloudProjectId!=='undefined'?currentCloudProjectId:null),
+      project_name: (typeof currentCloudProjectName!=='undefined'?currentCloudProjectName:'')||'',
+      tag_name: nombreAccion,
+      start_sec: (typeof item.start==='number'?item.start:null),
+      end_sec: (typeof item.end==='number'?item.end:null),
+      nota: item.note||''
+    });
+    toast('⚔️ Enviado al rival: ' + (rivalElegido.name||''));
+  }catch(err){ console.error(err); toast('No se pudo enviar. ¿Corriste el SQL de rival?'); }
+}
+
 function updateClipLog(){
   const log = document.getElementById('clipLog');
   const clips = items.filter(it => it.type === 'clip');
@@ -16350,6 +16782,8 @@ function updateClipLog(){
         <button class="log-btn" data-log-action="rename" title="Renombrar este recorte">✎</button>
         <button class="log-btn log-trim" data-log-action="trim" title="Achicar / ajustar la duración de este recorte">✂</button>
         <button class="log-btn log-draw" data-log-action="draw" title="Dibujar sobre este recorte (círculos, flechas)">✏️</button>
+        <button class="log-btn log-scout-mio" data-log-action="scoutmio" title="Enviar a Mi Equipo (elegir jugador)">🏠</button>
+        <button class="log-btn log-scout-rival" data-log-action="scoutrival" title="Enviar al rival de turno">⚔️</button>
         <button class="log-btn" data-log-action="export" title="Exportar este clip">⬇</button>
         <button class="log-btn" data-log-action="del" title="Borrar del registro">✕</button>
       </span>
@@ -16394,6 +16828,10 @@ function updateClipLog(){
     });
 
     row.querySelector('[data-log-action="export"]').addEventListener('click', (e) => { e.stopPropagation(); exportSingleClip(item); });
+    const btnScoutMio = row.querySelector('[data-log-action="scoutmio"]');
+    if(btnScoutMio) btnScoutMio.addEventListener('click', (e) => { e.stopPropagation(); enviarAccionAMiEquipo(item); });
+    const btnScoutRival = row.querySelector('[data-log-action="scoutrival"]');
+    if(btnScoutRival) btnScoutRival.addEventListener('click', (e) => { e.stopPropagation(); enviarAccionAlRival(item); });
     const btnTrim = row.querySelector('[data-log-action="trim"]');
     if(btnTrim) btnTrim.addEventListener('click', (e) => { e.stopPropagation(); abrirEditorRecorte(item); });
 
@@ -17771,6 +18209,175 @@ document.getElementById('exportEachBtn').addEventListener('click', async () => {
       }).catch(function(){ if(intentos < 30) setTimeout(esperarSesion, 300); });
     })();
   }
+})();
+</script>
+
+<script>
+// ===== MI EQUIPO (solapa en Scouting) =====
+(function(){
+  // Escape propio para no depender de funciones de otros scripts.
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  // Cambiar entre solapas Rivales / Mi Equipo
+  function activarSolapa(cual){
+    document.querySelectorAll('.scout-subtab').forEach(t=>{
+      t.classList.toggle('active', t.dataset.scoutsub === cual);
+    });
+    const rivales = document.getElementById('scout-rivales');
+    const miequipo = document.getElementById('scout-miequipo');
+    if(rivales) rivales.style.display = (cual==='rivales') ? '' : 'none';
+    if(miequipo) miequipo.style.display = (cual==='miequipo') ? '' : 'none';
+    if(cual==='miequipo') cargarMiEquipo();
+  }
+  document.querySelectorAll('.scout-subtab').forEach(tab=>{
+    tab.addEventListener('click', ()=> activarSolapa(tab.dataset.scoutsub));
+  });
+
+  // Cargar los jugadores del plantel en la grilla
+  async function cargarMiEquipo(){
+    const grid = document.getElementById('miEquipoGrid');
+    const detail = document.getElementById('miEquipoDetail');
+    if(detail) detail.style.display = 'none';
+    if(grid) grid.style.display = '';
+    if(!grid) return;
+    grid.innerHTML = '<p class="miequipo-empty">Cargando jugadores…</p>';
+    try{
+      const sb = window.__sb || window.__sbClient;
+      const clubId = window.__getClubId ? await window.__getClubId() : null;
+      if(!sb || !clubId){ grid.innerHTML = '<p class="miequipo-empty">No se pudo identificar tu club.</p>'; return; }
+      const temporada = window.__getTemporada ? window.__getTemporada() : null;
+      let q = sb.from('players').select('*').eq('club_id', clubId).eq('archivado', false);
+      if(temporada) q = q.eq('temporada', temporada);
+      const { data, error } = await q;
+      if(error) throw error;
+      const jugadores = (data || []).filter(p => (p.name && p.name.trim()) || p.number);
+      if(jugadores.length === 0){ grid.innerHTML = '<p class="miequipo-empty">No hay jugadores en el plantel de esta temporada. Cargalos en Estadísticas → Plantel.</p>'; return; }
+      jugadores.sort((a,b)=>{
+        const na=parseInt(a.number,10), nb=parseInt(b.number,10);
+        if(isNaN(na)&&isNaN(nb)) return 0;
+        if(isNaN(na)) return 1; if(isNaN(nb)) return -1; return na-nb;
+      });
+      // Traemos el conteo de jugadas por jugador (una sola consulta).
+      let conteos = {};
+      try{
+        const { data: js } = await sb.from('jugadas_jugador').select('player_id').eq('club_id', clubId);
+        (js||[]).forEach(j=>{ conteos[j.player_id] = (conteos[j.player_id]||0)+1; });
+      }catch(_){}
+      grid.innerHTML = '';
+      jugadores.forEach(p=>{
+        const card = document.createElement('div');
+        card.className = 'miequipo-card';
+        const num = p.number ? ('#'+p.number) : '—';
+        const nom = esc(p.name || 'Sin nombre');
+        const n = conteos[p.id] || 0;
+        const cnt = n > 0 ? (n + (n===1?' jugada':' jugadas')) : 'Ver jugadas';
+        card.innerHTML = '<div class="me-num">'+esc(String(num))+'</div>' +
+                         '<div class="me-name">'+nom+'</div>' +
+                         '<div class="me-count">'+cnt+'</div>';
+        card.addEventListener('click', ()=> verJugadasJugador(p));
+        grid.appendChild(card);
+      });
+    }catch(e){
+      console.error('cargar mi equipo', e);
+      grid.innerHTML = '<p class="miequipo-empty">No se pudieron cargar los jugadores.</p>';
+    }
+  }
+
+  // Muestra el detalle de un jugador con sus jugadas guardadas en la base.
+  async function verJugadasJugador(p){
+    const grid = document.getElementById('miEquipoGrid');
+    const detail = document.getElementById('miEquipoDetail');
+    const nameEl = document.getElementById('miEquipoPlayerName');
+    const jugadasEl = document.getElementById('miEquipoJugadas');
+    if(grid) grid.style.display = 'none';
+    if(detail) detail.style.display = '';
+    if(nameEl) nameEl.textContent = ((p.number?'#'+p.number+' ':'') + (p.name||'Sin nombre')).trim();
+    if(!jugadasEl) return;
+    jugadasEl.innerHTML = '<p class="miequipo-empty">Cargando jugadas…</p>';
+    try{
+      const sb = window.__sb || window.__sbClient;
+      if(!sb || !p.id){ jugadasEl.innerHTML = '<p class="miequipo-empty">No se pudieron cargar las jugadas.</p>'; return; }
+      const { data, error } = await sb.from('jugadas_jugador')
+        .select('*').eq('player_id', p.id).order('created_at', { ascending:false });
+      if(error) throw error;
+      const jugadas = data || [];
+      if(jugadas.length === 0){
+        jugadasEl.innerHTML = '<p class="miequipo-empty">Todavía no hay jugadas de video para este jugador. ' +
+          'Marcá jugadas con la botonera del jugador en el editor de video y guardá el proyecto en la nube.</p>';
+        return;
+      }
+      // Agrupamos por proyecto/partido.
+      const porProyecto = {};
+      jugadas.forEach(j=>{
+        const k = j.project_name || 'Sin nombre';
+        (porProyecto[k] = porProyecto[k] || []).push(j);
+      });
+      const fmtT = s => { if(s==null) return ''; const m=Math.floor(s/60), sec=Math.floor(s%60); return m+':'+(sec<10?'0':'')+sec; };
+      let html = '';
+      Object.keys(porProyecto).forEach(proj=>{
+        html += '<div style="margin-bottom:18px;">';
+        html += '<h3 style="font-family:\'Oswald\',sans-serif;font-size:15px;color:var(--accent-2,#2F8FCB);margin:0 0 8px;">🎬 '+esc(proj)+'</h3>';
+        porProyecto[proj].forEach((j,i)=>{
+          const rango = (j.start_sec!=null) ? (fmtT(j.start_sec) + (j.end_sec!=null?' – '+fmtT(j.end_sec):'')) : '';
+          html += '<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--panel-2,#1B2C3D);border:1px solid var(--line);border-radius:8px;margin-bottom:6px;">';
+          html += '<span style="font-family:monospace;color:var(--muted);font-size:11px;">#'+(i+1)+'</span>';
+          html += '<span style="flex:1;color:var(--chalk,#dfe8f0);font-size:13px;">'+esc(j.tag_name||'Jugada')+'</span>';
+          if(rango) html += '<span style="font-family:monospace;color:var(--muted);font-size:11px;">'+rango+'</span>';
+          html += '</div>';
+        });
+        html += '</div>';
+      });
+      jugadasEl.innerHTML = html;
+    }catch(e){
+      console.error('jugadas jugador', e);
+      jugadasEl.innerHTML = '<p class="miequipo-empty">No se pudieron cargar las jugadas.</p>';
+    }
+  }
+
+  const backBtn = document.getElementById('miEquipoBack');
+  if(backBtn) backBtn.addEventListener('click', cargarMiEquipo);
+  const refreshBtn = document.getElementById('miEquipoRefresh');
+  if(refreshBtn) refreshBtn.addEventListener('click', cargarMiEquipo);
+
+  // Carga los recortes de video vinculados a una ficha de rival (scouting).
+  window.cargarRecortesRival = async function(scoutingId){
+    const cont = document.getElementById('linkedClips');
+    if(!cont) return;
+    if(!scoutingId){ return; }
+    cont.innerHTML = '<p class="rd-empty">Cargando recortes…</p>';
+    try{
+      const sb = window.__sb || window.__sbClient;
+      if(!sb){ cont.innerHTML = '<p class="rd-empty">No se pudieron cargar los recortes.</p>'; return; }
+      const { data, error } = await sb.from('jugadas_rival')
+        .select('*').eq('scouting_id', scoutingId).order('created_at', { ascending:false });
+      if(error) throw error;
+      const jugadas = data || [];
+      if(jugadas.length === 0){
+        cont.innerHTML = '<p class="rd-empty">Todavía no hay recortes. En el editor de video, elegí este rival en la botonera 🆚 Rival, marcá jugadas y guardá el proyecto.</p>';
+        return;
+      }
+      const fmtT = s => { if(s==null) return ''; const m=Math.floor(s/60), sec=Math.floor(s%60); return m+':'+(sec<10?'0':'')+sec; };
+      const porProyecto = {};
+      jugadas.forEach(j=>{ const k = j.project_name || 'Sin nombre'; (porProyecto[k]=porProyecto[k]||[]).push(j); });
+      let html = '';
+      Object.keys(porProyecto).forEach(proj=>{
+        html += '<div style="margin-bottom:14px;">';
+        html += '<h4 style="font-family:\'Oswald\',sans-serif;font-size:13px;color:var(--accent-2,#2F8FCB);margin:0 0 6px;">🎬 '+esc(proj)+'</h4>';
+        porProyecto[proj].forEach((j,i)=>{
+          const rango = (j.start_sec!=null) ? (fmtT(j.start_sec)+(j.end_sec!=null?' – '+fmtT(j.end_sec):'')) : '';
+          html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 11px;background:var(--panel-2,#1B2C3D);border:1px solid var(--line);border-radius:8px;margin-bottom:5px;">';
+          html += '<span style="font-family:monospace;color:var(--muted);font-size:11px;">#'+(i+1)+'</span>';
+          html += '<span style="flex:1;color:var(--chalk,#dfe8f0);font-size:13px;">'+esc(j.tag_name||'Jugada')+'</span>';
+          if(rango) html += '<span style="font-family:monospace;color:var(--muted);font-size:11px;">'+rango+'</span>';
+          html += '</div>';
+        });
+        html += '</div>';
+      });
+      cont.innerHTML = html;
+    }catch(e){
+      console.error('recortes rival', e);
+      cont.innerHTML = '<p class="rd-empty">No se pudieron cargar los recortes.</p>';
+    }
+  };
 })();
 </script>
 
