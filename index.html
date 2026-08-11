@@ -17020,6 +17020,27 @@ function trimCerrar(){
   else bind();
 })();
 
+// Expuesta para que la ficha de scouting (otro módulo) pueda reproducir un recorte
+// SI el video está disponible en la sesión actual. Devuelve true si pudo montar el video.
+window.__reproducirRecorteEnCaja = function(box, startSec, endSec){
+  try{
+    if(!Array.isArray(videos) || videos.length === 0) return false;
+    // Elegimos el video: el activo si existe, si no el único cargado.
+    let video = videos.find(v => v.id === activeVideoId) || (videos.length === 1 ? videos[0] : null);
+    if(!video || !video.url) return false;
+    const start = (typeof startSec === 'number') ? startSec : 0;
+    const stopAt = (typeof endSec === 'number') ? endSec : (start + 8);
+    box.innerHTML = '<video class="log-preview-video" playsinline controls style="width:100%;border-radius:8px;"></video>';
+    const v = box.querySelector('video');
+    v.src = video.url;
+    v.addEventListener('loadedmetadata', () => { v.currentTime = start; });
+    v.currentTime = start;
+    v.addEventListener('timeupdate', () => { if(v.currentTime >= stopAt){ v.pause(); v.currentTime = start; } });
+    v.play().catch(()=>{});
+    return true;
+  }catch(e){ console.error('reproducir recorte', e); return false; }
+};
+
 function montarPreviewEnRegistro(item, box){
   const video = videos.find(v => v.id === item.videoId);
   if(!video){ box.innerHTML = '<div class="log-preview-msg">No se encuentra el video de este recorte.</div>'; return; }
@@ -18362,21 +18383,39 @@ document.getElementById('exportEachBtn').addEventListener('click', async () => {
       const fmtT = s => { if(s==null) return ''; const m=Math.floor(s/60), sec=Math.floor(s%60); return m+':'+(sec<10?'0':'')+sec; };
       const porProyecto = {};
       jugadas.forEach(j=>{ const k = j.project_name || 'Sin nombre'; (porProyecto[k]=porProyecto[k]||[]).push(j); });
-      let html = '';
+      cont.innerHTML = '';
       Object.keys(porProyecto).forEach(proj=>{
-        html += '<div style="margin-bottom:14px;">';
-        html += '<h4 style="font-family:\'Oswald\',sans-serif;font-size:13px;color:var(--accent-2,#2F8FCB);margin:0 0 6px;">🎬 '+esc(proj)+'</h4>';
+        const bloque = document.createElement('div');
+        bloque.style.marginBottom = '14px';
+        const h = document.createElement('h4');
+        h.style.cssText = "font-family:'Oswald',sans-serif;font-size:13px;color:var(--accent-2,#2F8FCB);margin:0 0 6px;";
+        h.textContent = '🎬 ' + proj;
+        bloque.appendChild(h);
         porProyecto[proj].forEach((j,i)=>{
           const rango = (j.start_sec!=null) ? (fmtT(j.start_sec)+(j.end_sec!=null?' – '+fmtT(j.end_sec):'')) : '';
-          html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 11px;background:var(--panel-2,#1B2C3D);border:1px solid var(--line);border-radius:8px;margin-bottom:5px;">';
-          html += '<span style="font-family:monospace;color:var(--muted);font-size:11px;">#'+(i+1)+'</span>';
-          html += '<span style="flex:1;color:var(--chalk,#dfe8f0);font-size:13px;">'+esc(j.tag_name||'Jugada')+'</span>';
-          if(rango) html += '<span style="font-family:monospace;color:var(--muted);font-size:11px;">'+rango+'</span>';
-          html += '</div>';
+          const fila = document.createElement('div');
+          fila.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 11px;background:var(--panel-2,#1B2C3D);border:1px solid var(--line);border-radius:8px;margin-bottom:5px;flex-wrap:wrap;';
+          fila.innerHTML = '<span style="font-family:monospace;color:var(--muted);font-size:11px;">#'+(i+1)+'</span>' +
+            '<span style="flex:1;color:var(--chalk,#dfe8f0);font-size:13px;">'+esc(j.tag_name||'Jugada')+'</span>' +
+            (rango ? '<span style="font-family:monospace;color:var(--muted);font-size:11px;">'+esc(rango)+'</span>' : '') +
+            '<button class="btn small ver-recorte-btn" style="padding:4px 10px;">▶ Ver</button>';
+          const cajaVideo = document.createElement('div');
+          cajaVideo.style.cssText = 'width:100%;margin-top:6px;display:none;';
+          const btnVer = fila.querySelector('.ver-recorte-btn');
+          btnVer.addEventListener('click', ()=>{
+            if(cajaVideo.style.display !== 'none'){ cajaVideo.style.display='none'; cajaVideo.innerHTML=''; btnVer.textContent='▶ Ver'; return; }
+            cajaVideo.style.display = '';
+            const ok = window.__reproducirRecorteEnCaja ? window.__reproducirRecorteEnCaja(cajaVideo, j.start_sec, j.end_sec) : false;
+            if(!ok){
+              cajaVideo.innerHTML = '<p style="color:var(--muted);font-size:12px;font-style:italic;margin:6px 0;">El video de este partido no está cargado en esta sesión. Abrí el proyecto en la pestaña Video (o cargá el video del partido) para reproducir el recorte.</p>';
+            }
+            btnVer.textContent = 'Ocultar';
+          });
+          bloque.appendChild(fila);
+          bloque.appendChild(cajaVideo);
         });
-        html += '</div>';
+        cont.appendChild(bloque);
       });
-      cont.innerHTML = html;
     }catch(e){
       console.error('recortes rival', e);
       cont.innerHTML = '<p class="rd-empty">No se pudieron cargar los recortes.</p>';
