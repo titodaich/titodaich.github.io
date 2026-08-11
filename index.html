@@ -15560,7 +15560,7 @@ const DEFAULT_PLAYER_NAMES = Array.from({length:20}, (_,i) => 'Jugador ' + (i+1)
 let playerTags = DEFAULT_PLAYER_NAMES.map((name, i) => ({ id: 'ply' + i, name, color: '#2F8FCB', isPlayer:true }));
 // Botonera del RIVAL: tags genéricos (el rival no tiene plantel cargado). Se vinculan
 // a la ficha de scouting elegida (rivalElegido). Color rojo para distinguir de los propios.
-const DEFAULT_RIVAL_NAMES = ['Gol rival','Ataque rival','Defensa rival','Pelota parada','Contragolpe','Jugador peligroso','5 vs 4 rival','4 vs 5 rival'];
+const DEFAULT_RIVAL_NAMES = Array.from({length:8}, (_,i) => 'Jugador destacado ' + (i+1));
 let rivalTags = DEFAULT_RIVAL_NAMES.map((name, i) => ({ id: 'riv' + i, name, color: '#E5484D', isRival:true }));
 let rivalElegido = null; // { id, name } de la ficha de scouting elegida
 // Busca un tag por id en los tags de partido, los jugadores propios o los del rival.
@@ -16080,6 +16080,8 @@ async function abrirSelectorRival(){
     if(!sb || !clubId){ toast('No se pudo identificar tu club.'); return; }
     let q = sb.from('scouting').select('id, name, fecha').eq('club_id', clubId);
     if(window.__getTemporada) q = q.eq('temporada', window.__getTemporada());
+    const catSel = window.__getActiveCategory ? window.__getActiveCategory() : null;
+    if(catSel) q = q.eq('categoria', catSel);
     const { data, error } = await q;
     if(error) throw error;
     const fichas = (data || []).filter(f => f.name && f.name.trim());
@@ -16143,13 +16145,15 @@ async function traerJugadoresDelPlantel(){
     if(!sb || !clubId){ if(window.toast) toast('No se pudo identificar tu club.'); return; }
     if(btn){ btn.disabled = true; btn.textContent = 'Cargando…'; }
     const temporada = window.__getTemporada ? await window.__getTemporada() : null;
+    const categoria = window.__getActiveCategory ? window.__getActiveCategory() : null;
     let q = sb.from('players').select('*').eq('club_id', clubId).eq('archivado', false);
     if(temporada) q = q.eq('temporada', temporada);
+    if(categoria) q = q.eq('categoria', categoria);
     const { data, error } = await q;
     if(error) throw error;
     const jugadores = (data || []).filter(p => (p.name && p.name.trim()) || p.number);
     if(jugadores.length === 0){
-      if(window.toast) toast('No hay jugadores en el plantel de esta temporada.');
+      if(window.toast) toast('No hay jugadores en el plantel de ' + (categoria || 'esta categoría') + '.');
       if(btn){ btn.disabled = false; btn.textContent = '👥 Traer jugadores del plantel'; }
       return;
     }
