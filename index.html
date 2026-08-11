@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- ============================================= -->
 <!-- BENCHONE - VERSION CON COLUMNA "PREVIOS"      -->
-<!-- Subida: build PREVIOS-2026-08-10             -->
+<!-- Subida: build PREVIOS+SESION-2026-08-11             -->
 <!-- Si ves este comentario en Ctrl+U, cargó bien -->
 <!-- ============================================= -->
 <html lang="es">
@@ -2975,7 +2975,7 @@ body.editor-active #screen-editor{ display:block; }
     <button class="btn-ghost" id="toggleModeBtn" data-i18n="loginCreate">Crear una cuenta</button>
 
     <div class="foot-note" id="footNote">Conectado a Supabase — cuentas reales.</div>
-    <div style="text-align:center;font-size:10px;color:var(--muted);margin-top:6px;opacity:0.6;">build PREVIOS · 2026-08-10</div>
+    <div style="text-align:center;font-size:10px;color:var(--muted);margin-top:6px;opacity:0.6;">build PREVIOS+SESION · 2026-08-11</div>
   </div>
 </div>
 
@@ -4986,6 +4986,50 @@ async function initSupabase(){
     sb = null;
     showError('No se pudo cargar el servicio de acceso. Puede que una red corporativa, un antivirus o una extensión del navegador estén bloqueándolo. Probá con otra red o desde el sitio publicado.');
   }
+  // ---- Cierre de sesión por inactividad (6 horas) ----
+  // Por prolijidad y seguridad: si el usuario no toca la app en 6 horas,
+  // se cierra la sesión sola. No molesta a quien la está usando: cada
+  // interacción reinicia el contador. Se apoya en localStorage para
+  // sobrevivir a recargas y a que la app quede en segundo plano.
+  try{ if(!window.__inactivityInit){ window.__inactivityInit = true; initInactividad(); } }catch(e){}
+}
+
+// Sistema de inactividad. LIMITE_MS = 6 horas.
+function initInactividad(){
+  const LIMITE_MS = 6 * 60 * 60 * 1000; // 6 horas
+  const CLAVE = 'benchone_last_activity';
+  function marcarActividad(){
+    try{ localStorage.setItem(CLAVE, String(Date.now())); }catch(e){}
+  }
+  async function chequear(){
+    let ultima = 0;
+    try{ ultima = parseInt(localStorage.getItem(CLAVE) || '0', 10) || 0; }catch(e){}
+    if(!ultima){ marcarActividad(); return; }
+    if(Date.now() - ultima > LIMITE_MS){
+      // Pasaron más de 6 horas sin actividad: cerramos sesión.
+      try{ localStorage.removeItem(CLAVE); }catch(e){}
+      const sb = window.__sb || window.__sbClient;
+      if(sb){ try{ await sb.auth.signOut(); }catch(e){} }
+      // Recargamos para volver a la pantalla de login limpia.
+      try{ location.reload(); }catch(e){}
+    }
+  }
+  // Marcamos actividad ante interacciones típicas (con throttling suave).
+  let ultimoMarcado = 0;
+  function onActividad(){
+    const ahora = Date.now();
+    if(ahora - ultimoMarcado > 30000){ ultimoMarcado = ahora; marcarActividad(); }
+  }
+  ['click','keydown','touchstart','mousemove','scroll'].forEach(ev => {
+    try{ document.addEventListener(ev, onActividad, { passive:true }); }catch(e){}
+  });
+  // Al volver a la app (cambio de pestaña / reapertura), chequeamos.
+  try{ document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') chequear(); }); }catch(e){}
+  // Chequeo periódico cada 5 minutos mientras está abierta.
+  try{ setInterval(chequear, 5 * 60 * 1000); }catch(e){}
+  // Chequeo inicial al cargar y marca de actividad.
+  chequear();
+  marcarActividad();
 }
 
 // ---------------- ESTADO DE MODO (login / registro) ----------------
