@@ -1970,7 +1970,11 @@ body.modo-lectura .section-content textarea:read-only{
 .plan-badge{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;padding:2px 8px;border-radius:20px;white-space:nowrap;}
 .plan-featured{border-color:var(--accent);background:linear-gradient(180deg,rgba(229,52,42,0.08),var(--panel-2));}
 .plan-featured .plan-badge{background:var(--success);}
-@media (max-width:480px){.plans-grid-3{grid-template-columns:1fr;}}
+.plans-grid-2{grid-template-columns:1fr 1fr;max-width:440px;margin-left:auto;margin-right:auto;}
+.plan-promo{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--success);color:#0B1219;font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;padding:2px 9px;border-radius:20px;white-space:nowrap;}
+.plan-promo-nota{font-size:10.5px;line-height:1.35;color:var(--success);font-weight:600;margin-top:2px;}
+.plan-comparacion{display:block;font-size:10px;color:var(--accent-2);font-style:italic;margin-top:3px;opacity:0.9;}
+@media (max-width:480px){.plans-grid-3{grid-template-columns:1fr;}.plans-grid-2{grid-template-columns:1fr;}}
 .plans-contact{text-align:center;margin:18px 0 0;font-size:13px;color:var(--muted);}
 .plan-hint{display:block;font-family:'Inter',sans-serif;font-size:10.5px;color:var(--muted);opacity:0.75;margin-top:3px;line-height:1.3;}
 /* Bloque de pago por transferencia (alias de MercadoPago) */
@@ -4401,7 +4405,7 @@ window.I18N = {
     mPickVideo:'Elegí un video (se suben en la pestaña 🎬 Video).', mClipDiscarded:'Recorte descartado del timeline.',
     mSepAdded:'Separador agregado al final. Arrastralo para ubicarlo donde quieras.',
     mSeqExported:'Secuencia exportada.', mExportCancel:'Exportación cancelada.',
-    mNoRecSupport:'Tu navegador no soporta grabación de video en vivo.', subEndingTitle:'Tu prueba está por terminar.', subEndingMsg:'Te quedan {d} días. Activá tu cuenta para no perder el acceso.', subExpiredTitle:'Tu período venció.', subExpiredMsg:'Podés seguir viendo tus datos, pero para cargar nuevos necesitás activar tu cuenta.', subPayBtn:'Activar cuenta', plansTitle:'Activá tu cuenta', plansSub:'Elegí el plan y pagá con Mercado Pago. Apenas confirmemos el pago, activamos tu cuenta.', plan1:'1 mes', plan3:'3 meses', plan6:'6 meses', plan12:'12 meses', planGo:'Pagar', plansContact:'¿Dudas o querés pagar de otra forma?',
+    mNoRecSupport:'Tu navegador no soporta grabación de video en vivo.', subEndingTitle:'Tu fase demo está por terminar.', subEndingMsg:'Te quedan {d} días de acceso gratis. Sumate a Benchone para continuar utilizando tus herramientas.', subExpiredTitle:'Terminó tu fase demo.', subExpiredMsg:'Podés seguir viendo tus datos, pero para cargar contenido nuevo, sumate a Benchone.', subPayBtn:'Sumate a Benchone', plansTitle:'Sumate a Benchone', plansSub:'Elegí el plan y pagá con Mercado Pago. Apenas confirmemos el pago, tu cuenta queda activa.', plan1:'1 mes', plan3:'3 meses', plan6:'6 meses', plan12:'12 meses', planGo:'Sumate', plansContact:'¿Dudas o querés pagar de otra forma?',
   },
   en: {
     saveCloud:'☁ Save to cloud', myMatches:'☁ My matches', loadFile:'Load file', saveFile:'Save file',
@@ -4482,7 +4486,7 @@ window.I18N = {
     mPickVideo:'Pick a video (upload them in the 🎬 Video tab).', mClipDiscarded:'Clip removed from the timeline.',
     mSepAdded:'Separator added at the end. Drag it wherever you want.',
     mSeqExported:'Sequence exported.', mExportCancel:'Export canceled.',
-    mNoRecSupport:'Your browser does not support live video recording.', subEndingTitle:'Your trial is ending.', subEndingMsg:'{d} days left. Activate your account to keep access.', subExpiredTitle:'Your period has expired.', subExpiredMsg:'You can still view your data, but to add new data you need to activate your account.', subPayBtn:'Activate account', plansTitle:'Activate your account', plansSub:'Choose a plan and pay. As soon as we confirm the payment, we activate your account.', plan1:'1 month', plan3:'3 months', plan6:'6 months', plan12:'12 months', planGo:'Pay', plansContact:'Questions or another payment method?',
+    mNoRecSupport:'Your browser does not support live video recording.', subEndingTitle:'Your demo phase is ending.', subEndingMsg:'{d} days of free access left. Join Benchone to keep using your tools.', subExpiredTitle:'Your demo phase ended.', subExpiredMsg:'You can still view your data, but to add new data you need to join Benchone.', subPayBtn:'Join Benchone', plansTitle:'Join Benchone', plansSub:'Choose a plan and pay. As soon as we confirm the payment, your account is active.', plan1:'1 month', plan3:'3 months', plan6:'6 months', plan12:'12 months', planGo:'Join', plansContact:'Questions or another payment method?',
   },
   pt: {
     saveCloud:'☁ Salvar na nuvem', myMatches:'☁ Meus jogos', loadFile:'Carregar arquivo', saveFile:'Salvar arquivo',
@@ -4563,7 +4567,7 @@ window.I18N = {
     mPickVideo:'Escolha um vídeo (envie-os na aba 🎬 Vídeo).', mClipDiscarded:'Corte removido da linha do tempo.',
     mSepAdded:'Separador adicionado ao final. Arraste-o para onde quiser.',
     mSeqExported:'Sequência exportada.', mExportCancel:'Exportação cancelada.',
-    mNoRecSupport:'Seu navegador não suporta gravação de vídeo ao vivo.', subEndingTitle:'Seu teste está terminando.', subEndingMsg:'Faltam {d} dias. Ative sua conta para não perder o acesso.', subExpiredTitle:'Seu período expirou.', subExpiredMsg:'Você ainda pode ver seus dados, mas para adicionar novos precisa ativar sua conta.', subPayBtn:'Ativar conta', plansTitle:'Ative sua conta', plansSub:'Escolha o plano e pague. Assim que confirmarmos o pagamento, ativamos sua conta.', plan1:'1 mês', plan3:'3 meses', plan6:'6 meses', plan12:'12 meses', planGo:'Pagar', plansContact:'Dúvidas ou outra forma de pagamento?',
+    mNoRecSupport:'Seu navegador não suporta gravação de vídeo ao vivo.', subEndingTitle:'Sua fase demo está terminando.', subEndingMsg:'Faltam {d} dias de acesso grátis. Junte-se ao Benchone para continuar usando suas ferramentas.', subExpiredTitle:'Sua fase demo terminou.', subExpiredMsg:'Você ainda pode ver seus dados, mas para adicionar novos precisa se juntar ao Benchone.', subPayBtn:'Junte-se ao Benchone', plansTitle:'Junte-se ao Benchone', plansSub:'Escolha o plano e pague. Assim que confirmarmos o pagamento, sua conta fica ativa.', plan1:'1 mês', plan3:'3 meses', plan6:'6 meses', plan12:'12 meses', planGo:'Juntar-se', plansContact:'Dúvidas ou outra forma de pagamento?',
   }
 };
 window.__lang = (function(){ try{ return localStorage.getItem('ce_lang') || 'es'; }catch(e){ return 'es'; } })();
@@ -4741,10 +4745,10 @@ window.__PAY = {
   // ══════════════════════════════════════════════════════════════
   enabled: false,
 
-  whatsapp: '',                 // ej: '5491122334455' (código país, sin + ni espacios)
-  aliasMP: '',                  // tu alias de MercadoPago, para pagos por transferencia
+  whatsapp: '5491164517593', // Lucas (CABA 11 6451-7593)
+  aliasMP: 'lucas.titod',     // alias de MercadoPago de Lucas
   currency: 'ars',             // moneda que se MUESTRA por defecto: 'ars' (Argentina) o 'usd' (exterior)
-  showPrices: false,           // ← poné true cuando quieras MOSTRAR los precios en la pantalla de planes
+  showPrices: true,            // ← precios visibles en la pantalla de planes
 
   // ═══ PACKS por cantidad de categorías ═══
   // Cada pack habilita una cantidad de categorías (maxCategories) y tiene 3 duraciones
@@ -4756,9 +4760,10 @@ window.__PAY = {
       desc:'Para el DT que dirige una o dos categorías.',
       feature:'Todas las herramientas incluidas.',
       durations: [
-        { months:1, ars:18000, usd:15, mpLink:'', stripeLink:'' },
-        { months:6, ars:96000, usd:80, mpLink:'', stripeLink:'' },
-        { months:12, ars:168000, usd:140, mpLink:'', stripeLink:'' }
+        { months:1, ars:22000, usd:15, mpLink:'https://mpago.la/2rfhDZi', stripeLink:'', comparacion:'≈ una pizza grande al mes' },
+        { months:3, ars:58000, usd:42, mpLink:'https://mpago.la/2CEUJCp', stripeLink:'', comparacion:'≈ $640 por día', promo:'Oferta lanzamiento', promoNota:'Ideal para cerrar la temporada y comenzar la que viene. Incluye hasta enero.' },
+        { months:6, ars:96000, usd:80, mpLink:'', stripeLink:'', oculta:true },
+        { months:12, ars:168000, usd:140, mpLink:'', stripeLink:'', oculta:true }
       ]
     },
     multi: {
@@ -4766,19 +4771,21 @@ window.__PAY = {
       desc:'Para quien maneja varias divisiones a la vez.',
       feature:'Todas las herramientas incluidas.',
       durations: [
-        { months:1, ars:22000, usd:18, mpLink:'', stripeLink:'' },
-        { months:6, ars:120000, usd:100, mpLink:'', stripeLink:'' },
-        { months:12, ars:216000, usd:180, mpLink:'', stripeLink:'' }
+        { months:1, ars:24000, usd:18, mpLink:'https://mpago.la/31V71yr', stripeLink:'', comparacion:'≈ una pizza grande al mes' },
+        { months:3, ars:62000, usd:48, mpLink:'https://mpago.la/1wvHkjv', stripeLink:'', comparacion:'≈ $680 por día', promo:'Oferta lanzamiento', promoNota:'Ideal para cerrar la temporada y comenzar la que viene. Incluye hasta enero.' },
+        { months:6, ars:120000, usd:100, mpLink:'', stripeLink:'', oculta:true },
+        { months:12, ars:216000, usd:180, mpLink:'', stripeLink:'', oculta:true }
       ]
     },
     club: {
       name:'Club', maxCategories:8, badge:'Mejor precio', note:'Todas las categorías',
-      desc:'Para coordinadores o clubes que gestionan todas las inferiores.',
+      desc:'Ideal para coordinadores y clubes que gestionan todas las inferiores.',
       feature:'Todas las herramientas incluidas.',
       durations: [
-        { months:1, ars:25000, usd:21, mpLink:'', stripeLink:'' },
-        { months:6, ars:132000, usd:110, mpLink:'', stripeLink:'' },
-        { months:12, ars:240000, usd:200, mpLink:'', stripeLink:'' }
+        { months:1, ars:26000, usd:21, mpLink:'https://mpago.la/1e9L2MW', stripeLink:'', comparacion:'≈ una pizza grande al mes' },
+        { months:3, ars:68000, usd:54, mpLink:'https://mpago.la/1hyyATj', stripeLink:'', comparacion:'≈ $750 por día', promo:'Oferta lanzamiento', promoNota:'Ideal para cerrar la temporada y comenzar la que viene. Incluye hasta enero.' },
+        { months:6, ars:132000, usd:110, mpLink:'', stripeLink:'', oculta:true },
+        { months:12, ars:240000, usd:200, mpLink:'', stripeLink:'', oculta:true }
       ]
     }
   },
@@ -4858,7 +4865,18 @@ window.__planLink = function(packKey, dur){
   if(link) return link;
   const P = window.__PAY;
   const packName = (P.packs[packKey] && P.packs[packKey].name) || packKey;
-  if(P.whatsapp) return 'https://wa.me/'+P.whatsapp+'?text='+encodeURIComponent('Hola! Quiero activar mi cuenta de Cancha Edit — Pack '+packName+' ('+window.__durLabel(dur.months)+').');
+  if(P.whatsapp){
+    const email = window.__currentUserEmail || '(sin email)';
+    const club = window.__clubNombre || '(sin club)';
+    const precio = (window.__fmtPrice ? window.__fmtPrice(dur) : '');
+    const msg =
+      '¡Hola Lucas! Ya hice el pago para activar mi cuenta de Benchone. 💳✅\n\n' +
+      '👤 Mi cuenta (email): ' + email + '\n' +
+      '🏫 Club: ' + club + '\n' +
+      '📦 Pack: ' + packName + ' — ' + window.__durLabel(dur.months) + (precio ? ' (' + precio + ')' : '') + '\n\n' +
+      'Te paso el comprobante. ¡Gracias!';
+    return 'https://wa.me/' + P.whatsapp + '?text=' + encodeURIComponent(msg);
+  }
   return '#';
 };
 // (compat) link genérico para el botón directo
@@ -14892,26 +14910,31 @@ try{
     }catch(e){ /* silencioso */ }
   };
 
-  function mostrarPedidoWhatsapp(userId){
+  function mostrarPedidoWhatsapp(userId, opts){
+    opts = opts || {};
+    const obligatorio = !!opts.obligatorio;
+    const onSaved = typeof opts.onSaved === 'function' ? opts.onSaved : null;
     if(document.getElementById('waAskModal')) return;
     const m = document.createElement('div');
     m.id = 'waAskModal';
     m.className = 'plans-overlay';
+    const intro = obligatorio
+      ? 'Para activar tu cuenta necesitamos tu WhatsApp: es donde te confirmamos el pago y te avisamos cuando esté por vencer.'
+      : 'Lo usamos solo para avisarte cosas de tu cuenta (por ejemplo, cuando esté por vencer). No se comparte con nadie.';
+    const btnLater = obligatorio ? '' : '<button id="waAskLater" style="width:100%;margin-top:10px;background:transparent;border:none;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline;">Ahora no</button>';
     m.innerHTML = `<div class="plans-box" style="max-width:400px;text-align:left;">
-      <h2 style="font-size:20px;">📱 Completá tu WhatsApp</h2>
-      <p style="color:var(--muted);font-size:14px;line-height:1.5;margin:8px 0 14px;">Lo usamos solo para avisarte cosas de tu cuenta (por ejemplo, cuando esté por vencer). No se comparte con nadie.</p>
+      <h2 style="font-size:20px;">📱 ${obligatorio ? 'Confirmá tu WhatsApp' : 'Completá tu WhatsApp'}</h2>
+      <p style="color:var(--muted);font-size:14px;line-height:1.5;margin:8px 0 14px;">${intro}</p>
       <input type="tel" id="waAskInput" placeholder="11 2345-6789" autocomplete="tel" style="width:100%;padding:11px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);color:var(--chalk);font-size:15px;box-sizing:border-box;">
       <div id="waAskErr" style="color:var(--danger);font-size:12px;margin-top:6px;display:none;">Poné un número válido (al menos 8 dígitos).</div>
-      <button class="btn-primary" id="waAskSave" style="width:100%;margin-top:14px;">Guardar</button>
-      <button id="waAskLater" style="width:100%;margin-top:10px;background:transparent;border:none;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline;">Ahora no</button>
+      <button class="btn-primary" id="waAskSave" style="width:100%;margin-top:14px;">Guardar y continuar</button>
+      ${btnLater}
     </div>`;
     document.body.appendChild(m);
     const input = document.getElementById('waAskInput');
     input.focus();
-    document.getElementById('waAskLater').addEventListener('click', ()=>{
-      sessionStorage.setItem('waAsked', '1');   // no volver a molestar esta sesión
-      m.remove();
-    });
+    const later = document.getElementById('waAskLater');
+    if(later) later.addEventListener('click', ()=>{ sessionStorage.setItem('waAsked', '1'); m.remove(); });
     document.getElementById('waAskSave').addEventListener('click', async ()=>{
       const val = input.value.trim();
       const num = val.replace(/[^\d]/g, '');
@@ -14921,12 +14944,26 @@ try{
         sessionStorage.setItem('waAsked', '1');
         m.remove();
         try{ if(window.toast) window.toast('¡Gracias! WhatsApp guardado.'); }catch(_){}
+        if(onSaved) onSaved(val);
       }catch(e){
         const errEl = document.getElementById('waAskErr');
         if(errEl){ errEl.textContent = 'No se pudo guardar. Probá de nuevo.'; errEl.style.display='block'; }
       }
     });
   }
+
+  window.__exigirWhatsappParaPago = async function(){
+    try{
+      const { data: { session } } = await sb.auth.getSession();
+      if(!session) return true;
+      const { data } = await sb.from('profiles').select('whatsapp').eq('id', session.user.id).single();
+      const wa = (data && data.whatsapp || '').replace(/[^\d]/g, '');
+      if(wa.length >= 8) return true;
+      return await new Promise((resolve)=>{
+        mostrarPedidoWhatsapp(session.user.id, { obligatorio:true, onSaved:()=>resolve(true) });
+      });
+    }catch(e){ return true; }
+  };
 
   // Chequea el estado de la suscripción y muestra el cartel si corresponde
   window.__checkSubscription = async function(){
@@ -14951,7 +14988,12 @@ try{
               pack: prof.pack || 'entrenador'
             };
             const mp = document.getElementById('myPlanBtn');
-            if(mp){ mp.style.display = ''; mp.onclick = () => window.__openMyPlan(); }
+            if(mp){
+              mp.style.display = '';
+              const yaActivo = (prof.sub_status === 'active');
+              mp.textContent = yaActivo ? '💳 Mi plan' : '💳 Sumate';
+              mp.onclick = () => yaActivo ? window.__openMyPlan() : (window.__openPlansModal && window.__openPlansModal());
+            }
             const dias = Math.ceil((new Date(prof.sub_until).getTime() - Date.now())/(1000*60*60*24));
             // renderSubBanner ya maneja todo: aviso si faltan días, bloqueo si venció.
             renderSubBanner(prof.sub_status || 'trial', dias);
@@ -15056,7 +15098,11 @@ try{
         document.body.insertBefore(banner, document.body.firstChild);
       }
       banner.className = 'sub-banner expired';
-      banner.innerHTML = `<span class="sb-icon">🔒</span><span class="sb-text"><b>Tu licencia expiró.</b> Podés ver y exportar todo lo que cargaste, pero no cargar datos nuevos hasta renovar.</span><button class="sb-btn" id="sbPayBtn">Renovar</button>`;
+      if(status === 'active'){
+        banner.innerHTML = `<span class="sb-icon">🔒</span><span class="sb-text"><b>Tu plan venció.</b> Podés seguir viendo tus datos, pero para cargar contenido nuevo, renová tu plan. Pagá y envianos el comprobante por WhatsApp.</span><button class="sb-btn" id="sbPayBtn">Renovar</button>`;
+      } else {
+        banner.innerHTML = `<span class="sb-icon">🔒</span><span class="sb-text"><b>Terminó tu fase demo.</b> Podés seguir viendo tus datos, pero para cargar contenido nuevo, sumate a Benchone. Pagá y envianos el comprobante por WhatsApp.</span><button class="sb-btn" id="sbPayBtn">Sumate</button>`;
+      }
       const pb = document.getElementById('sbPayBtn');
       if(pb) pb.addEventListener('click', openPlansModal);
       return;
@@ -15074,7 +15120,7 @@ try{
       const txt = restantes <= 0
         ? 'Hoy es el último día para renovar.'
         : (restantes === 1 ? 'Te queda 1 día para renovar.' : 'Te quedan ' + restantes + ' días para renovar.');
-      banner.innerHTML = `<span class="sb-icon">⚠️</span><span class="sb-text"><b>Tu licencia expiró.</b> ${txt} Después vas a poder ver tus datos pero no cargar nuevos.</span><button class="sb-btn" id="sbPayBtn">Renovar</button>`;
+      banner.innerHTML = `<span class="sb-icon">⚠️</span><span class="sb-text"><b>Terminó tu fase demo.</b> ${txt} Después vas a poder ver tus datos pero no cargar nuevos.</span><button class="sb-btn" id="sbPayBtn">Sumate</button>`;
       const pb = document.getElementById('sbPayBtn');
       if(pb) pb.addEventListener('click', openPlansModal);
       return;
@@ -15089,8 +15135,13 @@ try{
       document.body.insertBefore(banner, document.body.firstChild);
     }
     banner.className = 'sub-banner warning';
-    const msg = window.t('subEndingMsg').replace('{d}', daysLeft);
-    banner.innerHTML = `<span class="sb-icon">⏳</span><span class="sb-text"><b>${window.t('subEndingTitle')}</b> ${msg}</span><button class="sb-btn" id="sbPayBtn">${window.t('subPayBtn')}</button>`;
+    if(status === 'active'){
+      const dTxt = daysLeft === 1 ? 'Te queda 1 día' : ('Te quedan ' + daysLeft + ' días');
+      banner.innerHTML = `<span class="sb-icon">🔔</span><span class="sb-text"><b>Tu plan está por vencer.</b> ${dTxt} de tu plan actual. Renová para seguir usando Benchone sin interrupciones. Pagá y envianos el comprobante por WhatsApp.</span><button class="sb-btn" id="sbPayBtn">Renovar</button>`;
+    } else {
+      const msg = window.t('subEndingMsg').replace('{d}', daysLeft);
+      banner.innerHTML = `<span class="sb-icon">⏳</span><span class="sb-text"><b>${window.t('subEndingTitle')}</b> ${msg}</span><button class="sb-btn" id="sbPayBtn">${window.t('subPayBtn')}</button>`;
+    }
     const payBtn = document.getElementById('sbPayBtn');
     if(payBtn) payBtn.addEventListener('click', openPlansModal);
   }
@@ -15105,16 +15156,18 @@ try{
     if(window.__modoLecturaActivo) return;
     window.__modoLecturaActivo = true;
 
-    const mensaje = 'Tu licencia expiró. Renová tu plan para seguir cargando datos.';
+    const mensaje = 'Terminó tu fase demo. Sumate a Benchone para seguir cargando datos.';
 
     // Selectores de todo lo que MODIFICA datos
     const bloquear = [
       '#addWeekBtn', '#addFechaBtn', '#openAdjBtn', '#newSeasonBtn',
       '#saveCloudBtn', '#liveStartBtn', '#clubEscudoBtn',
       '.btn-add-player', '.btn-new-match', '.sq-add', '.rd-add',
-      '[id^=add]', '[id^=new]', '[id^=save]',
+      '[id^=add]', '[id^=new]', '[id^=save]', '[id^=New]', '[id^=Add]', '[id^=Save]',
+      '[id*=Save]', '[id*=save]', '[id*=Add]', '[id*=Guardar]', '[id*=guardar]',
+      'button[id*=Btn][id*=dj]',
       '.sq-del', '.mt-del', '.week-del', '.scout-del', '.btn-del-match',
-      '.bp-del', '.rc-del-btn', '.ex-del', '.g-remove'
+      '.bp-del', '.rc-del-btn', '.ex-del', '.g-remove', '[class*=-del]'
     ].join(',');
 
     function marcar(){
@@ -15190,14 +15243,14 @@ try{
     const P = window.__PAY;
     let modal = document.getElementById('plansModal');
     if(modal) modal.remove();
-    const waLink = P.whatsapp ? ('https://wa.me/'+P.whatsapp+'?text='+encodeURIComponent('Hola! Quiero activar mi cuenta de Cancha Edit.')) : null;
+    const waLink = P.whatsapp ? ('https://wa.me/'+P.whatsapp+'?text='+encodeURIComponent('¡Hola! Quiero sumarme a Benchone.')) : null;
     const contactLine = waLink ? `<p class="plans-contact">${window.t('plansContact')} <a href="${waLink}" target="_blank">WhatsApp</a></p>` : '';
     // Si cobrás por transferencia, mostramos el alias para que puedan pagar directo
     const aliasLine = P.aliasMP ? `<div class="plans-alias">
         <span class="pa-label">O transferí a este alias de MercadoPago:</span>
         <span class="pa-alias" id="plansAlias">${P.aliasMP}</span>
         <button class="pa-copy" id="plansAliasCopy">Copiar</button>
-        <span class="pa-note">Después avisanos por WhatsApp y activamos tu cuenta.</span>
+        <span class="pa-note">Pagá al alias y envianos el comprobante por WhatsApp. Apenas lo confirmamos, activamos tu cuenta.</span>
       </div>` : '';
     // Cartel para los amigos fundadores (texto quitado; el descuento sigue aplicándose)
     const fundadorLine = '';
@@ -15264,19 +15317,32 @@ try{
     function renderPaso2(packKey){
       const pk = P.packs[packKey]; if(!pk) return renderPaso1();
       let cards = '';
-      (pk.durations||[]).forEach(dur=>{
+      const visibles = (pk.durations||[]).filter(dur => !dur.oculta);
+      visibles.forEach(dur=>{
         const link = window.__planLink ? window.__planLink(packKey, dur) : (waLink||'#');
-        // En 1 mes el total y el mensual son lo mismo: mostramos "$ X" arriba y "$ X/mes" abajo
-        // para que la comparación entre las tres columnas sea directa.
         const priceHtml = (P.showPrices && window.__fmtPrice) ? `<span class="plan-price">${window.__fmtPrice(dur)}</span>` : '';
         const perMonth = (P.showPrices && dur.ars) ? `<span class="plan-permonth">$ ${Math.round(window.__conDescuento(dur.ars)/dur.months).toLocaleString('es-AR')}/mes</span>` : '';
-        const destacado = dur.months === 12 ? ' plan-featured' : '';
-        cards += `<a class="plan-card${destacado}" href="${link}" target="_blank" rel="noopener"><span class="plan-label">${window.__durLabel(dur.months)}</span>${priceHtml}${perMonth}<span class="plan-go">${window.t('planGo')} →</span></a>`;
+        const destacado = dur.promo ? ' plan-featured' : '';
+        const promoBadge = dur.promo ? `<span class="plan-promo">${dur.promo}</span>` : '';
+        const promoNota = dur.promoNota ? `<span class="plan-promo-nota">${dur.promoNota}</span>` : '';
+        const comparacion = (P.showPrices && dur.comparacion) ? `<span class="plan-comparacion">${dur.comparacion}</span>` : '';
+        cards += `<a class="plan-card${destacado}" href="${link}" target="_blank" rel="noopener" data-paylink="1">${promoBadge}<span class="plan-label">${window.__durLabel(dur.months)}</span>${priceHtml}${perMonth}${comparacion}${promoNota}<span class="plan-go">${window.t('planGo')} →</span></a>`;
       });
-      modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><button class="plans-back" id="plansBack">← Volver a los packs</button><h2>Pack ${pk.name}</h2><p class="plans-sub">${pk.note||''} · Elegí por cuánto tiempo.</p>${fundadorLine}${codigoLineHTML()}<div class="plans-grid plans-grid-3">${cards}</div>${contactLine}${aliasLine}${legalLine}</div>`;
+      const gridClass = visibles.length <= 2 ? 'plans-grid plans-grid-2' : 'plans-grid plans-grid-3';
+      modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><button class="plans-back" id="plansBack">← Volver a los packs</button><h2>Pack ${pk.name}</h2><p class="plans-sub">${pk.note||''} · Elegí por cuánto tiempo.</p>${fundadorLine}${codigoLineHTML()}<div class="${gridClass}">${cards}</div>${contactLine}${aliasLine}${legalLine}</div>`;
       wire();
       const back = document.getElementById('plansBack');
       if(back) back.addEventListener('click', renderPaso1);
+      modal.querySelectorAll('a[data-paylink]').forEach(a=>{
+        a.addEventListener('click', async (e)=>{
+          if(window.__exigirWhatsappParaPago){
+            const destino = a.getAttribute('href');
+            e.preventDefault();
+            const ok = await window.__exigirWhatsappParaPago();
+            if(ok && destino && destino !== '#'){ window.open(destino, '_blank', 'noopener'); }
+          }
+        });
+      });
     }
 
     function wire(){
