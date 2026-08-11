@@ -3110,6 +3110,7 @@ body.editor-active #screen-editor{ display:block; }
           <li><b>⬇</b> Descargar el recorte suelto.</li>
           <li><b>✕</b> Borrar el recorte del registro.</li>
         </ul>
+        <p style="margin-top:10px;"><b>Enviar al scouting (🏠 y ⚔️) es opcional.</b> Son un plus por si querés archivar esa jugada en la ficha de un jugador o de un rival para tenerla a mano más adelante. Si no las usás, no pasa nada: seguís trabajando igual que siempre, armando tu video con la línea de tiempo de abajo. Cada herramienta suma, ninguna es obligatoria.</p>
       </div>
       <div class="vh-step">
         <b>4. Armá el video final</b>
@@ -18270,12 +18271,14 @@ document.getElementById('exportEachBtn').addEventListener('click', async () => {
       const clubId = window.__getClubId ? await window.__getClubId() : null;
       if(!sb || !clubId){ grid.innerHTML = '<p class="miequipo-empty">No se pudo identificar tu club.</p>'; return; }
       const temporada = window.__getTemporada ? window.__getTemporada() : null;
+      const categoria = window.__getActiveCategory ? window.__getActiveCategory() : null;
       let q = sb.from('players').select('*').eq('club_id', clubId).eq('archivado', false);
       if(temporada) q = q.eq('temporada', temporada);
+      if(categoria) q = q.eq('categoria', categoria);
       const { data, error } = await q;
       if(error) throw error;
       const jugadores = (data || []).filter(p => (p.name && p.name.trim()) || p.number);
-      if(jugadores.length === 0){ grid.innerHTML = '<p class="miequipo-empty">No hay jugadores en el plantel de esta temporada. Cargalos en Estadísticas → Plantel.</p>'; return; }
+      if(jugadores.length === 0){ grid.innerHTML = '<p class="miequipo-empty">No hay jugadores en el plantel de ' + (categoria || 'esta categoría') + '. Cargalos en Estadísticas → Plantel.</p>'; return; }
       jugadores.sort((a,b)=>{
         const na=parseInt(a.number,10), nb=parseInt(b.number,10);
         if(isNaN(na)&&isNaN(nb)) return 0;
@@ -18337,21 +18340,39 @@ document.getElementById('exportEachBtn').addEventListener('click', async () => {
         (porProyecto[k] = porProyecto[k] || []).push(j);
       });
       const fmtT = s => { if(s==null) return ''; const m=Math.floor(s/60), sec=Math.floor(s%60); return m+':'+(sec<10?'0':'')+sec; };
-      let html = '';
+      jugadasEl.innerHTML = '';
       Object.keys(porProyecto).forEach(proj=>{
-        html += '<div style="margin-bottom:18px;">';
-        html += '<h3 style="font-family:\'Oswald\',sans-serif;font-size:15px;color:var(--accent-2,#2F8FCB);margin:0 0 8px;">🎬 '+esc(proj)+'</h3>';
+        const bloque = document.createElement('div');
+        bloque.style.marginBottom = '18px';
+        const h = document.createElement('h3');
+        h.style.cssText = "font-family:'Oswald',sans-serif;font-size:15px;color:var(--accent-2,#2F8FCB);margin:0 0 8px;";
+        h.textContent = '🎬 ' + proj;
+        bloque.appendChild(h);
         porProyecto[proj].forEach((j,i)=>{
           const rango = (j.start_sec!=null) ? (fmtT(j.start_sec) + (j.end_sec!=null?' – '+fmtT(j.end_sec):'')) : '';
-          html += '<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--panel-2,#1B2C3D);border:1px solid var(--line);border-radius:8px;margin-bottom:6px;">';
-          html += '<span style="font-family:monospace;color:var(--muted);font-size:11px;">#'+(i+1)+'</span>';
-          html += '<span style="flex:1;color:var(--chalk,#dfe8f0);font-size:13px;">'+esc(j.tag_name||'Jugada')+'</span>';
-          if(rango) html += '<span style="font-family:monospace;color:var(--muted);font-size:11px;">'+rango+'</span>';
-          html += '</div>';
+          const fila = document.createElement('div');
+          fila.style.cssText = 'display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--panel-2,#1B2C3D);border:1px solid var(--line);border-radius:8px;margin-bottom:6px;flex-wrap:wrap;';
+          fila.innerHTML = '<span style="font-family:monospace;color:var(--muted);font-size:11px;">#'+(i+1)+'</span>' +
+            '<span style="flex:1;color:var(--chalk,#dfe8f0);font-size:13px;">'+esc(j.tag_name||'Jugada')+'</span>' +
+            (rango ? '<span style="font-family:monospace;color:var(--muted);font-size:11px;">'+esc(rango)+'</span>' : '') +
+            '<button class="btn small ver-jugada-btn" style="padding:4px 10px;">▶ Ver</button>';
+          const cajaVideo = document.createElement('div');
+          cajaVideo.style.cssText = 'width:100%;margin-top:6px;display:none;';
+          const btnVer = fila.querySelector('.ver-jugada-btn');
+          btnVer.addEventListener('click', ()=>{
+            if(cajaVideo.style.display !== 'none'){ cajaVideo.style.display='none'; cajaVideo.innerHTML=''; btnVer.textContent='▶ Ver'; return; }
+            cajaVideo.style.display = '';
+            const ok = window.__reproducirRecorteEnCaja ? window.__reproducirRecorteEnCaja(cajaVideo, j.start_sec, j.end_sec) : false;
+            if(!ok){
+              cajaVideo.innerHTML = '<p style="color:var(--muted);font-size:12px;font-style:italic;margin:6px 0;">El video de este partido no está cargado en esta sesión. Abrí el proyecto en la pestaña Video (o cargá el video del partido) para reproducir la jugada.</p>';
+            }
+            btnVer.textContent = 'Ocultar';
+          });
+          bloque.appendChild(fila);
+          bloque.appendChild(cajaVideo);
         });
-        html += '</div>';
+        jugadasEl.appendChild(bloque);
       });
-      jugadasEl.innerHTML = html;
     }catch(e){
       console.error('jugadas jugador', e);
       jugadasEl.innerHTML = '<p class="miequipo-empty">No se pudieron cargar las jugadas.</p>';
