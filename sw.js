@@ -1,29 +1,24 @@
 /* ══════════════════════════════════════════════════════════════
-   BENCHONE — Service Worker (offline BLINDADO v5)
+   BENCHONE — Service Worker (offline + AUTO-ACTUALIZACIÓN v6)
 
    ▓▓▓ IMPORTANTE — CADA VEZ QUE PUBLIQUES CAMBIOS ▓▓▓
-   Subí el número de CACHE_VERSION (v5 → v6 ...).
+   Subí el número de CACHE_VERSION (v6 → v7 ...).
 
-   Diseñado para que la app instalada en iPhone ABRA por datos
-   móviles: cachea el HTML de forma agresiva apenas se instala,
-   así no depende de bajarlo por la red. Y ante cualquier fallo
-   NUNCA devuelve vacío (que disparaba "no conectado a Internet").
+   NOVEDAD v6: el index.html ahora es NETWORK-FIRST. La app intenta
+   siempre traer la versión más nueva de la red al abrir; si no hay
+   internet, usa la copia guardada. Esto hace que las actualizaciones
+   aparezcan solas, sin tener que borrar caché a mano.
    ══════════════════════════════════════════════════════════════ */
 
-const CACHE_VERSION = 'benchone-v5';
-const NET_TIMEOUT_MS = 3500;
+const CACHE_VERSION = 'benchone-v6';
+const NET_TIMEOUT_MS = 4000;
 const LIB_CDN_HOSTS = ['cdn.jsdelivr.net', 'unpkg.com', 'cdnjs.cloudflare.com'];
-
-// Guardamos el index con varias claves para que SIEMPRE haya un respaldo,
-// sin importar cómo pida la navegación el sistema.
 const APP_SHELL = ['./', './index.html', './logo.png', 'index.html'];
 
 self.addEventListener('install', function(event){
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_VERSION).then(function(cache){
-      // Cacheamos el shell. Además, forzamos guardar el index pidiéndolo a la red
-      // con cache:'reload' para asegurar una copia fresca guardada desde el arranque.
       return Promise.all(APP_SHELL.map(function(url){
         return cache.add(new Request(url, { cache: 'reload' })).catch(function(){
           return cache.add(url).catch(function(){});
@@ -41,6 +36,11 @@ self.addEventListener('activate', function(event){
       }));
     }).then(function(){ return self.clients.claim(); })
   );
+});
+
+// Permite que la página pida activar de inmediato una versión nueva.
+self.addEventListener('message', function(event){
+  if(event.data === 'skipWaiting'){ self.skipWaiting(); }
 });
 
 function fetchConTimeout(req){
@@ -63,7 +63,6 @@ function fetchConTimeout(req){
   });
 }
 
-// Devuelve el index guardado por cualquiera de sus claves.
 function indexGuardado(){
   return caches.open(CACHE_VERSION).then(function(cache){
     return cache.match('./index.html')
@@ -77,7 +76,7 @@ self.addEventListener('fetch', function(event){
   if(req.method !== 'GET'){ return; }
   const url = new URL(req.url);
 
-  // Librerías de CDN: cache-first.
+  // Librerías de CDN: cache-first (no cambian, así cargan rápido y offline).
   if(LIB_CDN_HOSTS.indexOf(url.hostname) !== -1){
     event.respondWith(
       caches.match(req).then(function(hit){
@@ -92,31 +91,22 @@ self.addEventListener('fetch', function(event){
     return;
   }
 
-  // Otros orígenes (Supabase datos/login, fuentes): directo a la red.
+  // Otros orígenes (Supabase, fuentes): directo a la red.
   if(url.origin !== self.location.origin){ return; }
 
-  // NAVEGACIÓN (abrir la app): CACHE-FIRST para el index.
-  // Cambio clave para iPhone por datos: primero servimos el index GUARDADO
-  // (instantáneo, sin depender de la red), y actualizamos en segundo plano.
-  // Así la app instalada abre siempre, aunque los datos estén lentos o cortados.
+  // NAVEGACIÓN (abrir la app): NETWORK-FIRST.
+  // Intentamos SIEMPRE traer el index fresco de la red (así aparece lo nuevo).
+  // Si la red falla o tarda, usamos la copia guardada (para que abra offline).
   if(req.mode === 'navigate'){
     event.respondWith(
-      indexGuardado().then(function(guardado){
-        if(guardado){
-          // Servimos lo guardado YA, y refrescamos la copia por detrás.
-          fetchConTimeout(req).catch(function(){});
-          return guardado;
-        }
-        // No hay copia guardada aún: intentamos la red, con respaldo final.
-        return fetchConTimeout(req).catch(function(){
-          return indexGuardado().then(function(g){ return g || fetch(req); });
-        });
+      fetchConTimeout(req).catch(function(){
+        return indexGuardado().then(function(g){ return g || fetch(req); });
       })
     );
     return;
   }
 
-  // Resto de recursos del mismo origen: network-first con timeout y respaldo.
+  // Resto de recursos del mismo origen: network-first con respaldo a caché.
   event.respondWith(
     fetchConTimeout(req).catch(function(){
       return caches.match(req).then(function(hit){

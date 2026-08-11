@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- ============================================= -->
 <!-- BENCHONE - VERSION CON COLUMNA "PREVIOS"      -->
-<!-- Subida: build PREVIOS+SESION-2026-08-11             -->
+<!-- Subida: build AUTOUPDATE-2026-08-11             -->
 <!-- Si ves este comentario en Ctrl+U, cargó bien -->
 <!-- ============================================= -->
 <html lang="es">
@@ -2975,7 +2975,7 @@ body.editor-active #screen-editor{ display:block; }
     <button class="btn-ghost" id="toggleModeBtn" data-i18n="loginCreate">Crear una cuenta</button>
 
     <div class="foot-note" id="footNote">Conectado a Supabase — cuentas reales.</div>
-    <div style="text-align:center;font-size:10px;color:var(--muted);margin-top:6px;opacity:0.6;">build PREVIOS+SESION · 2026-08-11</div>
+    <div style="text-align:center;font-size:10px;color:var(--muted);margin-top:6px;opacity:0.6;">build AUTOUPDATE · 2026-08-11</div>
   </div>
 </div>
 
@@ -17370,17 +17370,42 @@ document.getElementById('exportEachBtn').addEventListener('click', async () => {
     if(window.caches && caches.keys){
       caches.keys().then(function(keys){
         keys.forEach(function(k){
-          // Borramos caches de versiones viejas (v1, v2, v3), no el actual.
-          if(String(k).indexOf('benchone') !== -1 && k !== 'benchone-v5'){ caches.delete(k).catch(function(){}); }
+          // Borramos caches de versiones viejas, no el actual (v6).
+          if(String(k).indexOf('benchone') !== -1 && k !== 'benchone-v6'){ caches.delete(k).catch(function(){}); }
         });
       }).catch(function(){});
     }
     // Registramos el service worker real (sw.js). Si el archivo no está en el
     // server, esto falla en silencio y la app sigue andando online.
+    // AUTO-ACTUALIZACIÓN: si el SW detecta una versión nueva publicada, la
+    // activamos y refrescamos la app una sola vez, para que el usuario vea
+    // siempre lo último sin tener que borrar caché a mano.
     if('serviceWorker' in navigator){
       window.addEventListener('load', function(){
         var swPath = new URL('sw.js', window.location.href).href;
-        navigator.serviceWorker.register(swPath).catch(function(){ /* si falla, la app sigue online */ });
+        navigator.serviceWorker.register(swPath).then(function(reg){
+          // Si aparece un SW nuevo esperando, le pedimos que tome el control.
+          function activarNuevo(worker){
+            if(!worker) return;
+            worker.addEventListener('statechange', function(){
+              if(worker.state === 'installed' && navigator.serviceWorker.controller){
+                // Hay una versión nueva lista: la activamos.
+                try{ worker.postMessage('skipWaiting'); }catch(e){}
+              }
+            });
+          }
+          if(reg.waiting){ try{ reg.waiting.postMessage('skipWaiting'); }catch(e){} }
+          reg.addEventListener('updatefound', function(){ activarNuevo(reg.installing); });
+          // Buscamos actualizaciones cada vez que se abre la app.
+          try{ reg.update(); }catch(e){}
+        }).catch(function(){ /* si falla, la app sigue online */ });
+        // Cuando el SW nuevo toma control, recargamos UNA vez para mostrar lo nuevo.
+        var yaRecargo = false;
+        navigator.serviceWorker.addEventListener('controllerchange', function(){
+          if(yaRecargo) return;
+          yaRecargo = true;
+          try{ location.reload(); }catch(e){}
+        });
       });
     }
   }catch(e){ /* si algo falla, no rompe la app */ }
