@@ -1,0 +1,2792 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cancha·Edit — Panel de administración</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --bg:#10161C;
+  --panel:#152230;
+  --panel-2:#1B2C3D;
+  --line:#33495E;
+  --chalk:#F2F6F8;
+  --muted:#8CA2B3;
+  --accent:#E5342A;
+  --accent-soft:#E5342A26;
+  --accent-2:#2F8FCB;
+  --danger:#F0553F;
+  --success:#4CAF6D;
+  --warning:#E3B341;
+  --radius:10px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background-color:var(--bg);
+  color:var(--chalk);
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+}
+::selection{background:var(--accent-soft);}
+button{font-family:inherit;cursor:pointer;}
+
+/* ---------- Topbar ---------- */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:16px 26px;border-bottom:1px solid var(--line);
+  background:rgba(21,34,48,0.6);position:sticky;top:0;z-index:10;
+  backdrop-filter:blur(8px);flex-wrap:wrap;
+}
+.brand{font-family:'Oswald',sans-serif;font-weight:700;font-size:22px;letter-spacing:0.5px;text-transform:uppercase;display:flex;align-items:baseline;gap:9px;}
+.brand .dot{color:var(--accent);}
+.admin-badge{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;border:1px solid var(--accent);border-radius:999px;padding:3px 10px;margin-left:10px;}
+.topbar-right{display:flex;align-items:center;gap:14px;}
+.admin-user{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.btn{border:1px solid var(--line);background:var(--panel-2);color:var(--chalk);border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:600;transition:border-color .15s ease;}
+.btn:hover{border-color:var(--accent);}
+.btn.ghost{background:transparent;}
+.btn.small{padding:5px 10px;font-size:11.5px;cursor:pointer;}
+
+.wrap{max-width:1240px;margin:0 auto;padding:26px 26px 60px;}
+
+/* ---------- Stat cards ---------- */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px;}
+@media (max-width:820px){.stats-row{grid-template-columns:repeat(2,1fr);}}
+.stat-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;}
+.stat-card .label{font-family:'JetBrains Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;}
+.col-jugadores{background:rgba(47,143,203,0.07);text-align:center;}
+th.col-jugadores{color:var(--accent-2)!important;}
+.stat-card .value{font-family:'Oswald',sans-serif;font-size:32px;font-weight:700;line-height:1;}
+.stat-card .value small{font-size:13px;color:var(--muted);font-weight:500;}
+.stat-card.live .value{color:var(--success);}
+.stat-clickable{cursor:pointer;transition:border-color .15s ease, transform .1s ease;}
+.stat-clickable:hover{border-color:var(--accent);}
+.stat-clickable:active{transform:scale(0.98);}
+.stat-clickable .value::after{content:' →';font-size:16px;color:var(--muted);}
+@keyframes tableFlash{0%{box-shadow:0 0 0 2px var(--accent);}100%{box-shadow:0 0 0 2px transparent;}}
+.table-flash{animation:tableFlash 1.2s ease-out;border-radius:var(--radius);}
+.stat-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--success);margin-right:6px;box-shadow:0 0 0 3px rgba(76,175,109,0.2);animation:blink 2s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.4;}}
+
+/* ---------- Section ---------- */
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px;flex-wrap:wrap;}
+.section-head h2{font-family:'Oswald',sans-serif;font-size:16px;text-transform:uppercase;letter-spacing:0.8px;margin:0;}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.search{background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--chalk);padding:8px 12px;font-size:13px;min-width:220px;}
+.search::placeholder{color:var(--muted);}
+.filter-select{background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--chalk);padding:8px 12px;font-size:13px;}
+
+/* ---------- Table ---------- */
+.table-wrap{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
+table{width:100%;border-collapse:collapse;}
+thead th{
+  font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;
+  color:var(--muted);text-align:left;padding:12px 16px;border-bottom:1px solid var(--line);
+  background:var(--panel-2);white-space:nowrap;
+}
+tbody td{padding:13px 16px;border-bottom:1px solid rgba(51,73,94,0.5);font-size:13.5px;vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr{transition:background .12s ease;cursor:pointer;}
+tbody tr:hover{background:rgba(47,143,203,0.06);}
+tbody tr.blocked{opacity:0.55;}
+tbody tr.blocked .uname{text-decoration:line-through;}
+
+.uname{font-weight:600;}
+.uemail{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted);}
+.club-pill{display:inline-block;font-size:11.5px;padding:2px 9px;border-radius:999px;border:1px solid var(--line);color:var(--chalk);}
+
+.status{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;}
+.status .d{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.status.online .d{background:var(--success);box-shadow:0 0 0 3px rgba(76,175,109,0.2);}
+.status.offline .d{background:var(--muted);}
+.status.blocked-s .d{background:var(--danger);}
+.status.online{color:var(--success);}
+.status.blocked-s{color:var(--danger);}
+
+.row-actions{display:flex;gap:6px;justify-content:flex-end;}
+.act-btn{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:6px;padding:5px 10px;font-size:11.5px;font-weight:600;transition:all .12s ease;white-space:nowrap;}
+.act-btn:hover{color:var(--chalk);border-color:var(--chalk);}
+.act-btn.view:hover{color:var(--accent-2);border-color:var(--accent-2);}
+.act-btn.block:hover{color:var(--warning);border-color:var(--warning);}
+.act-btn.unblock:hover{color:var(--success);border-color:var(--success);}
+.act-btn.del:hover{color:var(--danger);border-color:var(--danger);}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:0.4px;}
+.btn-mini{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;transition:all .12s ease;white-space:nowrap;margin-left:5px;}
+.btn-mini:hover{color:var(--success);border-color:var(--success);}
+.btn-mini.danger:hover{color:var(--danger);border-color:var(--danger);}
+.pay-months{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0;}
+.pay-month-btn{border:2px solid var(--line);background:transparent;color:var(--muted);border-radius:8px;padding:12px;font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all .12s ease;}
+.pay-month-btn.selected{border-color:var(--success);background:rgba(76,175,109,0.12);color:var(--chalk);}
+.pay-info{font-size:13px;color:var(--muted);text-align:center;margin-top:6px;}
+.pay-info b{color:var(--success);}
+
+.readonly-note{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:14px;display:flex;align-items:center;gap:8px;}
+.readonly-note .lock{color:var(--accent-2);}
+
+
+/* ---------- Detalle de scouting (pestañas dentro del modal) ---------- */
+.sc-tabs{display:flex;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:4px;margin-bottom:16px;}
+.sc-tab{flex:1;background:transparent;border:1px solid transparent;color:var(--muted);font-family:'Oswald',sans-serif;font-size:12.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;padding:9px 6px;border-radius:7px;cursor:pointer;transition:all .14s ease;}
+.sc-tab:hover{color:var(--chalk);}
+.sc-tab.on{background:var(--panel);border-color:var(--accent);color:var(--chalk);}
+.sc-pane{display:none;}
+.sc-pane.on{display:block;}
+.sc-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px;}
+.sc-kpi{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 13px;}
+.sc-kpi .n{font-family:'Oswald',sans-serif;font-size:24px;line-height:1;}
+.sc-kpi .l{font-size:10.5px;color:var(--muted);margin-top:5px;line-height:1.3;}
+.sc-sub{display:block;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);margin-top:2px;}
+.sc-num{font-family:'JetBrains Mono',monospace;text-align:right;}
+.sc-big{font-family:'Oswald',sans-serif;font-size:17px;}
+.sc-tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9.5px;padding:2px 7px;border-radius:999px;white-space:nowrap;margin-right:4px;}
+.sc-tag.ok{background:rgba(76,175,109,0.16);color:var(--success);}
+.sc-tag.off{background:rgba(140,162,179,0.14);color:var(--muted);}
+.sc-tag.warn{background:rgba(224,169,59,0.16);color:var(--warning,#E0A93B);}
+.sc-tag.red{background:rgba(240,85,63,0.16);color:var(--danger,#F0553F);}
+
+/* ---------- Modal (detalle usuario, solo lectura) ---------- */
+.modal-overlay{position:fixed;inset:0;background:rgba(10,15,20,0.82);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;}
+.modal-overlay.show{display:flex;}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:14px;width:100%;max-width:720px;max-height:88vh;overflow-y:auto;}
+.modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:22px 24px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel);}
+.modal-head h3{font-family:'Oswald',sans-serif;font-size:20px;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 4px;}
+.modal-head .sub{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);}
+.modal-close{border:none;background:transparent;color:var(--muted);font-size:22px;line-height:1;padding:2px 6px;}
+.modal-close:hover{color:var(--chalk);}
+.modal-body{padding:20px 24px 24px;}
+.ro-banner{background:rgba(47,143,203,0.1);border:1px solid var(--accent-2);border-radius:8px;padding:9px 12px;font-size:12px;color:var(--chalk);margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 22px;margin-bottom:22px;}
+@media (max-width:560px){.detail-grid{grid-template-columns:1fr;}}
+.detail-item .k{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;}
+.detail-item .v{font-size:14px;}
+.detail-sub{font-family:'Oswald',sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin:22px 0 12px;border-top:1px solid var(--line);padding-top:16px;}
+.proj-list{display:flex;flex-direction:column;gap:8px;}
+.proj-row{display:flex;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;}
+.proj-row .pname{font-weight:600;font-size:13px;flex:1;}
+.proj-row .pmeta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.modal-foot{display:flex;justify-content:space-between;gap:12px;padding:16px 24px 22px;border-top:1px solid var(--line);flex-wrap:wrap;}
+.modal-foot .danger-zone{display:flex;gap:10px;}
+.btn-soft{border:1px solid var(--line);background:transparent;color:var(--chalk);border-radius:8px;padding:9px 16px;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .12s ease;}
+.btn-soft:hover{border-color:var(--accent-2);color:var(--accent-2);}
+/* ---------- Resetear contraseña de un usuario ---------- */
+.rp-user{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:16px;}
+.rp-user b{font-size:14px;}
+.rp-user span{display:block;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted);margin-top:3px;}
+.rp-opt{border:1px solid var(--line);border-radius:11px;padding:14px 16px;margin-bottom:12px;}
+.rp-opt h4{font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;letter-spacing:0.4px;margin:0 0 5px;text-transform:uppercase;}
+.rp-opt p{font-size:12px;color:var(--muted);line-height:1.5;margin:0 0 12px;}
+.rp-opt.reco{border-color:var(--accent-2);}
+.rp-tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.5px;background:rgba(47,143,203,0.16);color:var(--accent-2);border-radius:999px;padding:2px 8px;margin-left:7px;vertical-align:middle;}
+.rp-pass{display:flex;gap:8px;align-items:center;}
+.rp-pass input{flex:1;background:var(--bg);border:1px solid var(--line);color:var(--chalk);border-radius:8px;padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:15px;letter-spacing:1px;}
+.rp-msg{font-size:12.5px;line-height:1.5;border-radius:9px;padding:10px 12px;margin-top:14px;display:none;}
+.rp-msg.on{display:block;}
+.rp-msg.ok{background:rgba(76,175,109,0.12);border:1px solid rgba(76,175,109,0.4);color:#8BD8A4;}
+.rp-msg.err{background:rgba(240,85,63,0.12);border:1px solid rgba(240,85,63,0.4);color:#FF9C8C;}
+.rp-msg.info{background:rgba(47,143,203,0.10);border:1px solid rgba(47,143,203,0.35);color:#9CCBE8;}
+.rp-msg code{font-family:'JetBrains Mono',monospace;font-size:11.5px;background:rgba(0,0,0,0.3);padding:1px 5px;border-radius:4px;}
+.btn-danger{border:1px solid var(--danger);background:transparent;color:var(--danger);border-radius:8px;padding:9px 16px;font-size:12.5px;font-weight:600;}
+.btn-danger:hover{background:var(--danger);color:#fff;}
+.btn-warning{border:1px solid var(--warning);background:transparent;color:var(--warning);border-radius:8px;padding:9px 16px;font-size:12.5px;font-weight:600;}
+.btn-warning:hover{background:var(--warning);color:#10161C;}
+
+.demo-tag{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);background:var(--panel-2);border:1px solid var(--line);border-radius:999px;padding:5px 14px;z-index:5;}
+
+/* ---------- Login de admin ---------- */
+#adminLogin{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+}
+.login-card{
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:34px 32px;width:100%;max-width:400px;
+}
+.login-card .brand{justify-content:center;margin-bottom:6px;}
+.login-card .admin-badge{display:block;width:fit-content;margin:0 auto 20px;}
+.login-card h2{font-family:'Oswald',sans-serif;font-size:19px;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 4px;text-align:center;}
+.login-card .lead{font-size:12.5px;color:var(--muted);text-align:center;margin:0 0 22px;}
+.login-field{margin-bottom:14px;}
+.login-field label{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;}
+.login-field input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--chalk);padding:11px 12px;font-size:14px;}
+.login-field input:focus{outline:none;border-color:var(--accent-2);}
+.login-btn{width:100%;padding:12px;border-radius:9px;border:1px solid var(--accent);background:var(--accent);color:#10161C;font-family:'Oswald',sans-serif;font-size:15px;letter-spacing:0.6px;text-transform:uppercase;font-weight:600;margin-top:4px;}
+.forgot-btn{width:100%;background:none;border:none;color:var(--muted);font-size:12.5px;margin-top:12px;cursor:pointer;text-decoration:underline;}
+.forgot-btn:hover{color:var(--chalk);}
+.login-btn:hover{background:#ff473a;}
+.login-btn:disabled{opacity:0.6;cursor:wait;}
+.login-error{display:none;background:rgba(240,85,63,0.12);border:1px solid var(--danger);color:var(--chalk);font-size:12.5px;border-radius:8px;padding:9px 11px;margin-bottom:16px;}
+.login-error.show{display:block;}
+
+#adminApp{display:none;}
+body.admin-active #adminLogin{display:none;}
+body.admin-active #adminApp{display:block;}
+
+.loading-note{text-align:center;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:12px;padding:40px;}
+.club-row:hover{background:rgba(255,255,255,0.03);}
+.club-caret{display:inline-block;width:14px;color:var(--muted);font-size:11px;}
+.club-user-row{padding:5px 4px 5px 22px;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.04);}
+.club-user-row:last-child{border-bottom:none;}
+.new24-card{background:linear-gradient(135deg, rgba(76,175,109,0.12), rgba(47,143,203,0.08));border:1px solid var(--success);border-radius:var(--radius);padding:16px 18px;margin-bottom:22px;box-shadow:0 0 0 1px rgba(76,175,109,0.15);}
+.new24-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+.new24-badge{background:var(--success);color:#08130C;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.5px;padding:3px 8px;border-radius:6px;}
+.new24-title{font-family:'Oswald',sans-serif;font-size:17px;font-weight:600;color:var(--chalk,#dfe8f0);text-transform:uppercase;letter-spacing:.5px;}
+.new24-count{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--success);margin-left:auto;}
+.new24-list{display:flex;flex-direction:column;gap:8px;}
+.new24-item{display:flex;align-items:center;gap:12px;background:rgba(11,18,25,0.4);border:1px solid var(--line);border-radius:8px;padding:10px 13px;flex-wrap:wrap;}
+.new24-item .n24-name{font-weight:600;color:var(--chalk,#dfe8f0);}
+.new24-item .n24-email{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted,#7C8B99);}
+.new24-item .n24-club{font-size:12px;color:var(--accent-2);}
+.new24-item .n24-when{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--success);margin-left:auto;white-space:nowrap;}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN DE ADMIN ===== -->
+<div id="adminLogin">
+  <div class="login-card">
+    <div class="brand">CANCHA<span class="dot">·</span>EDIT</div>
+    <span class="admin-badge">Panel de administración</span>
+    <h2>Acceso de administrador</h2>
+    <p class="lead">Ingresá con tu cuenta de administrador.</p>
+    <div class="login-error" id="loginError"></div>
+    <form id="adminLoginForm">
+      <div class="login-field">
+        <label for="adminEmail">Email</label>
+        <input type="email" id="adminEmail" placeholder="admin@club.com" autocomplete="username">
+      </div>
+      <div class="login-field">
+        <label for="adminPassword">Contraseña</label>
+        <input type="password" id="adminPassword" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button type="submit" class="login-btn" id="adminLoginBtn">Entrar</button>
+      <button type="button" class="forgot-btn" id="adminForgotBtn">¿Olvidaste tu contraseña?</button>
+    </form>
+  </div>
+</div>
+
+<!-- ===== PANEL (solo visible tras login admin) ===== -->
+<div id="adminApp">
+
+<div class="topbar">
+  <div style="display:flex;align-items:center;">
+    <div class="brand">CANCHA<span class="dot">·</span>EDIT</div>
+    <span class="admin-badge">Admin</span>
+  </div>
+  <div class="topbar-right">
+    <span class="admin-user" id="adminUserEmail">—</span>
+    <button class="btn ghost" id="adminLogoutBtn">Cerrar sesión</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ===== CARTEL NOVEDAD: altas de las últimas 24hs ===== -->
+  <!-- Aparece solo si hubo usuarios nuevos en las últimas 24hs. Cada alta se muestra
+       mientras esté dentro de esa ventana; al pasar las 24hs desaparece sola. -->
+  <div id="newUsers24" class="new24-card" style="display:none;">
+    <div class="new24-head">
+      <span class="new24-badge">NUEVO</span>
+      <span class="new24-title">Altas de las últimas 24 horas</span>
+      <span class="new24-count" id="new24Count"></span>
+    </div>
+    <div class="new24-list" id="new24List"></div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card live">
+      <div class="label">Conectados ahora</div>
+      <div class="value"><span class="stat-dot"></span><span id="mOnline">—</span></div>
+    </div>
+    <div class="stat-card stat-clickable" id="usersCard" title="Ver la lista de usuarios">
+      <div class="label">Usuarios totales</div>
+      <div class="value" id="mUsers">—</div>
+    </div>
+    <div class="stat-card stat-clickable" id="clubsCard" title="Ver los clubes y suscripciones">
+      <div class="label">Clubes</div>
+      <div class="value" id="mClubs">—</div>
+    </div>
+    <div class="stat-card stat-clickable" id="projectsCard" title="Ver actividad por usuario">
+      <div class="label">Proyectos de video</div>
+      <div class="value" id="mProjects">—</div>
+    </div>
+  </div>
+
+  <!-- ===== TABLERO DE MÉTRICAS (números, sin datos privados) ===== -->
+  <div class="section-head">
+    <h2>Métricas del negocio</h2>
+    <button class="btn small" id="refreshMetrics">↻ Actualizar</button>
+  </div>
+  <div class="stats-row" style="margin-bottom:14px;">
+    <div class="stat-card"><div class="label">Suscripciones activas</div><div class="value" id="mActive">—</div></div>
+    <div class="stat-card"><div class="label">En prueba</div><div class="value" id="mTrial">—</div></div>
+    <div class="stat-card"><div class="label">Vencidas</div><div class="value" id="mExpired">—</div></div>
+    <div class="stat-card"><div class="label">Vencen en 7 días</div><div class="value" id="mExpiring">—</div></div>
+  </div>
+  <div class="stats-row" style="margin-bottom:26px;">
+    <div class="stat-card"><div class="label">Nuevos (últimos 30 días)</div><div class="value" id="mNew30">—</div></div>
+    <div class="stat-card stat-clickable" id="liveCard" title="Ver quién cargó los partidos en vivo"><div class="label">Partidos en vivo cargados</div><div class="value" id="mLiveSessions">—</div></div>
+    <div class="stat-card"><div class="label">Jugadores cargados (total)</div><div class="value" id="mPlayers">—</div></div>
+    <div class="stat-card stat-clickable" id="scoutingCard" title="Ver quiénes las están haciendo"><div class="label">Fichas de scouting</div><div class="value" id="mScouting">—</div></div>
+  </div>
+  <p class="metrics-note" id="metricsNote" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin:-14px 0 26px;">Solo números agregados. No se muestran nombres, videos ni contenido de ningún usuario.</p>
+
+  <!-- ===== INGRESO ESTIMADO ===== -->
+  <div class="section-head">
+    <h2>Ingreso estimado</h2>
+    <div class="toolbar" style="display:flex;align-items:center;gap:8px;">
+      <label style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);">Precio por mes ($):</label>
+      <input class="search" id="priceInput" type="number" min="0" step="500" placeholder="0" style="width:120px;">
+    </div>
+  </div>
+  <div class="stats-row" style="margin-bottom:14px;">
+    <div class="stat-card"><div class="label">Ingreso mensual estimado</div><div class="value" id="mMRR">—</div></div>
+    <div class="stat-card"><div class="label">Proyección anual</div><div class="value" id="mARR">—</div></div>
+    <div class="stat-card"><div class="label">Potencial (si todos pagan)</div><div class="value" id="mPotential">—</div></div>
+    <div class="stat-card"><div class="label">En prueba (a convertir)</div><div class="value" id="mTrialRev">—</div></div>
+  </div>
+  <p class="metrics-note" id="revenueNote" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin:-14px 0 26px;">Estimación simple: cuentas activas × precio mensual. Es una referencia, no un dato contable.</p>
+
+  <div class="section-head" id="usersSection">
+    <h2>Usuarios</h2>
+    <div class="toolbar">
+      <input class="search" id="search" type="text" placeholder="Buscar por nombre, email o club...">
+      <select class="filter-select" id="filter">
+        <option value="all">Todos</option>
+        <option value="online">Conectados</option>
+        <option value="offline">Desconectados</option>
+        <option value="blocked">Bloqueados</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="table-wrap" id="usersTableWrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Club</th>
+          <th>Estado</th>
+          <th title="Veces que entró a la app">Sesiones</th>
+          <th title="Minutos totales de uso">Minutos</th>
+          <th>Último acceso</th>
+          <th>Registrado</th>
+          <th style="text-align:right;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="userRows"></tbody>
+    </table>
+  </div>
+
+  <!-- ===== ACTIVIDAD POR CLUB (arriba: mejor señal de interés) ===== -->
+  <div class="section-head">
+    <h2>💾 Actividad por club</h2>
+  </div>
+  <p class="metrics-note" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin:-8px 0 14px;">La columna <b style="color:var(--accent-2);">Jugadores</b> es la mejor señal: si cargaron el plantel, están usando la app en serio. Los videos NO ocupan espacio (se procesan en el dispositivo).</p>
+  <div id="espacioResumen" style="margin-bottom:14px;"></div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Club</th>
+          <th class="col-jugadores">👥 Jugadores</th>
+          <th>Con foto</th>
+          <th>Partidos</th>
+          <th>Semanas</th>
+          <th>Espacio</th>
+        </tr>
+      </thead>
+      <tbody id="espacioRows"><tr><td colspan="6" class="empty">Cargando…</td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- ============ USO DE LA PLATAFORMA ============ -->
+  <div class="section-head" style="margin-top:40px;">
+    <h2>📊 Secciones más usadas</h2>
+    <div class="toolbar">
+      <select id="usoDias" class="search" style="cursor:pointer;">
+        <option value="7">Últimos 7 días</option>
+        <option value="30" selected>Últimos 30 días</option>
+        <option value="90">Últimos 90 días</option>
+      </select>
+    </div>
+  </div>
+  <p class="metrics-note" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin:-8px 0 14px;">Cuántas veces entraron y cuánto tiempo pasaron en cada sección. Sirve para saber qué mejorar primero.</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Sección</th>
+          <th>Visitas</th>
+          <th>Minutos totales</th>
+          <th>Usuarios distintos</th>
+          <th>Uso relativo</th>
+        </tr>
+      </thead>
+      <tbody id="seccionRows"><tr><td colspan="5" class="empty">Cargando…</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="section-head" style="margin-top:34px;" id="expiringSection">
+    <h2>⏳ Por vencer (próximos 7 días)</h2>
+  </div>
+  <div id="expiringWrap"></div>
+
+  <div class="section-head" style="margin-top:34px;" id="clubsSection">
+    <h2>Suscripciones · Clubes</h2>
+    <div class="toolbar">
+      <input class="search" id="clubSearch" type="text" placeholder="Buscar club...">
+    </div>
+  </div>
+
+  <div class="table-wrap" id="clubsTableWrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Club</th>
+          <th>Estado</th>
+          <th>Vence</th>
+          <th>Días restantes</th>
+          <th style="text-align:right;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="clubRows"></tbody>
+    </table>
+  </div>
+
+  <!-- Tiempo por usuario: ahora integrado en la tabla de Usuarios (columnas Sesiones/Minutos).
+       Se mantiene oculto por compatibilidad; loadTiempoUsuarios llena la lista de usuarios. -->
+  <div style="display:none;">
+  <div class="section-head" style="margin-top:34px;">
+    <h2>⏱ Tiempo por usuario</h2>
+  </div>
+  <p class="metrics-note" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin:-8px 0 14px;">Cuánto tiempo pasa cada entrenador en la app y cuántas veces entró.</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Sesiones</th>
+          <th>Minutos totales</th>
+          <th>Promedio por sesión</th>
+          <th>Última visita</th>
+        </tr>
+      </thead>
+      <tbody id="tiempoRows"><tr><td colspan="5" class="empty">Cargando…</td></tr></tbody>
+    </table>
+  </div>
+  </div>
+
+  <!-- ============ NOTIFICACIONES ============ -->
+  <div class="section-head" style="margin-top:40px;">
+    <h2>🔔 Novedades para los usuarios</h2>
+  </div>
+  <p class="metrics-note" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin:-8px 0 14px;">Lo que escribas acá les aparece a los entrenadores en la campanita de la app.</p>
+
+  <div style="background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px;">
+    <div style="display:grid;grid-template-columns:1fr 180px;gap:10px;margin-bottom:10px;">
+      <input class="search" id="notifTitulo" type="text" placeholder="Título (ej: Nueva sección de video)" style="width:100%;">
+      <select class="search" id="notifTipo" style="cursor:pointer;">
+        <option value="novedad">✨ Novedad</option>
+        <option value="aviso">📣 Aviso</option>
+        <option value="recordatorio">⏰ Recordatorio</option>
+        <option value="info">ℹ️ Información</option>
+      </select>
+    </div>
+    <div style="margin-bottom:10px;">
+      <select class="search" id="notifDestino" style="cursor:pointer;width:100%;">
+        <option value="">📢 Enviar a todos los clubes</option>
+      </select>
+    </div>
+    <textarea id="notifCuerpo" class="search" rows="3" placeholder="Mensaje que van a leer los entrenadores..." style="width:100%;resize:vertical;font-family:inherit;"></textarea>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px;">
+      <button class="btn-mini" id="notifPublicar">Publicar novedad</button>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Tipo</th>
+          <th>Para</th>
+          <th>Título</th>
+          <th>Mensaje</th>
+          <th style="text-align:right;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="notifRows"><tr><td colspan="6" class="empty">Cargando…</td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- ============ VENDEDORES Y COMISIONES ============ -->
+  <div class="section-head" style="margin-top:40px;">
+    <h2>🤝 Vendedores</h2>
+  </div>
+  <p class="metrics-note" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin:-8px 0 14px;">Cada vendedor tiene un código. Quien lo usa recibe descuento y el vendedor cobra comisión en cada pago.</p>
+
+  <div style="background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px;">
+    <div style="display:grid;grid-template-columns:1.4fr 1fr 90px 90px;gap:10px;margin-bottom:10px;">
+      <input class="search" id="vendNombre" type="text" placeholder="Nombre (ej: Nahuel Pérez)">
+      <input class="search" id="vendCodigo" type="text" placeholder="Código (ej: NAHUEL10)" style="text-transform:uppercase;">
+      <input class="search" id="vendComision" type="number" placeholder="% com." value="10" min="0" max="50" title="Comisión del vendedor">
+      <input class="search" id="vendDescuento" type="number" placeholder="% desc." value="5" min="0" max="50" title="Descuento para el cliente">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <input class="search" id="vendWhatsapp" type="text" placeholder="WhatsApp (opcional)">
+      <input class="search" id="vendEmail" type="text" placeholder="Email (opcional)">
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+      <button class="btn-mini" id="vendCrear">+ Agregar vendedor</button>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Vendedor</th>
+          <th>Código</th>
+          <th>Comisión</th>
+          <th>Clubes</th>
+          <th>Pendiente</th>
+          <th>Pagado</th>
+          <th style="text-align:right;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="vendRows"><tr><td colspan="7" class="empty">Cargando…</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="section-head" style="margin-top:30px;">
+    <h2>💰 Comisiones pendientes de pago</h2>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Vendedor</th>
+          <th>Club</th>
+          <th>Pack</th>
+          <th>Pagó</th>
+          <th>Comisión</th>
+          <th style="text-align:right;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="comisionRows"><tr><td colspan="7" class="empty">Cargando…</td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- Modal confirmar pago -->
+  <div class="modal-overlay" id="payModal">
+    <div class="modal" style="max-width:380px;">
+      <div class="modal-head">
+        <div><h3 id="payClubName">Confirmar pago</h3><div class="sub">Elegí el período pagado</div></div>
+        <button class="modal-close" id="payClose">✕</button>
+      </div>
+      <div style="padding:6px 2px 4px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;">Pack contratado</div>
+        <div class="pay-months" id="payPacks" style="grid-template-columns:1fr 1fr 1fr;">
+          <button class="pay-month-btn selected" data-pack="entrenador">Entrenador<br><small>2 categorías</small></button>
+          <button class="pay-month-btn" data-pack="multi">Multi<br><small>4 categorías</small></button>
+          <button class="pay-month-btn" data-pack="club">Club<br><small>8 categorías</small></button>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:12px 0 6px;">Período pagado</div>
+        <div class="pay-months" id="payMonths">
+          <button class="pay-month-btn selected" data-months="1">1 mes</button>
+          <button class="pay-month-btn" data-months="3">3 meses</button>
+          <button class="pay-month-btn" data-months="6">6 meses</button>
+          <button class="pay-month-btn" data-months="12">12 meses</button>
+        </div>
+        <div class="pay-info" id="payInfo"></div>
+        <button class="btn-primary" id="payConfirm" style="width:100%;margin-top:14px;">Confirmar pago y activar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="readonly-note">
+    <span class="lock">🔒</span>
+    Acceso de solo lectura a los datos de los usuarios. La única acción permitida es bloquear o desbloquear el acceso.
+  </div>
+
+</div>
+
+<!-- Modal actividad por usuario (sin contenido privado) -->
+<div class="modal-overlay" id="activityModal">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-head">
+      <div><h3>Actividad por usuario</h3><div class="sub">Cuánto trabaja cada uno. No se muestra el contenido de sus proyectos.</div></div>
+      <button class="modal-close" id="activityClose">✕</button>
+    </div>
+    <div class="table-wrap" style="margin-top:8px;">
+      <table>
+        <thead><tr><th>Usuario</th><th>Club</th><th style="text-align:center;">Proyectos</th><th>Última actividad</th></tr></thead>
+        <tbody id="activityRows"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="clubesModal">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-head">
+      <div><h3>Clubes que usan Benchone</h3><div class="sub">Clubes distintos según lo que cargó cada entrenador en su perfil.</div></div>
+      <button class="modal-close" id="clubesModalClose">✕</button>
+    </div>
+    <div class="table-wrap" style="margin-top:8px;">
+      <table>
+        <thead><tr><th>Club</th><th style="text-align:center;">Usuarios</th></tr></thead>
+        <tbody id="clubesModalRows"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: quién hace las fichas de scouting -->
+<div class="modal-overlay" id="scoutingModal">
+  <div class="modal" style="max-width:900px;">
+    <div class="modal-head">
+      <div>
+        <h3>Fichas de scouting</h3>
+        <div class="sub">Quiénes las están haciendo. El autor queda grabado al crear la ficha.</div>
+      </div>
+      <button class="modal-close" id="scoutingClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="sc-kpis" id="scKpis"></div>
+      <div class="sc-tabs">
+        <button class="sc-tab on" data-sc="0">Por usuario</button>
+        <button class="sc-tab" data-sc="1">Últimas fichas</button>
+        <button class="sc-tab" data-sc="2">Entran y no guardan</button>
+      </div>
+
+      <div class="sc-pane on" id="scPane0">
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Usuario</th><th>Club</th><th style="text-align:right;">Fichas</th>
+              <th style="text-align:right;">Cat.</th><th>Primera</th><th>Última</th><th>Estado</th>
+            </tr></thead>
+            <tbody id="scRows0"></tbody>
+          </table>
+        </div>
+        <button class="btn small" id="scCsv" style="margin-top:12px;">⬇ Descargar CSV</button>
+      </div>
+
+      <div class="sc-pane" id="scPane1">
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Rival</th><th>Autor</th><th>Club</th><th>Categoría</th>
+              <th style="text-align:right;">Texto</th><th>Actualizada</th><th></th>
+            </tr></thead>
+            <tbody id="scRows1"></tbody>
+          </table>
+        </div>
+        <p class="readonly-note"><span class="lock">🔒</span> Se muestra cuánto texto tiene cada ficha, no su contenido.</p>
+      </div>
+
+      <div class="sc-pane" id="scPane2">
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Usuario</th><th>Club</th><th style="text-align:right;">Visitas</th>
+              <th style="text-align:right;">Minutos</th><th>Primer día</th><th>Último día</th>
+            </tr></thead>
+            <tbody id="scRows2"></tbody>
+          </table>
+        </div>
+        <p class="readonly-note"><span class="lock">💡</span> Sale de las métricas de uso, así que también cubre el período anterior a este cambio. Muchos minutos y cero fichas marca dónde se traba la gente.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: quién carga los partidos en vivo -->
+<div class="modal-overlay" id="liveModal">
+  <div class="modal" style="max-width:900px;">
+    <div class="modal-head">
+      <div>
+        <h3>Partidos cargados en vivo</h3>
+        <div class="sub">Quiénes los están cargando. El autor queda grabado al finalizar el partido.</div>
+      </div>
+      <button class="modal-close" id="liveClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="sc-kpis" id="lvKpis"></div>
+      <div class="sc-tabs">
+        <button class="sc-tab on" data-lv="0">Por usuario</button>
+        <button class="sc-tab" data-lv="1">Últimos partidos</button>
+      </div>
+
+      <div class="sc-pane on" id="lvPane0">
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Usuario</th><th>Club</th><th style="text-align:right;">Partidos</th>
+              <th style="text-align:right;">Cat.</th><th>Primero</th><th>Último</th><th>Estado</th>
+            </tr></thead>
+            <tbody id="lvRows0"></tbody>
+          </table>
+        </div>
+        <button class="btn small" id="lvCsv" style="margin-top:12px;">⬇ Descargar CSV</button>
+      </div>
+
+      <div class="sc-pane" id="lvPane1">
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Rival</th><th>Autor</th><th>Club</th><th>Categoría</th>
+              <th style="text-align:right;">Jugadores</th><th>Cargado</th>
+            </tr></thead>
+            <tbody id="lvRows1"></tbody>
+          </table>
+        </div>
+        <p class="readonly-note"><span class="lock">🔒</span> Se muestra cuántos jugadores tuvo el partido, no el detalle de los datos.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: resetear la contraseña de un usuario -->
+<div class="modal-overlay" id="resetPwdModal" style="z-index:60;">
+  <div class="modal" style="max-width:470px;">
+    <div class="modal-head">
+      <div>
+        <h3>Resetear contraseña</h3>
+        <div class="sub">Para ayudar a un entrenador que no puede entrar.</div>
+      </div>
+      <button class="modal-close" id="resetPwdClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="rp-user">
+        <b id="rpName">—</b>
+        <span id="rpEmail">—</span>
+      </div>
+
+      <div class="rp-opt reco">
+        <h4>Mandarle un mail <span class="rp-tag">recomendado</span></h4>
+        <p>Le llega un link para que elija ella misma la contraseña. Vos nunca la ves. El link vence en una hora.</p>
+        <button class="btn small primary" id="rpSendMail" style="width:100%;">Enviar mail de recuperación</button>
+      </div>
+
+      <div class="rp-opt">
+        <h4>Ponerle una temporal</h4>
+        <p>Para cuando el mail no le llega. Se la dictás por privado y le pedís que la cambie apenas entre, con el botón 🔑 de la app.</p>
+        <div class="rp-pass">
+          <input type="text" id="rpTempPass" spellcheck="false">
+          <button class="btn small" id="rpGen" title="Generar otra">↻</button>
+          <button class="btn small" id="rpCopy" title="Copiar">📋</button>
+        </div>
+        <button class="btn small" id="rpApply" style="width:100%;margin-top:10px;">Aplicar esta contraseña</button>
+      </div>
+
+      <div class="rp-msg" id="rpMsg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal detalle usuario -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h3 id="mName">—</h3>
+        <div class="sub" id="mEmail">—</div>
+      </div>
+      <button class="modal-close" id="modalClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="ro-banner"><span>🔒</span> Estás viendo la información en modo solo lectura. No se puede editar.</div>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="k">WhatsApp</div><div class="v" id="mWhatsapp">—</div></div>
+        <div class="detail-item"><div class="k">Club / institución</div><div class="v" id="mClubName">—</div></div>
+        <div class="detail-item"><div class="k">Rol que dirige</div><div class="v" id="mCoachRole">—</div></div>
+        <div class="detail-item"><div class="k">Categorías</div><div class="v" id="mCoachCategories">—</div></div>
+        <div class="detail-item"><div class="k">Cómo se enteró</div><div class="v" id="mCoachSource">—</div></div>
+        <div class="detail-item"><div class="k">Registrado</div><div class="v" id="mSince">—</div></div>
+        <div class="detail-item"><div class="k">Último acceso</div><div class="v" id="mLast">—</div></div>
+        <div class="detail-item"><div class="k">Estado</div><div class="v" id="mStatus">—</div></div>
+      </div>
+      <div id="mWhatsappBtnWrap" style="margin-top:6px;"></div>
+
+      <!-- Gestión de suscripción del usuario (actúa sobre su club) -->
+      <div id="mSubSection" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line);">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Suscripción</div>
+        <div id="mSubInfo" style="font-size:13px;color:var(--muted);margin-bottom:10px;"></div>
+        <div id="mSubBtns" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);align-self:center;">ID: <span id="mId">—</span></span>
+      <div class="danger-zone">
+        <button class="btn-soft" id="mResetPwdBtn">🔑 Resetear contraseña</button>
+        <button class="btn-warning" id="mBlockBtn">Bloquear usuario</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /#adminApp -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
+<script>
+// ============ CONFIG SUPABASE ============
+const SUPABASE_URL = 'https://pzhouyxvfgkufmnqokeh.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_kSd8QnrUeB0SvHVtWlarCA_BAYas52j';
+
+// ============ MAIL DE SOPORTE (COMPLETAR DESPUÉS) ============
+// Cuando tengas tu mail de soporte, ponelo acá entre las comillas.
+// Ej: 'soporte@cancha-edit.com' o tu mail personal.
+window.__SUPPORT_EMAIL = '';
+
+const memoryStore = {};
+const safeStorage = {
+  getItem: (k) => { try { return window.localStorage.getItem(k); } catch(e) { return memoryStore[k] ?? null; } },
+  setItem: (k, v) => { try { window.localStorage.setItem(k, v); } catch(e) { memoryStore[k] = v; } },
+  removeItem: (k) => { try { window.localStorage.removeItem(k); } catch(e) { delete memoryStore[k]; } }
+};
+
+// Cargador con respaldo por si un CDN está bloqueado
+async function ensureSupabase(){
+  if(window.supabase) return true;
+  const urls = [
+    'https://unpkg.com/@supabase/supabase-js@2.39.7/dist/umd/supabase.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/supabase/2.39.7/supabase.min.js'
+  ];
+  for(const url of urls){
+    try{
+      await new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=url; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
+      if(window.supabase) return true;
+    }catch(e){}
+  }
+  return !!window.supabase;
+}
+
+let sb = null;
+
+// ============ ESTADO ============
+let users = [];
+
+// ============ LOGIN DE ADMIN ============
+const loginForm = document.getElementById('adminLoginForm');
+const loginError = document.getElementById('loginError');
+const loginBtn = document.getElementById('adminLoginBtn');
+
+function showLoginError(msg){ loginError.textContent = msg; loginError.classList.add('show'); }
+function clearLoginError(){ loginError.classList.remove('show'); }
+
+// ===== Olvidé mi contraseña (envía link de reseteo al email) =====
+document.getElementById('adminForgotBtn').addEventListener('click', async () => {
+  clearLoginError();
+  const email = document.getElementById('adminEmail').value.trim();
+  if(!email){ showLoginError('Escribí tu email arriba y volvé a tocar "¿Olvidaste tu contraseña?".'); return; }
+  const s = await initSb();
+  if(!s) return;
+  try{
+    const { error } = await s.auth.resetPasswordForEmail(email);
+    if(error){ showLoginError('No se pudo enviar: ' + error.message); return; }
+    loginError.textContent = 'Listo. Te enviamos un mail a ' + email + ' con un link para crear una nueva contraseña. Revisá tu bandeja (y el spam).';
+    loginError.classList.add('show');
+    loginError.style.color = 'var(--success)';
+  }catch(err){ showLoginError('Error: ' + err.message); }
+});
+
+async function initSb(){
+  if(sb) return sb;
+  const ok = await ensureSupabase();
+  if(!ok){ showLoginError('No se pudo cargar el servicio. Probá con otra red o desactivá extensiones del navegador.'); return null; }
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth:{ storage:safeStorage, persistSession:true, autoRefreshToken:true } });
+  return sb;
+}
+
+// Verifica que el usuario logueado sea administrador de plataforma.
+async function checkIsAdmin(userId){
+  const { data, error } = await sb.from('profiles').select('is_platform_admin').eq('id', userId).single();
+  if(error){ console.error(error); return false; }
+  return !!(data && data.is_platform_admin);
+}
+
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  clearLoginError();
+  const email = document.getElementById('adminEmail').value.trim();
+  const password = document.getElementById('adminPassword').value;
+  if(!email || !password){ showLoginError('Completá email y contraseña.'); return; }
+  loginBtn.disabled = true; loginBtn.textContent = 'Entrando…';
+  await initSb();
+  if(!sb){ loginBtn.disabled=false; loginBtn.textContent='Entrar'; return; }
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  if(error){
+    loginBtn.disabled=false; loginBtn.textContent='Entrar';
+    showLoginError(error.message.includes('Invalid') ? 'Email o contraseña incorrectos.' : error.message);
+    return;
+  }
+  const isAdmin = await checkIsAdmin(data.user.id);
+  if(!isAdmin){
+    await sb.auth.signOut();
+    loginBtn.disabled=false; loginBtn.textContent='Entrar';
+    showLoginError('Esta cuenta no tiene permisos de administrador.');
+    return;
+  }
+  document.getElementById('adminUserEmail').textContent = data.user.email;
+  document.body.classList.add('admin-active');
+  loginBtn.disabled=false; loginBtn.textContent='Entrar';
+  loadUsers();
+  loadClubs();
+  loadMetrics();
+  loadUso();
+});
+
+document.getElementById('adminLogoutBtn').addEventListener('click', async () => {
+  if(sb) { try{ await sb.auth.signOut(); }catch(e){} }
+  document.body.classList.remove('admin-active');
+});
+
+// Precio de referencia para el ingreso estimado (se guarda en este navegador)
+(function initPrice(){
+  const input = document.getElementById('priceInput');
+  if(!input) return;
+  const saved = localStorage.getItem('ce_admin_price');
+  if(saved) input.value = saved;
+  input.addEventListener('input', () => {
+    localStorage.setItem('ce_admin_price', input.value);
+    renderRevenue();
+  });
+})();
+
+// Botón actualizar métricas
+document.getElementById('refreshMetrics')?.addEventListener('click', () => {
+  const btn = document.getElementById('refreshMetrics');
+  if(btn){ btn.disabled = true; btn.textContent = '↻ Actualizando…'; }
+  Promise.all([loadClubs(), loadMetrics()]).finally(() => {
+    if(btn){ btn.disabled = false; btn.textContent = '↻ Actualizar'; }
+  });
+});
+
+// Si ya había sesión de admin, entrar directo
+(async () => {
+  await initSb();
+  if(!sb) return;
+  const { data:{ session } } = await sb.auth.getSession();
+  if(session){
+    const isAdmin = await checkIsAdmin(session.user.id);
+    if(isAdmin){
+      document.getElementById('adminUserEmail').textContent = session.user.email;
+      document.body.classList.add('admin-active');
+      loadUsers();
+      loadClubs();
+      loadMetrics();
+      loadUso();
+    }
+  }
+})();
+
+// ============ CARGA DE USUARIOS REALES ============
+function timeAgo(ts){
+  if(!ts) return 'Nunca';
+  const diff = Date.now() - new Date(ts).getTime();
+  const min = Math.floor(diff/60000);
+  if(min < 5) return 'Ahora';
+  if(min < 60) return 'Hace ' + min + ' min';
+  const h = Math.floor(min/60);
+  if(h < 24) return 'Hace ' + h + (h===1?' hora':' horas');
+  const d = Math.floor(h/24);
+  if(d < 7) return 'Hace ' + d + (d===1?' día':' días');
+  return new Date(ts).toLocaleDateString('es-AR');
+}
+function isOnline(ts){
+  if(!ts) return false;
+  return (Date.now() - new Date(ts).getTime()) < 5*60000;
+}
+function fmtDate(ts){
+  if(!ts) return '—';
+  return new Date(ts).toLocaleDateString('es-AR', {day:'numeric', month:'short', year:'numeric'});
+}
+
+async function loadUsers(){
+  const rowsEl = document.getElementById('userRows');
+  rowsEl.innerHTML = '<tr><td colspan="8"><div class="loading-note">Cargando usuarios…</div></td></tr>';
+  try{
+    // Perfiles + email (vía join a auth no es directo con anon; usamos profiles y memberships)
+    const { data: profiles, error: pErr } = await sb.from('profiles')
+      .select('id, full_name, email, whatsapp, club_name, coach_role, coach_categories, coach_source, is_blocked, is_platform_admin, last_seen, created_at, sub_status, sub_until, sub_paid_at, pack, cobro_activado');
+    if(pErr) throw pErr;
+
+    // Membresías (club + rol) de todos
+    const { data: memberships } = await sb.from('memberships').select('user_id, role, club_id');
+    // Clubes
+    const { data: clubs } = await sb.from('clubs').select('id, name');
+    // Proyectos (para contar por club -> por usuario creador)
+    const { data: projects } = await sb.from('projects').select('id, name, club_id, created_by, created_at');
+
+    const clubById = {};
+    (clubs||[]).forEach(c => clubById[c.id] = c.name);
+
+    users = (profiles||[]).map(p => {
+      const mem = (memberships||[]).find(m => m.user_id === p.id);
+      // Club para el listado: primero el de la membresía (entidad club);
+      // si no tiene, usamos el club_name que el usuario escribió en su perfil.
+      // Así el listado coincide con lo que muestra la ficha del usuario.
+      const clubDeMembresia = mem ? (clubById[mem.club_id] || '') : '';
+      const clubName = clubDeMembresia || p.club_name || '—';
+      const clubId = mem ? mem.club_id : null;
+      const userProjects = (projects||[]).filter(pr => pr.created_by === p.id)
+        .map(pr => ({ name: pr.name, date: fmtDate(pr.created_at) }));
+      return {
+        id: p.id,
+        name: p.full_name || '(sin nombre)',
+        email: p.email || '',
+        whatsapp: p.whatsapp || '',
+        clubName: p.club_name || '',
+        coachRole: p.coach_role || '',
+        coachCategories: p.coach_categories || '',
+        coachSource: p.coach_source || '',
+        club: clubName,
+        clubId: clubId,
+        isOwner: mem ? (mem.role === 'owner') : false,
+        role: mem ? (mem.role === 'owner' ? 'Dueño' : 'Entrenador') : '—',
+        blocked: !!p.is_blocked,
+        isAdmin: !!p.is_platform_admin,
+        online: isOnline(p.last_seen),
+        last: timeAgo(p.last_seen),
+        lastSeenRaw: p.last_seen ? new Date(p.last_seen).getTime() : 0,
+        since: fmtDate(p.created_at),
+        createdAtRaw: p.created_at ? new Date(p.created_at).getTime() : 0,
+        subStatus: p.sub_status || 'trial',
+        subUntil: p.sub_until || null,
+        subPaidAt: p.sub_paid_at || null,
+        pack: p.pack || 'entrenador',
+        cobroActivado: !!p.cobro_activado,
+        projects: userProjects
+      };
+    });
+
+    updateStats();
+    render();
+    if(typeof renderExpiring === 'function' && clubs.length) renderExpiring();
+  }catch(err){
+    console.error(err);
+    rowsEl.innerHTML = '<tr><td colspan="8"><div class="loading-note">No se pudieron cargar los usuarios. ' + (err.message||'') + '</div></td></tr>';
+  }
+}
+
+// ==================== SUSCRIPCIONES / CLUBES ====================
+let clubs = [];
+function daysLeft(club){
+  let end = null;
+  if(club.subscription_status === 'active') end = club.subscription_ends_at;
+  else if(club.subscription_status === 'trial') end = club.trial_ends_at;
+  if(!end) return null;
+  const ms = new Date(end).getTime() - Date.now();
+  return Math.ceil(ms / (1000*60*60*24));
+}
+function clubStatusInfo(club){
+  const d = daysLeft(club);
+  const st = club.subscription_status;
+  if(st === 'active'){
+    if(d !== null && d < 0) return { label:'Vencido', color:'var(--danger)' };
+    return { label:'Activo', color:'var(--success)' };
+  }
+  if(st === 'trial'){
+    if(d !== null && d < 0) return { label:'Prueba vencida', color:'var(--danger)' };
+    return { label:'Prueba', color:'var(--accent-2, #2F8FCB)' };
+  }
+  return { label:'Vencido', color:'var(--danger)' };
+}
+async function loadClubs(){
+  const rows = document.getElementById('clubRows');
+  if(rows) rows.innerHTML = '<tr><td colspan="5"><div class="loading-note">Cargando clubes…</div></td></tr>';
+  try{
+    const { data, error } = await sb.from('clubs')
+      .select('id, name, subscription_status, trial_ends_at, subscription_ends_at, created_at, pack, es_fundador, descuento_pct, vendedor_id, codigo_usado');
+    if(error) throw error;
+    clubs = data || [];
+    renderClubs();
+    renderSubscriptionMetrics();   // métricas de suscripción salen de este mismo array
+  }catch(err){
+    console.error(err);
+    if(rows) rows.innerHTML = '<tr><td colspan="5"><div class="loading-note">No se pudieron cargar los clubes. '+(err.message||'')+'</div></td></tr>';
+  }
+}
+
+// Métricas de suscripción: se calculan del array `clubs` ya cargado (sin consultas extra).
+function renderSubscriptionMetrics(){
+  const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent = v; };
+  let activas=0, prueba=0, vencidas=0, porVencer=0;
+  (clubs||[]).forEach(c => {
+    const d = daysLeft(c);
+    const st = c.subscription_status;
+    if(st === 'active'){
+      if(d !== null && d < 0) vencidas++;
+      else { activas++; if(d !== null && d <= 7) porVencer++; }
+    } else if(st === 'trial'){
+      if(d !== null && d < 0) vencidas++;
+      else { prueba++; if(d !== null && d <= 7) porVencer++; }
+    } else {
+      vencidas++;
+    }
+  });
+  set('mActive', activas);
+  set('mTrial', prueba);
+  set('mExpired', vencidas);
+  set('mExpiring', porVencer);
+  // NOTA: el cartel "Clubes" ya NO usa (clubs||[]).length (la tabla formal 'clubs',
+  // que casi siempre tiene 1 fila). Ahora cuenta los clubes DISTINTOS de los perfiles
+  // vía actualizarClubesDistintos() en updateStats(). Por eso acá no seteamos 'mClubs'.
+  if(typeof actualizarClubesDistintos === 'function') actualizarClubesDistintos();
+  // guardamos para el cálculo de ingreso
+  window.__counts = { activas, prueba, vencidas, porVencer, total:(clubs||[]).length };
+  renderRevenue();
+}
+
+// Formatea un número como pesos: $ 12.500
+function fmtMoney(n){
+  if(!isFinite(n)) return '—';
+  return '$ ' + Math.round(n).toLocaleString('es-AR');
+}
+
+// Ingreso estimado = cuentas activas × precio mensual (referencia editable).
+function renderRevenue(){
+  const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent = v; };
+  const price = parseFloat(document.getElementById('priceInput')?.value) || 0;
+  const c = window.__counts || { activas:0, prueba:0, total:0 };
+  if(price <= 0){
+    set('mMRR','—'); set('mARR','—'); set('mPotential','—'); set('mTrialRev','—');
+    return;
+  }
+  const mrr = c.activas * price;              // ingreso mensual actual
+  set('mMRR', fmtMoney(mrr));
+  set('mARR', fmtMoney(mrr * 12));            // proyección a 12 meses
+  set('mPotential', fmtMoney(c.total * price)); // si TODOS pagaran
+  set('mTrialRev', fmtMoney(c.prueba * price)); // lo que sumarías si convertís los de prueba
+}
+
+// Métricas de contenido: vienen de una función segura que devuelve SOLO números.
+async function loadMetrics(){
+  const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent = v; };
+  try{
+    const { data, error } = await sb.rpc('admin_metrics');
+    if(error) throw error;
+    const m = data || {};
+    set('mUsers', m.users ?? '—');
+    set('mClubs', m.clubs ?? '—');
+    set('mProjects', m.video ?? '—');
+    set('mLiveSessions', m.live_sessions ?? '—');
+    set('mPlayers', m.players ?? '—');
+    set('mScouting', m.scouting ?? '—');
+    set('mNew30', m.new30 ?? '—');
+    set('mOnline', '—');   // "conectados ahora" no se puede medir sin infra extra; queda neutro
+  }catch(err){
+    console.error('metrics', err);
+    // Si la función aún no está creada en la base, avisamos suave sin romper el panel.
+    const note = document.getElementById('metricsNote');
+    if(note && /function|does not exist|404|not find/i.test(err.message||'')){
+      note.textContent = 'Para ver las métricas de contenido, falta correr el SQL "metricas-admin.sql" en Supabase. Las métricas de suscripción ya funcionan.';
+      note.style.color = 'var(--accent-2, #2F8FCB)';
+    }
+  }
+}
+
+// ============ MÉTRICAS DE USO ============
+function faltaSQL(err){
+  const m = (err && err.message || '').toLowerCase();
+  return /function|does not exist|404|not find|relation/.test(m);
+}
+const avisoSQL = '<tr><td colspan="6"><div class="loading-note">Falta correr los SQL de métricas (3-metricas-uso.sql y 4-funciones-metricas.sql) en Supabase.</div></td></tr>';
+
+async function loadSecciones(){
+  const rows = document.getElementById('seccionRows');
+  if(!rows) return;
+  const dias = parseInt(document.getElementById('usoDias')?.value || '30', 10);
+  try{
+    const { data, error } = await sb.rpc('admin_section_stats', { dias });
+    if(error) throw error;
+    const list = data || [];
+    if(list.length === 0){
+      rows.innerHTML = '<tr><td colspan="5"><div class="loading-note">Todavía no hay datos de uso. Se van a llenar a medida que los entrenadores usen la app.</div></td></tr>';
+      return;
+    }
+    const maxVisitas = Math.max(...list.map(s => Number(s.visitas) || 0), 1);
+    const NOMBRES = { video:'🎬 Video', stats:'📊 Estadísticas', training:'📋 Planificación', scouting:'🔍 Scouting', board:'✏️ Pizarra', live:'🔴 En Vivo' };
+    rows.innerHTML = list.map(s => {
+      const pct = Math.round((Number(s.visitas) || 0) / maxVisitas * 100);
+      return `<tr>
+        <td><b>${NOMBRES[s.section] || s.section}</b></td>
+        <td>${s.visitas}</td>
+        <td>${s.minutos}</td>
+        <td>${s.usuarios}</td>
+        <td><div style="background:var(--line);border-radius:4px;height:8px;width:100%;max-width:160px;overflow:hidden;">
+              <div style="background:var(--accent-2,#2F8FCB);height:100%;width:${pct}%;"></div>
+            </div></td>
+      </tr>`;
+    }).join('');
+  }catch(err){
+    console.error('secciones', err);
+    rows.innerHTML = faltaSQL(err) ? avisoSQL : '<tr><td colspan="5"><div class="loading-note">No se pudieron cargar las secciones.</div></td></tr>';
+  }
+}
+
+// Guarda el tiempo por usuario (email -> datos) para mostrarlo en la lista de usuarios
+window.__tiempoPorEmail = {};
+async function loadTiempoUsuarios(){
+  const dias = parseInt(document.getElementById('usoDias')?.value || '30', 10);
+  try{
+    const { data, error } = await sb.rpc('admin_user_time', { dias });
+    if(error) throw error;
+    const list = data || [];
+    // Guardamos en memoria para cruzarlo con la lista de usuarios (por email)
+    window.__tiempoPorEmail = {};
+    list.forEach(u => {
+      if(u.email) window.__tiempoPorEmail[u.email.toLowerCase()] = {
+        sesiones: u.sesiones,
+        minutos: u.minutos_totales,
+        promedio: u.minutos_promedio,
+        ultima: u.ultima_visita,
+        ultimaSesion: u.minutos_ultima_sesion
+      };
+    });
+    // Actualizamos la lista de usuarios para que muestre estos datos
+    if(typeof render === 'function') render();
+  }catch(err){
+    console.error('tiempo', err);
+  }
+}
+
+async function loadEspacio(){
+  const rows = document.getElementById('espacioRows');
+  const resumen = document.getElementById('espacioResumen');
+  if(!rows) return;
+  try{
+    const { data, error } = await sb.rpc('admin_storage_by_club');
+    if(error) throw error;
+    const list = data || [];
+    // Total y alerta de límite (plan gratuito de Supabase: 500 MB)
+    const totalKB = list.reduce((a, c) => a + (Number(c.kb_estimados) || 0), 0);
+    const totalMB = totalKB / 1024;
+    const LIMITE_MB = 500;
+    const pct = Math.min(100, Math.round(totalMB / LIMITE_MB * 100));
+    let color = 'var(--success,#4CAF6D)', msg = 'Espacio holgado.';
+    if(pct >= 80){ color = 'var(--danger,#F0553F)'; msg = '⚠️ Cerca del límite. Conviene pasar a un plan pago de Supabase (8 GB).'; }
+    else if(pct >= 50){ color = '#E0A93B'; msg = 'Uso moderado. Todavía hay lugar.'; }
+    if(resumen){
+      resumen.innerHTML = `
+        <div style="background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;">
+            <div style="font-family:'Oswald',sans-serif;font-size:22px;">${totalMB.toFixed(1)} MB <span style="font-size:13px;color:var(--muted);">de ${LIMITE_MB} MB</span></div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:${color};">${pct}% usado · ${msg}</div>
+          </div>
+          <div style="background:var(--line);border-radius:5px;height:10px;margin-top:10px;overflow:hidden;">
+            <div style="background:${color};height:100%;width:${pct}%;"></div>
+          </div>
+        </div>`;
+    }
+    if(list.length === 0){
+      rows.innerHTML = '<tr><td colspan="6"><div class="loading-note">Sin clubes.</div></td></tr>';
+      return;
+    }
+    rows.innerHTML = list.map(c => {
+      const kb = Number(c.kb_estimados) || 0;
+      const txt = kb > 1024 ? (kb/1024).toFixed(1)+' MB' : kb.toFixed(0)+' KB';
+      const jug = Number(c.jugadores) || 0;
+      // Destacamos la columna de jugadores: verde si cargó plantel, gris apagado si no.
+      const jugStyle = jug > 0
+        ? 'font-weight:700;color:var(--success,#4CAF6D);font-size:15px;'
+        : 'color:var(--muted);opacity:0.6;';
+      return `<tr>
+        <td><b>${c.club_name || '—'}</b></td>
+        <td class="col-jugadores" style="${jugStyle}">${jug > 0 ? jug : '0'}</td>
+        <td>${c.fotos}</td>
+        <td>${c.partidos}</td>
+        <td>${c.semanas}</td>
+        <td style="color:var(--muted);">${txt}</td>
+      </tr>`;
+    }).join('');
+  }catch(err){
+    console.error('espacio', err);
+    rows.innerHTML = faltaSQL(err) ? avisoSQL : '<tr><td colspan="6"><div class="loading-note">No se pudo cargar el espacio.</div></td></tr>';
+    if(resumen) resumen.innerHTML = '';
+  }
+}
+
+function loadUso(){
+  loadSecciones();
+  loadTiempoUsuarios();
+  loadEspacio();
+  loadNotificaciones();
+  loadVendedores();
+  loadComisiones();
+}
+
+// ============ VENDEDORES ============
+function fmtPeso(n){ return '$ ' + Math.round(Number(n)||0).toLocaleString('es-AR'); }
+
+async function loadVendedores(){
+  const rows = document.getElementById('vendRows');
+  if(!rows) return;
+  try{
+    const { data, error } = await sb.rpc('admin_resumen_vendedores');
+    if(error) throw error;
+    const list = data || [];
+    if(list.length === 0){
+      rows.innerHTML = '<tr><td colspan="7"><div class="loading-note">Todavía no cargaste vendedores. Agregá uno arriba.</div></td></tr>';
+      return;
+    }
+    rows.innerHTML = list.map(v => `
+      <tr${v.activo ? '' : ' style="opacity:.45;"'}>
+        <td><b>${(v.nombre||'').replace(/</g,'&lt;')}</b>${v.activo ? '' : '<br><span style="font-size:10px;color:var(--muted);">INACTIVO</span>'}</td>
+        <td><span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent-2);">${(v.codigo||'').replace(/</g,'&lt;')}</span></td>
+        <td>${v.comision_pct}% <span style="font-size:11px;color:var(--muted);">(cliente ${v.descuento_pct}%)</span></td>
+        <td>${v.clubes_traidos}</td>
+        <td style="color:${Number(v.pendiente_pago)>0 ? '#E0A93B' : 'var(--muted)'};"><b>${fmtPeso(v.pendiente_pago)}</b></td>
+        <td style="color:var(--muted);">${fmtPeso(v.ya_pagado)}</td>
+        <td style="text-align:right;white-space:nowrap;">
+          <button class="btn-mini vend-toggle" data-id="${v.vendedor_id}" data-on="${v.activo?1:0}">${v.activo?'Desactivar':'Activar'}</button>
+          <button class="btn-mini danger vend-del" data-id="${v.vendedor_id}" data-nombre="${(v.nombre||'').replace(/"/g,'')}">Borrar</button>
+        </td>
+      </tr>`).join('');
+    rows.querySelectorAll('.vend-toggle').forEach(b => b.addEventListener('click', () => toggleVendedor(b.dataset.id, b.dataset.on === '1')));
+    rows.querySelectorAll('.vend-del').forEach(b => b.addEventListener('click', () => borrarVendedor(b.dataset.id, b.dataset.nombre)));
+  }catch(err){
+    console.error('vendedores', err);
+    rows.innerHTML = faltaSQL(err)
+      ? '<tr><td colspan="7"><div class="loading-note">Falta correr el SQL de vendedores (9-vendedores.sql) en Supabase.</div></td></tr>'
+      : '<tr><td colspan="7"><div class="loading-note">No se pudieron cargar los vendedores.</div></td></tr>';
+  }
+}
+
+document.getElementById('vendCrear')?.addEventListener('click', async () => {
+  const nombre = document.getElementById('vendNombre').value.trim();
+  const codigo = document.getElementById('vendCodigo').value.trim().toUpperCase();
+  const comision = parseInt(document.getElementById('vendComision').value, 10);
+  const descuento = parseInt(document.getElementById('vendDescuento').value, 10);
+  const whatsapp = document.getElementById('vendWhatsapp').value.trim();
+  const email = document.getElementById('vendEmail').value.trim();
+  if(!nombre || !codigo){ alert('Poné al menos nombre y código.'); return; }
+  if(!/^[A-Z0-9]{3,24}$/.test(codigo)){ alert('El código solo puede tener letras y números (3 a 24 caracteres), sin espacios.'); return; }
+  if(isNaN(comision) || comision < 0 || comision > 50){ alert('La comisión debe estar entre 0 y 50.'); return; }
+  if(isNaN(descuento) || descuento < 0 || descuento > 50){ alert('El descuento debe estar entre 0 y 50.'); return; }
+  try{
+    const { error } = await sb.from('vendedores').insert({
+      nombre, codigo, comision_pct: comision, descuento_pct: descuento,
+      whatsapp: whatsapp || null, email: email || null, activo: true
+    });
+    if(error) throw error;
+    ['vendNombre','vendCodigo','vendWhatsapp','vendEmail'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+    loadVendedores();
+    alert('Vendedor agregado. Su código es: ' + codigo);
+  }catch(e){
+    console.error(e);
+    if((e.message||'').includes('duplicate') || (e.code === '23505')){ alert('Ese código ya existe. Elegí otro.'); return; }
+    alert(faltaSQL(e) ? 'Falta correr el SQL de vendedores en Supabase.' : 'No se pudo agregar.');
+  }
+});
+
+async function toggleVendedor(id, estaActivo){
+  const msg = estaActivo
+    ? '¿Desactivar este vendedor?\n\nSu código deja de funcionar para clientes nuevos.\nLas comisiones ya generadas no se pierden.'
+    : '¿Activar este vendedor de nuevo?';
+  if(!confirm(msg)) return;
+  try{
+    const { error } = await sb.from('vendedores').update({ activo: !estaActivo }).eq('id', id);
+    if(error) throw error;
+    loadVendedores();
+  }catch(e){ alert('No se pudo actualizar.'); }
+}
+
+async function borrarVendedor(id, nombre){
+  if(!confirm('¿Borrar a ' + (nombre||'este vendedor') + '?\n\nOJO: se pierde el historial de sus comisiones.\nSi solo querés que deje de vender, mejor usá "Desactivar".')) return;
+  try{
+    const { error } = await sb.from('vendedores').delete().eq('id', id);
+    if(error) throw error;
+    loadVendedores();
+    loadComisiones();
+  }catch(e){ alert('No se pudo borrar. Puede que tenga comisiones asociadas: probá desactivarlo.'); }
+}
+
+// ============ COMISIONES ============
+async function loadComisiones(){
+  const rows = document.getElementById('comisionRows');
+  if(!rows) return;
+  try{
+    const { data, error } = await sb.from('comisiones')
+      .select('id, club_id, monto_pagado, comision_pct, comision_monto, pack, meses, pagada, created_at, vendedores(nombre)')
+      .eq('pagada', false)
+      .order('created_at', { ascending: false });
+    if(error) throw error;
+    const list = data || [];
+    if(list.length === 0){
+      rows.innerHTML = '<tr><td colspan="7"><div class="loading-note">No hay comisiones pendientes.</div></td></tr>';
+      return;
+    }
+    const nombreClub = (id) => {
+      const c = (clubs||[]).find(x => x.id === id);
+      return c ? (c.name||'Club').replace(/</g,'&lt;') : '—';
+    };
+    rows.innerHTML = list.map(c => {
+      const f = c.created_at ? new Date(c.created_at).toLocaleDateString('es-AR', {day:'2-digit',month:'2-digit',year:'2-digit'}) : '—';
+      const vend = (c.vendedores && c.vendedores.nombre) ? c.vendedores.nombre.replace(/</g,'&lt;') : '—';
+      return `<tr>
+        <td>${f}</td>
+        <td><b>${vend}</b></td>
+        <td>${nombreClub(c.club_id)}</td>
+        <td style="font-size:12px;color:var(--muted);">${c.pack||'—'} ${c.meses?('· '+c.meses+'m'):''}</td>
+        <td>${fmtPeso(c.monto_pagado)}</td>
+        <td style="color:#E0A93B;"><b>${fmtPeso(c.comision_monto)}</b> <span style="font-size:11px;color:var(--muted);">(${c.comision_pct}%)</span></td>
+        <td style="text-align:right;"><button class="btn-mini com-pagada" data-id="${c.id}">✓ Marcar pagada</button></td>
+      </tr>`;
+    }).join('');
+    rows.querySelectorAll('.com-pagada').forEach(b => b.addEventListener('click', () => marcarComisionPagada(b.dataset.id)));
+  }catch(err){
+    console.error('comisiones', err);
+    rows.innerHTML = faltaSQL(err)
+      ? '<tr><td colspan="7"><div class="loading-note">Falta correr el SQL de vendedores (9-vendedores.sql) en Supabase.</div></td></tr>'
+      : '<tr><td colspan="7"><div class="loading-note">No se pudieron cargar las comisiones.</div></td></tr>';
+  }
+}
+
+async function marcarComisionPagada(id){
+  if(!confirm('¿Ya le transferiste esta comisión al vendedor?')) return;
+  try{
+    const { error } = await sb.from('comisiones')
+      .update({ pagada: true, pagada_at: new Date().toISOString() })
+      .eq('id', id);
+    if(error) throw error;
+    loadComisiones();
+    loadVendedores();
+  }catch(e){ alert('No se pudo actualizar.'); }
+}
+
+// ============ NOTIFICACIONES ============
+// Llena el selector con los clubes disponibles
+function llenarDestinatarios(){
+  const sel = document.getElementById('notifDestino');
+  if(!sel || !Array.isArray(clubs)) return;
+  const actual = sel.value;
+  sel.innerHTML = '<option value="">📢 Enviar a todos los clubes</option>' +
+    clubs.map(c => `<option value="${c.id}">🎯 Solo: ${(c.name||'Sin nombre').replace(/</g,'&lt;')}</option>`).join('');
+  sel.value = actual;
+}
+
+async function loadNotificaciones(){
+  const rows = document.getElementById('notifRows');
+  if(!rows) return;
+  llenarDestinatarios();
+  try{
+    const { data, error } = await sb.from('notifications')
+      .select('id,titulo,cuerpo,tipo,created_at,activa,club_id')
+      .order('created_at', { ascending: false });
+    if(error) throw error;
+    const list = data || [];
+    if(list.length === 0){
+      rows.innerHTML = '<tr><td colspan="6"><div class="loading-note">Todavía no publicaste novedades.</div></td></tr>';
+      return;
+    }
+    const ICO = { novedad:'✨', aviso:'📣', recordatorio:'⏰', info:'ℹ️' };
+    const nombreClub = (id) => {
+      if(!id) return '<span style="color:var(--muted);">Todos</span>';
+      const c = (clubs||[]).find(x => x.id === id);
+      return '🎯 ' + ((c && c.name) ? c.name.replace(/</g,'&lt;') : 'Club');
+    };
+    rows.innerHTML = list.map(n => {
+      const f = n.created_at ? new Date(n.created_at).toLocaleDateString('es-AR', {day:'2-digit',month:'2-digit',year:'2-digit'}) : '—';
+      const cuerpo = (n.cuerpo||'').length > 60 ? (n.cuerpo.slice(0,60)+'…') : (n.cuerpo||'');
+      return `<tr${n.activa===false?' style="opacity:.45;"':''}>
+        <td>${f}</td>
+        <td>${ICO[n.tipo]||''} ${n.tipo||''}</td>
+        <td style="font-size:12px;">${nombreClub(n.club_id)}</td>
+        <td><b>${(n.titulo||'').replace(/</g,'&lt;')}</b></td>
+        <td style="font-size:12px;color:var(--muted);">${cuerpo.replace(/</g,'&lt;')}</td>
+        <td style="text-align:right;"><button class="btn-mini danger" data-del="${n.id}">Borrar</button></td>
+      </tr>`;
+    }).join('');
+    rows.querySelectorAll('[data-del]').forEach(b => {
+      b.addEventListener('click', async () => {
+        if(!confirm('¿Borrar esta novedad? Deja de verse en la app.')) return;
+        try{
+          const { error } = await sb.from('notifications').delete().eq('id', b.dataset.del);
+          if(error) throw error;
+          loadNotificaciones();
+        }catch(e){ alert('No se pudo borrar.'); }
+      });
+    });
+  }catch(err){
+    console.error('notificaciones', err);
+    rows.innerHTML = faltaSQL(err)
+      ? '<tr><td colspan="6"><div class="loading-note">Falta correr el SQL de notificaciones (7-notificaciones.sql) en Supabase.</div></td></tr>'
+      : '<tr><td colspan="6"><div class="loading-note">No se pudieron cargar las novedades.</div></td></tr>';
+  }
+}
+
+document.getElementById('notifPublicar')?.addEventListener('click', async () => {
+  const titulo = document.getElementById('notifTitulo').value.trim();
+  const cuerpo = document.getElementById('notifCuerpo').value.trim();
+  const tipo = document.getElementById('notifTipo').value;
+  const destino = document.getElementById('notifDestino').value || null;
+  if(!titulo || !cuerpo){ alert('Poné título y mensaje.'); return; }
+  const aviso = destino
+    ? 'Este mensaje lo va a ver SOLO ese club. ¿Publicar?'
+    : 'Este mensaje lo van a ver TODOS los clubes. ¿Publicar?';
+  if(!confirm(aviso)) return;
+  try{
+    const { error } = await sb.from('notifications').insert({ titulo, cuerpo, tipo, club_id: destino, activa:true });
+    if(error) throw error;
+    document.getElementById('notifTitulo').value = '';
+    document.getElementById('notifCuerpo').value = '';
+    document.getElementById('notifDestino').value = '';
+    loadNotificaciones();
+    alert('Novedad publicada.');
+  }catch(e){
+    console.error(e);
+    alert(faltaSQL(e) ? 'Falta correr el SQL de notificaciones en Supabase.' : 'No se pudo publicar.');
+  }
+});
+
+function renderClubs(){
+  const rows = document.getElementById('clubRows');
+  if(!rows) return;
+  const q = (document.getElementById('clubSearch')?.value || '').toLowerCase();
+  const list = clubs.filter(c => (c.name||'').toLowerCase().includes(q));
+  if(list.length === 0){ rows.innerHTML = '<tr><td colspan="5"><div class="loading-note">Sin clubes.</div></td></tr>'; return; }
+  rows.innerHTML = '';
+  list.forEach(c => {
+    const info = clubStatusInfo(c);
+    const d = daysLeft(c);
+    const end = c.subscription_status==='active' ? c.subscription_ends_at : c.trial_ends_at;
+    const endTxt = end ? new Date(end).toLocaleDateString('es-AR') : '—';
+    const dTxt = d===null ? '—' : (d<0 ? ('vencido hace '+Math.abs(d)+'d') : (d+' días'));
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${escapeHtmlA(c.name||'Sin nombre')}</strong>${c.es_fundador ? ' <span title="Amigo fundador" style="color:#E0A93B;">🌟</span>' : ''}${c.pack && c.subscription_status==='active' ? `<br><span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Pack ${packNombre(c.pack)}</span>` : ''}${c.es_fundador && c.descuento_pct ? `<br><span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#E0A93B;">${c.descuento_pct}% descuento</span>` : ''}</td>
+      <td><span class="pill" style="background:${info.color}22;color:${info.color};border:1px solid ${info.color}">${info.label}</span></td>
+      <td>${endTxt}</td>
+      <td>${dTxt}</td>
+      <td style="text-align:right;white-space:nowrap;">
+        <button class="btn-mini act-founder" data-id="${c.id}" data-on="${c.es_fundador?1:0}">${c.es_fundador?'🌟 Quitar fundador':'☆ Hacer fundador'}</button>
+        <button class="btn-mini act-pay" data-id="${c.id}">💳 Confirmar pago</button>
+        <button class="btn-mini act-trial" data-id="${c.id}">Extender prueba</button>
+        <button class="btn-mini act-reset" data-id="${c.id}">🔑 Reset clave</button>
+        <button class="btn-mini danger act-expire" data-id="${c.id}">Vencer</button>
+      </td>`;
+    rows.appendChild(tr);
+  });
+  rows.querySelectorAll('.act-founder').forEach(b => b.addEventListener('click', () => toggleFundador(b.dataset.id, b.dataset.on === '1')));
+  rows.querySelectorAll('.act-pay').forEach(b => b.addEventListener('click', () => openPayModal(b.dataset.id)));
+  rows.querySelectorAll('.act-trial').forEach(b => b.addEventListener('click', () => extendTrial(b.dataset.id, 15)));
+  rows.querySelectorAll('.act-reset').forEach(b => b.addEventListener('click', () => resetClubOwnerPassword(b.dataset.id)));
+  rows.querySelectorAll('.act-expire').forEach(b => b.addEventListener('click', () => expireClub(b.dataset.id)));
+  renderExpiring();
+}
+
+// Devuelve el link de WhatsApp del dueño de un club (o null si no hay número).
+function waLinkForClub(clubId){
+  const owner = (users||[]).find(u => u.clubId === clubId && u.isOwner) || (users||[]).find(u => u.clubId === clubId);
+  if(!owner) return null;
+  const num = (owner.whatsapp||'').replace(/[^\d]/g,'');
+  if(num.length < 8) return null;
+  const full = num.startsWith('54') ? num : ('54' + num);
+  return { href:'https://wa.me/'+full, name: owner.name };
+}
+
+// Lista de clubes cuya suscripción/prueba vence en los próximos 7 días (o ya venció).
+function renderExpiring(){
+  const wrap = document.getElementById('expiringWrap');
+  if(!wrap) return;
+  // candidatos: días restantes entre -3 y 7 (por vencer, o recién vencidos)
+  const list = clubs.map(c => ({ c, d: daysLeft(c) }))
+    .filter(x => x.d !== null && x.d <= 7 && x.d >= -3)
+    .sort((a,b) => a.d - b.d);
+  if(list.length === 0){
+    wrap.innerHTML = '<div class="loading-note" style="padding:14px;">No hay clubes por vencer en los próximos 7 días. 👍</div>';
+    return;
+  }
+  let html = '<div class="table-wrap"><table><thead><tr><th>Club</th><th>Estado</th><th>Vence</th><th style="text-align:right;">Acción</th></tr></thead><tbody>';
+  list.forEach(({c, d}) => {
+    const end = c.subscription_status==='active' ? c.subscription_ends_at : c.trial_ends_at;
+    const endTxt = end ? new Date(end).toLocaleDateString('es-AR') : '—';
+    const cuando = d < 0 ? ('venció hace '+Math.abs(d)+'d') : (d===0 ? 'vence hoy' : ('en '+d+'d'));
+    const color = d < 0 ? 'var(--danger)' : (d <= 2 ? 'var(--danger)' : 'var(--accent-2)');
+    const tipo = c.subscription_status==='active' ? 'Suscripción' : 'Prueba';
+    const wa = waLinkForClub(c.id);
+    const waBtn = wa
+      ? `<a class="btn-mini" style="text-decoration:none;background:#25D36622;color:#25D366;border:1px solid #25D366;" target="_blank" href="${wa.href}">💬 WhatsApp</a>`
+      : `<span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);">sin WhatsApp</span>`;
+    html += `<tr>
+      <td><strong>${escapeHtmlA(c.name||'Sin nombre')}</strong></td>
+      <td><span style="color:${color};font-weight:600;">${tipo} · ${cuando}</span></td>
+      <td>${endTxt}</td>
+      <td style="text-align:right;white-space:nowrap;">
+        ${waBtn}
+        <button class="btn-mini act-pay-exp" data-id="${c.id}">💳 Confirmar pago</button>
+      </td>`;
+    html += '</tr>';
+  });
+  html += '</tbody></table></div>';
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('.act-pay-exp').forEach(b => b.addEventListener('click', () => openPayModal(b.dataset.id)));
+}
+function escapeHtmlA(s){ return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+let payClubId = null;
+let paySelMonths = 1;
+let paySelPack = 'entrenador';
+function openPayModal(clubId){
+  payClubId = clubId; paySelMonths = 1;
+  const c = clubs.find(x=>x.id===clubId);
+  // preseleccionar el pack actual del club (si ya tiene uno), sino Entrenador
+  paySelPack = (c && c.pack) || 'entrenador';
+  document.getElementById('payClubName').textContent = 'Confirmar pago · ' + (c ? c.name : '');
+  document.querySelectorAll('#payMonths .pay-month-btn').forEach(b=>b.classList.toggle('selected', b.dataset.months==='1'));
+  document.querySelectorAll('#payPacks .pay-month-btn').forEach(b=>b.classList.toggle('selected', b.dataset.pack===paySelPack));
+  updatePayInfo();
+  document.getElementById('payModal').classList.add('show');
+}
+function packNombre(key){
+  return key==='multi' ? 'Multi' : key==='club' ? 'Club' : 'Entrenador';
+}
+function updatePayInfo(){
+  const c = clubs.find(x=>x.id===payClubId);
+  const base = (c && c.subscription_ends_at && new Date(c.subscription_ends_at)>new Date()) ? new Date(c.subscription_ends_at) : new Date();
+  const end = new Date(base); end.setMonth(end.getMonth() + paySelMonths);
+  document.getElementById('payInfo').innerHTML = 'Pack <b>' + packNombre(paySelPack) + '</b> · activa hasta el <b>' + end.toLocaleDateString('es-AR') + '</b>';
+}
+document.querySelectorAll('#payMonths .pay-month-btn').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    paySelMonths = parseInt(b.dataset.months,10);
+    document.querySelectorAll('#payMonths .pay-month-btn').forEach(x=>x.classList.toggle('selected', x===b));
+    updatePayInfo();
+  });
+});
+document.querySelectorAll('#payPacks .pay-month-btn').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    paySelPack = b.dataset.pack;
+    document.querySelectorAll('#payPacks .pay-month-btn').forEach(x=>x.classList.toggle('selected', x===b));
+    updatePayInfo();
+  });
+});
+document.getElementById('payClose').addEventListener('click', ()=>document.getElementById('payModal').classList.remove('show'));
+document.getElementById('payModal').addEventListener('click', e=>{ if(e.target.id==='payModal') e.target.classList.remove('show'); });
+document.getElementById('payConfirm').addEventListener('click', async ()=>{
+  const c = clubs.find(x=>x.id===payClubId);
+  const base = (c && c.subscription_ends_at && new Date(c.subscription_ends_at)>new Date()) ? new Date(c.subscription_ends_at) : new Date();
+  const end = new Date(base); end.setMonth(end.getMonth() + paySelMonths);
+  const { error } = await sb.from('clubs').update({ subscription_status:'active', subscription_ends_at: end.toISOString(), pack: paySelPack }).eq('id', payClubId);
+  if(error){ alert('No se pudo confirmar: '+error.message); return; }
+
+  // Si el club vino por un vendedor, registramos su comisión
+  if(c && c.vendedor_id){
+    const monto = await pedirMontoPagado(c, paySelPack, paySelMonths);
+    if(monto !== null){
+      try{
+        const { data: v } = await sb.from('vendedores').select('comision_pct, activo, nombre').eq('id', c.vendedor_id).single();
+        if(v && v.activo){
+          const pct = Number(v.comision_pct) || 0;
+          const comision = Math.round(monto * pct / 100);
+          await sb.from('comisiones').insert({
+            vendedor_id: c.vendedor_id,
+            club_id: payClubId,
+            monto_pagado: monto,
+            comision_pct: pct,
+            comision_monto: comision,
+            pack: paySelPack,
+            meses: paySelMonths,
+            pagada: false
+          });
+          alert('Pago confirmado.\n\nComisión registrada para ' + v.nombre + ': ' + fmtPeso(comision) + ' (' + pct + '%)');
+        } else if(v && !v.activo){
+          alert('Pago confirmado.\n\nNota: el vendedor está desactivado, no se generó comisión.');
+        }
+      }catch(e){ console.error('comision', e); }
+    }
+  }
+
+  document.getElementById('payModal').classList.remove('show');
+  await loadClubs();
+  if(typeof loadComisiones === 'function') loadComisiones();
+  if(typeof loadVendedores === 'function') loadVendedores();
+  alert('Pago confirmado. Pack ' + packNombre(paySelPack) + ' activo hasta ' + end.toLocaleDateString('es-AR'));
+});
+
+// Pregunta cuánto pagó realmente el cliente (para calcular la comisión)
+async function pedirMontoPagado(club, pack, meses){
+  const txt = prompt(
+    'Este club vino por un vendedor (código ' + (club.codigo_usado || '—') + ').\n\n' +
+    '¿Cuánto pagó realmente? (sin puntos ni símbolos)\n' +
+    'La comisión se calcula sobre este monto.',
+    ''
+  );
+  if(txt === null) return null;
+  const n = parseInt(String(txt).replace(/[^\d]/g,''), 10);
+  if(isNaN(n) || n <= 0){ alert('Monto inválido, no se registró la comisión.'); return null; }
+  return n;
+}
+
+// Reset de contraseña del dueño del club
+async function resetClubOwnerPassword(clubId){
+  const c = clubs.find(x=>x.id===clubId);
+  // buscar el email del dueño (owner) de ese club
+  let email = null;
+  try{
+    const { data: mem } = await sb.from('memberships').select('user_id, role').eq('club_id', clubId);
+    const owner = (mem||[]).find(m=>m.role==='owner') || (mem||[])[0];
+    if(owner){
+      const { data: prof } = await sb.from('profiles').select('email').eq('id', owner.user_id).single();
+      email = prof ? prof.email : null;
+    }
+  }catch(e){}
+  if(!email){ alert('No se encontró el email del dueño de este club.'); return; }
+  if(!confirm('¿Enviar un link de reseteo de contraseña a '+email+'? El usuario recibirá un mail para poner una nueva.')) return;
+  try{
+    const { error } = await sb.auth.resetPasswordForEmail(email);
+    if(error){ alert('No se pudo enviar: '+error.message); return; }
+    // aviso al admin (email de soporte) — PENDIENTE de configurar
+    if(window.__SUPPORT_EMAIL){
+      // cuando definas el mail de soporte, acá se le avisa (requiere función de servidor)
+    }
+    alert('Listo. Se envió el link de reseteo a '+email+'.\n(El aviso al mail de soporte se activará cuando lo configures.)');
+  }catch(e){ alert('Error: '+e.message); }
+}
+
+async function extendTrial(clubId, days){
+  const c = clubs.find(x=>x.id===clubId);
+  const base = (c && c.trial_ends_at && new Date(c.trial_ends_at)>new Date()) ? new Date(c.trial_ends_at) : new Date();
+  base.setDate(base.getDate() + days);
+  const { error } = await sb.from('clubs').update({ subscription_status:'trial', trial_ends_at: base.toISOString() }).eq('id', clubId);
+  if(error){ alert('No se pudo actualizar: '+error.message); return; }
+  await loadClubs();
+}
+// Marcar o desmarcar a un club como "amigo fundador" (descuento permanente)
+const DESCUENTO_FUNDADOR = 25;   // porcentaje por defecto al marcarlo
+
+async function toggleFundador(clubId, esAhora){
+  const club = (clubs||[]).find(c => c.id === clubId);
+  const nombre = club ? (club.name || 'este club') : 'este club';
+  if(esAhora){
+    if(!confirm('¿Quitar a ' + nombre + ' de los amigos fundadores?\n\nVa a pasar a pagar el precio normal.')) return;
+    try{
+      const { error } = await sb.from('clubs').update({ es_fundador:false, descuento_pct:0 }).eq('id', clubId);
+      if(error) throw error;
+      await loadClubs();
+    }catch(e){ alert(faltaSQL(e) ? 'Falta correr el SQL de fundadores (8-fundadores.sql).' : 'No se pudo actualizar.'); }
+    return;
+  }
+  const pctTxt = prompt('¿Qué descuento permanente le das a ' + nombre + '?\n\nEscribí solo el número (por ejemplo 25 para 25%).', String(DESCUENTO_FUNDADOR));
+  if(pctTxt === null) return;
+  const pct = parseInt(pctTxt, 10);
+  if(isNaN(pct) || pct < 0 || pct > 90){ alert('Poné un número entre 0 y 90.'); return; }
+  try{
+    const { error } = await sb.from('clubs').update({ es_fundador:true, descuento_pct:pct }).eq('id', clubId);
+    if(error) throw error;
+    await loadClubs();
+    alert(nombre + ' quedó marcado como amigo fundador con ' + pct + '% de descuento permanente.');
+  }catch(e){ alert(faltaSQL(e) ? 'Falta correr el SQL de fundadores (8-fundadores.sql).' : 'No se pudo actualizar.'); }
+}
+
+async function expireClub(clubId){
+  if(!confirm('¿Marcar este club como VENCIDO? No podrá guardar datos nuevos (pero no pierde lo que tiene).')) return;
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+  const { error } = await sb.from('clubs').update({ subscription_status:'expired', subscription_ends_at: yesterday.toISOString() }).eq('id', clubId);
+  if(error){ alert('No se pudo actualizar: '+error.message); return; }
+  await loadClubs();
+}
+
+function updateStats(){
+  // Las tarjetas superiores ahora se pueblan con datos reales desde loadMetrics()
+  // (función admin_metrics en Supabase). Esta función quedó sin efecto a propósito
+  // para no pisar esos números con conteos de la lista de usuarios visible.
+  const liveEl = document.querySelector('.stats-row .stat-card.live .value');
+  if(liveEl && document.getElementById('mOnline') === null){
+    const online = users.filter(u => u.online && !u.blocked).length;
+    liveEl.innerHTML = '<span class="stat-dot"></span>' + online;
+  }
+  // Cartel CLUBES: contamos los clubes DISTINTOS que usan los entrenadores,
+  // tomando el nombre del club de cada perfil y agrupando por nombre normalizado
+  // (sin distinguir mayúsculas ni espacios), para no contar duplicados por tipeo.
+  actualizarClubesDistintos();
+  renderNuevos24hs();
+}
+
+// Cartel de novedad: usuarios dados de alta en las últimas 24 horas.
+// Cada alta aparece solo mientras esté dentro de la ventana de 24hs; luego el
+// cartel deja de mostrarla solo (y si no queda ninguna, se oculta el cartel).
+function renderNuevos24hs(){
+  const card = document.getElementById('newUsers24');
+  const list = document.getElementById('new24List');
+  const countEl = document.getElementById('new24Count');
+  if(!card || !list) return;
+  const ahora = Date.now();
+  const ventana = 24 * 60 * 60 * 1000;   // 24 horas en milisegundos
+  const nuevos = (users || [])
+    .filter(u => u.createdAtRaw && (ahora - u.createdAtRaw) < ventana)
+    .sort((a,b) => b.createdAtRaw - a.createdAtRaw);   // los más recientes primero
+  if(nuevos.length === 0){ card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  if(countEl) countEl.textContent = nuevos.length === 1 ? '1 alta' : nuevos.length + ' altas';
+  list.innerHTML = nuevos.map(u => {
+    const nombre = escapeHtmlA(u.name || '(sin nombre)');
+    const email = escapeHtmlA(u.email || '');
+    const club = (u.club && u.club !== '—') ? '<span class="n24-club">· ' + escapeHtmlA(u.club) + '</span>' : '';
+    const cuando = timeAgo(u.createdAtRaw);   // ya devuelve "Hace X" / "Ahora"
+    return '<div class="new24-item"><span class="n24-name">' + nombre + '</span>' +
+           (email ? '<span class="n24-email">' + email + '</span>' : '') +
+           club +
+           '<span class="n24-when">' + cuando + '</span></div>';
+  }).join('');
+}
+
+// Normaliza un nombre de club para comparar: minúsculas, sin tildes, sin espacios extra.
+function normalizarClub(nombre){
+  return (nombre||'').toString().trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/\s+/g,' ');
+}
+
+// Devuelve la lista de clubes distintos con cuántos usuarios tiene cada uno.
+function clubesDistintos(){
+  const mapa = {};   // clave normalizada -> { nombre (el más "lindo" visto), usuarios:[] }
+  users.forEach(u => {
+    const raw = (u.club||'').toString().trim();
+    if(!raw || raw === '—') return;   // sin club cargado: no cuenta
+    const key = normalizarClub(raw);
+    if(!key) return;
+    if(!mapa[key]) mapa[key] = { nombre: raw, count: 0, usuarios: [] };
+    mapa[key].count++;
+    mapa[key].usuarios.push({
+      name: u.name || '(sin nombre)',
+      email: u.email || '',
+      online: !!u.online,
+      last: u.last || ''
+    });
+  });
+  // ordenamos por cantidad de usuarios (desc) y después alfabético
+  return Object.values(mapa).sort((a,b) => b.count - a.count || a.nombre.localeCompare(b.nombre));
+}
+
+function actualizarClubesDistintos(){
+  const lista = clubesDistintos();
+  const el = document.getElementById('mClubs');
+  if(el) el.textContent = lista.length;
+}
+
+// ============ TABLA ============
+const rows = document.getElementById('userRows');
+const search = document.getElementById('search');
+const filter = document.getElementById('filter');
+
+function statusPill(u){
+  if(u.blocked) return '<span class="status blocked-s"><span class="d"></span>Bloqueado</span>';
+  if(u.online) return '<span class="status online"><span class="d"></span>Conectado</span>';
+  return '<span class="status offline"><span class="d"></span>Desconectado</span>';
+}
+
+// ── Ocultar usuarios inactivos (solo visual, guardado en este navegador) ──
+// Se guarda { userId: lastSeenRaw_al_ocultar }. Si el usuario se conecta
+// después (su last_seen avanza), reaparece solo.
+function getOcultos(){
+  try{ return JSON.parse(localStorage.getItem('bo_admin_ocultos') || '{}'); }
+  catch(e){ return {}; }
+}
+function setOcultos(o){
+  try{ localStorage.setItem('bo_admin_ocultos', JSON.stringify(o)); }catch(e){}
+}
+function ocultarUsuario(u){
+  const o = getOcultos();
+  o[u.id] = u.lastSeenRaw || 0;   // guardamos su última conexión al ocultar
+  setOcultos(o);
+  render();
+}
+function mostrarUsuario(id){
+  const o = getOcultos();
+  delete o[id];
+  setOcultos(o);
+  render();
+}
+// ¿Está oculto? Solo si sigue oculto Y no se conectó después de ocultarlo.
+function estaOculto(u){
+  const o = getOcultos();
+  if(!(u.id in o)) return false;
+  const cuandoSeOculto = o[u.id] || 0;
+  // Si se conectó después (last_seen avanzó), lo sacamos de ocultos automáticamente.
+  if((u.lastSeenRaw||0) > cuandoSeOculto){
+    delete o[u.id]; setOcultos(o);
+    return false;
+  }
+  return true;
+}
+
+function render(){
+  const q = search.value.trim().toLowerCase();
+  const f = filter.value;
+  // Contamos cuántos quedaron ocultos (para el botón de "ver ocultos")
+  let ocultosCount = 0;
+  users.forEach(u => { if(estaOculto(u)) ocultosCount++; });
+  window.__mostrandoOcultos = window.__mostrandoOcultos || false;
+
+  const list = users.filter(u => {
+    // Si NO estamos en modo "ver ocultos", escondemos los ocultos
+    if(!window.__mostrandoOcultos && estaOculto(u)) return false;
+    // Si SÍ estamos en modo "ver ocultos", mostramos solo los ocultos
+    if(window.__mostrandoOcultos && !estaOculto(u)) return false;
+    const matchesQ = !q || u.name.toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q) || (u.club||'').toLowerCase().includes(q);
+    const matchesF = f==='all' || (f==='online'&&u.online&&!u.blocked) || (f==='offline'&&!u.online&&!u.blocked) || (f==='blocked'&&u.blocked);
+    return matchesQ && matchesF;
+  });
+  // Ordenar por última conexión: los que entraron más recientemente, primero.
+  list.sort((a,b) => (b.lastSeenRaw||0) - (a.lastSeenRaw||0));
+
+  // Barra de control de ocultos (arriba de la tabla)
+  actualizarBarraOcultos(ocultosCount);
+
+  if(list.length===0){
+    rows.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:30px;font-family:\'JetBrains Mono\',monospace;font-size:12px;">' + (window.__mostrandoOcultos ? 'No hay usuarios ocultos.' : 'No hay usuarios que coincidan.') + '</td></tr>';
+    return;
+  }
+  rows.innerHTML = list.map(u => {
+    const t = (window.__tiempoPorEmail && u.email) ? window.__tiempoPorEmail[u.email.toLowerCase()] : null;
+    const sesiones = t ? t.sesiones : '—';
+    const minutos = t ? t.minutos : '—';
+    // Duración de la última conexión, en formato legible (ej: "45 min" o "1 h 12 min")
+    let ultimaDur = '';
+    if(t && t.ultimaSesion != null){
+      const m = Number(t.ultimaSesion) || 0;
+      if(m >= 60){ ultimaDur = Math.floor(m/60) + ' h ' + (m%60) + ' min'; }
+      else if(m > 0){ ultimaDur = m + ' min'; }
+      else { ultimaDur = 'menos de 1 min'; }
+    }
+    const ultimaDurHtml = ultimaDur
+      ? `<div style="font-size:10px;color:var(--accent-2,#2F8FCB);margin-top:2px;">duró ${ultimaDur}</div>`
+      : '';
+    return `
+    <tr class="${u.blocked?'blocked':''}" data-id="${u.id}">
+      <td><div class="uname">${u.name}${u.isAdmin?' <span style="color:var(--accent);font-size:10px;font-family:JetBrains Mono,monospace;">ADMIN</span>':''}</div>${u.email?`<div class="uemail">${u.email}</div>`:''}</td>
+      <td><span class="club-pill">${u.club}</span></td>
+      <td>${statusPill(u)}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);text-align:center;">${sesiones}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);text-align:center;">${minutos}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);">${u.last}${ultimaDurHtml}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);">${u.since || '—'}</td>
+      <td>
+        <div class="row-actions">
+          <button class="act-btn view" data-action="view">Ver</button>
+          ${window.__mostrandoOcultos
+            ? '<button class="act-btn" data-action="unhide">↩ Mostrar</button>'
+            : (u.isAdmin ? '' : '<button class="act-btn" data-action="hide" title="Sacar de la lista (reaparece si se conecta)">Ocultar</button>')}
+        </div>
+      </td>
+    </tr>
+  `;
+  }).join('');
+
+  rows.querySelectorAll('tr[data-id]').forEach(tr => {
+    const u = users.find(x => x.id === tr.dataset.id);
+    tr.querySelector('[data-action="view"]').addEventListener('click', e => { e.stopPropagation(); openModal(u); });
+    tr.addEventListener('click', () => openModal(u));
+    const h = tr.querySelector('[data-action="hide"]');
+    if(h) h.addEventListener('click', e => { e.stopPropagation(); ocultarUsuario(u); });
+    const uh = tr.querySelector('[data-action="unhide"]');
+    if(uh) uh.addEventListener('click', e => { e.stopPropagation(); mostrarUsuario(u.id); });
+  });
+}
+
+// Barra con el botón de "ver ocultos / volver a la lista"
+function actualizarBarraOcultos(count){
+  let bar = document.getElementById('ocultosBar');
+  if(!bar){
+    const cont = document.getElementById('usersSection') || rows.closest('table')?.parentElement;
+    bar = document.createElement('div');
+    bar.id = 'ocultosBar';
+    bar.style.cssText = 'display:flex;justify-content:flex-end;align-items:center;gap:10px;margin:0 0 10px;font-family:\'JetBrains Mono\',monospace;font-size:12px;';
+    const tabla = rows.closest('.table-wrap') || rows.closest('table');
+    if(tabla && tabla.parentElement) tabla.parentElement.insertBefore(bar, tabla);
+  }
+  if(window.__mostrandoOcultos){
+    bar.innerHTML = '<span style="color:var(--muted);">Viendo usuarios ocultos</span> <button class="btn-mini" id="verNormalBtn">← Volver a la lista</button>';
+    bar.style.display = 'flex';
+    const btn = document.getElementById('verNormalBtn');
+    if(btn) btn.onclick = () => { window.__mostrandoOcultos = false; render(); };
+  } else if(count > 0){
+    bar.innerHTML = '<button class="btn-mini" id="verOcultosBtn">👁 Ver ' + count + ' oculto' + (count>1?'s':'') + '</button>';
+    bar.style.display = 'flex';
+    const btn = document.getElementById('verOcultosBtn');
+    if(btn) btn.onclick = () => { window.__mostrandoOcultos = true; render(); };
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+async function toggleBlock(u){
+  if(u.isAdmin){ alert('No podés bloquear una cuenta de administrador.'); return; }
+  const action = u.blocked ? 'desbloquear' : 'bloquear';
+  if(!confirm(`¿Seguro que querés ${action} a ${u.name}?`)) return;
+  const { error } = await sb.from('profiles').update({ is_blocked: !u.blocked }).eq('id', u.id);
+  if(error){ alert('No se pudo actualizar: ' + error.message); return; }
+  u.blocked = !u.blocked;
+  updateStats();
+  render();
+  closeModal();
+}
+
+// ============ MODAL ============
+const modal = document.getElementById('modal');
+let currentUser = null;
+function openModal(u){
+  currentUser = u;
+  const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent = v || '—'; };
+  set('mName', u.name);
+  document.getElementById('mEmail').textContent = u.email || u.id;
+  set('mWhatsapp', u.whatsapp);
+  set('mClubName', u.clubName || u.club);
+  set('mCoachRole', u.coachRole);
+  set('mCoachCategories', u.coachCategories);
+  set('mCoachSource', u.coachSource);
+  set('mSince', u.since);
+  set('mLast', u.last);
+  document.getElementById('mStatus').innerHTML = statusPill(u);
+  document.getElementById('mId').textContent = u.id;
+
+  // Botón de WhatsApp directo (para gestión/marketing): abre el chat con ese entrenador.
+  const wrap = document.getElementById('mWhatsappBtnWrap');
+  if(wrap){
+    const num = (u.whatsapp||'').replace(/[^\d]/g,'');
+    if(num.length >= 8){
+      // agrega prefijo Argentina (54) si el número no lo trae
+      const full = num.startsWith('54') ? num : ('54' + num);
+      wrap.innerHTML = `<a class="btn small" style="display:inline-block;text-decoration:none;" target="_blank" href="https://wa.me/${full}">💬 Escribir por WhatsApp</a>`;
+    } else {
+      wrap.innerHTML = '<span style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--muted);">Sin WhatsApp cargado</span>';
+    }
+  }
+
+  const blockBtn = document.getElementById('mBlockBtn');
+  if(u.isAdmin){ blockBtn.style.display='none'; }
+  else { blockBtn.style.display=''; blockBtn.textContent = u.blocked ? 'Desbloquear usuario' : 'Bloquear usuario'; }
+
+  renderUserSubscription(u);
+
+  modal.classList.add('show');
+}
+
+// Muestra los botones de pago/prueba en la ficha del usuario.
+// Actúa sobre el USUARIO directamente (no sobre un club).
+function renderUserSubscription(u){
+  const info = document.getElementById('mSubInfo');
+  const btns = document.getElementById('mSubBtns');
+  if(!info || !btns) return;
+  btns.innerHTML = '';
+
+  // Días restantes según la fecha de vencimiento del usuario
+  const d = subDaysLeft(u.subUntil);
+  const estado = u.subStatus || 'trial';
+  let detalle = '';
+  if(estado === 'active'){
+    detalle = d!==null ? (d < 0 ? '💰 Pago vencido hace '+Math.abs(d)+' días' : '✅ Pagó · '+d+' días restantes') : '✅ Pagó';
+  } else if(estado === 'trial'){
+    detalle = d!==null ? (d < 0 ? '⏳ Prueba vencida hace '+Math.abs(d)+' días' : '⏳ En prueba · '+d+' días restantes') : '⏳ En prueba';
+  } else {
+    detalle = '⛔ Vencido / sin suscripción';
+  }
+  const pagoTxt = u.subPaidAt ? ('<br><span style="font-size:11px;color:var(--muted);">Último pago: '+fmtDate(u.subPaidAt)+'</span>') : '';
+  // Nombre legible del pack actual
+  const packNames = { entrenador:'Entrenador (2 categorías)', multi:'Multi (4 categorías)', club:'Club (todas)' };
+  const packTxt = '<br><span style="font-size:12px;color:var(--accent-2,#2F8FCB);">📦 Pack: <b>'+(packNames[u.pack]||u.pack||'—')+'</b></span>';
+  info.innerHTML = detalle + pagoTxt + packTxt;
+
+  // --- Botones de PACK (qué categorías puede usar) ---
+  const packRow = document.createElement('div');
+  packRow.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;width:100%;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--line);';
+  const packLbl = document.createElement('span');
+  packLbl.style.cssText = 'width:100%;font-size:11px;color:var(--muted);font-family:\'JetBrains Mono\',monospace;text-transform:uppercase;';
+  packLbl.textContent = 'Pack (categorías)';
+  packRow.appendChild(packLbl);
+  [['entrenador','2 categorías'],['multi','4 categorías'],['club','Todas']].forEach(([key,label]) => {
+    const bp = document.createElement('button');
+    const activo = (u.pack||'entrenador') === key;
+    bp.className = 'btn-mini';
+    bp.textContent = (activo ? '✓ ' : '') + label;
+    if(activo){ bp.style.cssText = 'background:var(--accent-2);border-color:var(--accent-2);color:#10161C;font-weight:600;'; }
+    bp.addEventListener('click', () => setPack(u, key));
+    packRow.appendChild(bp);
+  });
+  btns.appendChild(packRow);
+
+  // (Los botones "Pago 1 mes / 6 meses / 1 año" se quitaron: ahora el pago se
+  //  confirma con el botón unificado "✅ Confirmar pago" de más abajo, que pregunta
+  //  pack y período —incluye 1, 3, 6 y 12 meses— en un solo paso.)
+
+  // Extender prueba 15 días
+  const bTrial = document.createElement('button');
+  bTrial.className = 'btn-mini act-trial'; bTrial.textContent = '⏳ Extender prueba 15 días';
+  bTrial.addEventListener('click', () => gestionarSub(u, 'prueba', 15));
+
+  // Marcar como vencido
+  const bVencer = document.createElement('button');
+  bVencer.className = 'btn-mini'; bVencer.textContent = '⛔ Marcar vencido';
+  bVencer.addEventListener('click', () => gestionarSub(u, 'vencer'));
+
+  btns.appendChild(bTrial);
+  btns.appendChild(bVencer);
+
+  // ── Cobro selectivo: iniciar cuenta regresiva de 7 días para ESTE usuario ──
+  const sepReg = document.createElement('div');
+  sepReg.style.cssText = 'width:100%;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);';
+  const regLbl = document.createElement('div');
+  regLbl.style.cssText = 'font-size:11px;color:var(--muted);font-family:\'JetBrains Mono\',monospace;text-transform:uppercase;margin-bottom:8px;';
+  regLbl.textContent = 'Cuenta regresiva (antes del cobro general)';
+  sepReg.appendChild(regLbl);
+
+  const enCobro = u.cobroActivado;
+  const estadoReg = document.createElement('div');
+  estadoReg.style.cssText = 'font-size:12px;margin-bottom:8px;';
+  estadoReg.innerHTML = enCobro
+    ? '<span style="color:var(--accent-2,#2F8FCB);">⏰ En cuenta regresiva. Ve el aviso de vencimiento.</span>'
+    : '<span style="color:var(--muted);">En modo demo (gratis, sin aviso).</span>';
+  sepReg.appendChild(estadoReg);
+
+  const regBtns = document.createElement('div');
+  regBtns.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;';
+  const b7 = document.createElement('button');
+  b7.className = 'btn-mini'; b7.textContent = '⏰ Avisar: vence en 7 días';
+  b7.style.cssText = 'background:var(--accent-2);border-color:var(--accent-2);color:#10161C;font-weight:600;';
+  b7.addEventListener('click', () => iniciarCuentaRegresiva(u, 7));
+  regBtns.appendChild(b7);
+
+  if(enCobro){
+    const bDemo = document.createElement('button');
+    bDemo.className = 'btn-mini'; bDemo.textContent = '↩ Volver a demo';
+    bDemo.addEventListener('click', () => volverADemo(u));
+    regBtns.appendChild(bDemo);
+  }
+  sepReg.appendChild(regBtns);
+
+  // ── Confirmar pago: marca la cuenta como pagada (active) con pack y período ──
+  const estadoPago = document.createElement('div');
+  estadoPago.style.cssText = 'font-size:12px;margin:10px 0 8px;';
+  if(u.subStatus === 'active' && u.subUntil){
+    const dias = subDaysLeft(u.subUntil);
+    const packTxt = u.pack ? (' · ' + u.pack) : '';
+    estadoPago.innerHTML = '<span style="color:var(--success,#4CAF6D);">✅ Pago activo' + packTxt +
+      '. Vence en ' + (dias >= 0 ? dias + ' días' : 'vencido') + '.</span>';
+  } else {
+    estadoPago.innerHTML = '<span style="color:var(--muted);">Sin pago confirmado.</span>';
+  }
+  sepReg.appendChild(estadoPago);
+
+  const pagoBtns = document.createElement('div');
+  pagoBtns.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;';
+  const bPago = document.createElement('button');
+  bPago.className = 'btn-mini';
+  bPago.textContent = u.subStatus === 'active' ? '✅ Renovar / cambiar pago' : '✅ Confirmar pago';
+  bPago.style.cssText = 'background:var(--success,#4CAF6D);border-color:var(--success,#4CAF6D);color:#10161C;font-weight:600;';
+  bPago.addEventListener('click', () => confirmarPago(u));
+  pagoBtns.appendChild(bPago);
+  sepReg.appendChild(pagoBtns);
+
+  btns.appendChild(sepReg);
+}
+
+// Confirma un pago: elige pack y período, y activa la cuenta (sub_status='active').
+async function confirmarPago(u){
+  // 1) Elegir el pack
+  const packInput = prompt(
+    'CONFIRMAR PAGO de ' + (u.name || u.email) + '\n\n' +
+    '¿Qué PACK pagó? Escribí el número:\n' +
+    '  1 = Entrenador (hasta 2 categorías)\n' +
+    '  2 = Multi (hasta 4 categorías)\n' +
+    '  3 = Club (todas las categorías)',
+    '1'
+  );
+  if(packInput === null) return; // canceló
+  const packMap = { '1':'entrenador', '2':'multi', '3':'club' };
+  const pack = packMap[packInput.trim()];
+  if(!pack){ alert('Opción de pack inválida. Poné 1, 2 o 3.'); return; }
+
+  // 2) Elegir el período
+  const mesesInput = prompt(
+    'PERÍODO que pagó ' + (u.name || u.email) + '\n\n' +
+    '¿Cuántos MESES pagó? Escribí el número:\n' +
+    '  1 = 1 mes\n' +
+    '  3 = 3 meses (Oferta lanzamiento)\n' +
+    '  6 = 6 meses\n' +
+    '  12 = 12 meses',
+    '1'
+  );
+  if(mesesInput === null) return; // canceló
+  const meses = parseInt(mesesInput.trim(), 10);
+  if(![1,3,6,12].includes(meses)){ alert('Período inválido. Poné 1, 3, 6 o 12.'); return; }
+
+  const nombrePack = { entrenador:'Entrenador', multi:'Multi', club:'Club' }[pack];
+  if(!confirm(
+    'Vas a ACTIVAR la cuenta de ' + (u.name || u.email) + ':\n\n' +
+    '  Pack: ' + nombrePack + '\n' +
+    '  Período: ' + meses + ' ' + (meses === 1 ? 'mes' : 'meses') + '\n\n' +
+    'La cuenta queda activa y se le saca el cartel de fase demo. ¿Confirmás?'
+  )) return;
+
+  try{
+    const { error } = await sb.rpc('admin_activar_pago', { p_user: u.id, p_meses: meses, p_pack: pack });
+    if(error) throw error;
+    alert('✅ Pago confirmado. ' + (u.name || u.email) + ' quedó activo por ' + meses + ' ' + (meses === 1 ? 'mes' : 'meses') + '.');
+    await loadUsers();
+    const actualizado = (users||[]).find(x => x.id === u.id);
+    if(actualizado) openModal(actualizado);
+  }catch(err){
+    console.error('confirmar pago', err);
+    alert('No se pudo confirmar el pago: ' + (err.message || 'error') + '\n\n(¿Corriste el SQL que crea la función admin_activar_pago?)');
+  }
+}
+
+// Inicia la cuenta regresiva de X días para un usuario (cobro selectivo).
+async function iniciarCuentaRegresiva(u, dias){
+  if(!confirm('¿Avisar a '+(u.name||u.email)+' que su prueba vence en '+dias+' días?\n\nVa a ver una cuenta regresiva y, al llegar a 0, tendrá que pagar para seguir.')) return;
+  try{
+    const { error } = await sb.rpc('admin_iniciar_cuenta_regresiva', { p_user: u.id, p_dias: dias });
+    if(error) throw error;
+    alert('Listo. '+(u.name||u.email)+' ahora ve la cuenta regresiva de '+dias+' días.');
+    await loadUsers();
+    const actualizado = (users||[]).find(x => x.id === u.id);
+    if(actualizado) openModal(actualizado);
+  }catch(err){
+    console.error('cuenta regresiva', err);
+    alert('No se pudo activar: ' + (err.message || 'error'));
+  }
+}
+
+// Devuelve el usuario a modo demo (sin cuenta regresiva).
+async function volverADemo(u){
+  if(!confirm('¿Volver a '+(u.name||u.email)+' a modo demo? Deja de ver el aviso de vencimiento.')) return;
+  try{
+    const { error } = await sb.rpc('admin_volver_a_demo', { p_user: u.id });
+    if(error) throw error;
+    alert(u.name+' volvió a modo demo.');
+    await loadUsers();
+    const actualizado = (users||[]).find(x => x.id === u.id);
+    if(actualizado) openModal(actualizado);
+  }catch(err){
+    console.error('volver demo', err);
+    alert('No se pudo: ' + (err.message || 'error'));
+  }
+}
+
+// Días entre hoy y una fecha (ISO). Negativo si ya pasó.
+function subDaysLeft(fecha){
+  if(!fecha) return null;
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const f = new Date(fecha); f.setHours(0,0,0,0);
+  return Math.round((f - hoy) / (1000*60*60*24));
+}
+
+// Setea el pack (categorías permitidas) del usuario vía RPC.
+async function setPack(u, pack){
+  const nombres = { entrenador:'Entrenador (2 categorías)', multi:'Multi (4 categorías)', club:'Club (todas)' };
+  if(!confirm('¿Asignar el pack "'+(nombres[pack]||pack)+'" a '+(u.name||u.email)+'?')) return;
+  try{
+    const { error } = await sb.rpc('admin_user_set_pack', { p_user: u.id, p_pack: pack });
+    if(error) throw error;
+    alert('Pack asignado: '+(nombres[pack]||pack));
+    await loadUsers();
+    const actualizado = (users||[]).find(x => x.id === u.id);
+    if(actualizado) openModal(actualizado);
+  }catch(err){
+    console.error('set pack', err);
+    alert('No se pudo asignar el pack: ' + (err.message || 'error desconocido'));
+  }
+}
+
+// Ejecuta la acción de suscripción sobre el usuario vía RPC.
+async function gestionarSub(u, accion, valor){
+  let rpc, params, msg;
+  if(accion === 'pago'){
+    const periodo = valor === 12 ? '1 año' : (valor === 1 ? '1 mes' : valor+' meses');
+    if(!confirm('¿Confirmar el pago de '+(u.name||u.email)+'? Se marca como activo por '+periodo+'.')) return;
+    rpc = 'admin_user_confirmar_pago'; params = { p_user: u.id, p_meses: valor };
+    msg = 'Pago confirmado por '+periodo+'.';
+  } else if(accion === 'prueba'){
+    if(!confirm('¿Extender la prueba de '+(u.name||u.email)+' '+valor+' días más?')) return;
+    rpc = 'admin_user_extender_prueba'; params = { p_user: u.id, p_dias: valor };
+    msg = 'Prueba extendida '+valor+' días.';
+  } else if(accion === 'vencer'){
+    if(!confirm('¿Marcar como VENCIDO a '+(u.name||u.email)+'?')) return;
+    rpc = 'admin_user_vencer'; params = { p_user: u.id };
+    msg = 'Marcado como vencido.';
+  } else { return; }
+
+  try{
+    const { error } = await sb.rpc(rpc, params);
+    if(error) throw error;
+    alert(msg);
+    // Recargar y reabrir el modal con los datos actualizados
+    await loadUsers();
+    const actualizado = (users||[]).find(x => x.id === u.id);
+    if(actualizado) openModal(actualizado);
+  }catch(err){
+    console.error('gestionar sub', err);
+    alert('No se pudo completar: ' + (err.message || 'error desconocido'));
+  }
+}
+function closeModal(){ modal.classList.remove('show'); currentUser=null; }
+document.getElementById('modalClose').addEventListener('click', closeModal);
+modal.addEventListener('click', e => { if(e.target===modal) closeModal(); });
+document.getElementById('mBlockBtn').addEventListener('click', () => { if(currentUser) toggleBlock(currentUser); });
+
+search.addEventListener('input', render);
+// Clic en "Usuarios totales" -> baja a la lista y la resalta
+document.getElementById('usersCard')?.addEventListener('click', () => {
+  const sec = document.getElementById('usersSection');
+  const tbl = document.getElementById('usersTableWrap');
+  if(sec) sec.scrollIntoView({ behavior:'smooth', block:'start' });
+  if(tbl){ tbl.classList.remove('table-flash'); void tbl.offsetWidth; tbl.classList.add('table-flash'); }
+  const s = document.getElementById('search'); if(s) setTimeout(()=>s.focus(), 400);
+});
+// Tarjeta "Clubes" -> baja a la sección de suscripciones/clubes y la resalta
+document.getElementById('clubsCard')?.addEventListener('click', () => {
+  openClubesModal();
+});
+document.getElementById('clubesModalClose')?.addEventListener('click', ()=>document.getElementById('clubesModal').classList.remove('show'));
+document.getElementById('clubesModal')?.addEventListener('click', e=>{ if(e.target.id==='clubesModal') e.target.classList.remove('show'); });
+
+function openClubesModal(){
+  const lista = clubesDistintos();
+  const rows = document.getElementById('clubesModalRows');
+  if(!rows) return;
+  if(!lista.length){
+    rows.innerHTML = '<tr><td colspan="2"><div class="loading-note">Todavía no hay clubes cargados en los perfiles.</div></td></tr>';
+  } else {
+    rows.innerHTML = lista.map((c, i) => {
+      // Fila del club (clickeable) + fila oculta con el detalle de sus usuarios
+      const usuariosHtml = c.usuarios
+        .slice()
+        .sort((a,b) => a.name.localeCompare(b.name))
+        .map(u => {
+          const dot = u.online
+            ? '<span style="color:#4CAF6D;">●</span> '
+            : '<span style="color:#7C8B99;">●</span> ';
+          const email = u.email ? ' <span style="color:#7C8B99;">· ' + escapeAdmin(u.email) + '</span>' : '';
+          const last = u.last ? ' <span style="color:#7C8B99;font-size:11px;">(' + escapeAdmin(u.last) + ')</span>' : '';
+          return '<div class="club-user-row">' + dot + escapeAdmin(u.name) + email + last + '</div>';
+        }).join('');
+      return (
+        '<tr class="club-row" data-club="' + i + '" style="cursor:pointer;">' +
+          '<td><span class="club-caret" id="caret-' + i + '">▸</span> ' + escapeAdmin(c.nombre) + '</td>' +
+          '<td style="text-align:center;">' + c.count + '</td>' +
+        '</tr>' +
+        '<tr class="club-detail" id="detail-' + i + '" style="display:none;">' +
+          '<td colspan="2" style="padding:6px 14px 12px;">' + usuariosHtml + '</td>' +
+        '</tr>'
+      );
+    }).join('');
+    // Enganchar el click de cada fila de club para expandir/colapsar su detalle
+    rows.querySelectorAll('.club-row').forEach(tr => {
+      tr.addEventListener('click', () => {
+        const i = tr.dataset.club;
+        const detalle = document.getElementById('detail-' + i);
+        const caret = document.getElementById('caret-' + i);
+        if(!detalle) return;
+        const abierto = detalle.style.display !== 'none';
+        detalle.style.display = abierto ? 'none' : 'table-row';
+        if(caret) caret.textContent = abierto ? '▸' : '▾';
+      });
+    });
+  }
+  document.getElementById('clubesModal').classList.add('show');
+}
+
+// Escapa texto para el modal (evita romper el HTML con nombres raros)
+function escapeAdmin(s){ const d=document.createElement('div'); d.textContent=s==null?'':s; return d.innerHTML; }
+// Tarjeta "Proyectos de video" -> muestra actividad por usuario (sin contenido)
+document.getElementById('projectsCard')?.addEventListener('click', () => openActivityModal());
+document.getElementById('activityClose')?.addEventListener('click', ()=>document.getElementById('activityModal').classList.remove('show'));
+document.getElementById('activityModal')?.addEventListener('click', e=>{ if(e.target.id==='activityModal') e.target.classList.remove('show'); });
+
+function openActivityModal(){
+  const rows = document.getElementById('activityRows');
+  // Usamos los datos que ya cargó loadUsers (cuenta de proyectos y última conexión).
+  // NO se muestra ningún nombre ni contenido de proyecto, solo cuántos y cuándo.
+  const ordenados = [...users].sort((a,b) => (b.projects?.length||0) - (a.projects?.length||0));
+  if(!ordenados.length){
+    rows.innerHTML = '<tr><td colspan="4"><div class="loading-note">Sin usuarios.</div></td></tr>';
+  } else {
+    rows.innerHTML = ordenados.map(u => `
+      <tr>
+        <td><strong>${escapeHtmlA(u.name)}</strong>${u.email?`<div style="font-size:11px;color:var(--muted);">${escapeHtmlA(u.email)}</div>`:''}</td>
+        <td>${escapeHtmlA(u.club||'—')}</td>
+        <td style="text-align:center;font-family:'JetBrains Mono',monospace;">${u.projects?.length||0}</td>
+        <td style="font-size:12px;color:var(--muted);">${u.last||'—'}</td>
+      </tr>`).join('');
+  }
+  document.getElementById('activityModal').classList.add('show');
+}
+
+// ============ QUIÉN HACE LAS FICHAS DE SCOUTING ============
+// Los datos vienen de tres funciones seguras (scouting_autor.sql) que sólo
+// responden si el usuario tiene is_platform_admin. No devuelven el contenido
+// de ninguna ficha: sólo autor, club, cantidades y fechas.
+let SCOUT = { cargado:false, usuarios:[], fichas:[], uso:[] };
+
+document.getElementById('scoutingCard')?.addEventListener('click', () => openScoutingModal());
+document.getElementById('scoutingClose')?.addEventListener('click', () => document.getElementById('scoutingModal').classList.remove('show'));
+document.getElementById('scoutingModal')?.addEventListener('click', e => { if(e.target.id === 'scoutingModal') e.target.classList.remove('show'); });
+document.querySelectorAll('.sc-tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.sc-tab').forEach(x => x.classList.remove('on'));
+    t.classList.add('on');
+    [0,1,2].forEach(i => document.getElementById('scPane'+i).classList.toggle('on', String(i) === t.dataset.sc));
+  });
+});
+
+async function openScoutingModal(){
+  document.getElementById('scoutingModal').classList.add('show');
+  if(SCOUT.cargado) return;
+
+  const cargando = '<tr><td colspan="7"><div class="loading-note">Cargando…</div></td></tr>';
+  [0,1,2].forEach(i => { document.getElementById('scRows'+i).innerHTML = cargando; });
+
+  try{
+    const [u, f, s] = await Promise.all([
+      sb.rpc('admin_scouting_usuarios'),
+      sb.rpc('admin_scouting_fichas', { limite: 200 }),
+      sb.rpc('admin_scouting_uso')
+    ]);
+    const err = u.error || f.error || s.error;
+    if(err) throw err;
+
+    SCOUT.usuarios = u.data || [];
+    SCOUT.fichas   = f.data || [];
+    SCOUT.uso      = s.data || [];
+    SCOUT.cargado  = true;
+
+    pintarScoutKpis();
+    pintarScoutUsuarios();
+    pintarScoutFichas();
+    pintarScoutUso();
+  }catch(err){
+    console.error('scouting', err);
+    const aviso = faltaSQL(err)
+      ? 'Falta correr <b>scouting_autor.sql</b> en Supabase. Hasta entonces sólo se puede ver el total, no quién las hizo.'
+      : (/No autorizado/i.test(err.message||'')
+          ? 'Tu cuenta no tiene is_platform_admin = true en la tabla profiles.'
+          : 'No se pudo cargar: ' + escapeHtmlA(err.message||''));
+    [0,1,2].forEach(i => {
+      document.getElementById('scRows'+i).innerHTML =
+        '<tr><td colspan="7"><div class="loading-note">' + aviso + '</div></td></tr>';
+    });
+    document.getElementById('scKpis').innerHTML = '';
+  }
+}
+
+function pintarScoutKpis(){
+  const total = SCOUT.usuarios.reduce((a,r) => a + Number(r.fichas||0), 0);
+  const activos = SCOUT.usuarios.filter(r => r.activo_30d).length;
+  const sinGuardar = SCOUT.uso.filter(r => Number(r.fichas_creadas||0) === 0).length;
+  const prom = SCOUT.usuarios.length ? (total / SCOUT.usuarios.length).toFixed(1) : '0';
+  const items = [
+    { n: SCOUT.usuarios.length, l: 'Usuarios con al menos una ficha' },
+    { n: total,                 l: 'Fichas con autor registrado' },
+    { n: activos,               l: 'Activos últimos 30 días' },
+    { n: prom,                  l: 'Promedio por usuario' },
+    { n: sinGuardar,            l: 'Entraron y no guardaron nada' }
+  ];
+  document.getElementById('scKpis').innerHTML = items.map(k =>
+    '<div class="sc-kpi"><div class="n">' + k.n + '</div><div class="l">' + k.l + '</div></div>').join('');
+}
+
+function pintarScoutUsuarios(){
+  const rows = document.getElementById('scRows0');
+  if(!SCOUT.usuarios.length){
+    rows.innerHTML = '<tr><td colspan="7"><div class="loading-note">Todavía no hay fichas con autor registrado. Las que ya existían quedaron sin autor: sólo se puede saber de acá en adelante.</div></td></tr>';
+    return;
+  }
+  rows.innerHTML = SCOUT.usuarios.map(r => `
+    <tr>
+      <td><strong>${escapeHtmlA(r.usuario)}</strong><span class="sc-sub">${escapeHtmlA(r.email||'')}${r.whatsapp ? ' · ' + escapeHtmlA(r.whatsapp) : ''}</span></td>
+      <td>${escapeHtmlA(r.club_name||'—')}</td>
+      <td class="sc-num"><span class="sc-big">${r.fichas}</span></td>
+      <td class="sc-num">${r.categorias}</td>
+      <td style="font-size:12px;color:var(--muted);">${fmtDate(r.primera_ficha)}</td>
+      <td style="font-size:12px;color:var(--muted);">${fmtDate(r.ultima_ficha)}</td>
+      <td>${r.activo_30d ? '<span class="sc-tag ok">activo</span>' : '<span class="sc-tag off">inactivo</span>'}</td>
+    </tr>`).join('');
+}
+
+function pintarScoutFichas(){
+  const rows = document.getElementById('scRows1');
+  if(!SCOUT.fichas.length){
+    rows.innerHTML = '<tr><td colspan="7"><div class="loading-note">No hay fichas cargadas.</div></td></tr>';
+    return;
+  }
+  rows.innerHTML = SCOUT.fichas.map(r => {
+    const chars = Number(r.caracteres||0);
+    return `<tr>
+      <td><strong>${escapeHtmlA(r.rival||'(sin nombre)')}</strong><span class="sc-sub">${escapeHtmlA(r.fecha||'')}</span></td>
+      <td>${escapeHtmlA(r.autor)}</td>
+      <td>${escapeHtmlA(r.club||'—')}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${escapeHtmlA(r.categoria||'—')} · ${r.temporada||'—'}</td>
+      <td class="sc-num">${chars.toLocaleString('es-AR')}</td>
+      <td style="font-size:12px;color:var(--muted);">${fmtDate(r.updated_at)}</td>
+      <td>${chars < 40 ? '<span class="sc-tag warn">casi vacía</span>' : ''}${r.editada_por_otro ? '<span class="sc-tag red">la editó ' + escapeHtmlA(r.ultimo_editor||'otro') + '</span>' : ''}</td>
+    </tr>`;
+  }).join('');
+}
+
+function pintarScoutUso(){
+  const rows = document.getElementById('scRows2');
+  const lista = SCOUT.uso.filter(r => Number(r.fichas_creadas||0) === 0);
+  if(!lista.length){
+    rows.innerHTML = '<tr><td colspan="6"><div class="loading-note">Nadie entró a Scouting sin guardar nada.</div></td></tr>';
+    return;
+  }
+  rows.innerHTML = lista.map(r => `
+    <tr>
+      <td><strong>${escapeHtmlA(r.usuario)}</strong><span class="sc-sub">${escapeHtmlA(r.email||'')}</span></td>
+      <td>${escapeHtmlA(r.club_name||'—')}</td>
+      <td class="sc-num">${r.visitas}</td>
+      <td class="sc-num"><span class="sc-big">${r.minutos}</span></td>
+      <td style="font-size:12px;color:var(--muted);">${fmtDate(r.primer_dia)}</td>
+      <td style="font-size:12px;color:var(--muted);">${fmtDate(r.ultimo_dia)}</td>
+    </tr>`).join('');
+}
+
+document.getElementById('scCsv')?.addEventListener('click', () => {
+  if(!SCOUT.usuarios.length) return;
+  const filas = [['usuario','email','whatsapp','club','fichas','categorias','primera','ultima','activo_30d']];
+  SCOUT.usuarios.forEach(r => filas.push([r.usuario, r.email, r.whatsapp, r.club_name,
+    r.fichas, r.categorias, r.primera_ficha, r.ultima_ficha, r.activo_30d ? 'si' : 'no']));
+  const csv = filas.map(f => f.map(c => '"' + String(c == null ? '' : c).replace(/"/g,'""') + '"').join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type:'text/csv;charset=utf-8;' }));
+  a.download = 'scouting-por-usuario.csv';
+  a.click();
+});
+
+
+// ============ QUIÉN CARGA LOS PARTIDOS EN VIVO ============
+// Mismo patrón que scouting: dos funciones seguras (live-sessions-autor.sql)
+// que sólo responden si el usuario tiene is_platform_admin. No devuelven el
+// detalle de ningún partido: sólo autor, club, cantidades y fechas.
+let LIVE = { cargado:false, usuarios:[], partidos:[] };
+
+document.getElementById('liveCard')?.addEventListener('click', () => openLiveModal());
+document.getElementById('liveClose')?.addEventListener('click', () => document.getElementById('liveModal').classList.remove('show'));
+document.getElementById('liveModal')?.addEventListener('click', e => { if(e.target.id === 'liveModal') e.target.classList.remove('show'); });
+document.querySelectorAll('.sc-tab[data-lv]').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.sc-tab[data-lv]').forEach(x => x.classList.remove('on'));
+    t.classList.add('on');
+    [0,1].forEach(i => document.getElementById('lvPane'+i).classList.toggle('on', String(i) === t.dataset.lv));
+  });
+});
+
+async function openLiveModal(){
+  document.getElementById('liveModal').classList.add('show');
+  if(LIVE.cargado) return;
+
+  const cargando = '<tr><td colspan="7"><div class="loading-note">Cargando…</div></td></tr>';
+  [0,1].forEach(i => { document.getElementById('lvRows'+i).innerHTML = cargando; });
+
+  try{
+    const [u, p] = await Promise.all([
+      sb.rpc('admin_live_usuarios'),
+      sb.rpc('admin_live_partidos', { limite: 200 })
+    ]);
+    const err = u.error || p.error;
+    if(err) throw err;
+
+    LIVE.usuarios = u.data || [];
+    LIVE.partidos = p.data || [];
+    LIVE.cargado  = true;
+
+    pintarLiveKpis();
+    pintarLiveUsuarios();
+    pintarLivePartidos();
+  }catch(err){
+    console.error('live', err);
+    const aviso = faltaSQL(err)
+      ? 'Falta correr <b>live-sessions-autor.sql</b> en Supabase. Hasta entonces sólo se puede ver el total, no quién los cargó.'
+      : (/No autorizado/i.test(err.message||'')
+          ? 'Tu cuenta no tiene is_platform_admin = true en la tabla profiles.'
+          : 'No se pudo cargar: ' + escapeHtmlA(err.message||''));
+    [0,1].forEach(i => {
+      document.getElementById('lvRows'+i).innerHTML =
+        '<tr><td colspan="7"><div class="loading-note">' + aviso + '</div></td></tr>';
+    });
+    document.getElementById('lvKpis').innerHTML = '';
+  }
+}
+
+function pintarLiveKpis(){
+  const total = LIVE.usuarios.reduce((a,r) => a + Number(r.partidos||0), 0);
+  const activos = LIVE.usuarios.filter(r => r.activo_30d).length;
+  const prom = LIVE.usuarios.length ? (total / LIVE.usuarios.length).toFixed(1) : '0';
+  const items = [
+    { n: LIVE.usuarios.length, l: 'Usuarios con al menos un partido' },
+    { n: total,                l: 'Partidos con autor registrado' },
+    { n: activos,              l: 'Activos últimos 30 días' },
+    { n: prom,                 l: 'Promedio por usuario' }
+  ];
+  document.getElementById('lvKpis').innerHTML = items.map(k =>
+    '<div class="sc-kpi"><div class="n">' + k.n + '</div><div class="l">' + k.l + '</div></div>').join('');
+}
+
+function pintarLiveUsuarios(){
+  const rows = document.getElementById('lvRows0');
+  if(!LIVE.usuarios.length){
+    rows.innerHTML = '<tr><td colspan="7"><div class="loading-note">Todavía no hay partidos con autor registrado. Los que ya existían quedaron sin autor: sólo se puede saber de acá en adelante.</div></td></tr>';
+    return;
+  }
+  rows.innerHTML = LIVE.usuarios.map(r => `
+    <tr>
+      <td><strong>${escapeHtmlA(r.usuario)}</strong><span class="sc-sub">${escapeHtmlA(r.email||'')}${r.whatsapp ? ' · ' + escapeHtmlA(r.whatsapp) : ''}</span></td>
+      <td>${escapeHtmlA(r.club_name||'—')}</td>
+      <td class="sc-num"><span class="sc-big">${r.partidos}</span></td>
+      <td class="sc-num">${r.categorias}</td>
+      <td style="font-size:12px;color:var(--muted);">${fmtDate(r.primer_partido)}</td>
+      <td style="font-size:12px;color:var(--muted);">${fmtDate(r.ultimo_partido)}</td>
+      <td>${r.activo_30d ? '<span class="sc-tag ok">activo</span>' : '<span class="sc-tag off">inactivo</span>'}</td>
+    </tr>`).join('');
+}
+
+function pintarLivePartidos(){
+  const rows = document.getElementById('lvRows1');
+  if(!LIVE.partidos.length){
+    rows.innerHTML = '<tr><td colspan="6"><div class="loading-note">No hay partidos cargados en vivo.</div></td></tr>';
+    return;
+  }
+  rows.innerHTML = LIVE.partidos.map(r => `
+    <tr>
+      <td><strong>${escapeHtmlA(r.rival||'(sin nombre)')}</strong></td>
+      <td>${escapeHtmlA(r.autor)}</td>
+      <td>${escapeHtmlA(r.club||'—')}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${escapeHtmlA(r.categoria||'—')} · ${r.temporada||'—'}</td>
+      <td class="sc-num">${Number(r.jugadores||0)}</td>
+      <td style="font-size:12px;color:var(--muted);">${fmtDate(r.created_at)}</td>
+    </tr>`).join('');
+}
+
+document.getElementById('lvCsv')?.addEventListener('click', () => {
+  if(!LIVE.usuarios.length) return;
+  const filas = [['usuario','email','whatsapp','club','partidos','categorias','primero','ultimo','activo_30d']];
+  LIVE.usuarios.forEach(r => filas.push([r.usuario, r.email, r.whatsapp, r.club_name,
+    r.partidos, r.categorias, r.primer_partido, r.ultimo_partido, r.activo_30d ? 'si' : 'no']));
+  const csv = filas.map(f => f.map(c => '"' + String(c == null ? '' : c).replace(/"/g,'""') + '"').join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type:'text/csv;charset=utf-8;' }));
+  a.download = 'partidos-en-vivo-por-usuario.csv';
+  a.click();
+});
+
+
+// ============ RESETEAR LA CONTRASEÑA DE UN USUARIO ============
+// Dos caminos:
+//   1. Mail de recuperación: anda ya, sin infraestructura. El entrenador
+//      elige su contraseña y vos nunca la ves.
+//   2. Contraseña temporal: para cuando el mail no le llega. Necesita la
+//      Edge Function 'admin-set-password' desplegada, porque cambiar la
+//      clave de otro exige la service_role key, que NO puede vivir acá.
+
+// URL donde está publicada la app que abren los entrenadores.
+// Si el panel y la app están en el mismo dominio, esto ya funciona.
+const URL_APP = location.origin + '/index.html';
+
+let rpUser = null;
+
+document.getElementById('mResetPwdBtn')?.addEventListener('click', () => {
+  if(!currentUser) return;
+  rpUser = currentUser;
+  document.getElementById('rpName').textContent = rpUser.name || '—';
+  document.getElementById('rpEmail').textContent = rpUser.email || '(sin email registrado)';
+  document.getElementById('rpTempPass').value = generarPassTemporal();
+  rpMensaje('', null);
+  const sinMail = !rpUser.email;
+  document.getElementById('rpSendMail').disabled = sinMail;
+  if(sinMail) rpMensaje('Este usuario no tiene email en su perfil, así que no se le puede mandar el mail. Usá la contraseña temporal.', 'info');
+  document.getElementById('resetPwdModal').classList.add('show');
+});
+document.getElementById('resetPwdClose')?.addEventListener('click', () => document.getElementById('resetPwdModal').classList.remove('show'));
+document.getElementById('resetPwdModal')?.addEventListener('click', e => { if(e.target.id === 'resetPwdModal') e.target.classList.remove('show'); });
+
+function rpMensaje(texto, tipo){
+  const el = document.getElementById('rpMsg');
+  if(!texto){ el.className = 'rp-msg'; el.innerHTML = ''; return; }
+  el.innerHTML = texto;
+  el.className = 'rp-msg on ' + tipo;
+}
+
+// Contraseña fácil de dictar por WhatsApp: sin caracteres que se confundan.
+function generarPassTemporal(){
+  const palabras = ['bench','futsal','cancha','pivot','gol','banco','pizarra','cierre'];
+  const p = palabras[Math.floor(Math.random() * palabras.length)];
+  const n = String(Math.floor(1000 + Math.random() * 9000));
+  return p + '-' + n;
+}
+document.getElementById('rpGen')?.addEventListener('click', () => {
+  document.getElementById('rpTempPass').value = generarPassTemporal();
+});
+document.getElementById('rpCopy')?.addEventListener('click', async () => {
+  const v = document.getElementById('rpTempPass').value;
+  try{
+    await navigator.clipboard.writeText(v);
+    rpMensaje('Copiada. Pegásela por privado.', 'ok');
+  }catch(e){
+    document.getElementById('rpTempPass').select();
+    rpMensaje('Copiala a mano desde el recuadro.', 'info');
+  }
+});
+
+// ---- Camino 1: mail de recuperación ----
+document.getElementById('rpSendMail')?.addEventListener('click', async () => {
+  if(!rpUser || !rpUser.email) return;
+  const btn = document.getElementById('rpSendMail');
+  btn.disabled = true; btn.textContent = 'Enviando…';
+  try{
+    const { error } = await sb.auth.resetPasswordForEmail(rpUser.email, { redirectTo: URL_APP });
+    if(error) throw error;
+    rpMensaje('Listo, le llegó el mail a <b>' + escapeHtmlA(rpUser.email) + '</b>. Decile que revise el correo no deseado si no lo ve. El link vence en una hora.', 'ok');
+  }catch(err){
+    const m = (err && err.message) || '';
+    rpMensaje(/rate|too many/i.test(m)
+      ? 'Supabase corta los envíos seguidos al mismo mail. Esperá unos minutos y probá de nuevo.'
+      : 'No se pudo enviar: ' + escapeHtmlA(m), 'err');
+  }finally{
+    btn.disabled = false; btn.textContent = 'Enviar mail de recuperación';
+  }
+});
+
+// ---- Camino 2: contraseña temporal (necesita la Edge Function) ----
+document.getElementById('rpApply')?.addEventListener('click', async () => {
+  if(!rpUser) return;
+  const pass = document.getElementById('rpTempPass').value.trim();
+  if(pass.length < 6){ rpMensaje('La contraseña tiene que tener al menos 6 caracteres.', 'err'); return; }
+  if(!confirm('¿Ponerle la contraseña "' + pass + '" a ' + (rpUser.name || rpUser.email) + '?\n\nLa contraseña que tenía deja de servir.')) return;
+
+  const btn = document.getElementById('rpApply');
+  btn.disabled = true; btn.textContent = 'Aplicando…';
+  try{
+    const { data, error } = await sb.functions.invoke('admin-set-password', {
+      body: { user_id: rpUser.id, password: pass }
+    });
+    if(error) throw error;
+    if(data && data.error) throw new Error(data.error);
+    rpMensaje('Listo. Su contraseña ahora es <code>' + escapeHtmlA(pass) + '</code>. Pasásela por privado y pedile que la cambie con el botón 🔑 apenas entre.', 'ok');
+  }catch(err){
+    const m = (err && err.message) || '';
+    if(/not found|404|Failed to send|FunctionsFetch|non-2xx/i.test(m)){
+      rpMensaje('Falta desplegar la función <code>admin-set-password</code> en Supabase (está en el archivo <code>admin-set-password.ts</code>). Cambiarle la contraseña a otra persona necesita la service_role key, que no puede estar en esta página. Mientras tanto, usá el mail de recuperación.', 'info');
+    } else if(/No autorizado/i.test(m)){
+      rpMensaje('La función respondió que tu cuenta no es admin de plataforma.', 'err');
+    } else {
+      rpMensaje('No se pudo aplicar: ' + escapeHtmlA(m), 'err');
+    }
+  }finally{
+    btn.disabled = false; btn.textContent = 'Aplicar esta contraseña';
+  }
+});
+
+document.getElementById('clubSearch')?.addEventListener('input', renderClubs);
+document.getElementById('usoDias')?.addEventListener('change', () => { loadSecciones(); loadTiempoUsuarios(); });
+filter.addEventListener('change', render);
+</script>
+
+</body>
+</html>
