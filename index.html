@@ -2443,6 +2443,12 @@ body.editor-active #screen-editor{ display:block; }
   /* Modales: ocupar casi toda la pantalla */
   .cloud-modal{max-width:100%;max-height:88vh;}
 
+  /* Fix mobile: la grilla de emojis de causas colapsaba dentro del div con scroll.
+     Le garantizamos que el contenido no se aplaste y que la grilla se vea. */
+  .cloud-modal > div:not(.cloud-modal-head){flex:1 1 auto;}
+  .causa-emoji-grid{grid-template-columns:repeat(auto-fill,minmax(40px,1fr));min-height:120px;}
+  .causa-emoji{min-height:40px;}
+
   /* Anuales: una columna */
   .annual-grid{grid-template-columns:1fr;}
 
@@ -3679,7 +3685,8 @@ body.editor-active #screen-editor{ display:block; }
 
       <div class="rival-detail-head">
         <div class="rd-fecha-badge" id="rdFechaBadge">Fecha</div>
-        <input class="rd-name" id="rdName" placeholder="Nombre del rival">
+        <input class="rd-name" id="rdName" placeholder="Nombre del rival" list="rivalesUsados" autocomplete="off">
+        <datalist id="rivalesUsados"></datalist>
         <div class="rd-meta-row">
           <label>Próximo partido <input type="date" id="rdDate"></label>
           <label>Torneo / categoría <input type="text" id="rdTournament" placeholder="Ej: Liga A"></label>
@@ -6461,10 +6468,29 @@ window.__initEditor = function(){
     });
   }
 
+  // Junta los nombres de rivales ya usados por el club (todas las categorías y
+  // temporadas) y los ofrece como sugerencias al escribir el nombre de un rival.
+  async function llenarRivalesUsados(){
+    try{
+      const dl = document.getElementById('rivalesUsados');
+      if(!dl) return;
+      const sb = window.__sb || window.__sbClient;
+      const cid = window.__getClubId ? await window.__getClubId() : null;
+      if(!sb || !cid) return;
+      const { data } = await sb.from('scouting').select('name').eq('club_id', cid);
+      const nombres = Array.from(new Set((data||[])
+        .map(r => (r.name||'').trim())
+        .filter(n => n.length > 0)))
+        .sort((a,b)=> a.localeCompare(b));
+      dl.innerHTML = nombres.map(n => '<option value="'+n.replace(/"/g,'&quot;')+'"></option>').join('');
+    }catch(e){ console.error('rivales usados', e); }
+  }
+
   function openRival(id){
     const r = rivals.find(x => x.id === id);
     if(!r) return;
     currentRivalId = id;
+    if(typeof llenarRivalesUsados === 'function') llenarRivalesUsados();
     document.getElementById('rdName').value = r.name || '';
     document.getElementById('rdDate').value = r.date || '';
     document.getElementById('rdTournament').value = r.tournament || '';
