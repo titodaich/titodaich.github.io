@@ -2000,6 +2000,11 @@ body.modo-lectura .section-content textarea:read-only{
 .plans-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;}
 .plans-close-btn{display:block;width:100%;margin-top:16px;background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);border-radius:10px;padding:12px;font-family:'Inter',sans-serif;font-size:14px;cursor:pointer;transition:background .12s ease;}
 .plans-close-btn:hover{background:var(--panel);}
+.plans-confirmar{background:rgba(37,211,102,0.08);border:1px solid rgba(37,211,102,0.4);border-radius:12px;padding:14px 16px;margin-top:16px;text-align:center;}
+.plans-confirmar .pc-titulo{font-family:'Oswald',sans-serif;font-size:14px;color:var(--chalk);margin:0 0 6px;font-weight:600;}
+.plans-confirmar .pc-texto{font-size:12.5px;color:var(--muted);line-height:1.5;margin:0 0 12px;}
+.plans-confirmar .pc-btn{background:#25D366;border:none;color:#0B1219;border-radius:10px;padding:12px 18px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;width:100%;transition:opacity .12s ease;}
+.plans-confirmar .pc-btn:hover{opacity:0.9;}
 .plans-box h2{font-family:'Oswald',sans-serif;font-size:24px;margin:0 0 4px;}
 .plans-sub{color:var(--muted);font-size:14px;margin:0 0 20px;}
 .plans-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
@@ -5055,6 +5060,29 @@ window.__planLink = function(packKey, dur){
     return 'https://wa.me/' + P.whatsapp + '?text=' + encodeURIComponent(msg);
   }
   return '#';
+};
+// WhatsApp de CONFIRMACIÓN de pago: siempre arma el mensaje con los datos del
+// usuario para que mande el comprobante (se usa en el cartel "Ya pagué").
+window.__confirmarPagoWhatsapp = function(packKey, dur){
+  const P = window.__PAY;
+  if(!P.whatsapp) return '#';
+  const packName = (P.packs[packKey] && P.packs[packKey].name) || packKey || '';
+  const email = window.__currentUserEmail || '(sin email)';
+  const club = window.__clubNombre || '(sin club)';
+  let detalle = '';
+  if(dur){
+    const precio = (window.__fmtPrice ? window.__fmtPrice(dur) : '');
+    detalle = '📦 Pack: ' + packName + ' — ' + window.__durLabel(dur.months) + (precio ? ' (' + precio + ')' : '') + '\n';
+  } else if(packName){
+    detalle = '📦 Pack: ' + packName + '\n';
+  }
+  const msg =
+    '¡Hola Lucas! Ya hice el pago para activar mi cuenta de Benchone. 💳✅\n\n' +
+    '👤 Mi cuenta (email): ' + email + '\n' +
+    '🏫 Club: ' + club + '\n' +
+    detalle + '\n' +
+    'Te adjunto el comprobante. ¡Gracias!';
+  return 'https://wa.me/' + P.whatsapp + '?text=' + encodeURIComponent(msg);
 };
 // (compat) link genérico para el botón directo
 window.__payLink = (function(){
@@ -15898,10 +15926,21 @@ try{
         cards += `<a class="plan-card${destacado}" href="${link}" target="_blank" rel="noopener" data-paylink="1">${promoBadge}<span class="plan-label">${window.__durLabel(dur.months)}</span>${priceHtml}${perMonth}${comparacion}${promoNota}<span class="plan-go">${window.t('planGo')} →</span></a>`;
       });
       const gridClass = visibles.length <= 2 ? 'plans-grid plans-grid-2' : 'plans-grid plans-grid-3';
-      modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><button class="plans-back" id="plansBack">← Volver a los packs</button><h2>Pack ${pk.name}</h2><p class="plans-sub">${pk.note||''} · Elegí por cuánto tiempo.</p>${fundadorLine}${codigoLineHTML()}<div class="${gridClass}">${cards}</div>${contactLine}${aliasLine}${legalLine}</div>`;
+      const confirmarBox = P.whatsapp ? `<div class="plans-confirmar">
+        <p class="pc-titulo">⚠️ Importante: confirmá tu pago</p>
+        <p class="pc-texto">Después de pagar, tu cuenta se activa cuando nos mandás el comprobante por WhatsApp. Tocá el botón, adjuntá la captura del pago y listo.</p>
+        <button class="pc-btn" id="plansConfirmarWa">✅ Ya pagué · enviar comprobante</button>
+      </div>` : '';
+      modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><button class="plans-back" id="plansBack">← Volver a los packs</button><h2>Pack ${pk.name}</h2><p class="plans-sub">${pk.note||''} · Elegí por cuánto tiempo.</p>${fundadorLine}${codigoLineHTML()}<div class="${gridClass}">${cards}</div>${confirmarBox}${contactLine}${aliasLine}${legalLine}</div>`;
       wire();
       const back = document.getElementById('plansBack');
       if(back) back.addEventListener('click', renderPaso1);
+      const confWa = document.getElementById('plansConfirmarWa');
+      if(confWa) confWa.addEventListener('click', ()=>{
+        const durPrincipal = visibles[0] || null;
+        const url = window.__confirmarPagoWhatsapp ? window.__confirmarPagoWhatsapp(packKey, durPrincipal) : '#';
+        if(url && url !== '#') window.open(url, '_blank', 'noopener');
+      });
       modal.querySelectorAll('a[data-paylink]').forEach(a=>{
         a.addEventListener('click', async (e)=>{
           if(window.__exigirWhatsappParaPago){
