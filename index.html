@@ -3459,14 +3459,6 @@ body.editor-active #screen-editor{ display:block; }
           <p class="scout-sub" data-i18n="minutesSub">Minutos jugados por partido. Se cargan solos al guardar desde 🔴 En vivo.</p>
         </div>
       </div>
-      <div class="novedad-cartel" data-nov="minutaje">
-        <span class="nc-ico">🆕</span>
-        <div class="nc-body">
-          <p class="nc-title">Novedad: carga de minutaje</p>
-          <p class="nc-text">Cargá los minutos de cada partido a mano (1er y 2do tiempo por jugador) o dejá que se carguen solos con 🔴 En Vivo. Los partidos que te faltan aparecen como <b>⏳ pendientes</b>: tocá "Cargar minutos" para completarlos. Todo se refleja en la ficha del jugador y en las estadísticas anuales.</p>
-        </div>
-        <button class="nc-close" aria-label="Cerrar">✕</button>
-      </div>
       <div class="novedad-cartel" data-nov="minutaje-resumen-2026-08">
         <span class="nc-ico">✨</span>
         <div class="nc-body">
@@ -3484,6 +3476,7 @@ body.editor-active #screen-editor{ display:block; }
       </div>
       <div id="minAnioView" style="display:none;"></div>
       <div id="informePlantel" style="display:none;"></div>
+      <p id="minTabHint" class="rd-empty" style="text-align:center;padding:24px 10px;">Elegí <b>📅 Resumen</b> para ver todo el año, o <b>📋 Uno por uno</b> para entrar a cada partido.</p>
       <div id="minutesEditor" style="display:none;"></div>
       <div id="minutesCharts"></div>
       <div id="minutesDetail" style="display:none;"></div>
@@ -11540,16 +11533,16 @@ window.__initEditor = function(){
       });
     });
     const nPart = (sessions||[]).length;
-    const card = (num, lbl)=>'<div style="background:var(--panel,#152230);border:1px solid var(--line);border-radius:12px;padding:16px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;aspect-ratio:1/1;">'
-      + '<div style="font-family:\'Oswald\',sans-serif;font-size:24px;color:var(--accent-2);line-height:1.1;">'+num+'</div>'
-      + '<div style="font-size:10px;color:var(--muted);margin-top:6px;text-transform:uppercase;letter-spacing:.4px;">'+lbl+'</div></div>';
+    const card = (num, lbl, color, bg)=>'<div style="background:'+bg+';border:1px solid '+color+';border-radius:14px;padding:14px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;aspect-ratio:1/1;">'
+      + '<div style="font-family:\'Oswald\',sans-serif;font-size:23px;color:'+color+';line-height:1.1;font-weight:700;">'+num+'</div>'
+      + '<div style="font-size:10px;color:var(--chalk,#dfe8f0);margin-top:5px;text-transform:uppercase;letter-spacing:.4px;opacity:.85;">'+lbl+'</div></div>';
     if(nPart===0){ cont.innerHTML=''; return; }
-    cont.innerHTML = '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px;">'
-      + card(nPart, 'partidos')
-      + card(fmt(totalSeg), 'minutos')
-      + card(jugadores.size, 'jugadores')
-      + card(goles, 'goles')
-      + card(remates, 'remates')
+    cont.innerHTML = '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px;max-width:560px;">'
+      + card(nPart, 'partidos', '#2F8FCB', 'rgba(47,143,203,0.10)')
+      + card(fmt(totalSeg), 'minutos', '#4CAF6D', 'rgba(76,175,109,0.10)')
+      + card(jugadores.size, 'jugadores', '#E0A93B', 'rgba(224,169,59,0.10)')
+      + card(goles, 'goles', '#E5342A', 'rgba(229,52,42,0.10)')
+      + card(remates, 'remates', '#9B7EDE', 'rgba(155,126,222,0.10)')
       + '</div>';
   }
 
@@ -15079,6 +15072,8 @@ window.__initEditor = function(){
     const contAnio = document.getElementById('minAnioView');
     function mostrarMinTab(tab){
       subtabs.forEach(t=> t.classList.toggle('active', t.dataset.mintab===tab));
+      const hint = document.getElementById('minTabHint');
+      if(hint) hint.style.display = 'none';
       if(tab==='anio'){
         if(contAnio){ contAnio.style.display='block'; renderMinAnio(); }
         if(contPartidos) contPartidos.style.display='none';
@@ -15090,8 +15085,14 @@ window.__initEditor = function(){
     subtabs.forEach(t=>{
       t.addEventListener('click', ()=> mostrarMinTab(t.dataset.mintab));
     });
-    // Al entrar a minutaje, mostrar por defecto "Año".
-    window.__resetMinTabs = function(){ mostrarMinTab('anio'); };
+    // Al entrar: NINGUNA solapa desplegada (pantalla tranquila). Se abre al tocar.
+    window.__resetMinTabs = function(){
+      subtabs.forEach(t=> t.classList.remove('active'));
+      if(contAnio) contAnio.style.display='none';
+      if(contPartidos) contPartidos.style.display='none';
+      const hint = document.getElementById('minTabHint');
+      if(hint) hint.style.display = 'block';
+    };
   })();
 
   // Vista "Año" dentro de minutaje: acumulado de minutos por jugador en toda la temporada.
