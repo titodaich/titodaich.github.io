@@ -16536,13 +16536,20 @@ function renderPlayerTags(){
     grid.appendChild(chip);
   });
 }
-// Guardar/cargar los nombres de jugadores (localStorage, por ahora)
+// Guardar/cargar los nombres de jugadores de la botonera (localStorage).
+// La clave incluye la categoría y la temporada: la botonera de 4ta no debe
+// aparecer en 5ta. Cada categoría es un mundo aparte.
+function videoPlayersKey(){
+  const cat = (window.__getActiveCategory && window.__getActiveCategory()) || 'x';
+  const temp = window.__getTemporada ? window.__getTemporada() : new Date().getFullYear();
+  return 'bo_video_players_' + cat + '_' + temp;
+}
 function savePlayerTags(){
-  try{ localStorage.setItem('bo_video_players', JSON.stringify(playerTags.map(p=>({id:p.id,name:p.name,plantelId:p.plantelId||null})))); }catch(e){}
+  try{ localStorage.setItem(videoPlayersKey(), JSON.stringify(playerTags.map(p=>({id:p.id,name:p.name,plantelId:p.plantelId||null})))); }catch(e){}
 }
 function loadPlayerTags(){
   try{
-    const r = localStorage.getItem('bo_video_players');
+    const r = localStorage.getItem(videoPlayersKey());
     if(r){ const saved = JSON.parse(r); saved.forEach(s => { const p = playerTags.find(x=>x.id===s.id); if(p){ p.name = s.name; if(s.plantelId) p.plantelId = s.plantelId; } }); }
   }catch(e){}
 }
