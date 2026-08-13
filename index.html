@@ -490,6 +490,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .guide-title{font-family:'Oswald',sans-serif;font-size:26px;text-transform:uppercase;letter-spacing:0.5px;margin:0 0 6px;}
 /* ===== Diagrama de red "todo conectado" ===== */
 .guide-diagram{background:var(--bg);border:1px solid var(--line-soft);border-radius:14px;padding:14px;margin-bottom:28px;}
+.gd-desktop svg{display:block;max-width:600px;width:100%;height:auto;margin:0 auto;}
 .gd-legend{display:flex;justify-content:center;gap:20px;margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);flex-wrap:wrap;}
 .gd-legend span{display:flex;align-items:center;gap:6px;}
 .gd-ll-solid{width:20px;height:2px;background:var(--accent-2);display:inline-block;}
@@ -4126,6 +4127,16 @@ body.editor-active #screen-editor{ display:block; }
             <text x="400" y="282" font-size="22">👥</text>
             <text x="400" y="306" font-family="Oswald" font-size="17" font-weight="700" fill="#F2F6F8">Plantel</text>
             <text x="400" y="321" font-family="JetBrains Mono" font-size="8" fill="#8CA2B3" letter-spacing="1">LA BASE DE TODO</text>
+          </g>
+          <!-- Botoneras del Editor de video, que alimentan el Scouting (columna izquierda) -->
+          <path d="M75 160 L75 200" stroke="#8CA2B3" stroke-width="1.5" fill="none" opacity="0.55" stroke-dasharray="4 4"/>
+          <path d="M75 375 L75 420" stroke="#4CAF6D" stroke-width="1.5" fill="none" opacity="0.7" marker-end="url(#gdArrowGreen)"/>
+          <path d="M145 135 L75 135 L75 205" stroke="#8CA2B3" stroke-width="1.5" fill="none" opacity="0.5" stroke-dasharray="4 4"/>
+          <path d="M75 375 L75 445 L145 445" stroke="#4CAF6D" stroke-width="1.5" fill="none" opacity="0.7"/>
+          <g font-family="Inter" font-size="9.5" fill="#C9D4DE" text-anchor="middle">
+            <g><rect x="18" y="205" width="114" height="34" rx="7" fill="#10161C" stroke="#E5342A" stroke-opacity="0.6"/><text x="75" y="225">🎯 Táctica</text></g>
+            <g><rect x="18" y="253" width="114" height="34" rx="7" fill="#10161C" stroke="#2F8FCB" stroke-opacity="0.6"/><text x="75" y="273">🏠 Mi equipo</text></g>
+            <g><rect x="18" y="301" width="114" height="34" rx="7" fill="#10161C" stroke="#E0A93B" stroke-opacity="0.6"/><text x="75" y="321">⚔️ Equipo rival</text></g>
           </g>
         </svg>
         <div class="gd-legend">
