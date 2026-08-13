@@ -1067,12 +1067,13 @@ async function loadUsers(){
     // Membresías (club + rol) de todos
     const { data: memberships } = await sb.from('memberships').select('user_id, role, club_id');
     // Clubes
-    const { data: clubs } = await sb.from('clubs').select('id, name');
+    const { data: clubs } = await sb.from('clubs').select('id, name, es_fundador');
     // Proyectos (para contar por club -> por usuario creador)
     const { data: projects } = await sb.from('projects').select('id, name, club_id, created_by, created_at');
 
     const clubById = {};
-    (clubs||[]).forEach(c => clubById[c.id] = c.name);
+    const fundadorByClub = {};
+    (clubs||[]).forEach(c => { clubById[c.id] = c.name; fundadorByClub[c.id] = !!c.es_fundador; });
 
     users = (profiles||[]).map(p => {
       const mem = (memberships||[]).find(m => m.user_id === p.id);
@@ -1109,6 +1110,7 @@ async function loadUsers(){
         subPaidAt: p.sub_paid_at || null,
         pack: p.pack || 'entrenador',
         cobroActivado: !!p.cobro_activado,
+        esFundador: clubId ? !!fundadorByClub[clubId] : false,
         projects: userProjects
       };
     });
@@ -1817,7 +1819,9 @@ async function toggleFundador(clubId, esAhora){
     try{
       const { error } = await sb.from('clubs').update({ es_fundador:false, descuento_pct:0 }).eq('id', clubId);
       if(error) throw error;
-      await loadClubs();
+      if(typeof loadClubs === 'function') await loadClubs();
+      if(typeof loadUsers === 'function') await loadUsers();
+      const modalX = document.getElementById('modal'); if(modalX) modalX.classList.remove('show');
     }catch(e){ alert(faltaSQL(e) ? 'Falta correr el SQL de fundadores (8-fundadores.sql).' : 'No se pudo actualizar.'); }
     return;
   }
@@ -1825,7 +1829,9 @@ async function toggleFundador(clubId, esAhora){
   try{
     const { error } = await sb.from('clubs').update({ es_fundador:true, descuento_pct:0 }).eq('id', clubId);
     if(error) throw error;
-    await loadClubs();
+    if(typeof loadClubs === 'function') await loadClubs();
+    if(typeof loadUsers === 'function') await loadUsers();
+    const modalX = document.getElementById('modal'); if(modalX) modalX.classList.remove('show');
     alert(nombre + ' quedó marcado como amigo. Ya verá su precio distintivo al abrir los planes.');
   }catch(e){ alert(faltaSQL(e) ? 'Falta correr el SQL de fundadores (8-fundadores.sql).' : 'No se pudo actualizar.'); }
 }
@@ -2173,6 +2179,16 @@ function renderUserSubscription(u){
 
   btns.appendChild(bTrial);
   btns.appendChild(bVencer);
+
+  // Hacer / quitar amigo (precio distintivo) — solo si el usuario tiene club
+  if(u.clubId){
+    const bAmigo = document.createElement('button');
+    bAmigo.className = 'btn-mini';
+    bAmigo.textContent = u.esFundador ? '🌟 Quitar amigo' : '☆ Hacer amigo';
+    if(u.esFundador){ bAmigo.style.cssText = 'border-color:#E0A93B;color:#E0A93B;'; }
+    bAmigo.addEventListener('click', () => toggleFundador(u.clubId, u.esFundador));
+    btns.appendChild(bAmigo);
+  }
 
   // ── Cobro selectivo: iniciar cuenta regresiva de 7 días para ESTE usuario ──
   const sepReg = document.createElement('div');
