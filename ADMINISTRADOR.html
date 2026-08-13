@@ -1613,7 +1613,7 @@ function renderClubs(){
       <td>${endTxt}</td>
       <td>${dTxt}</td>
       <td style="text-align:right;white-space:nowrap;">
-        <button class="btn-mini act-founder" data-id="${c.id}" data-on="${c.es_fundador?1:0}">${c.es_fundador?'🌟 Quitar fundador':'☆ Hacer fundador'}</button>
+        <button class="btn-mini act-founder" data-id="${c.id}" data-on="${c.es_fundador?1:0}">${c.es_fundador?'🌟 Quitar amigo':'☆ Hacer amigo'}</button>
         <button class="btn-mini act-pay" data-id="${c.id}">💳 Confirmar pago</button>
         <button class="btn-mini act-trial" data-id="${c.id}">Extender prueba</button>
         <button class="btn-mini act-reset" data-id="${c.id}">🔑 Reset clave</button>
@@ -1821,15 +1821,12 @@ async function toggleFundador(clubId, esAhora){
     }catch(e){ alert(faltaSQL(e) ? 'Falta correr el SQL de fundadores (8-fundadores.sql).' : 'No se pudo actualizar.'); }
     return;
   }
-  const pctTxt = prompt('¿Qué descuento permanente le das a ' + nombre + '?\n\nEscribí solo el número (por ejemplo 25 para 25%).', String(DESCUENTO_FUNDADOR));
-  if(pctTxt === null) return;
-  const pct = parseInt(pctTxt, 10);
-  if(isNaN(pct) || pct < 0 || pct > 90){ alert('Poné un número entre 0 y 90.'); return; }
+  if(!confirm('¿Marcar a ' + nombre + ' como amigo?\n\nVa a ver el pack Amigo con su precio distintivo ($17.000/mes · $42.000 los 3 meses).')) return;
   try{
-    const { error } = await sb.from('clubs').update({ es_fundador:true, descuento_pct:pct }).eq('id', clubId);
+    const { error } = await sb.from('clubs').update({ es_fundador:true, descuento_pct:0 }).eq('id', clubId);
     if(error) throw error;
     await loadClubs();
-    alert(nombre + ' quedó marcado como amigo fundador con ' + pct + '% de descuento permanente.');
+    alert(nombre + ' quedó marcado como amigo. Ya verá su precio distintivo al abrir los planes.');
   }catch(e){ alert(faltaSQL(e) ? 'Falta correr el SQL de fundadores (8-fundadores.sql).' : 'No se pudo actualizar.'); }
 }
 

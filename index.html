@@ -2000,6 +2000,11 @@ body.modo-lectura .section-content textarea:read-only{
 .plans-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;}
 .plans-close-btn{display:block;width:100%;margin-top:16px;background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);border-radius:10px;padding:12px;font-family:'Inter',sans-serif;font-size:14px;cursor:pointer;transition:background .12s ease;}
 .plans-close-btn:hover{background:var(--panel);}
+.plans-grid-amigo{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.plan-amigo{border-color:#E0A93B !important;background:linear-gradient(180deg,rgba(224,169,59,0.12),var(--panel-2)) !important;grid-column:1/-1;}
+.plan-badge-amigo{background:#E0A93B !important;color:#0B1219 !important;}
+.plan-amigo .plan-label{color:#E0A93B;}
+@media (max-width:600px){ .plans-grid-amigo{grid-template-columns:1fr;} }
 .plans-confirmar{background:rgba(37,211,102,0.08);border:1px solid rgba(37,211,102,0.4);border-radius:12px;padding:14px 16px;margin-top:16px;text-align:center;}
 .plans-confirmar .pc-titulo{font-family:'Oswald',sans-serif;font-size:14px;color:var(--chalk);margin:0 0 6px;font-weight:600;}
 .plans-confirmar .pc-texto{font-size:12.5px;color:var(--muted);line-height:1.5;margin:0 0 12px;}
@@ -4937,6 +4942,15 @@ window.__PAY = {
   // con su propio precio y link de pago. Completá 'ars'/'usd' y 'mpLink' cuando los tengas.
   // Mientras enabled=false, el límite NO se aplica (todos tienen las 8) y no se cobra.
   packs: {
+    amigo: {
+      name:'Amigo', maxCategories:99, badge:'', note:'Tu precio distintivo', soloFundador:true,
+      desc:'Gracias por estar desde el principio. Crecemos día a día. Precio distintivo amigo.',
+      feature:'Todas las herramientas, todas las categorías.',
+      durations: [
+        { months:1, ars:17000, usd:15, mpLink:'https://mpago.la/1Ct5bkc', stripeLink:'', comparacion:'tu precio de amigo' },
+        { months:3, ars:42000, usd:42, mpLink:'https://mpago.la/23nvGM1', stripeLink:'', comparacion:'tu precio de amigo', promo:'Precio amigo', promoNota:'Gracias por bancar el proyecto desde el arranque. Incluye hasta enero.' }
+      ]
+    },
     entrenador: {
       name:'Entrenador', maxCategories:2, badge:'', note:'Hasta 2 categorías',
       desc:'Para el DT que dirige una o dos categorías.',
@@ -15876,34 +15890,45 @@ try{
     // ── PASO 1: elegir el pack ──
     function renderPaso1(){
       const order = P.packOrder || Object.keys(P.packs);
+      const esFundador = !!window.__esFundador;
       let cards = '';
       order.forEach(key=>{
         const pk = P.packs[key]; if(!pk) return;
-        const badge = pk.badge ? `<span class="plan-badge">${pk.badge}</span>` : '';
-        const destacado = pk.badge === 'Mejor precio' ? ' plan-featured' : '';
+        // El pack "Amigo" solo lo ven los fundadores; el resto no lo ve.
+        if(pk.soloFundador && !esFundador) return;
+        const esAmigo = !!pk.soloFundador;
+        const badge = esAmigo ? `<span class="plan-badge plan-badge-amigo">⭐ Tu precio distintivo</span>` : (pk.badge ? `<span class="plan-badge">${pk.badge}</span>` : '');
+        const destacado = esAmigo ? ' plan-featured plan-amigo' : (pk.badge === 'Mejor precio' ? ' plan-featured' : '');
         // Precio de referencia: el de 1 mes (el que la gente usa para comparar),
         // con la aclaración de que baja si paga por más tiempo.
         let desde = '';
         if(P.showPrices){
           const unMes = (pk.durations||[]).find(d => d.months === 1 && d.ars > 0);
           const conPrecio = (pk.durations||[]).filter(d => d.ars > 0);
+          // El pack Amigo ya tiene precio especial: NO se le aplica descuento encima.
+          const precioDe = (m)=> esAmigo ? m : window.__conDescuento(m);
           if(unMes){
             const masBarato = conPrecio.length
               ? conPrecio.reduce((a,b) => (b.ars/b.months < a.ars/a.months ? b : a))
               : null;
             const hayDescuento = masBarato && (masBarato.ars/masBarato.months) < unMes.ars;
-            desde = `<span class="plan-permonth">$ ${Number(window.__conDescuento(unMes.ars)).toLocaleString('es-AR')}/mes</span>`
+            desde = `<span class="plan-permonth">$ ${Number(precioDe(unMes.ars)).toLocaleString('es-AR')}/mes</span>`
                   + (hayDescuento ? `<span class="plan-hint">(menos si pagás 6 o 12 meses)</span>` : '');
           } else if(conPrecio.length){
             const min = conPrecio.reduce((a,b)=> (b.ars/b.months < a.ars/a.months ? b : a));
-            desde = `<span class="plan-permonth">desde $ ${Math.round(min.ars/min.months).toLocaleString('es-AR')}/mes</span>`;
+            desde = `<span class="plan-permonth">desde $ ${Math.round(precioDe(min.ars)/min.months).toLocaleString('es-AR')}/mes</span>`;
           }
         }
         const descHtml = pk.desc ? `<span class="plan-desc">${pk.desc}</span>` : '';
         const featHtml = pk.feature ? `<span class="plan-feature">✓ ${pk.feature}</span>` : '';
-        cards += `<div class="plan-card${destacado}" data-pack="${key}">${badge}<span class="plan-label">${pk.name}</span><span class="plan-note">${pk.note||''}</span>${descHtml}${featHtml}${desde}<span class="plan-go">Sumarme →</span></div>`;
+        const btnTxt = esAmigo ? 'Este es el mío →' : 'Sumarme →';
+        cards += `<div class="plan-card${destacado}" data-pack="${key}">${badge}<span class="plan-label">${pk.name}</span><span class="plan-note">${pk.note||''}</span>${descHtml}${featHtml}${desde}<span class="plan-go">${btnTxt}</span></div>`;
       });
-      modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><h2>${window.t('plansTitle')}</h2><p class="plans-sub">Elegí tu pack. Pagás con Mercado Pago en un clic.</p>${fundadorLine}${codigoLineHTML()}<div class="plans-grid plans-grid-3">${cards}</div>${contactLine}${aliasLine}${legalLine}<button class="plans-close-btn" id="plansCloseBtn">← Volver</button></div>`;
+      const subT = esFundador
+        ? 'Sos amigo de Benchone: tenés un precio especial. Elegí y pagás con Mercado Pago en un clic.'
+        : 'Elegí tu pack. Pagás con Mercado Pago en un clic.';
+      const gridCols = esFundador ? 'plans-grid plans-grid-amigo' : 'plans-grid plans-grid-3';
+      modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><h2>${window.t('plansTitle')}</h2><p class="plans-sub">${subT}</p>${fundadorLine}${codigoLineHTML()}<div class="${gridCols}">${cards}</div>${contactLine}${aliasLine}${legalLine}<button class="plans-close-btn" id="plansCloseBtn">← Volver</button></div>`;
       wire();
       modal.querySelectorAll('.plan-card[data-pack]').forEach(c=>{
         c.addEventListener('click', ()=> renderPaso2(c.dataset.pack));
@@ -15913,12 +15938,21 @@ try{
     // ── PASO 2: elegir la duración del pack elegido ──
     function renderPaso2(packKey){
       const pk = P.packs[packKey]; if(!pk) return renderPaso1();
+      const esAmigo = !!pk.soloFundador;
+      // El pack Amigo tiene precio fijo: no se le aplica descuento porcentual encima.
+      const precioDe = (m)=> esAmigo ? m : window.__conDescuento(m);
+      const fmtP = (dur)=>{
+        if(!esAmigo && window.__fmtPrice) return window.__fmtPrice(dur);
+        const cur = (window.__PAY.currency === 'usd') ? 'usd' : 'ars';
+        if(cur === 'usd') return 'US$ ' + (dur.usd||0);
+        return '$ ' + Number(dur.ars||0).toLocaleString('es-AR');
+      };
       let cards = '';
       const visibles = (pk.durations||[]).filter(dur => !dur.oculta);
       visibles.forEach(dur=>{
         const link = window.__planLink ? window.__planLink(packKey, dur) : (waLink||'#');
-        const priceHtml = (P.showPrices && window.__fmtPrice) ? `<span class="plan-price">${window.__fmtPrice(dur)}</span>` : '';
-        const perMonth = (P.showPrices && dur.ars) ? `<span class="plan-permonth">$ ${Math.round(window.__conDescuento(dur.ars)/dur.months).toLocaleString('es-AR')}/mes</span>` : '';
+        const priceHtml = (P.showPrices) ? `<span class="plan-price">${fmtP(dur)}</span>` : '';
+        const perMonth = (P.showPrices && dur.ars) ? `<span class="plan-permonth">$ ${Math.round(precioDe(dur.ars)/dur.months).toLocaleString('es-AR')}/mes</span>` : '';
         const destacado = dur.promo ? ' plan-featured' : '';
         const promoBadge = dur.promo ? `<span class="plan-promo">${dur.promo}</span>` : '';
         const promoNota = dur.promoNota ? `<span class="plan-promo-nota">${dur.promoNota}</span>` : '';
