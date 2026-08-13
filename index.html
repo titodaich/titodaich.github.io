@@ -4995,6 +4995,23 @@ window.__PAY = {
 window.__descuentoPct = 0;
 window.__esFundador = false;
 
+// Lee si el club del usuario es "amigo fundador" (precio distintivo). Se llama
+// siempre al iniciar, sin importar si el cobro es global, selectivo o demo, así
+// el pack Amigo aparece para cualquier usuario marcado como amigo.
+window.__cargarFundador = async function(){
+  try{
+    const sb = window.__sb || window.__sbClient;
+    if(!sb || !window.__getClubId) return;
+    const clubId = await window.__getClubId();
+    if(!clubId) return;
+    const { data, error } = await sb.from('clubs')
+      .select('es_fundador, descuento_pct').eq('id', clubId).single();
+    if(error || !data) return;
+    window.__esFundador = !!data.es_fundador;
+    window.__descuentoPct = window.__esFundador ? (Number(data.descuento_pct) || 0) : 0;
+  }catch(e){ /* si falla, queda como no-fundador */ }
+};
+
 // ── Códigos de descuento de vendedores ──
 // Si el club aplica un código válido, el descuento se suma al cálculo.
 // Los fundadores NO pueden usar códigos (no se acumulan descuentos).
@@ -15595,6 +15612,9 @@ try{
 
   // Chequea el estado de la suscripción y muestra el cartel si corresponde
   window.__checkSubscription = async function(){
+    // Leemos si es amigo fundador SIEMPRE (para cualquier modo de cobro),
+    // así el pack Amigo aparece aunque el usuario esté en prueba o selectivo.
+    if(window.__cargarFundador) await window.__cargarFundador();
     const cobroGlobal = !!(window.__PAY && window.__PAY.enabled);
 
     // Si el cobro global está APAGADO, revisamos si este usuario tiene
@@ -15865,9 +15885,11 @@ try{
   }
 
   // Modal de planes: el usuario elige período y va al pago
-  function openPlansModal(){
+  async function openPlansModal(){
     // Abre si el cobro global está activo, O si este usuario está en cobro selectivo.
     if(!(window.__PAY && window.__PAY.enabled) && !window.__cobroSelectivo) return;
+    // Refrescamos si es amigo fundador, por si lo marcaron recién.
+    if(window.__cargarFundador) await window.__cargarFundador();
     const P = window.__PAY;
     let modal = document.getElementById('plansModal');
     if(modal) modal.remove();
