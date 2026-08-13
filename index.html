@@ -7696,6 +7696,9 @@ window.__initEditor = function(){
   // Si se corta la conexión, se cierra Safari o salís sin querer, al volver a
   // En Vivo se retoma automáticamente donde quedaste.
   const LIVE_SAVE_KEY = 'benchone_live_encurso';   // clave vieja (compatibilidad)
+  // Limpieza única: borramos la clave vieja (sin categoría) que podía hacer que
+  // los datos de un partido aparecieran en otra categoría. Ya no se usa.
+  try{ safeStorage.removeItem(LIVE_SAVE_KEY); }catch(e){}
   // Cada partido a medias se guarda con una clave propia por club + usuario + categoría,
   // así el DT de 4ta y el de 3era pueden dejar cada uno su partido preparado sin pisarse.
   function liveSaveKey(cat){
@@ -7720,7 +7723,11 @@ window.__initEditor = function(){
     if(__restaurando) return;
     if(inSetup) return;        // solo guardamos si hay un partido en curso
     try{
-      const cat = (window.__getActiveCategory && window.__getActiveCategory()) || '';
+      // La categoría del partido en curso es la que manda (matchCategoria).
+      // Si por algo no está, caemos a la de la barra.
+      const cat = (matchCategoria != null && matchCategoria !== '')
+        ? matchCategoria
+        : ((window.__getActiveCategory && window.__getActiveCategory()) || '');
       const snap = {
         v: 1,
         ts: Date.now(),
@@ -7748,24 +7755,26 @@ window.__initEditor = function(){
       const uActual = window.__currentUserId || null;
       const cActual = window.__clubIdCache || null;
       const catActual = (window.__getActiveCategory && window.__getActiveCategory()) || '';
-      // Partidos viejos (sin dueño registrado): por seguridad los tratamos como ajenos
-      // si ya hay un usuario logueado distinto de null.
-      if(snap.ownerUser === undefined) return false; // guardado por versión previa: no bloqueamos (raro)
       if(snap.ownerUser && uActual && snap.ownerUser !== uActual) return true;
       if(snap.ownerClub && cActual && snap.ownerClub !== cActual) return true;
-      // La categoría del partido guardado debe coincidir con la categoría activa.
-      if(snap.categoria != null && catActual && snap.categoria !== catActual) return true;
+      // La categoría del partido guardado DEBE coincidir con la categoría activa.
+      // Es estricto a propósito: los datos de una categoría no deben aparecer en otra.
+      // Si el snap no trae categoría (versión vieja), lo tratamos como ajeno para
+      // no contaminar la categoría en la que está parado el DT.
+      const catSnap = (snap.categoria != null) ? snap.categoria
+                    : (snap.matchCategoria != null ? snap.matchCategoria : null);
+      if(catActual){
+        if(catSnap == null) return true;          // sin categoría → no lo mostramos acá
+        if(catSnap !== catActual) return true;    // otra categoría → ajeno
+      }
       return false;
     }catch(e){ return false; }
   }
-  // Lee el partido guardado para la categoría actual (con fallback a la clave vieja).
+  // Lee el partido guardado SOLO para la categoría actual (sin fallback a la
+  // clave vieja única, que mezclaba datos entre categorías).
   function leerPartidoGuardado(){
     try{
-      let raw = safeStorage.getItem(liveSaveKey());
-      if(!raw){
-        // Compatibilidad: puede haber un partido guardado con la clave vieja (única).
-        raw = safeStorage.getItem(LIVE_SAVE_KEY);
-      }
+      const raw = safeStorage.getItem(liveSaveKey());
       return raw ? JSON.parse(raw) : null;
     }catch(e){ return null; }
   }
