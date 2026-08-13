@@ -3462,6 +3462,14 @@ body.editor-active #screen-editor{ display:block; }
         </div>
         <button class="nc-close" aria-label="Cerrar">✕</button>
       </div>
+      <div class="novedad-cartel" data-nov="minutaje-resumen-2026-08">
+        <span class="nc-ico">✨</span>
+        <div class="nc-body">
+          <p class="nc-title">Nuevo: Resumen y "Uno por uno"</p>
+          <p class="nc-text">Ahora el minutaje tiene dos vistas: <b>📅 Resumen</b> te muestra todo el año junto (partidos, totales y comparativa), y <b>📋 Uno por uno</b> te deja entrar a cada partido. Arriba, un tablero con partidos, minutos, jugadores, <b>goles</b> y <b>remates</b> que se actualiza solo.</p>
+        </div>
+        <button class="nc-close" aria-label="Cerrar">✕</button>
+      </div>
       <div id="minutesMetrics"></div>
       <div id="minutesList"></div>
       <!-- Solapas internas: Año (todo desplegado + totales) / Partidos (lista para abrir uno) -->
@@ -5761,6 +5769,13 @@ window.__initEditor = function(){
 
   // Avisos fijos (los escribo yo en el código; siempre están)
   const FIJAS = [
+    {
+      id: 'fija-minutaje-resumen',
+      tipo: 'novedad',
+      titulo: '⏱ Minutaje renovado',
+      cuerpo: 'El módulo de Minutaje ahora tiene dos vistas: "Resumen" (todo el año de un vistazo, con totales y comparativa) y "Uno por uno" (entrás a cada partido). Arriba, un tablero con partidos, minutos, jugadores, goles y remates que se actualiza solo. Además, si descartás un partido pendiente, ahora se recuerda en todos tus dispositivos.',
+      fecha: '2026-08-13'
+    },
     {
       id: 'fija-gratuita',
       tipo: 'aviso',
