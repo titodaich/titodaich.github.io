@@ -1998,6 +1998,8 @@ body.modo-lectura .section-content textarea:read-only{
 .plans-overlay{position:fixed;inset:0;background:rgba(6,10,14,0.8);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
 .plans-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:28px;max-width:540px;width:100%;position:relative;}
 .plans-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;}
+.plans-close-btn{display:block;width:100%;margin-top:16px;background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);border-radius:10px;padding:12px;font-family:'Inter',sans-serif;font-size:14px;cursor:pointer;transition:background .12s ease;}
+.plans-close-btn:hover{background:var(--panel);}
 .plans-box h2{font-family:'Oswald',sans-serif;font-size:24px;margin:0 0 4px;}
 .plans-sub{color:var(--muted);font-size:14px;margin:0 0 20px;}
 .plans-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
@@ -2019,7 +2021,21 @@ body.modo-lectura .section-content textarea:read-only{
 .plan-promo{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--success);color:#0B1219;font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;padding:2px 9px;border-radius:20px;white-space:nowrap;}
 .plan-promo-nota{font-size:12.5px;line-height:1.4;color:var(--success);font-weight:600;margin-top:3px;}
 .plan-comparacion{display:block;font-size:12px;color:var(--accent-2);font-style:italic;margin-top:4px;opacity:0.9;}
-@media (max-width:480px){.plans-grid-3{grid-template-columns:1fr;}.plans-grid-2{grid-template-columns:1fr;}}
+@media (max-width:480px){
+  .plans-grid-3{grid-template-columns:1fr;}
+  .plans-grid-2{grid-template-columns:1fr;}
+  .plans-box{padding:20px 16px;}
+  .plan-card{padding:14px 12px;gap:5px;}
+  .plan-label{font-size:16px;}
+  .plan-note{font-size:12px;}
+  .plan-desc{font-size:12.5px;margin:2px 0;}
+  .plan-feature{font-size:11.5px;}
+  .plan-price{font-size:21px;}
+  .plan-permonth{font-size:11px;}
+  .plan-hint{font-size:10.5px;}
+  .plan-go{font-size:13px;}
+  .plans-close{font-size:26px;top:10px;right:14px;padding:4px 8px;}
+}
 .plans-contact{text-align:center;margin:18px 0 0;font-size:13px;color:var(--muted);}
 .plan-hint{display:block;font-family:'Inter',sans-serif;font-size:10.5px;color:var(--muted);opacity:0.75;margin-top:3px;line-height:1.3;}
 /* Bloque de pago por transferencia (alias de MercadoPago) */
@@ -15859,7 +15875,7 @@ try{
         const featHtml = pk.feature ? `<span class="plan-feature">✓ ${pk.feature}</span>` : '';
         cards += `<div class="plan-card${destacado}" data-pack="${key}">${badge}<span class="plan-label">${pk.name}</span><span class="plan-note">${pk.note||''}</span>${descHtml}${featHtml}${desde}<span class="plan-go">Sumarme →</span></div>`;
       });
-      modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><h2>${window.t('plansTitle')}</h2><p class="plans-sub">Elegí tu pack. Pagás con Mercado Pago en un clic.</p>${fundadorLine}${codigoLineHTML()}<div class="plans-grid plans-grid-3">${cards}</div>${contactLine}${aliasLine}${legalLine}</div>`;
+      modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><h2>${window.t('plansTitle')}</h2><p class="plans-sub">Elegí tu pack. Pagás con Mercado Pago en un clic.</p>${fundadorLine}${codigoLineHTML()}<div class="plans-grid plans-grid-3">${cards}</div>${contactLine}${aliasLine}${legalLine}<button class="plans-close-btn" id="plansCloseBtn">← Volver</button></div>`;
       wire();
       modal.querySelectorAll('.plan-card[data-pack]').forEach(c=>{
         c.addEventListener('click', ()=> renderPaso2(c.dataset.pack));
@@ -15938,6 +15954,8 @@ try{
       });
       const close = document.getElementById('plansClose');
       if(close) close.addEventListener('click', ()=>modal.remove());
+      const closeBtn = document.getElementById('plansCloseBtn');
+      if(closeBtn) closeBtn.addEventListener('click', ()=>modal.remove());
       const termsL = document.getElementById('plansTermsLink');
       if(termsL) termsL.addEventListener('click',(e)=>{ e.preventDefault(); if(window.__openLegal) window.__openLegal(); });
     }
