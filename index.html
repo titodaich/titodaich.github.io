@@ -11233,20 +11233,67 @@ window.__initEditor = function(){
   // Partidos "pendientes" que el DT descartó de la lista de minutaje (no quiere
   // cargarlos). Se recuerda localmente por club para que no reaparezcan.
   function claveDescartados(){ return 'benchone_min_descartados_' + (window.__clubIdCache||'x'); }
-  function obtenerPendientesDescartados(){
-    try{ return JSON.parse(localStorage.getItem(claveDescartados())||'[]'); }catch(e){ return []; }
-  }
-  function descartarPendiente(matchId){
+  // Caché en memoria de los descartados (se llena desde la nube al renderizar).
+  let __descartadosCache = [];
+  function obtenerPendientesDescartados(){ return __descartadosCache.slice(); }
+  // Carga los descartados desde la nube (con respaldo a localStorage si no hay red).
+  async function cargarDescartadosNube(){
     try{
-      const arr = obtenerPendientesDescartados();
-      if(!arr.includes(matchId)){ arr.push(matchId); localStorage.setItem(claveDescartados(), JSON.stringify(arr)); }
-    }catch(e){}
+      const sb = window.__sb || window.__sbClient;
+      const cid = window.__getClubId ? await window.__getClubId() : null;
+      if(sb && cid){
+        const { data, error } = await sb.from('minutaje_descartados').select('match_id').eq('club_id', cid);
+        if(!error && Array.isArray(data)){
+          __descartadosCache = data.map(r => r.match_id);
+          try{ localStorage.setItem(claveDescartados(), JSON.stringify(__descartadosCache)); }catch(e){}
+          return;
+        }
+      }
+    }catch(e){ console.error('cargar descartados', e); }
+    // Respaldo: lo que haya en localStorage.
+    try{ __descartadosCache = JSON.parse(localStorage.getItem(claveDescartados())||'[]'); }catch(e){ __descartadosCache = []; }
   }
-  function restaurarPendiente(matchId){
+  async function descartarPendiente(matchId){
+    // Actualiza la caché al instante (para que la UI responda ya).
+    if(!__descartadosCache.includes(matchId)) __descartadosCache.push(matchId);
+    try{ localStorage.setItem(claveDescartados(), JSON.stringify(__descartadosCache)); }catch(e){}
+    // Guarda en la nube (para todos los dispositivos, para siempre).
     try{
-      const arr = obtenerPendientesDescartados().filter(id => id !== matchId);
-      localStorage.setItem(claveDescartados(), JSON.stringify(arr));
-    }catch(e){}
+      const sb = window.__sb || window.__sbClient;
+      const cid = window.__getClubId ? await window.__getClubId() : null;
+      if(sb && cid){ await sb.from('minutaje_descartados').upsert({ club_id: cid, match_id: matchId }, { onConflict: 'club_id,match_id' }); }
+    }catch(e){ console.error('descartar pendiente', e); }
+  }
+  async function restaurarPendiente(matchId){
+    __descartadosCache = __descartadosCache.filter(id => id !== matchId);
+    try{ localStorage.setItem(claveDescartados(), JSON.stringify(__descartadosCache)); }catch(e){}
+    try{
+      const sb = window.__sb || window.__sbClient;
+      const cid = window.__getClubId ? await window.__getClubId() : null;
+      if(sb && cid){ await sb.from('minutaje_descartados').delete().eq('club_id', cid).eq('match_id', matchId); }
+    }catch(e){ console.error('restaurar pendiente', e); }
+  }
+  // Muestra un aviso flotante con "Deshacer" tras descartar un pendiente.
+  function mostrarDeshacerDescarte(matchId, nombre){
+    const prev = document.getElementById('undoDescarte');
+    if(prev) prev.remove();
+    const box = document.createElement('div');
+    box.id = 'undoDescarte';
+    box.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:10000;'
+      + 'background:var(--panel-2,#1B2C3D);border:1px solid var(--line);border-radius:12px;'
+      + 'padding:12px 16px;display:flex;align-items:center;gap:14px;box-shadow:0 6px 24px rgba(0,0,0,0.4);max-width:90%;';
+    box.innerHTML = '<span style="color:var(--chalk,#dfe8f0);font-size:13px;">Se quitó "'
+      + escapeHtml(nombre) + '" del minutaje.</span>'
+      + '<button id="undoDescBtn" class="btn small" style="white-space:nowrap;">↩ Deshacer</button>';
+    document.body.appendChild(box);
+    const btn = box.querySelector('#undoDescBtn');
+    btn.addEventListener('click', async ()=>{
+      await restaurarPendiente(matchId);
+      box.remove();
+      renderMinutes();
+    });
+    // Se va solo a los 6 segundos (el descarte queda firme).
+    setTimeout(()=>{ if(box && box.parentNode) box.remove(); }, 6000);
   }
   // Abre el partido en el editor de estadísticas para cargar el minutaje a mano.
   function abrirPartidoParaMinutaje(matchId){
@@ -11459,6 +11506,9 @@ window.__initEditor = function(){
     // Guardamos las sesiones por si otras vistas (ficha, anuales) las reusan.
     window.__minSessions = sessions;
 
+    // Cargamos los descartados desde la nube (para que valga en todos los dispositivos).
+    await cargarDescartadosNube();
+
     // Partidos de la sección "Partidos" que NO tienen sesión de minutaje todavía:
     // los mostramos como PENDIENTES para cargar a mano. No ocupan lugar en la base
     // hasta que el DT cargue algo. Se pueden descartar (se recuerda en el equipo).
@@ -11486,9 +11536,9 @@ window.__initEditor = function(){
       tr.innerHTML=`<td data-label="Partido"><span class="mt-fecha-badge">${escapeHtml(m.rival||'Partido')}</span> <small style="color:var(--warn,#e0a800);font-weight:400;">⏳ pendiente</small></td><td class="mt-fecha" data-label="Fecha">${when}</td><td data-label="Jugadores">Sin cargar</td><td class="mt-open"><button class="btn small mt-open-btn">Cargar minutos →</button></td><td class="mt-del"><button class="mt-del-btn" title="Descartar de la lista" aria-label="Descartar">✕</button></td>`;
       tr.querySelector('.mt-open-btn').addEventListener('click',()=>{ abrirPartidoParaMinutaje(m.id); });
       tr.querySelector('.mt-del-btn').addEventListener('click',()=>{
-        if(!confirm('¿Descartar "'+(m.rival||'Partido')+'" de la lista de minutaje? Podés volver a mostrarlo si cargás minutos desde el partido.')) return;
+        // Borra directo (sin preguntar) y ofrece deshacer por si fue un error.
         descartarPendiente(m.id);
-        toast('Partido descartado de minutaje');
+        mostrarDeshacerDescarte(m.id, m.rival||'Partido');
         renderMinutes();
       });
       tb.appendChild(tr);
@@ -11540,9 +11590,9 @@ window.__initEditor = function(){
           h += '</tbody></table>';
           box.innerHTML = h;
           box.querySelectorAll('.mt-restore-btn').forEach(b=>{
-            b.addEventListener('click', ()=>{
+            b.addEventListener('click', async ()=>{
               const id = b.closest('tr').dataset.id;
-              restaurarPendiente(id);
+              await restaurarPendiente(id);
               toast('Partido restaurado');
               renderMinutes();
             });
