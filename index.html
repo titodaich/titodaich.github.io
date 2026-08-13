@@ -1160,6 +1160,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   body.printing-informe #stats-minutes > *:not(#minAnioView){ display:none !important; }
   body.printing-informe #minAnioView{ display:block !important; }
   body.printing-informe #minAnioView .export-btn{ display:none !important; }
+  body.printing-informe #chartsAnio{ display:none !important; }
+  body.printing-informe #minAnioView .mch-card{ display:none !important; }
   body.printing-informe #minAnioView .informe-tabla,
   body.printing-informe #minAnioView table{ color:#000 !important; }
   body.printing-informe #minAnioView th,
@@ -3472,9 +3474,7 @@ body.editor-active #screen-editor{ display:block; }
         <button class="min-subtab" data-mintab="partidos">📋 Uno por uno</button>
       </div>
       <div id="minutesMetrics"></div>
-      <div id="minAnioView" style="display:none;">
-        <div id="chartsAnio"></div>
-      </div>
+      <div id="minAnioView" style="display:none;"></div>
       <!-- Solapa "Uno por uno": la lista de partidos (pendientes + cargados, cada uno se abre) -->
       <div id="minUnoView" style="display:none;">
         <div id="minutesList"></div>
@@ -15201,6 +15201,10 @@ window.__initEditor = function(){
     html += '</tbody></table></div></div>';
 
     cont.innerHTML = html;
+    // Re-crear el contenedor de gráficos (el innerHTML anterior lo borró).
+    const chDiv = document.createElement('div');
+    chDiv.id = 'chartsAnio';
+    cont.appendChild(chDiv);
     const bx = document.getElementById('informeExcelBtn');
     if(bx) bx.addEventListener('click', exportarInformeExcel);
     const bp = document.getElementById('informePdfBtn');
