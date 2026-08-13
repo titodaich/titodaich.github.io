@@ -208,14 +208,77 @@ tbody tr.blocked .uname{text-decoration:line-through;}
 .modal-foot{display:flex;justify-content:space-between;gap:12px;padding:16px 24px 22px;border-top:1px solid var(--line);flex-wrap:wrap;}
 .modal-foot .danger-zone{display:flex;gap:10px;}
 @media (max-width:760px){
-  .modal{max-width:100%;max-height:92vh;border-radius:14px 14px 0 0;}
+  /* Márgenes generales más ajustados para aprovechar la pantalla */
+  body{ padding:0 !important; }
+  .wrap, main, .container{ padding-left:12px !important; padding-right:12px !important; }
+  /* Título y barra superior */
+  .topbar{ flex-wrap:wrap; gap:8px; padding:12px; }
+  .topbar-right{ width:100%; justify-content:space-between; }
+  .brand{ font-size:18px; }
+  /* Métricas: 2 por fila, más compactas */
+  .stats-row{ grid-template-columns:repeat(2,1fr) !important; gap:10px; }
+  .stat-card{ padding:14px 12px; }
+  .stat-card .num{ font-size:26px; }
+  /* Secciones */
+  .section-head{ flex-wrap:wrap; gap:8px; }
+  .section-head h2{ font-size:16px; }
+  /* Buscadores y selects a lo ancho */
+  .toolbar, .filters{ flex-direction:column; align-items:stretch; gap:8px; }
+  .toolbar input, .toolbar select, .filters input, .filters select,
+  input[type="text"], input[type="search"], select{ width:100% !important; box-sizing:border-box; }
+
+  /* MODAL de detalle: ocupa toda la pantalla, cómodo */
+  .modal{max-width:100%;max-height:94vh;border-radius:14px 14px 0 0;margin:0;}
   .modal-body{padding:16px;}
-  .modal-foot{flex-direction:column;align-items:stretch;padding:14px 16px 18px;}
-  .modal-foot .danger-zone{flex-direction:column;width:100%;}
-  .modal-foot .danger-zone button{width:100%;padding:12px;font-size:13px;}
+  .modal-head{ padding:14px 16px; }
+  .modal-head h3{ font-size:17px; }
+  .detail-grid{ grid-template-columns:1fr !important; gap:10px; }
+  .detail-item{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; }
+  .detail-item .k{ flex:0 0 auto; }
+  .detail-item .v{ text-align:right; }
+  /* Botones de suscripción: a lo ancho, fáciles de tocar */
   #mSubBtns{flex-direction:column;}
-  #mSubBtns button{width:100%;padding:12px;font-size:13px;}
-  #mWhatsappBtnWrap a, #mWhatsappBtnWrap button{width:100%;display:block;text-align:center;padding:12px;}
+  #mSubBtns button{width:100%;padding:13px;font-size:14px;}
+  /* Pack (categorías): que los 3 botones entren en fila */
+  #mPackBtns{ display:flex; gap:6px; }
+  #mPackBtns button{ flex:1; padding:11px 4px; font-size:12px; }
+  #mWhatsappBtnWrap a, #mWhatsappBtnWrap button{width:100%;display:block;text-align:center;padding:13px;box-sizing:border-box;}
+  /* Pie del modal: acciones peligrosas a lo ancho */
+  .modal-foot{flex-direction:column;align-items:stretch;padding:14px 16px 18px;gap:8px;}
+  .modal-foot .danger-zone{flex-direction:column;width:100%;gap:8px;}
+  .modal-foot .danger-zone button{width:100%;padding:13px;font-size:14px;}
+  .modal-foot > button{ width:100%; padding:13px; font-size:14px; }
+
+  /* Tabla de suscripciones/clubes: se vuelve tarjetas también */
+  #clubsTableWrap table{ min-width:0; }
+  #clubsTableWrap thead{ display:none; }
+  #clubsTableWrap table, #clubsTableWrap tbody{ display:block; width:100%; }
+  #clubsTableWrap tbody tr{
+    display:block; background:var(--panel-2); border:1px solid var(--line);
+    border-radius:12px; padding:12px 14px; margin-bottom:12px;
+  }
+  #clubsTableWrap tbody td{
+    display:flex; justify-content:space-between; align-items:center; gap:12px;
+    padding:6px 0; border:none; text-align:right;
+  }
+  #clubsTableWrap tbody td::before{
+    content:attr(data-lbl); font-family:'JetBrains Mono',monospace; font-size:10px;
+    text-transform:uppercase; letter-spacing:1px; color:var(--muted);
+    text-align:left; flex:0 0 auto;
+  }
+  #clubsTableWrap tbody td:first-child{
+    display:block; text-align:left; border-bottom:1px solid var(--line);
+    padding-bottom:10px; margin-bottom:4px; font-weight:600;
+  }
+  #clubsTableWrap tbody td:first-child::before{ display:none; }
+  /* La celda de acciones de cada club: botones apilados a lo ancho */
+  #clubsTableWrap tbody td.acciones-cell,
+  #clubsTableWrap tbody td:last-child{ padding-top:10px; }
+  #clubsTableWrap tbody td:last-child::before{ display:none; }
+  #clubsTableWrap tbody td:last-child > div,
+  #clubsTableWrap .row-actions{ width:100%; display:flex; flex-wrap:wrap; gap:8px; }
+  #clubsTableWrap tbody td:last-child button,
+  #clubsTableWrap .row-actions button{ flex:1 1 auto; min-width:calc(50% - 4px); text-align:center; padding:11px 8px; font-size:12.5px; }
 }
 .btn-soft{border:1px solid var(--line);background:transparent;color:var(--chalk);border-radius:8px;padding:9px 16px;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .12s ease;}
 .btn-soft:hover{border-color:var(--accent-2);color:var(--accent-2);}
@@ -1610,11 +1673,11 @@ function renderClubs(){
     const dTxt = d===null ? '—' : (d<0 ? ('vencido hace '+Math.abs(d)+'d') : (d+' días'));
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><strong>${escapeHtmlA(c.name||'Sin nombre')}</strong>${c.es_fundador ? ' <span title="Amigo fundador" style="color:#E0A93B;">🌟</span>' : ''}${c.pack && c.subscription_status==='active' ? `<br><span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Pack ${packNombre(c.pack)}</span>` : ''}${c.es_fundador && c.descuento_pct ? `<br><span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#E0A93B;">${c.descuento_pct}% descuento</span>` : ''}</td>
-      <td><span class="pill" style="background:${info.color}22;color:${info.color};border:1px solid ${info.color}">${info.label}</span></td>
-      <td>${endTxt}</td>
-      <td>${dTxt}</td>
-      <td style="text-align:right;white-space:nowrap;">
+      <td data-lbl="Club"><strong>${escapeHtmlA(c.name||'Sin nombre')}</strong>${c.es_fundador ? ' <span title="Amigo fundador" style="color:#E0A93B;">🌟</span>' : ''}${c.pack && c.subscription_status==='active' ? `<br><span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Pack ${packNombre(c.pack)}</span>` : ''}${c.es_fundador && c.descuento_pct ? `<br><span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#E0A93B;">${c.descuento_pct}% descuento</span>` : ''}</td>
+      <td data-lbl="Estado"><span class="pill" style="background:${info.color}22;color:${info.color};border:1px solid ${info.color}">${info.label}</span></td>
+      <td data-lbl="Vence">${endTxt}</td>
+      <td data-lbl="Días restantes">${dTxt}</td>
+      <td data-lbl="" style="text-align:right;white-space:nowrap;">
         <button class="btn-mini act-founder" data-id="${c.id}" data-on="${c.es_fundador?1:0}">${c.es_fundador?'🌟 Quitar amigo':'☆ Hacer amigo'}</button>
         <button class="btn-mini act-pay" data-id="${c.id}">💳 Confirmar pago</button>
         <button class="btn-mini act-trial" data-id="${c.id}">Extender prueba</button>
@@ -1834,6 +1897,55 @@ async function toggleFundador(clubId, esAhora){
     const modalX = document.getElementById('modal'); if(modalX) modalX.classList.remove('show');
     alert(nombre + ' quedó marcado como amigo. Ya verá su precio distintivo al abrir los planes.');
   }catch(e){ alert(faltaSQL(e) ? 'Falta correr el SQL de fundadores (8-fundadores.sql).' : 'No se pudo actualizar.'); }
+}
+
+// Marca a un usuario como amigo desde su detalle. Si no tiene club (sin membresía),
+// primero le crea el club (con el nombre de su perfil) y lo vincula, y después lo
+// marca como amigo. Así funciona para cualquier usuario, tenga o no club armado.
+async function hacerAmigoUsuario(u){
+  // Si ya es amigo → quitar (usa el flujo normal, ya tiene clubId).
+  if(u.esFundador && u.clubId){ return toggleFundador(u.clubId, true); }
+
+  let clubId = u.clubId;
+
+  // Si no tiene club, lo creamos ahora con el nombre de su perfil.
+  if(!clubId){
+    const nombreClub = (u.clubName && u.clubName.trim()) ? u.clubName.trim() : (u.name || 'Mi club');
+    if(!confirm('A ' + (u.name||'este usuario') + ' le falta el club vinculado.\n\n' +
+                'Le voy a crear el club "' + nombreClub + '" y marcarlo como amigo (precio distintivo $17.000/mes · $42.000 los 3 meses).\n\n¿Seguimos?')) return;
+    try{
+      // Crear el club
+      const { data: nuevoClub, error: e1 } = await sb.from('clubs')
+        .insert({ name: nombreClub }).select('id').single();
+      if(e1) throw e1;
+      clubId = nuevoClub.id;
+      // Vincular al usuario como owner
+      const { error: e2 } = await sb.from('memberships')
+        .insert({ user_id: u.id, club_id: clubId, role: 'owner' });
+      if(e2) throw e2;
+      // Completar el club en su perfil si estaba vacío
+      if(!u.clubName || !u.clubName.trim()){
+        await sb.from('profiles').update({ club_name: nombreClub }).eq('id', u.id);
+      }
+    }catch(e){
+      alert('No se pudo crear el club para este usuario: ' + (e.message||'') );
+      return;
+    }
+  } else {
+    if(!confirm('¿Marcar a ' + (u.name||'este usuario') + ' como amigo?\n\nVa a ver el pack Amigo con su precio distintivo ($17.000/mes · $42.000 los 3 meses).')) return;
+  }
+
+  // Marcar como amigo
+  try{
+    const { error } = await sb.from('clubs').update({ es_fundador:true, descuento_pct:0 }).eq('id', clubId);
+    if(error) throw error;
+    if(typeof loadClubs === 'function') await loadClubs();
+    if(typeof loadUsers === 'function') await loadUsers();
+    const modalX = document.getElementById('modal'); if(modalX) modalX.classList.remove('show');
+    alert((u.name||'El usuario') + ' quedó marcado como amigo. Ya verá su precio distintivo al abrir los planes.');
+  }catch(e){
+    alert(faltaSQL(e) ? 'Falta correr el SQL de fundadores (8-fundadores.sql).' : 'No se pudo marcar como amigo.');
+  }
 }
 
 async function expireClub(clubId){
@@ -2185,10 +2297,7 @@ function renderUserSubscription(u){
   bAmigo.className = 'btn-mini';
   bAmigo.textContent = u.esFundador ? '🌟 Quitar amigo' : '☆ Hacer amigo';
   if(u.esFundador){ bAmigo.style.cssText = 'border-color:#E0A93B;color:#E0A93B;'; }
-  bAmigo.addEventListener('click', () => {
-    if(!u.clubId){ alert('Este usuario todavía no tiene un club creado, así que no se le puede aplicar el precio de amigo. Pedile que entre a la app y cargue su plantel una vez (eso le crea el club).'); return; }
-    toggleFundador(u.clubId, u.esFundador);
-  });
+  bAmigo.addEventListener('click', () => hacerAmigoUsuario(u));
   btns.appendChild(bAmigo);
 
   // ── Cobro selectivo: iniciar cuenta regresiva de 7 días para ESTE usuario ──
