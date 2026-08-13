@@ -1912,7 +1912,7 @@ async function hacerAmigoUsuario(u){
   if(!clubId){
     const nombreClub = (u.clubName && u.clubName.trim()) ? u.clubName.trim() : (u.name || 'Mi club');
     if(!confirm('A ' + (u.name||'este usuario') + ' le falta el club vinculado.\n\n' +
-                'Le voy a crear el club "' + nombreClub + '" y marcarlo como amigo (precio distintivo $17.000/mes · $42.000 los 3 meses).\n\n¿Seguimos?')) return;
+                'Voy a intentar crearle el club "' + nombreClub + '" y marcarlo como amigo (precio distintivo $17.000/mes · $42.000 los 3 meses).\n\n¿Seguimos?')) return;
     try{
       // Crear el club
       const { data: nuevoClub, error: e1 } = await sb.from('clubs')
@@ -1928,7 +1928,15 @@ async function hacerAmigoUsuario(u){
         await sb.from('profiles').update({ club_name: nombreClub }).eq('id', u.id);
       }
     }catch(e){
-      alert('No se pudo crear el club para este usuario: ' + (e.message||'') );
+      const msg = (e && e.message) || '';
+      if(/row-level security|violates|policy/i.test(msg)){
+        alert('No se pudo crear el club desde el panel por una regla de seguridad de la base.\n\n' +
+              'Posible causa: este usuario en realidad YA tiene club (lo vinculaste por SQL) y el panel tiene datos viejos. Probá:\n' +
+              '1) Cerrá esta ventana y recargá el panel (Ctrl+F5). Después volvé a marcarlo.\n\n' +
+              'Si sigue sin club, se resuelve creándolo por SQL (avisame y te paso el SQL).');
+      } else {
+        alert('No se pudo crear el club para este usuario: ' + msg);
+      }
       return;
     }
   } else {
