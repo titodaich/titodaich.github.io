@@ -1903,59 +1903,38 @@ async function toggleFundador(clubId, esAhora){
 // primero le crea el club (con el nombre de su perfil) y lo vincula, y después lo
 // marca como amigo. Así funciona para cualquier usuario, tenga o no club armado.
 async function hacerAmigoUsuario(u){
-  // Si ya es amigo → quitar (usa el flujo normal, ya tiene clubId).
-  if(u.esFundador && u.clubId){ return toggleFundador(u.clubId, true); }
+  const email = (u.email || '').trim();
+  if(!email){ alert('Este usuario no tiene email, no se puede marcar.'); return; }
 
-  let clubId = u.clubId;
+  const quitar = !!u.esFundador;   // si ya es amigo, lo quitamos
+  const txt = quitar
+    ? '\u00bfQuitar a ' + (u.name||'este usuario') + ' de los amigos?\n\nVa a pasar a pagar el precio normal.'
+    : '\u00bfMarcar a ' + (u.name||'este usuario') + ' como amigo?\n\nVa a ver el pack Amigo con su precio distintivo ($17.000/mes \u00b7 $42.000 los 3 meses).\n\nSi le falta el club, se le crea autom\u00e1ticamente.';
+  if(!confirm(txt)) return;
 
-  // Si no tiene club, lo creamos ahora con el nombre de su perfil.
-  if(!clubId){
-    const nombreClub = (u.clubName && u.clubName.trim()) ? u.clubName.trim() : (u.name || 'Mi club');
-    if(!confirm('A ' + (u.name||'este usuario') + ' le falta el club vinculado.\n\n' +
-                'Voy a intentar crearle el club "' + nombreClub + '" y marcarlo como amigo (precio distintivo $17.000/mes · $42.000 los 3 meses).\n\n¿Seguimos?')) return;
-    try{
-      // Crear el club
-      const { data: nuevoClub, error: e1 } = await sb.from('clubs')
-        .insert({ name: nombreClub }).select('id').single();
-      if(e1) throw e1;
-      clubId = nuevoClub.id;
-      // Vincular al usuario como owner
-      const { error: e2 } = await sb.from('memberships')
-        .insert({ user_id: u.id, club_id: clubId, role: 'owner' });
-      if(e2) throw e2;
-      // Completar el club en su perfil si estaba vacío
-      if(!u.clubName || !u.clubName.trim()){
-        await sb.from('profiles').update({ club_name: nombreClub }).eq('id', u.id);
-      }
-    }catch(e){
-      const msg = (e && e.message) || '';
-      if(/row-level security|violates|policy/i.test(msg)){
-        alert('No se pudo crear el club desde el panel por una regla de seguridad de la base.\n\n' +
-              'Posible causa: este usuario en realidad YA tiene club (lo vinculaste por SQL) y el panel tiene datos viejos. Probá:\n' +
-              '1) Cerrá esta ventana y recargá el panel (Ctrl+F5). Después volvé a marcarlo.\n\n' +
-              'Si sigue sin club, se resuelve creándolo por SQL (avisame y te paso el SQL).');
-      } else {
-        alert('No se pudo crear el club para este usuario: ' + msg);
-      }
-      return;
-    }
-  } else {
-    if(!confirm('¿Marcar a ' + (u.name||'este usuario') + ' como amigo?\n\nVa a ver el pack Amigo con su precio distintivo ($17.000/mes · $42.000 los 3 meses).')) return;
-  }
-
-  // Marcar como amigo
   try{
-    const { error } = await sb.from('clubs').update({ es_fundador:true, descuento_pct:0 }).eq('id', clubId);
+    // Funci\u00f3n segura del servidor: crea el club si falta y marca/desmarca amigo,
+    // sin chocar con las reglas de seguridad (RLS) de la tabla clubs.
+    const { error } = await sb.rpc('admin_marcar_amigo', {
+      email_usuario: email,
+      marcar: !quitar
+    });
     if(error) throw error;
     if(typeof loadClubs === 'function') await loadClubs();
     if(typeof loadUsers === 'function') await loadUsers();
     const modalX = document.getElementById('modal'); if(modalX) modalX.classList.remove('show');
-    alert((u.name||'El usuario') + ' quedó marcado como amigo. Ya verá su precio distintivo al abrir los planes.');
+    alert(quitar
+      ? (u.name||'El usuario') + ' ya no es amigo.'
+      : (u.name||'El usuario') + ' qued\u00f3 marcado como amigo. Ya ver\u00e1 su precio distintivo al abrir los planes (que recargue la app).');
   }catch(e){
-    alert(faltaSQL(e) ? 'Falta correr el SQL de fundadores (8-fundadores.sql).' : 'No se pudo marcar como amigo.');
+    const msg = (e && e.message) || '';
+    if(/does not exist|could not find/i.test(msg)){
+      alert('Falta crear la funci\u00f3n en la base.\n\nCorr\u00e9 el SQL "admin-marcar-amigo.sql" en Supabase y volv\u00e9 a intentar.');
+    } else {
+      alert('No se pudo marcar como amigo: ' + msg);
+    }
   }
 }
-
 async function expireClub(clubId){
   if(!confirm('¿Marcar este club como VENCIDO? No podrá guardar datos nuevos (pero no pierde lo que tiene).')) return;
   const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
