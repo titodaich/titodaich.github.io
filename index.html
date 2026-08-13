@@ -523,6 +523,19 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   .gd-desktop{display:none;}
   .gd-mobile{display:block;}
 }
+/* Informe de minutaje: que las tablas entren bien en el celular sin apretarse.
+   Con 4 columnas simples entran en pantalla; bajamos el ancho mínimo y ajustamos
+   el espaciado para que los números se lean cómodos. */
+@media (max-width:640px){
+  #informePlantel .informe-tabla,
+  #informePlantel #informeTotales table,
+  #informePlantel .annual-card table{ min-width:0 !important; }
+  #informePlantel th, #informePlantel td{ padding:9px 6px; font-size:12.5px; }
+  #informePlantel td:first-child, #informePlantel th:first-child{ padding-left:10px; }
+  #informePlantel td:last-child, #informePlantel th:last-child{ padding-right:10px; }
+  #informePlantel .annual-card{ padding:12px 10px; }
+  #informePlantel h3{ font-size:15px; }
+}
 .guide-sub{font-family:'Inter',sans-serif;font-size:14px;color:var(--muted);margin:0 0 22px;}
 .guide-circuit{background:rgba(47,143,203,0.07);border:1px solid rgba(47,143,203,0.28);border-radius:12px;padding:20px;margin-bottom:28px;}
 .gc-title{font-family:'Oswald',sans-serif;font-size:14px;text-transform:uppercase;letter-spacing:0.8px;color:var(--accent-2);margin-bottom:14px;}
@@ -1130,6 +1143,16 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   .print-header{display:block !important;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #333;}
   .print-header h1{font-family:'Oswald',sans-serif;font-size:20px;margin:0 0 3px;color:#000 !important;}
   .print-header .ph-sub{font-family:'Inter',sans-serif;font-size:12px;color:#444 !important;}
+  /* Informe del plantel: al imprimir, mostrar SOLO el informe */
+  body.printing-informe .section-content > *:not(#stats-minutes){ display:none !important; }
+  body.printing-informe #stats-minutes > *:not(#informePlantel){ display:none !important; }
+  body.printing-informe #informePlantel{ display:block !important; }
+  body.printing-informe #informePlantel .export-btn{ display:none !important; }
+  body.printing-informe #informePlantel .informe-tabla,
+  body.printing-informe #informePlantel table{ color:#000 !important; }
+  body.printing-informe #informePlantel th,
+  body.printing-informe #informePlantel td{ color:#000 !important; }
+  body.printing-informe .annual-card{ break-inside:avoid; }
 }
 .stats-subtab{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:9px 18px;font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;cursor:pointer;transition:all .15s ease;}
 .stats-subtab:hover{color:var(--chalk);border-color:var(--muted);}
@@ -3429,6 +3452,10 @@ body.editor-active #screen-editor{ display:block; }
         <button class="nc-close" aria-label="Cerrar">✕</button>
       </div>
       <div id="minutesList"></div>
+      <div style="margin:16px 0;">
+        <button class="btn small" id="informePlantelBtn">📋 Ver informe del plantel</button>
+      </div>
+      <div id="informePlantel" style="display:none;"></div>
       <div id="minutesEditor" style="display:none;"></div>
       <div id="minutesCharts"></div>
       <div id="minutesDetail" style="display:none;"></div>
@@ -4763,6 +4790,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   // Reintento de Supabase disponible por si el primer intento falló (raro, ya
   // que Supabase viaja EMBEBIDO en la app; window.supabase existe antes de esto).
   window.__reintentarSupabase = function(){ return loadWithFallback(LIBS.supabase); };
+  window.__ensureXLSX = function(){ return loadWithFallback(LIBS.xlsx); };
 
   // jszip y xlsx se usan SOLO para exportar (Excel/ZIP), mucho después del login.
   // Las cargamos en SEGUNDO PLANO para que NUNCA bloqueen el arranque ni el
@@ -14808,6 +14836,154 @@ window.__initEditor = function(){
     const sub = document.querySelector('.stats-subtab.active');
     if(sub && sub.dataset.sub === 'minutes'){ renderMinutes(); }
   };
+
+  // ===== INFORME DEL PLANTEL (minutaje por partido, con totales) =====
+  let informeVisible = false;
+
+  function renderInformePlantel(){
+    const cont = document.getElementById('informePlantel');
+    if(!cont) return;
+    if(!window.__minSessions){
+      cont.innerHTML = '<p class="rd-empty">Cargando datos de minutaje…</p>';
+      return;
+    }
+    const sessions = (window.__minSessions || []).slice();
+    if(sessions.length === 0){
+      cont.innerHTML = '<p class="rd-empty">Todavía no hay minutos cargados para armar el informe. Cargá el minutaje de al menos un partido (a mano o desde 🔴 En Vivo).</p>';
+      return;
+    }
+    // Orden cronológico (más viejo arriba, para leer la temporada de corrido).
+    sessions.sort((a,b)=> (a.created_at||'').localeCompare(b.created_at||''));
+
+    const fmt = (typeof fmtMin === 'function') ? fmtMin : (s=> Math.round((s||0)/60)+"'");
+    let sumaPT = 0, sumaST = 0, sumaTotal = 0;
+
+    let html = '';
+    html += '<div class="rd-card-head" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">';
+    html += '<h3 style="margin:0;">📋 Resumen de minutaje</h3>';
+    html += '<div style="display:flex;gap:6px;">'
+      + '<button class="btn small export-btn" id="informeExcelBtn">⬇ Excel</button>'
+      + '<button class="btn small export-btn" id="informePdfBtn">⬇ PDF</button>'
+      + '</div></div>';
+
+    // Un cuadro por cada partido, con los jugadores que jugaron (minutos > 0).
+    sessions.forEach(s=>{
+      const totals = s.totals || {};
+      const esManual = totals.__manual === true;
+      const origen = esManual ? '✎ manual' : '🔴 en vivo';
+      const when = s.created_at ? new Date(s.created_at).toLocaleDateString('es-AR') : '';
+      const rows = Object.keys(totals).filter(k=>k!=='__rival'&&k!=='__manual')
+        .map(name=>({name, ...totals[name]}))
+        .filter(r=>(r.total||0) > 0)              // solo los que jugaron
+        .sort((a,b)=>(b.total||0)-(a.total||0));
+      let pPT=0, pST=0, pTot=0;
+      rows.forEach(r=>{ pPT+=(r.t1||0); pST+=(r.t2||0); pTot+=(r.total||0); });
+      sumaPT+=pPT; sumaST+=pST; sumaTotal+=pTot;
+
+      html += '<div class="annual-card" style="margin-bottom:14px;">';
+      html += '<div class="rd-card-head" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">'
+        + '<h3 style="margin:0;">'+escapeHtml(s.name||'Partido')+' <small style="color:var(--muted);font-weight:400;">('+rows.length+' jugaron)</small></h3>'
+        + '<small style="color:var(--muted);">'+when+' · '+origen+'</small></div>';
+      html += '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">';
+      html += '<table class="match-table informe-tabla" style="min-width:360px;width:100%;"><thead><tr>'
+        + '<th>Jugador</th><th style="text-align:center;">1er T</th><th style="text-align:center;">2do T</th><th style="text-align:center;">Total</th>'
+        + '</tr></thead><tbody>';
+      if(rows.length===0){
+        html += '<tr><td colspan="4" class="rd-empty">Nadie con minutos en este partido.</td></tr>';
+      }else{
+        rows.forEach(r=>{
+          html += '<tr>'
+            + '<td>'+escapeHtml(r.name)+'</td>'
+            + '<td style="text-align:center;font-family:monospace;">'+fmt(r.t1)+'</td>'
+            + '<td style="text-align:center;font-family:monospace;">'+fmt(r.t2)+'</td>'
+            + '<td style="text-align:center;font-family:monospace;font-weight:700;color:var(--accent-2);">'+fmt(r.total)+'</td>'
+            + '</tr>';
+        });
+        html += '<tr style="border-top:2px solid var(--line);">'
+          + '<td style="font-weight:700;">Total del partido</td>'
+          + '<td style="text-align:center;font-family:monospace;font-weight:700;">'+fmt(pPT)+'</td>'
+          + '<td style="text-align:center;font-family:monospace;font-weight:700;">'+fmt(pST)+'</td>'
+          + '<td style="text-align:center;font-family:monospace;font-weight:700;color:var(--accent);">'+fmt(pTot)+'</td>'
+          + '</tr>';
+      }
+      html += '</tbody></table></div></div>';
+    });
+
+    // Cuadro FINAL de totales (suma de todos los partidos).
+    html += '<div class="annual-card" id="informeTotales" style="border:2px solid var(--accent-2);">';
+    html += '<div class="rd-card-head"><h3 style="margin:0;">🧮 Totales · Todos los partidos</h3></div>';
+    html += '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">';
+    html += '<table class="match-table" style="min-width:360px;width:100%;"><thead><tr>'
+      + '<th>Concepto</th><th style="text-align:center;">1er T</th><th style="text-align:center;">2do T</th><th style="text-align:center;">Total</th>'
+      + '</tr></thead><tbody><tr>'
+      + '<td style="font-weight:700;">Suma de '+sessions.length+(sessions.length===1?' partido':' partidos')+'</td>'
+      + '<td style="text-align:center;font-family:monospace;font-weight:700;">'+fmt(sumaPT)+'</td>'
+      + '<td style="text-align:center;font-family:monospace;font-weight:700;">'+fmt(sumaST)+'</td>'
+      + '<td style="text-align:center;font-family:monospace;font-weight:700;color:var(--accent-2);font-size:16px;">'+fmt(sumaTotal)+'</td>'
+      + '</tr></tbody></table></div></div>';
+
+    cont.innerHTML = html;
+
+    const bx = document.getElementById('informeExcelBtn');
+    if(bx) bx.addEventListener('click', exportarInformeExcel);
+    const bp = document.getElementById('informePdfBtn');
+    if(bp) bp.addEventListener('click', exportarInformePdf);
+  }
+
+  // Exportar a Excel: cada jugador que jugó, por partido, más total del partido y total general.
+  async function exportarInformeExcel(){
+    try{
+      if(typeof window.XLSX === 'undefined'){ toast('Preparando la descarga…'); if(window.__ensureXLSX) await window.__ensureXLSX(); }
+      if(typeof window.XLSX === 'undefined'){ toast('No se pudo cargar el exportador.'); return; }
+      const min = s => Math.round((s||0)/60);
+      const sessions = (window.__minSessions||[]).slice().sort((a,b)=>(a.created_at||'').localeCompare(b.created_at||''));
+      const datos = [];
+      let sPT=0, sST=0, sTot=0;
+      sessions.forEach(s=>{
+        const totals = s.totals||{};
+        const when = s.created_at ? new Date(s.created_at).toLocaleDateString('es-AR') : '';
+        const origen = totals.__manual===true ? 'manual' : 'en vivo';
+        const rows = Object.keys(totals).filter(k=>k!=='__rival'&&k!=='__manual').map(name=>({name,...totals[name]})).filter(r=>(r.total||0)>0).sort((a,b)=>(b.total||0)-(a.total||0));
+        let pPT=0,pST=0,pTot=0;
+        rows.forEach(r=>{
+          pPT+=(r.t1||0); pST+=(r.t2||0); pTot+=(r.total||0);
+          datos.push({ 'Partido': s.name||'Partido', 'Fecha': when, 'Origen': origen, 'Jugador': r.name, '1er tiempo (min)': min(r.t1), '2do tiempo (min)': min(r.t2), 'Total (min)': min(r.total) });
+        });
+        datos.push({ 'Partido': s.name||'Partido', 'Fecha': when, 'Origen': origen, 'Jugador': '— TOTAL DEL PARTIDO —', '1er tiempo (min)': min(pPT), '2do tiempo (min)': min(pST), 'Total (min)': min(pTot) });
+        datos.push({});
+        sPT+=pPT; sST+=pST; sTot+=pTot;
+      });
+      datos.push({ 'Partido': 'TOTALES', 'Fecha': '', 'Origen': '', 'Jugador': 'Suma de todos los partidos', '1er tiempo (min)': min(sPT), '2do tiempo (min)': min(sST), 'Total (min)': min(sTot) });
+      const ws = window.XLSX.utils.json_to_sheet(datos);
+      const wb = window.XLSX.utils.book_new();
+      window.XLSX.utils.book_append_sheet(wb, ws, 'Minutaje');
+      window.XLSX.writeFile(wb, 'resumen-minutaje.xlsx');
+    }catch(e){ console.error('excel informe', e); toast('No se pudo exportar a Excel.'); }
+  }
+
+  function exportarInformePdf(){
+    toast('Se abrirá el diálogo de impresión. Elegí "Guardar como PDF".');
+    document.body.classList.add('printing-informe');
+    setTimeout(()=>{ window.print(); document.body.classList.remove('printing-informe'); }, 300);
+  }
+
+  (function(){
+    const btn = document.getElementById('informePlantelBtn');
+    if(!btn) return;
+    btn.addEventListener('click', ()=>{
+      informeVisible = !informeVisible;
+      const cont = document.getElementById('informePlantel');
+      if(!cont) return;
+      if(informeVisible){
+        cont.style.display = 'block';
+        btn.textContent = '📋 Ocultar informe del plantel';
+        renderInformePlantel();
+      }else{
+        cont.style.display = 'none';
+        btn.textContent = '📋 Ver informe del plantel';
+      }
+    });
+  })();
 })();
 
 
