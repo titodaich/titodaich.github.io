@@ -3467,14 +3467,17 @@ body.editor-active #screen-editor{ display:block; }
         </div>
         <button class="nc-close" aria-label="Cerrar">✕</button>
       </div>
-      <div id="minutesMetrics"></div>
-      <div id="minutesList"></div>
-      <!-- Solapas internas: Año (todo desplegado + totales) / Partidos (lista para abrir uno) -->
-      <div class="min-subtabs" style="display:flex;gap:8px;margin:16px 0 14px;flex-wrap:wrap;">
-        <button class="min-subtab active" data-mintab="anio">📅 Resumen</button>
+      <!-- Solapas internas ARRIBA DE TODO: Resumen (todo el año) / Uno por uno (lista + detalle) -->
+      <div class="min-subtabs" style="display:flex;gap:8px;margin:0 0 14px;flex-wrap:wrap;">
+        <button class="min-subtab" data-mintab="anio">📅 Resumen</button>
         <button class="min-subtab" data-mintab="partidos">📋 Uno por uno</button>
       </div>
+      <div id="minutesMetrics"></div>
       <div id="minAnioView" style="display:none;"></div>
+      <!-- Solapa "Uno por uno": la lista de partidos (pendientes + cargados, cada uno se abre) -->
+      <div id="minUnoView" style="display:none;">
+        <div id="minutesList"></div>
+      </div>
       <div id="informePlantel" style="display:none;"></div>
       <p id="minTabHint" class="rd-empty" style="text-align:center;padding:24px 10px;">Elegí <b>📅 Resumen</b> para ver todo el año, o <b>📋 Uno por uno</b> para entrar a cada partido.</p>
       <div id="minutesEditor" style="display:none;"></div>
@@ -11591,21 +11594,7 @@ window.__initEditor = function(){
     table.innerHTML='<thead><tr><th>Partido</th><th class="mt-fecha">Fecha</th><th>Jugadores</th><th class="mt-open"></th><th class="mt-del"></th></tr></thead><tbody></tbody>';
     const tb=table.querySelector('tbody');
 
-    // Primero los PENDIENTES (para que el DT los vea arriba y los complete).
-    pendientes.forEach(m=>{
-      const when = m.date ? new Date(m.date+'T00:00:00').toLocaleDateString('es-AR') : '';
-      const tr=document.createElement('tr');
-      tr.innerHTML=`<td data-label="Partido"><span class="mt-fecha-badge">${escapeHtml(m.rival||'Partido')}</span> <small style="color:var(--warn,#e0a800);font-weight:400;">⏳ pendiente</small></td><td class="mt-fecha" data-label="Fecha">${when}</td><td data-label="Jugadores">Sin cargar</td><td class="mt-open"><button class="btn small mt-open-btn">Cargar minutos →</button></td><td class="mt-del"><button class="mt-del-btn" title="Descartar de la lista" aria-label="Descartar">✕</button></td>`;
-      tr.querySelector('.mt-open-btn').addEventListener('click',()=>{ abrirPartidoParaMinutaje(m.id); });
-      tr.querySelector('.mt-del-btn').addEventListener('click',()=>{
-        // Borra directo (sin preguntar) y ofrece deshacer por si fue un error.
-        descartarPendiente(m.id);
-        mostrarDeshacerDescarte(m.id, m.rival||'Partido');
-        renderMinutes();
-      });
-      tb.appendChild(tr);
-    });
-
+    // Primero los CARGADOS (arriba), que son los que ya tienen minutaje.
     sessions.forEach(s=>{
       const when=s.created_at?new Date(s.created_at).toLocaleDateString('es-AR'):'';
       const nJug=s.totals?Object.keys(s.totals).filter(k=>k!=='__rival'&&k!=='__manual').length:0;
@@ -11627,6 +11616,21 @@ window.__initEditor = function(){
           toast('Partido borrado');
           renderMinutes();
         }catch(e){ console.error('del minutes lista', e); toast('No se pudo borrar'); }
+      });
+      tb.appendChild(tr);
+    });
+
+    // Después los PENDIENTES (abajo), los que faltan cargar.
+    pendientes.forEach(m=>{
+      const when = m.date ? new Date(m.date+'T00:00:00').toLocaleDateString('es-AR') : '';
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td data-label="Partido"><span class="mt-fecha-badge">${escapeHtml(m.rival||'Partido')}</span> <small style="color:var(--warn,#e0a800);font-weight:400;">⏳ pendiente</small></td><td class="mt-fecha" data-label="Fecha">${when}</td><td data-label="Jugadores">Sin cargar</td><td class="mt-open"><button class="btn small mt-open-btn">Cargar minutos →</button></td><td class="mt-del"><button class="mt-del-btn" title="Descartar de la lista" aria-label="Descartar">✕</button></td>`;
+      tr.querySelector('.mt-open-btn').addEventListener('click',()=>{ abrirPartidoParaMinutaje(m.id); });
+      tr.querySelector('.mt-del-btn').addEventListener('click',()=>{
+        // Borra directo (sin preguntar) y ofrece deshacer por si fue un error.
+        descartarPendiente(m.id);
+        mostrarDeshacerDescarte(m.id, m.rival||'Partido');
+        renderMinutes();
       });
       tb.appendChild(tr);
     });
@@ -15068,7 +15072,7 @@ window.__initEditor = function(){
   (function(){
     // Solapas internas del minutaje: "Año" (todo desplegado) y "Partidos" (lista para abrir uno).
     const subtabs = document.querySelectorAll('.min-subtab');
-    const contPartidos = document.getElementById('informePlantel');
+    const contPartidos = document.getElementById('minUnoView');
     const contAnio = document.getElementById('minAnioView');
     function mostrarMinTab(tab){
       subtabs.forEach(t=> t.classList.toggle('active', t.dataset.mintab===tab));
@@ -15079,7 +15083,7 @@ window.__initEditor = function(){
         if(contPartidos) contPartidos.style.display='none';
       }else{
         if(contAnio) contAnio.style.display='none';
-        if(contPartidos){ contPartidos.style.display='block'; renderInformePlantel(); }
+        if(contPartidos){ contPartidos.style.display='block'; }
       }
     }
     subtabs.forEach(t=>{
@@ -15140,23 +15144,11 @@ window.__initEditor = function(){
       html += '</div>';
     });
 
-    // Totales del año.
-    html += '<div class="annual-card" style="border:2px solid var(--accent-2);margin-bottom:14px;">';
-    html += '<div class="rd-card-head"><h3 style="margin:0;">🧮 Totales del año</h3></div>';
-    html += '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">';
-    html += '<table class="match-table" style="min-width:320px;width:100%;"><thead><tr>'
-      + '<th>Concepto</th><th style="text-align:center;">1er T</th><th style="text-align:center;">2do T</th><th style="text-align:center;">Total</th>'
-      + '</tr></thead><tbody><tr>'
-      + '<td style="font-weight:700;">Suma de '+sessions.length+(sessions.length===1?' partido':' partidos')+'</td>'
-      + '<td style="text-align:center;font-family:monospace;font-weight:700;">'+fmt(sumaPT)+'</td>'
-      + '<td style="text-align:center;font-family:monospace;font-weight:700;">'+fmt(sumaST)+'</td>'
-      + '<td style="text-align:center;font-family:monospace;font-weight:700;color:var(--accent-2);font-size:16px;">'+fmt(sumaTotal)+'</td>'
-      + '</tr></tbody></table></div></div>';
-
-    // Comparativa por jugador (acumulado del año).
+    // Totales del año POR JUGADOR: cada uno con su 1er T, 2do T y total sumados
+    // de todos los partidos. Al final, la fila de suma general del equipo.
     const filas = Object.values(acc).sort((a,b)=> b.total - a.total);
-    html += '<div class="annual-card">';
-    html += '<div class="rd-card-head"><h3 style="margin:0;">📊 Comparativa · minutos por jugador</h3></div>';
+    html += '<div class="annual-card" style="border:2px solid var(--accent-2);">';
+    html += '<div class="rd-card-head"><h3 style="margin:0;">🧮 Totales del año · por jugador</h3></div>';
     html += '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">';
     html += '<table class="match-table informe-tabla" style="min-width:360px;width:100%;"><thead><tr>'
       + '<th>Jugador</th><th style="text-align:center;">Part.</th><th style="text-align:center;">1er T</th><th style="text-align:center;">2do T</th><th style="text-align:center;">Total</th><th style="text-align:center;">Prom.</th>'
@@ -15172,6 +15164,15 @@ window.__initEditor = function(){
         + '<td style="text-align:center;font-family:monospace;">'+fmt(prom)+'</td>'
         + '</tr>';
     });
+    // Fila final: suma general del equipo.
+    html += '<tr style="border-top:2px solid var(--accent-2);">'
+      + '<td style="font-weight:700;">Total del equipo</td>'
+      + '<td style="text-align:center;font-weight:700;">'+sessions.length+'</td>'
+      + '<td style="text-align:center;font-family:monospace;font-weight:700;">'+fmt(sumaPT)+'</td>'
+      + '<td style="text-align:center;font-family:monospace;font-weight:700;">'+fmt(sumaST)+'</td>'
+      + '<td style="text-align:center;font-family:monospace;font-weight:700;color:var(--accent-2);">'+fmt(sumaTotal)+'</td>'
+      + '<td style="text-align:center;">—</td>'
+      + '</tr>';
     html += '</tbody></table></div></div>';
 
     cont.innerHTML = html;
