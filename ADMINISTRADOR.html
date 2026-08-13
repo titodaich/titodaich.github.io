@@ -321,6 +321,7 @@ body.admin-active #adminApp{display:block;}
   <div style="display:flex;align-items:center;">
     <div class="brand">CANCHA<span class="dot">·</span>EDIT</div>
     <span class="admin-badge">Admin</span>
+    <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#E0A93B;margin-left:8px;">v.amigo</span>
   </div>
   <div class="topbar-right">
     <span class="admin-user" id="adminUserEmail">—</span>
@@ -2180,15 +2181,16 @@ function renderUserSubscription(u){
   btns.appendChild(bTrial);
   btns.appendChild(bVencer);
 
-  // Hacer / quitar amigo (precio distintivo) — solo si el usuario tiene club
-  if(u.clubId){
-    const bAmigo = document.createElement('button');
-    bAmigo.className = 'btn-mini';
-    bAmigo.textContent = u.esFundador ? '🌟 Quitar amigo' : '☆ Hacer amigo';
-    if(u.esFundador){ bAmigo.style.cssText = 'border-color:#E0A93B;color:#E0A93B;'; }
-    bAmigo.addEventListener('click', () => toggleFundador(u.clubId, u.esFundador));
-    btns.appendChild(bAmigo);
-  }
+  // Hacer / quitar amigo (precio distintivo) — aparece SIEMPRE, en cada usuario.
+  const bAmigo = document.createElement('button');
+  bAmigo.className = 'btn-mini';
+  bAmigo.textContent = u.esFundador ? '🌟 Quitar amigo' : '☆ Hacer amigo';
+  if(u.esFundador){ bAmigo.style.cssText = 'border-color:#E0A93B;color:#E0A93B;'; }
+  bAmigo.addEventListener('click', () => {
+    if(!u.clubId){ alert('Este usuario todavía no tiene un club creado, así que no se le puede aplicar el precio de amigo. Pedile que entre a la app y cargue su plantel una vez (eso le crea el club).'); return; }
+    toggleFundador(u.clubId, u.esFundador);
+  });
+  btns.appendChild(bAmigo);
 
   // ── Cobro selectivo: iniciar cuenta regresiva de 7 días para ESTE usuario ──
   const sepReg = document.createElement('div');
