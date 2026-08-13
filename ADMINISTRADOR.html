@@ -80,7 +80,7 @@ th.col-jugadores{color:var(--accent-2)!important;}
 .filter-select{background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--chalk);padding:8px 12px;font-size:13px;}
 
 /* ---------- Table ---------- */
-.table-wrap{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
+.table-wrap{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow-x:auto;-webkit-overflow-scrolling:touch;}
 table{width:100%;border-collapse:collapse;}
 thead th{
   font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;
@@ -93,6 +93,44 @@ tbody tr{transition:background .12s ease;cursor:pointer;}
 tbody tr:hover{background:rgba(47,143,203,0.06);}
 tbody tr.blocked{opacity:0.55;}
 tbody tr.blocked .uname{text-decoration:line-through;}
+
+/* En celular: la tabla de USUARIOS se transforma en tarjetas (cada usuario apilado).
+   Las demás tablas mantienen scroll horizontal. En compu, todo queda igual. */
+@media (max-width:760px){
+  /* Tablas genéricas: permitir deslizar de lado */
+  .table-wrap table{ min-width:600px; }
+  /* Pista visual de que la tabla se desliza de lado */
+  .table-wrap{ position:relative; background:linear-gradient(to right, var(--panel) 30%, rgba(21,34,48,0)), linear-gradient(to left, var(--panel) 30%, rgba(21,34,48,0)) 100% 0; background-size:40px 100%, 40px 100%; background-repeat:no-repeat; background-attachment:local, local; }
+  /* Excepción: la tabla de usuarios se vuelve tarjetas y NO necesita ancho mínimo */
+  #usersTableWrap table{ min-width:0; }
+  #usersTableWrap thead{ display:none; }               /* ocultamos encabezados */
+  #usersTableWrap table, #usersTableWrap tbody{ display:block; width:100%; }
+  #usersTableWrap tbody tr{
+    display:block; background:var(--panel-2); border:1px solid var(--line);
+    border-radius:12px; padding:12px 14px; margin-bottom:12px;
+  }
+  #usersTableWrap tbody td{
+    display:flex; justify-content:space-between; align-items:center; gap:12px;
+    padding:6px 0; border:none; text-align:right;
+  }
+  /* La etiqueta de cada dato, a la izquierda */
+  #usersTableWrap tbody td::before{
+    content:attr(data-lbl); font-family:'JetBrains Mono',monospace; font-size:10px;
+    text-transform:uppercase; letter-spacing:1px; color:var(--muted);
+    text-align:left; flex:0 0 auto;
+  }
+  /* La primera celda (nombre+email) ocupa todo el ancho, sin etiqueta */
+  #usersTableWrap tbody td:first-child{
+    display:block; text-align:left; border-bottom:1px solid var(--line);
+    padding-bottom:10px; margin-bottom:4px;
+  }
+  #usersTableWrap tbody td:first-child::before{ display:none; }
+  /* La celda de acciones: botones a lo ancho */
+  #usersTableWrap tbody td:last-child{ padding-top:10px; }
+  #usersTableWrap tbody td:last-child::before{ display:none; }
+  #usersTableWrap .row-actions{ width:100%; display:flex; gap:8px; }
+  #usersTableWrap .row-actions .act-btn{ flex:1; text-align:center; padding:10px; }
+}
 
 .uname{font-weight:600;}
 .uemail{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted);}
@@ -169,6 +207,16 @@ tbody tr.blocked .uname{text-decoration:line-through;}
 .proj-row .pmeta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
 .modal-foot{display:flex;justify-content:space-between;gap:12px;padding:16px 24px 22px;border-top:1px solid var(--line);flex-wrap:wrap;}
 .modal-foot .danger-zone{display:flex;gap:10px;}
+@media (max-width:760px){
+  .modal{max-width:100%;max-height:92vh;border-radius:14px 14px 0 0;}
+  .modal-body{padding:16px;}
+  .modal-foot{flex-direction:column;align-items:stretch;padding:14px 16px 18px;}
+  .modal-foot .danger-zone{flex-direction:column;width:100%;}
+  .modal-foot .danger-zone button{width:100%;padding:12px;font-size:13px;}
+  #mSubBtns{flex-direction:column;}
+  #mSubBtns button{width:100%;padding:12px;font-size:13px;}
+  #mWhatsappBtnWrap a, #mWhatsappBtnWrap button{width:100%;display:block;text-align:center;padding:12px;}
+}
 .btn-soft{border:1px solid var(--line);background:transparent;color:var(--chalk);border-radius:8px;padding:9px 16px;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .12s ease;}
 .btn-soft:hover{border-color:var(--accent-2);color:var(--accent-2);}
 /* ---------- Resetear contraseña de un usuario ---------- */
@@ -1961,14 +2009,14 @@ function render(){
       : '';
     return `
     <tr class="${u.blocked?'blocked':''}" data-id="${u.id}">
-      <td><div class="uname">${u.name}${u.isAdmin?' <span style="color:var(--accent);font-size:10px;font-family:JetBrains Mono,monospace;">ADMIN</span>':''}</div>${u.email?`<div class="uemail">${u.email}</div>`:''}</td>
-      <td><span class="club-pill">${u.club}</span></td>
-      <td>${statusPill(u)}</td>
-      <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);text-align:center;">${sesiones}</td>
-      <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);text-align:center;">${minutos}</td>
-      <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);">${u.last}${ultimaDurHtml}</td>
-      <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);">${u.since || '—'}</td>
-      <td>
+      <td data-lbl="Usuario"><div class="uname">${u.name}${u.isAdmin?' <span style="color:var(--accent);font-size:10px;font-family:JetBrains Mono,monospace;">ADMIN</span>':''}</div>${u.email?`<div class="uemail">${u.email}</div>`:''}</td>
+      <td data-lbl="Club"><span class="club-pill">${u.club}</span></td>
+      <td data-lbl="Estado">${statusPill(u)}</td>
+      <td data-lbl="Sesiones" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);text-align:center;">${sesiones}</td>
+      <td data-lbl="Minutos" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);text-align:center;">${minutos}</td>
+      <td data-lbl="Última conexión" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);">${u.last}${ultimaDurHtml}</td>
+      <td data-lbl="Alta" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);">${u.since || '—'}</td>
+      <td data-lbl="">
         <div class="row-actions">
           <button class="act-btn view" data-action="view">Ver</button>
           ${window.__mostrandoOcultos
