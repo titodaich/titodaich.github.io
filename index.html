@@ -7704,9 +7704,12 @@ window.__initEditor = function(){
   function liveSaveKey(cat){
     const u = window.__currentUserId || 'anon';
     const c = window.__clubIdCache || 'noclub';
-    // Si hay un partido EN CURSO, usamos SU categoría fija (matchCategoria), no la de
-    // la barra: así, si el DT cambia de categoría con un partido abierto, el partido
-    // se sigue guardando bajo su propia categoría y no se contamina.
+    // Prioridad de categoría para la clave:
+    // 1) la que se pasa explícita (cat)
+    // 2) si hay un partido EN CURSO (no inSetup), la del partido (matchCategoria)
+    // 3) si no, SIEMPRE la de la barra (categoría activa). Nunca matchCategoria acá,
+    //    porque puede haber quedado "sucia" de una sesión anterior y traer el
+    //    partido de otra categoría.
     let k;
     if(cat != null){
       k = cat;
@@ -7782,7 +7785,11 @@ window.__initEditor = function(){
     try{
       const snap = leerPartidoGuardado();
       if(!snap) return false;
-      if(partidoGuardadoEsDeOtro(snap)) return false;   // es de otra cuenta/categoría: no existe para mí
+      if(partidoGuardadoEsDeOtro(snap)){
+        // Es de otra categoría/cuenta: lo borramos para que no reaparezca acá.
+        try{ safeStorage.removeItem(liveSaveKey()); }catch(e){}
+        return false;
+      }
       // válido si tiene un partido en curso con jugadores
       return snap && snap.inSetup===false && snap.squad && snap.squad.length>0;
     }catch(e){ return false; }
@@ -9249,6 +9256,10 @@ window.__initEditor = function(){
     cargarOriginsSiFaltan();
     updateClockType();
     // ¿Quedó un partido a medias (corte de wifi, salida sin querer)? Lo retomamos solo.
+    // Antes de decidir, si NO hay partido activo (inSetup), limpiamos matchCategoria:
+    // pudo quedar "sucia" de una categoría anterior y hacer que se lea la clave
+    // equivocada, trayendo un partido de otra categoría.
+    if(inSetup){ matchCategoria = null; }
     if(inSetup && hayPartidoGuardado()){
       if(restaurarPartidoLocal()){
         document.getElementById('liveSetup').style.display='none';
