@@ -1569,9 +1569,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 /* Anuales: conversión destacada con gráfico */
 .annual-featured{border-color:var(--accent-2);}
 /* Gráficos de minutaje */
-.mch-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
-.mch-tab{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:8px 14px;font-family:'Oswald',sans-serif;font-size:12.5px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;cursor:pointer;min-height:40px;}
-.mch-tab.active{background:var(--accent);border-color:var(--accent);color:#10161C;}
+.mch-tabs{display:none;}
 .mch-card{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;}
 .mch-card h4{font-family:'Oswald',sans-serif;font-size:15px;color:var(--chalk);margin:0 0 4px;}
 .mch-sub{font-size:12px;color:var(--muted);margin:0 0 14px;}
@@ -3473,16 +3471,18 @@ body.editor-active #screen-editor{ display:block; }
         <button class="min-subtab" data-mintab="partidos">📋 Uno por uno</button>
       </div>
       <div id="minutesMetrics"></div>
-      <div id="minAnioView" style="display:none;"></div>
+      <div id="minAnioView" style="display:none;">
+        <div id="chartsAnio"></div>
+      </div>
       <!-- Solapa "Uno por uno": la lista de partidos (pendientes + cargados, cada uno se abre) -->
       <div id="minUnoView" style="display:none;">
         <div id="minutesList"></div>
+        <div id="minutesDetail" style="display:none;"></div>
+        <div id="chartsPartido"></div>
       </div>
       <div id="informePlantel" style="display:none;"></div>
       <p id="minTabHint" class="rd-empty" style="text-align:center;padding:24px 10px;">Elegí <b>📅 Resumen</b> para ver todo el año, o <b>📋 Uno por uno</b> para entrar a cada partido.</p>
       <div id="minutesEditor" style="display:none;"></div>
-      <div id="minutesCharts"></div>
-      <div id="minutesDetail" style="display:none;"></div>
     </div>
 
     <!-- ===== SUB: ANUALES ===== -->
@@ -11321,7 +11321,8 @@ window.__initEditor = function(){
     btn.addEventListener('click', async ()=>{
       await restaurarPendiente(matchId);
       box.remove();
-      renderMinutes();
+      window.__minKeepTab = true;
+      renderMinutes().then(()=>{ if(window.__mostrarMinTab) window.__mostrarMinTab('partidos'); });
     });
     // Se va solo a los 6 segundos (el descarte queda firme).
     setTimeout(()=>{ if(box && box.parentNode) box.remove(); }, 6000);
@@ -11334,7 +11335,7 @@ window.__initEditor = function(){
     currentMatch = m;   // loadMatchMinutes usa currentMatch para citados/invitados
     const list = document.getElementById('minutesList');
     const editor = document.getElementById('minutesEditor');
-    const charts = document.getElementById('minutesCharts');
+    const charts = document.getElementById('chartsPartido');
     if(list) list.style.display = 'none';
     if(charts) charts.style.display = 'none';
     if(editor){ editor.style.display = 'block'; editor.innerHTML = '<p class="rd-empty">Cargando…</p>'; }
@@ -11365,8 +11366,9 @@ window.__initEditor = function(){
 
   function mchEscapar(s){ return escapeHtml(String(s||'')); }
 
-  async function renderMinutesCharts(){
-    const cont = document.getElementById('minutesCharts');
+  async function renderMinutesCharts(modo, destinoId){
+    // modo: 'anio' (acumulado) o 'partido' (uno puntual). destinoId: id del contenedor.
+    const cont = document.getElementById(destinoId || 'minutesCharts');
     if(!cont) return;
     // Cargamos las sesiones de minutaje (reusa cache si renderMinutes ya corrió).
     let sessions = window.__minSessions || null;
@@ -11385,6 +11387,7 @@ window.__initEditor = function(){
     }
     sessions = (sessions||[]).filter(s=>s.totals);
     const st = window.__mchState;
+    st.vista = (modo==='partido') ? 'partido' : 'anio';
 
     // Sesiones con datos de minutos (excluye vacías).
     const conMin = sessions.filter(s=>{
@@ -11395,18 +11398,15 @@ window.__initEditor = function(){
     // Sesiones según la vista: todo el año, o un partido puntual.
     let sesionesUsar = conMin;
     if(st.vista==='partido'){
-      if(!st.partidoId) st.partidoId = conMin[0].id;
+      if(!st.partidoId || !conMin.some(s=>s.id===st.partidoId)) st.partidoId = conMin[0].id;
       sesionesUsar = conMin.filter(s=>s.id===st.partidoId);
     }
     const datos = mchAgregarMinutos(sesionesUsar);           // {nombre:{t1,t2,total}}
     const nombres = Object.keys(datos).sort((a,b)=>datos[b].total-datos[a].total);
 
-    // ---- Cabecera: pestañas Año / Partido + selector de partido ----
-    let html = `<div class="mch-tabs">
-      <button class="mch-tab ${st.vista==='anio'?'active':''}" data-mv="anio">📅 Año</button>
-      <button class="mch-tab ${st.vista==='partido'?'active':''}" data-mv="partido">⚽ Por partido</button>
-    </div>`;
-
+    // Sin pestañas internas (la solapa de arriba ya define año/partido).
+    // En modo partido, un selector para elegir cuál.
+    let html = '';
     if(st.vista==='partido'){
       html += `<div class="mch-controls"><select id="mchPartidoSel">`;
       conMin.forEach(s=>{
@@ -11450,9 +11450,10 @@ window.__initEditor = function(){
     }
     html += `</div>`;
 
-    // ---- Gráfico 2: Comparar 2-3 jugadores (columnas apiladas) ----
+    // ---- Gráfico 2: Comparar 2-3 jugadores (solo en Resumen, para no duplicar) ----
+    if(st.vista==='anio'){
     html += `<div class="mch-card"><h4>👥 Comparar jugadores</h4>
-      <p class="mch-sub">Elegí hasta 3 jugadores para comparar sus minutos (1er + 2do tiempo).</p>
+      <p class="mch-sub">Elegí hasta 3 jugadores para comparar sus minutos del año (1er + 2do tiempo).</p>
       <div class="mch-controls">`;
     for(let i=0;i<3;i++){
       const sel = st.cmp[i]||'';
@@ -11486,13 +11487,13 @@ window.__initEditor = function(){
       </div>`;
     }
     html += `</div>`;
+    } // fin comparar jugadores (solo año)
 
     cont.innerHTML = html;
 
     // ---- Listeners ----
-    cont.querySelectorAll('.mch-tab').forEach(b=>b.addEventListener('click',()=>{ st.vista=b.dataset.mv; renderMinutesCharts(); }));
-    const pSel = cont.querySelector('#mchPartidoSel'); if(pSel) pSel.addEventListener('change',()=>{ st.partidoId=pSel.value; renderMinutesCharts(); });
-    cont.querySelectorAll('.mchCmpSel').forEach(se=>se.addEventListener('change',()=>{ st.cmp[parseInt(se.dataset.i,10)]=se.value; renderMinutesCharts(); }));
+    const pSel = cont.querySelector('#mchPartidoSel'); if(pSel) pSel.addEventListener('change',()=>{ st.partidoId=pSel.value; renderMinutesCharts(modo, destinoId); });
+    cont.querySelectorAll('.mchCmpSel').forEach(se=>se.addEventListener('change',()=>{ st.cmp[parseInt(se.dataset.i,10)]=se.value; renderMinutesCharts(modo, destinoId); }));
   }
 
   // Mini gráfico de líneas en SVG para la evolución.
@@ -11630,7 +11631,9 @@ window.__initEditor = function(){
         // Borra directo (sin preguntar) y ofrece deshacer por si fue un error.
         descartarPendiente(m.id);
         mostrarDeshacerDescarte(m.id, m.rival||'Partido');
-        renderMinutes();
+        // Refresca la lista SIN salir de "Uno por uno".
+        window.__minKeepTab = true;
+        renderMinutes().then(()=>{ if(window.__mostrarMinTab) window.__mostrarMinTab('partidos'); });
       });
       tb.appendChild(tr);
     });
@@ -11672,9 +11675,10 @@ window.__initEditor = function(){
       });
     }
 
-    renderMinutesCharts();   // gráficos y comparativas, debajo de la lista
-    // Refrescar la vista de solapas internas (Todos los partidos / Año) con los datos ya cargados.
-    if(window.__resetMinTabs) window.__resetMinTabs();
+    // Los gráficos ahora se dibujan dentro de cada solapa (Resumen / Uno por uno).
+    // Refrescar solapas solo si no se pidió preservar la actual (ej. al borrar un pendiente).
+    if(!window.__minKeepTab && window.__resetMinTabs) window.__resetMinTabs();
+    window.__minKeepTab = false;
   }
 
   function showMinutesDetail(s){
@@ -11683,6 +11687,10 @@ window.__initEditor = function(){
     const detail=document.getElementById('minutesDetail');
     if(!list||!detail){ return; }
     list.style.display='none'; detail.style.display='block';
+    // El gráfico de reparto muestra ESTE partido (debajo del detalle).
+    if(s && s.id){ window.__mchState.partidoId = s.id; }
+    const chP=document.getElementById('chartsPartido');
+    if(chP){ chP.style.display='block'; renderMinutesCharts('partido','chartsPartido'); }
     const totals=s.totals||{};
     const rival = totals.__rival || { goalsAgainst:0, foulsAgainst:0 };
     // ordenar por total desc (excluyendo la entrada especial del rival)
@@ -11732,7 +11740,12 @@ window.__initEditor = function(){
       html+='</div></div>';
     }
     detail.innerHTML=html;
-    document.getElementById('minsBack').addEventListener('click',()=>renderMinutes());
+    document.getElementById('minsBack').addEventListener('click',()=>{
+      const detail=document.getElementById('minutesDetail'); if(detail) detail.style.display='none';
+      const chP=document.getElementById('chartsPartido'); if(chP) chP.style.display='block';
+      window.__minKeepTab = true;
+      renderMinutes().then(()=>{ if(window.__mostrarMinTab) window.__mostrarMinTab('partidos'); });
+    });
 
     // ----- Borrar partido completo -----
     const btnDel = document.getElementById('minsDelete');
@@ -15079,16 +15092,17 @@ window.__initEditor = function(){
       const hint = document.getElementById('minTabHint');
       if(hint) hint.style.display = 'none';
       if(tab==='anio'){
-        if(contAnio){ contAnio.style.display='block'; renderMinAnio(); }
+        if(contAnio){ contAnio.style.display='block'; renderMinAnio(); renderMinutesCharts('anio','chartsAnio'); }
         if(contPartidos) contPartidos.style.display='none';
       }else{
         if(contAnio) contAnio.style.display='none';
-        if(contPartidos){ contPartidos.style.display='block'; }
+        if(contPartidos){ contPartidos.style.display='block'; renderMinutesCharts('partido','chartsPartido'); }
       }
     }
     subtabs.forEach(t=>{
       t.addEventListener('click', ()=> mostrarMinTab(t.dataset.mintab));
     });
+    window.__mostrarMinTab = mostrarMinTab;
     // Al entrar: NINGUNA solapa desplegada (pantalla tranquila). Se abre al tocar.
     window.__resetMinTabs = function(){
       subtabs.forEach(t=> t.classList.remove('active'));
