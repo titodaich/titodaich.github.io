@@ -101,35 +101,53 @@ tbody tr.blocked .uname{text-decoration:line-through;}
   .table-wrap table{ min-width:600px; }
   /* Pista visual de que la tabla se desliza de lado */
   .table-wrap{ position:relative; background:linear-gradient(to right, var(--panel) 30%, rgba(21,34,48,0)), linear-gradient(to left, var(--panel) 30%, rgba(21,34,48,0)) 100% 0; background-size:40px 100%, 40px 100%; background-repeat:no-repeat; background-attachment:local, local; }
-  /* Excepción: la tabla de usuarios se vuelve tarjetas y NO necesita ancho mínimo */
+  /* Excepción: la tabla de usuarios se vuelve tarjetas COMPACTAS */
   #usersTableWrap table{ min-width:0; }
   #usersTableWrap thead{ display:none; }               /* ocultamos encabezados */
   #usersTableWrap table, #usersTableWrap tbody{ display:block; width:100%; }
   #usersTableWrap tbody tr{
-    display:block; background:var(--panel-2); border:1px solid var(--line);
-    border-radius:12px; padding:12px 14px; margin-bottom:12px;
+    display:flex; flex-direction:column; background:var(--panel-2); border:1px solid var(--line);
+    border-radius:10px; padding:10px 12px; margin-bottom:8px;
   }
   #usersTableWrap tbody td{
-    display:flex; justify-content:space-between; align-items:center; gap:12px;
-    padding:6px 0; border:none; text-align:right;
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    padding:3px 0; border:none; text-align:right; font-size:12.5px;
   }
   /* La etiqueta de cada dato, a la izquierda */
   #usersTableWrap tbody td::before{
-    content:attr(data-lbl); font-family:'JetBrains Mono',monospace; font-size:10px;
-    text-transform:uppercase; letter-spacing:1px; color:var(--muted);
+    content:attr(data-lbl); font-family:'JetBrains Mono',monospace; font-size:9.5px;
+    text-transform:uppercase; letter-spacing:0.5px; color:var(--muted);
     text-align:left; flex:0 0 auto;
   }
+  /* Orden en la tarjeta (solo mobile): Usuario, Club, Sesiones,
+     Min. última con., Min. totales, y botones al final.
+     El dato "Min. última con." reusa la celda de "Última conexión"
+     mostrando solo la duración (ver regla de más abajo). */
+  #usersTableWrap tbody td[data-lbl="Usuario"]{ order:1; }
+  #usersTableWrap tbody td[data-lbl="Club"]{ order:2; }
+  #usersTableWrap tbody td[data-lbl="Sesiones"]{ order:3; }
+  #usersTableWrap tbody td[data-lbl="Última conexión"]{ order:4; }
+  #usersTableWrap tbody td[data-lbl="Minutos"]{ order:5; }
+  #usersTableWrap tbody td[data-lbl=""]{ order:9; }
+  /* Etiqueta más corta para minutos totales */
+  #usersTableWrap tbody td[data-lbl="Minutos"]::before{ content:"Min. totales"; }
   /* La primera celda (nombre+email) ocupa todo el ancho, sin etiqueta */
   #usersTableWrap tbody td:first-child{
-    display:block; text-align:left; border-bottom:1px solid var(--line);
-    padding-bottom:10px; margin-bottom:4px;
+    text-align:left; border-bottom:1px solid var(--line);
+    padding-bottom:8px; margin-bottom:5px;
   }
+  #usersTableWrap tbody td[data-lbl="Usuario"]{ display:block; }
   #usersTableWrap tbody td:first-child::before{ display:none; }
+  #usersTableWrap .uname{ font-size:14px; }
+  #usersTableWrap .uemail{ font-size:11px; }
+  /* Datos que NO van en la tarjeta compacta */
+  #usersTableWrap tbody td[data-lbl="Estado"],
+  #usersTableWrap tbody td[data-lbl="Alta"]{ display:none; }
   /* La celda de acciones: botones a lo ancho */
-  #usersTableWrap tbody td:last-child{ padding-top:10px; }
+  #usersTableWrap tbody td:last-child{ padding-top:8px; }
   #usersTableWrap tbody td:last-child::before{ display:none; }
   #usersTableWrap .row-actions{ width:100%; display:flex; gap:8px; }
-  #usersTableWrap .row-actions .act-btn{ flex:1; text-align:center; padding:10px; }
+  #usersTableWrap .row-actions .act-btn{ flex:1; text-align:center; padding:9px; font-size:12.5px; }
 }
 
 .uname{font-weight:600;}
@@ -227,8 +245,12 @@ tbody tr.blocked .uname{text-decoration:line-through;}
   .toolbar input, .toolbar select, .filters input, .filters select,
   input[type="text"], input[type="search"], select{ width:100% !important; box-sizing:border-box; }
 
-  /* MODAL de detalle: ocupa toda la pantalla, cómodo */
-  .modal{max-width:100%;max-height:94vh;border-radius:14px 14px 0 0;margin:0;}
+  /* MODAL de detalle: scroll correcto en el celular.
+     El overlay pasa a scrollear y alinea el modal ARRIBA (no centrado),
+     así el contenido largo se puede recorrer entero con el dedo. */
+  .modal-overlay{ align-items:flex-start; justify-content:center; padding:0; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .modal-overlay.show{ display:block; }
+  .modal{max-width:100%;max-height:none;min-height:100vh;border-radius:0;margin:0;overflow-y:visible;}
   .modal-body{padding:16px;}
   .modal-head{ padding:14px 16px; }
   .modal-head h3{ font-size:17px; }
