@@ -74,6 +74,14 @@ th.col-jugadores{color:var(--accent-2)!important;}
 /* ---------- Section ---------- */
 .section-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px;flex-wrap:wrap;}
 .section-head h2{font-family:'Oswald',sans-serif;font-size:16px;text-transform:uppercase;letter-spacing:0.8px;margin:0;}
+/* Barra de solapas del admin */
+.admin-tabs{display:flex;gap:6px;background:var(--bg);padding:6px;border-radius:12px;border:1px solid var(--line);margin-bottom:22px;flex-wrap:wrap;}
+.admin-tab{flex:1;min-width:110px;text-align:center;background:transparent;border:none;color:var(--muted);border-radius:8px;padding:11px 8px;font-size:13px;font-family:'Oswald',sans-serif;letter-spacing:0.5px;cursor:pointer;transition:all .12s;text-transform:uppercase;}
+.admin-tab:hover:not(.active){color:var(--chalk);background:var(--panel-2);}
+.admin-tab.active{background:var(--accent-2,#2F8FCB);color:#fff;}
+/* Cada sección oculta si no es de la solapa activa */
+.tab-section{display:none;}
+.tab-section.tab-visible{display:block;}
 .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
 .search{background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--chalk);padding:8px 12px;font-size:13px;min-width:220px;}
 .search::placeholder{color:var(--muted);}
@@ -415,6 +423,20 @@ body.admin-active #adminApp{display:block;}
 </div>
 
 <div class="wrap">
+
+  <!-- ===== BARRA DE SOLAPAS ===== -->
+  <div class="admin-tabs" id="adminTabs">
+    <button class="admin-tab active" data-tab="estadisticas">📊 Estadísticas</button>
+    <button class="admin-tab" data-tab="usuarios">👥 Usuarios</button>
+    <button class="admin-tab" data-tab="cobros">💳 Cobros</button>
+    <button class="admin-tab" data-tab="novedades">📢 Novedades</button>
+  </div>
+
+  <!-- Contenedores de cada solapa. Las secciones se reparten acá por JS al cargar. -->
+  <div class="tab-section tab-visible" id="tab-estadisticas" data-tab="estadisticas"></div>
+  <div class="tab-section" id="tab-usuarios" data-tab="usuarios"></div>
+  <div class="tab-section" id="tab-cobros" data-tab="cobros"></div>
+  <div class="tab-section" id="tab-novedades" data-tab="novedades"></div>
 
   <!-- ===== CARTEL NOVEDAD: altas de las últimas 24hs ===== -->
   <!-- Aparece solo si hubo usuarios nuevos en las últimas 24hs. Cada alta se muestra
@@ -1083,6 +1105,7 @@ loginForm.addEventListener('submit', async (e) => {
   }
   document.getElementById('adminUserEmail').textContent = data.user.email;
   document.body.classList.add('admin-active');
+  organizarSolapas();
   loginBtn.disabled=false; loginBtn.textContent='Entrar';
   loadUsers();
   loadClubs();
@@ -1126,6 +1149,7 @@ document.getElementById('refreshMetrics')?.addEventListener('click', () => {
     if(isAdmin){
       document.getElementById('adminUserEmail').textContent = session.user.email;
       document.body.classList.add('admin-active');
+      organizarSolapas();
       loadUsers();
       loadClubs();
       loadMetrics();
@@ -3040,6 +3064,76 @@ document.getElementById('rpApply')?.addEventListener('click', async () => {
 document.getElementById('clubSearch')?.addEventListener('input', renderClubs);
 document.getElementById('usoDias')?.addEventListener('change', () => { loadSecciones(); loadTiempoUsuarios(); });
 filter.addEventListener('change', render);
+
+// ============ SOLAPAS DEL ADMIN ============
+// Reparte las secciones existentes en las 4 solapas según su título, sin
+// tocar el HTML de cada sección. Se ejecuta una vez al mostrar el panel.
+function organizarSolapas(){
+  const wrap = document.querySelector('.wrap');
+  if(!wrap) return;
+  const cEst = document.getElementById('tab-estadisticas');
+  const cUsr = document.getElementById('tab-usuarios');
+  const cCob = document.getElementById('tab-cobros');
+  const cNov = document.getElementById('tab-novedades');
+  if(!cEst || !cUsr || !cCob || !cNov) return;
+  if(wrap.getAttribute('data-solapas-listas') === '1') return;  // no repetir
+
+  const destino = (titulo) => {
+    const t = (titulo||'').toLowerCase();
+    if(t.includes('actividad por club') || t.includes('secciones más usadas') || t.includes('tiempo por usuario')) return cEst;
+    if(t.includes('novedades')) return cNov;
+    if(t.includes('métricas') || t.includes('ingresos reales') || t.includes('ingreso estimado') ||
+       t.includes('por vencer') || t.includes('suscripciones') || t.includes('clubes') ||
+       t.includes('vendedores') || t.includes('comisiones')) return cCob;
+    if(t.includes('usuarios')) return cUsr;
+    return null;
+  };
+
+  const hijos = Array.from(wrap.children);
+  let solapaActual = null;   // hasta el primer título, los bloques quedan FIJOS arriba
+  hijos.forEach(el => {
+    if(el.classList.contains('admin-tabs') || el.classList.contains('tab-section')) return;
+    const head = el.classList.contains('section-head') ? el : (el.querySelector ? el.querySelector('.section-head') : null);
+    if(head){
+      const h2 = head.querySelector('h2');
+      const dest = destino(h2 ? h2.textContent : '');
+      if(dest) solapaActual = dest;
+    }
+    // Antes del primer título con destino (métricas superiores + altas 24hs),
+    // solapaActual es null → esos bloques NO se mueven, quedan fijos en la
+    // pantalla principal, siempre visibles.
+    if(solapaActual) solapaActual.appendChild(el);
+  });
+
+  wrap.setAttribute('data-solapas-listas','1');
+
+  // Reubicar la barra de solapas y sus contenedores JUSTO DESPUÉS de los
+  // bloques fijos (métricas + altas 24hs), para que queden arriba de todo
+  // el contenido de las solapas pero debajo del resumen principal.
+  const barra = document.getElementById('adminTabs');
+  const cont = [cEst, cUsr, cCob, cNov];
+  // Encontramos el último bloque fijo (el que quedó antes de la barra original)
+  // y movemos la barra + contenedores al final del wrap (después de los fijos,
+  // que ya están al principio porque no se movieron).
+  if(barra){ wrap.appendChild(barra); }
+  cont.forEach(c => wrap.appendChild(c));
+
+  activarSolapa('estadisticas');
+}
+
+function activarSolapa(nombre){
+  document.querySelectorAll('.tab-section').forEach(s => {
+    s.classList.toggle('tab-visible', s.getAttribute('data-tab') === nombre);
+  });
+  document.querySelectorAll('.admin-tab').forEach(b => {
+    b.classList.toggle('active', b.getAttribute('data-tab') === nombre);
+  });
+}
+
+document.addEventListener('click', (e) => {
+  const tab = e.target.closest('.admin-tab');
+  if(tab){ activarSolapa(tab.getAttribute('data-tab')); }
+});
 </script>
 
 </body>
