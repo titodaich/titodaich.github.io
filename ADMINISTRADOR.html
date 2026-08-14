@@ -82,6 +82,13 @@ th.col-jugadores{color:var(--accent-2)!important;}
 /* Cada sección oculta si no es de la solapa activa */
 .tab-section{display:none;}
 .tab-section.tab-visible{display:block;}
+/* Secciones plegables dentro de las solapas */
+.plegable-head{cursor:pointer;user-select:none;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:10px;transition:background .12s;}
+.plegable-head:hover{background:var(--panel-2);}
+.plegable-head .plegable-arrow{margin-left:auto;color:var(--muted);font-size:13px;transition:transform .15s;}
+.plegable-head.abierto .plegable-arrow{transform:rotate(180deg);}
+.plegable-body{display:none;margin-bottom:18px;padding:0 2px;}
+.plegable-body.abierto{display:block;}
 .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
 .search{background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--chalk);padding:8px 12px;font-size:13px;min-width:220px;}
 .search::placeholder{color:var(--muted);}
@@ -3080,9 +3087,11 @@ function organizarSolapas(){
 
   const destino = (titulo) => {
     const t = (titulo||'').toLowerCase();
+    // Las métricas del negocio quedan FIJAS en el inicio (devolvemos null).
+    if(t.includes('métricas del negocio')) return null;
     if(t.includes('actividad por club') || t.includes('secciones más usadas') || t.includes('tiempo por usuario')) return cEst;
     if(t.includes('novedades')) return cNov;
-    if(t.includes('métricas') || t.includes('ingresos reales') || t.includes('ingreso estimado') ||
+    if(t.includes('ingresos reales') || t.includes('ingreso estimado') ||
        t.includes('por vencer') || t.includes('suscripciones') || t.includes('clubes') ||
        t.includes('vendedores') || t.includes('comisiones')) return cCob;
     if(t.includes('usuarios')) return cUsr;
@@ -3096,12 +3105,10 @@ function organizarSolapas(){
     const head = el.classList.contains('section-head') ? el : (el.querySelector ? el.querySelector('.section-head') : null);
     if(head){
       const h2 = head.querySelector('h2');
-      const dest = destino(h2 ? h2.textContent : '');
-      if(dest) solapaActual = dest;
+      // Cada título redefine la solapa. Si su destino es null, esa sección
+      // (y lo que sigue hasta el próximo título) queda FIJA arriba.
+      solapaActual = destino(h2 ? h2.textContent : '');
     }
-    // Antes del primer título con destino (métricas superiores + altas 24hs),
-    // solapaActual es null → esos bloques NO se mueven, quedan fijos en la
-    // pantalla principal, siempre visibles.
     if(solapaActual) solapaActual.appendChild(el);
   });
 
@@ -3117,6 +3124,33 @@ function organizarSolapas(){
   // que ya están al principio porque no se movieron).
   if(barra){ wrap.appendChild(barra); }
   cont.forEach(c => wrap.appendChild(c));
+
+  // Hacer plegable cada sección dentro de las solapas: el título (section-head)
+  // se vuelve un botón; lo que sigue hasta el próximo título es su contenido,
+  // que empieza OCULTO y se muestra al tocar el título.
+  cont.forEach(c => {
+    const items = Array.from(c.children);
+    let grupoActual = null;
+    items.forEach(el => {
+      if(el.classList.contains('section-head')){
+        // Nuevo módulo plegable
+        el.classList.add('plegable-head');
+        el.insertAdjacentHTML('beforeend', '<span class="plegable-arrow">▾</span>');
+        const cuerpo = document.createElement('div');
+        cuerpo.className = 'plegable-body';
+        el.after(cuerpo);
+        grupoActual = cuerpo;
+        el.addEventListener('click', (ev) => {
+          // No plegar si tocaron un botón/input del header
+          if(ev.target.closest('button, input, select, a') && !ev.target.classList.contains('plegable-arrow')) return;
+          el.classList.toggle('abierto');
+          cuerpo.classList.toggle('abierto');
+        });
+      } else if(grupoActual){
+        grupoActual.appendChild(el);
+      }
+    });
+  });
 
   activarSolapa('estadisticas');
 }
