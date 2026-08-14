@@ -5455,6 +5455,21 @@ async function guardarPerfil(userId, email, perfil){
       }
       window.__currentUserId = session.user.id;
       try{ await sb.rpc('touch_last_seen'); }catch(e){}
+      // Función global para registrar "última conexión" desde cualquier acción
+      // (guardar partido, jugador, etc.). Con un throttle de 60s para no saturar.
+      // Esto asegura que si el usuario USA la app, su conexión queda registrada,
+      // aunque el latido periódico esté suspendido (típico en celulares).
+      window.__touchSeen = function(){
+        try{
+          const ahora = Date.now();
+          if(window.__lastTouch && (ahora - window.__lastTouch) < 60000) return;
+          window.__lastTouch = ahora;
+          if(window.__sb || window.__sbClient){
+            (window.__sb || window.__sbClient).rpc('touch_last_seen').catch(()=>{});
+          }
+        }catch(e){}
+      };
+      window.__lastTouch = Date.now();
       // Latido periódico para reflejar "conectado" en el panel admin.
       setInterval(() => { try{ sb.rpc('touch_last_seen'); }catch(e){} }, 120000);
       showEditor();
@@ -8727,7 +8742,7 @@ window.__initEditor = function(){
       try{
         const res = await sb.from('live_sessions').insert(payload).select('id').single();
         if(res && res.error){ quedan.push(item); }   // no se pudo: la dejamos para el próximo intento
-        else { subidas++; }
+        else { subidas++; if(window.__touchSeen) window.__touchSeen(); }
       }catch(e){ quedan.push(item); }                 // sin señal: la dejamos
     }
     writePending(quedan);
@@ -10751,6 +10766,7 @@ window.__initEditor = function(){
         return;
       }
       squad.push({ id:data.id, name:data.name, number:data.number||'', position:data.position||'' });
+      if(window.__touchSeen) window.__touchSeen();
       renderSquad();
     }catch(e){ console.error(e); }
   }
