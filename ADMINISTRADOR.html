@@ -1249,7 +1249,7 @@ async function loadUsers(){
 
     updateStats();
     render();
-    if(typeof renderExpiring === 'function' && clubs.length) renderExpiring();
+    if(typeof renderExpiring === 'function') renderExpiring();
   }catch(err){
     console.error(err);
     rowsEl.innerHTML = '<tr><td colspan="8"><div class="loading-note">No se pudieron cargar los usuarios. ' + (err.message||'') + '</div></td></tr>';
@@ -1777,41 +1777,63 @@ function waLinkForClub(clubId){
 function renderExpiring(){
   const wrap = document.getElementById('expiringWrap');
   if(!wrap) return;
-  // candidatos: días restantes entre -3 y 7 (por vencer, o recién vencidos)
-  const list = clubs.map(c => ({ c, d: daysLeft(c) }))
-    .filter(x => x.d !== null && x.d <= 7 && x.d >= -3)
-    .sort((a,b) => a.d - b.d);
-  if(list.length === 0){
-    wrap.innerHTML = '<div class="loading-note" style="padding:14px;">No hay clubes por vencer en los próximos 7 días. 👍</div>';
+
+  // Trabajamos con USUARIOS (no clubes): cada usuario es alguien a quien cobrar,
+  // tenga club cargado o no. Incluimos a quien:
+  //  a) marcaste con "vence en 7 días" (cobroActivado) y todavía no pagó, o
+  //  b) su prueba/suscripción vence en los próximos 7 días (o venció hace poco).
+  const candidatos = (users || []).filter(u => {
+    if(u.isAdmin) return false;
+    if(u.subStatus === 'active') return false;          // ya pagó → fuera
+    if(u.cobroActivado) return true;                    // le activaste el cobro
+    const d = subDaysLeft(u.subUntil);
+    return d !== null && d <= 7 && d >= -3;              // vence pronto por fecha
+  }).map(u => ({ u, d: subDaysLeft(u.subUntil) }))
+    .sort((a,b) => {
+      // Primero los que están en cobro selectivo, después por días restantes
+      const ra = a.u.cobroActivado ? -1000 : (a.d==null? 999 : a.d);
+      const rb = b.u.cobroActivado ? -1000 : (b.d==null? 999 : b.d);
+      return ra - rb;
+    });
+
+  if(candidatos.length === 0){
+    wrap.innerHTML = '<div class="loading-note" style="padding:14px;">No hay nadie por vencer ni esperando pago. 👍</div>';
     return;
   }
-  let html = '<div class="table-wrap"><table><thead><tr><th>Club</th><th>Estado</th><th>Vence</th><th style="text-align:right;">Acción</th></tr></thead><tbody>';
-  list.forEach(({c, d}) => {
-    const end = c.subscription_status==='active' ? c.subscription_ends_at : c.trial_ends_at;
-    const endTxt = end ? new Date(end).toLocaleDateString('es-AR') : '—';
-    const cuando = d < 0 ? ('venció hace '+Math.abs(d)+'d') : (d===0 ? 'vence hoy' : ('en '+d+'d'));
-    const color = d < 0 ? 'var(--danger)' : (d <= 2 ? 'var(--danger)' : 'var(--accent-2)');
-    const tipo = c.subscription_status==='active' ? 'Suscripción' : 'Prueba';
-    const wa = waLinkForClub(c.id);
-    const waBtn = wa
-      ? `<a class="btn-mini" style="text-decoration:none;background:#25D36622;color:#25D366;border:1px solid #25D366;" target="_blank" href="${wa.href}">💬 WhatsApp</a>`
-      : `<span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);">sin WhatsApp</span>`;
-    html += `<tr>
-      <td><strong>${escapeHtmlA(c.name||'Sin nombre')}</strong></td>
-      <td><span style="color:${color};font-weight:600;">${tipo} · ${cuando}</span></td>
-      <td>${endTxt}</td>
+
+  let html = '<div class="table-wrap"><table><thead><tr><th>Usuario</th><th>Estado</th><th>Club</th><th style="text-align:right;">Acción</th></tr></thead><tbody>';
+  candidatos.forEach(({u, d}) => {
+    let estado;
+    if(u.cobroActivado){
+      estado = '<span style="color:var(--accent-2,#2F8FCB);font-weight:600;">⏰ Esperando pago</span>';
+    } else {
+      const cuando = d < 0 ? ('venció hace '+Math.abs(d)+'d') : (d===0 ? 'vence hoy' : ('en '+d+'d'));
+      const color = (d!=null && d <= 2) ? 'var(--danger)' : 'var(--accent-2)';
+      estado = `<span style="color:${color};font-weight:600;">Prueba · ${cuando}</span>`;
+    }
+    const club = u.club && u.club !== '—'
+      ? escapeHtmlA(u.club)
+      : '<span style="color:var(--danger);font-family:\'JetBrains Mono\',monospace;font-size:11px;">sin club</span>';
+    html += `<tr data-uid="${u.id}">
+      <td><strong>${escapeHtmlA(u.name||'—')}</strong>${u.email?`<br><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);">${escapeHtmlA(u.email)}</span>`:''}</td>
+      <td>${estado}</td>
+      <td>${club}</td>
       <td style="text-align:right;white-space:nowrap;">
-        ${waBtn}
-        <button class="btn-mini act-pay-exp" data-id="${c.id}">💳 Confirmar pago</button>
-      </td>`;
-    html += '</tr>';
+        <button class="btn-mini act-ver-reg" data-id="${u.id}">Ver / cobrar</button>
+      </td>
+    </tr>`;
   });
   html += '</tbody></table></div>';
   wrap.innerHTML = html;
-  wrap.querySelectorAll('.act-pay-exp').forEach(b => b.addEventListener('click', () => openPayModal(b.dataset.id)));
+  wrap.querySelectorAll('.act-ver-reg').forEach(b => b.addEventListener('click', () => {
+    const u = (users||[]).find(x => x.id === b.dataset.id);
+    if(u) openModal(u);
+  }));
 }
 function escapeHtmlA(s){ return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
+// Lista de usuarios en cuenta regresiva (los marcados con "Avisar: vence en 7 días").
+// Son los que tienen cobroActivado = true: ya ven el cartel de pago.
 let payClubId = null;
 let paySelMonths = 1;
 let paySelPack = 'entrenador';
@@ -3092,7 +3114,7 @@ function organizarSolapas(){
     if(t.includes('actividad por club') || t.includes('secciones más usadas') || t.includes('tiempo por usuario')) return cEst;
     if(t.includes('novedades')) return cNov;
     if(t.includes('ingresos reales') || t.includes('ingreso estimado') ||
-       t.includes('por vencer') || t.includes('suscripciones') || t.includes('clubes') ||
+       t.includes('por vencer') || t.includes('cuenta regresiva') || t.includes('suscripciones') || t.includes('clubes') ||
        t.includes('vendedores') || t.includes('comisiones')) return cCob;
     if(t.includes('usuarios')) return cUsr;
     return null;
