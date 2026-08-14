@@ -466,6 +466,22 @@ body.admin-active #adminApp{display:block;}
   </div>
   <p class="metrics-note" id="metricsNote" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin:-14px 0 26px;">Solo números agregados. No se muestran nombres, videos ni contenido de ningún usuario.</p>
 
+  <!-- ===== INGRESOS REALES (pagos confirmados por pack) ===== -->
+  <div class="section-head">
+    <h2>💰 Ingresos reales</h2>
+  </div>
+  <div style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:14px;">
+    <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;justify-content:space-between;">
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Total cobrado (pagos activos)</div>
+        <div id="ingresoRealTotal" style="font-family:'Oswald',sans-serif;font-size:42px;font-weight:700;color:var(--success,#4CAF6D);line-height:1;">—</div>
+        <div id="ingresoRealCount" style="font-size:12px;color:var(--muted);margin-top:6px;">—</div>
+      </div>
+    </div>
+    <div id="ingresoRealDesglose" style="margin-top:20px;padding-top:18px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:10px;"></div>
+    <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);margin:16px 0 0;line-height:1.5;">Suma el precio mensual del pack de cada cuenta con pago confirmado (activa). Es una referencia cercana; el monto exacto depende del período que pagó cada uno.</p>
+  </div>
+
   <!-- ===== INGRESO ESTIMADO ===== -->
   <div class="section-head">
     <h2>Ingreso estimado</h2>
@@ -1979,6 +1995,64 @@ function updateStats(){
   // (sin distinguir mayúsculas ni espacios), para no contar duplicados por tipeo.
   actualizarClubesDistintos();
   renderNuevos24hs();
+  renderIngresosReales();
+}
+
+// Caja "Ingresos reales": suma el precio mensual del pack de cada cuenta con
+// pago confirmado (subStatus === 'active'), y muestra el desglose por pack.
+function renderIngresosReales(){
+  const totalEl = document.getElementById('ingresoRealTotal');
+  const countEl = document.getElementById('ingresoRealCount');
+  const desgEl  = document.getElementById('ingresoRealDesglose');
+  if(!totalEl || !desgEl) return;
+
+  // Precios mensuales por pack (ARS). Reflejan los de la app.
+  const PRECIOS = { amigo:17000, entrenador:22000, multi:24000, club:26000 };
+  const NOMBRES = { amigo:'Amigo', entrenador:'Entrenador', multi:'Multi', club:'Club' };
+  const COLORES = { amigo:'#E0A93B', entrenador:'#2F8FCB', multi:'#4CAF6D', club:'#E5342A' };
+
+  // Contamos las cuentas activas (pago confirmado) por pack.
+  const porPack = {};
+  let totalActivos = 0;
+  (users || []).forEach(u => {
+    if(u.subStatus === 'active'){
+      const pack = (u.pack || 'entrenador');
+      porPack[pack] = (porPack[pack] || 0) + 1;
+      totalActivos++;
+    }
+  });
+
+  // Total en pesos
+  let total = 0;
+  Object.keys(porPack).forEach(pack => {
+    const precio = PRECIOS[pack] || 0;
+    total += precio * porPack[pack];
+  });
+
+  const fmt = n => '$' + (n||0).toLocaleString('es-AR');
+  totalEl.textContent = fmt(total);
+  countEl.textContent = totalActivos === 0
+    ? 'Todavía no hay pagos confirmados.'
+    : totalActivos + (totalActivos === 1 ? ' cuenta con pago activo' : ' cuentas con pago activo');
+
+  // Desglose por pack (solo los que tienen al menos una cuenta)
+  const orden = ['amigo','entrenador','multi','club'];
+  let html = '';
+  orden.forEach(pack => {
+    const cant = porPack[pack] || 0;
+    if(cant === 0) return;
+    const precio = PRECIOS[pack] || 0;
+    const subtotal = precio * cant;
+    html += `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <div style="display:flex;align-items:center;gap:9px;min-width:0;">
+        <span style="width:9px;height:9px;border-radius:50%;background:${COLORES[pack]};flex-shrink:0;"></span>
+        <span style="font-size:13px;color:var(--chalk);">${NOMBRES[pack]||pack}</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);">×${cant}</span>
+      </div>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--chalk);">${fmt(subtotal)}</span>
+    </div>`;
+  });
+  desgEl.innerHTML = html || '<div style="font-size:12px;color:var(--muted);">Cuando confirmes pagos, vas a ver acá cuánto suma cada pack.</div>';
 }
 
 // Cartel de novedad: usuarios dados de alta en las últimas 24 horas.
