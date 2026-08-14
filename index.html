@@ -1569,6 +1569,20 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .ps-val{display:block;font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;line-height:1;}
 .ps-lbl{display:block;font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-top:4px;}
 .record-note{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:8px;line-height:1.4;}
+/* Momentos de gol (franjas) */
+.mg-legend{display:flex;gap:16px;font-size:11px;margin-bottom:14px;}
+.mg-legend .mg-fav{color:#4CAF6D;}
+.mg-legend .mg-con{color:#F0553F;}
+.mg-tiempo-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:14px 0 10px;}
+.mg-row{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
+.mg-franja{width:56px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#9fb0bf;flex-shrink:0;}
+.mg-bars{flex:1;display:flex;flex-direction:column;gap:3px;min-width:0;}
+.mg-bar{height:14px;border-radius:3px;min-width:2px;transition:width .3s ease;}
+.mg-bar-fav{background:#4CAF6D;}
+.mg-bar-con{background:#F0553F;}
+.mg-nums{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);width:42px;text-align:right;flex-shrink:0;}
+.mg-insight{margin-top:16px;padding-top:12px;border-top:1px solid var(--line);font-size:12px;color:#9fb0bf;line-height:1.5;}
+.mg-empty{font-size:12.5px;color:var(--muted);padding:8px 0;}
 /* Anuales: conversión destacada con gráfico */
 .annual-featured{border-color:var(--accent-2);}
 /* Gráficos de minutaje */
@@ -3597,6 +3611,11 @@ body.editor-active #screen-editor{ display:block; }
         <div class="adj-section" style="margin-top:14px;">
           <div class="rd-card-head"><h3 data-i18n="adjConceded">🥅 Cómo nos hicieron los goles</h3><button class="btn small" id="adjAddConceded" data-i18n="adjAddOrigin">+ Origen</button></div>
           <div id="adjConceded"></div>
+        </div>
+        <div class="adj-section" style="margin-top:14px;" id="momentosGolSection">
+          <div class="rd-card-head"><h3>⏱ Momentos de gol</h3></div>
+          <p style="font-size:12px;color:var(--muted);margin:0 0 12px;">Solo inferiores. En qué franja de cada tiempo caen los goles, en toda la temporada.</p>
+          <div id="momentosGol"></div>
         </div>
       </div>
       <div style="padding:0 22px 22px;display:flex;justify-content:flex-end;">
@@ -8806,12 +8825,31 @@ window.__initEditor = function(){
     // Si se asoció a un partido, volcar los goles CON SU TAG DE ORIGEN a estadísticas.
     if(matchId && sb){
       try{
-        // Tomar los goles registrados en vivo (con su origen)
+        // El minuto del gol se guarda SOLO en inferiores (4ta a promocionales).
+        // En 3era y 1era no se registra el minuto.
+        const catPartido = String(matchCategoria || (window.__getActiveCategory ? window.__getActiveCategory() : '') || '').toUpperCase();
+        const esInferior = !(catPartido === '1ERA' || catPartido === '3ERA');
+        // Helper: minuto del gol a partir del tiempo del cronómetro (segundos).
+        // Solo devuelve minuto si es categoría inferior; si no, queda vacío.
+        const minDeGol = (ev)=>{
+          if(!esInferior) return '';
+          if(ev.min != null && ev.min !== '') return ev.min;
+          const seg = (typeof ev.t === 'number') ? ev.t : 0;
+          return Math.floor(seg / 60) + 1;   // minuto 1 = primeros 60s
+        };
+        // Goles NUESTROS registrados en vivo (con su minuto y origen)
         const golesEnVivo = events.filter(e => e.type === 'goal').map(e => ({
           player_id: e.pid || '',
           player_name: e.inName || '',
           origin: e.origen || '',
-          min: e.min || ''
+          min: minDeGol(e),
+          half: e.half || ''
+        }));
+        // Goles del RIVAL registrados en vivo (con su minuto)
+        const golesRival = events.filter(e => e.type === 'goalAgainst').map(e => ({
+          origin: e.origen || '',
+          min: minDeGol(e),
+          half: e.half || ''
         }));
         if(golesEnVivo.length){
           // Traer el partido actual para no pisar goles ya cargados a mano
@@ -8822,6 +8860,15 @@ window.__initEditor = function(){
             await sb.from('stat_matches').update({ goals_for: golesEnVivo, updated_at: new Date().toISOString() }).eq('id', matchId);
             if(typeof window.__refreshMinutes === 'function') window.__refreshMinutes();
           }
+        }
+        if(golesRival.length){
+          try{
+            const { data: mData2 } = await sb.from('stat_matches').select('goals_against').eq('id', matchId).single();
+            const existentes2 = (mData2 && Array.isArray(mData2.goals_against)) ? mData2.goals_against : [];
+            if(existentes2.length === 0){
+              await sb.from('stat_matches').update({ goals_against: golesRival, updated_at: new Date().toISOString() }).eq('id', matchId);
+            }
+          }catch(eRival){ /* si la columna no existe o falla, no rompemos el volcado de los nuestros */ }
         }
       }catch(e){ console.error('volcar goles con origen', e); }
     }
@@ -10120,6 +10167,7 @@ window.__initEditor = function(){
       sortMatches();
 
       renderMatchList(); renderSquad();
+      if(typeof renderMomentosGol === 'function') renderMomentosGol();
 
       // Cargar ajuste del primer semestre
       try{
@@ -10773,6 +10821,92 @@ window.__initEditor = function(){
 
   // ========== PARTIDOS ==========
   function matchScore(m){ return { f:(m.goalsFor||[]).length, a:(m.goalsAgainst||[]).length }; }
+
+  // Dibuja el cuadro "Momentos de gol": agrupa los goles de la temporada en
+  // franjas de cada tiempo (0-8', 8-15', 15-20', 20-25'). Solo inferiores.
+  function renderMomentosGol(){
+    const cont = document.getElementById('momentosGol');
+    const section = document.getElementById('momentosGolSection');
+    if(!cont) return;
+    const cat = String(catActual() || '').toUpperCase();
+    const esInferior = !(cat === '1ERA' || cat === '3ERA');
+    // En 3era/1era ocultamos el cuadro entero (no se registra el minuto).
+    if(section) section.style.display = esInferior ? '' : 'none';
+    if(!esInferior) return;
+
+    // Franjas (en minutos, dentro de cada tiempo que va de 0 a 25)
+    const FRANJAS = [
+      { label:"0-8'",   min:0,  max:8  },
+      { label:"8-15'",  min:8,  max:15 },
+      { label:"15-20'", min:15, max:20 },
+      { label:"20-25'", min:20, max:25 }
+    ];
+    // Contadores: [tiempo][franja] = {fav, con}
+    const cont1 = FRANJAS.map(()=>({fav:0, con:0}));
+    const cont2 = FRANJAS.map(()=>({fav:0, con:0}));
+
+    const clasificar = (gol, favOrCon) => {
+      const min = Number(gol.min);
+      if(!min && min !== 0) return;          // sin minuto: no lo contamos
+      const half = Number(gol.half) === 2 ? 2 : 1;
+      const arr = (half === 2) ? cont2 : cont1;
+      // Buscar la franja: min > desde y min <= hasta (el 8 cae en 0-8, el 9 en 8-15)
+      let idx = FRANJAS.findIndex(f => min > f.min && min <= f.max);
+      if(idx === -1){ idx = (min <= 0) ? 0 : FRANJAS.length - 1; }
+      arr[idx][favOrCon]++;
+    };
+
+    (matches||[]).forEach(m => {
+      (m.goalsFor||[]).forEach(g => clasificar(g, 'fav'));
+      (m.goalsAgainst||[]).forEach(g => clasificar(g, 'con'));
+    });
+
+    // Máximo para escalar las barras
+    let maxVal = 1;
+    [...cont1, ...cont2].forEach(c => { maxVal = Math.max(maxVal, c.fav, c.con); });
+
+    const totalGoles = [...cont1, ...cont2].reduce((s,c)=> s + c.fav + c.con, 0);
+    if(totalGoles === 0){
+      cont.innerHTML = '<div class="mg-empty">Todavía no hay goles con minuto cargado en esta categoría. Cargá partidos desde En Vivo y van a aparecer acá.</div>';
+      return;
+    }
+
+    const filaHtml = (franja, c) => {
+      const wFav = Math.round((c.fav / maxVal) * 100);
+      const wCon = Math.round((c.con / maxVal) * 100);
+      return `<div class="mg-row">
+        <span class="mg-franja">${franja.label}</span>
+        <div class="mg-bars">
+          <div class="mg-bar mg-bar-fav" style="width:${wFav}%;"></div>
+          <div class="mg-bar mg-bar-con" style="width:${wCon}%;"></div>
+        </div>
+        <span class="mg-nums">${c.fav} / ${c.con}</span>
+      </div>`;
+    };
+
+    let html = `<div class="mg-legend"><span class="mg-fav">■ A favor</span><span class="mg-con">■ En contra</span></div>`;
+    html += `<div class="mg-tiempo-label">1er tiempo</div>`;
+    FRANJAS.forEach((f,i)=> html += filaHtml(f, cont1[i]));
+    html += `<div class="mg-tiempo-label">2do tiempo</div>`;
+    FRANJAS.forEach((f,i)=> html += filaHtml(f, cont2[i]));
+
+    // Lectura rápida: franja con más goles a favor y con más goles en contra
+    let bestFav = {v:-1, txt:''}, bestCon = {v:-1, txt:''};
+    const nombreTiempo = (t)=> t===1 ? '1er tiempo' : '2do tiempo';
+    [{arr:cont1,t:1},{arr:cont2,t:2}].forEach(({arr,t})=>{
+      arr.forEach((c,i)=>{
+        if(c.fav > bestFav.v){ bestFav = {v:c.fav, txt:`${FRANJAS[i].label} del ${nombreTiempo(t)}`}; }
+        if(c.con > bestCon.v){ bestCon = {v:c.con, txt:`${FRANJAS[i].label} del ${nombreTiempo(t)}`}; }
+      });
+    });
+    if(bestFav.v > 0 || bestCon.v > 0){
+      html += `<div class="mg-insight">💡 `;
+      if(bestFav.v > 0) html += `Hacés más goles en el <b style="color:var(--chalk);">${bestFav.txt}</b>. `;
+      if(bestCon.v > 0) html += `Recibís más en el <b style="color:var(--chalk);">${bestCon.txt}</b>.`;
+      html += `</div>`;
+    }
+    cont.innerHTML = html;
+  }
 
   function renderMatchList(){
     const el = document.getElementById('matchListRows');
