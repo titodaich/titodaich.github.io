@@ -508,6 +508,7 @@ body.admin-active #adminApp{display:block;}
       </div>
     </div>
     <div id="ingresoRealDesglose" style="margin-top:20px;padding-top:18px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:10px;"></div>
+    <div id="ingresoRealLista" style="margin-top:16px;"></div>
     <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);margin:16px 0 0;line-height:1.5;">Suma el precio mensual del pack de cada cuenta con pago confirmado (activa). Es una referencia cercana; el monto exacto depende del período que pagó cada uno.</p>
   </div>
 
@@ -599,11 +600,10 @@ body.admin-active #adminApp{display:block;}
           <th>Sección</th>
           <th>Visitas</th>
           <th>Minutos totales</th>
-          <th>Usuarios distintos</th>
           <th>Uso relativo</th>
         </tr>
       </thead>
-      <tbody id="seccionRows"><tr><td colspan="5" class="empty">Cargando…</td></tr></tbody>
+      <tbody id="seccionRows"><tr><td colspan="4" class="empty">Cargando…</td></tr></tbody>
     </table>
   </div>
 
@@ -1389,7 +1389,7 @@ async function loadSecciones(){
     if(error) throw error;
     const list = data || [];
     if(list.length === 0){
-      rows.innerHTML = '<tr><td colspan="5"><div class="loading-note">Todavía no hay datos de uso. Se van a llenar a medida que los entrenadores usen la app.</div></td></tr>';
+      rows.innerHTML = '<tr><td colspan="4"><div class="loading-note">Todavía no hay datos de uso. Se van a llenar a medida que los entrenadores usen la app.</div></td></tr>';
       return;
     }
     const maxVisitas = Math.max(...list.map(s => Number(s.visitas) || 0), 1);
@@ -1400,7 +1400,6 @@ async function loadSecciones(){
         <td><b>${NOMBRES[s.section] || s.section}</b></td>
         <td>${s.visitas}</td>
         <td>${s.minutos}</td>
-        <td>${s.usuarios}</td>
         <td><div style="background:var(--line);border-radius:4px;height:8px;width:100%;max-width:160px;overflow:hidden;">
               <div style="background:var(--accent-2,#2F8FCB);height:100%;width:${pct}%;"></div>
             </div></td>
@@ -1408,7 +1407,7 @@ async function loadSecciones(){
     }).join('');
   }catch(err){
     console.error('secciones', err);
-    rows.innerHTML = faltaSQL(err) ? avisoSQL : '<tr><td colspan="5"><div class="loading-note">No se pudieron cargar las secciones.</div></td></tr>';
+    rows.innerHTML = faltaSQL(err) ? avisoSQL : '<tr><td colspan="4"><div class="loading-note">No se pudieron cargar las secciones.</div></td></tr>';
   }
 }
 
@@ -2106,6 +2105,32 @@ function renderIngresosReales(){
     </div>`;
   });
   desgEl.innerHTML = html || '<div style="font-size:12px;color:var(--muted);">Cuando confirmes pagos, vas a ver acá cuánto suma cada pack.</div>';
+
+  // Lista de quiénes confirmaron el pago (nombre, club, pack, monto)
+  const listaEl = document.getElementById('ingresoRealLista');
+  if(listaEl){
+    const pagadores = (users || []).filter(u => u.subStatus === 'active' && !u.isAdmin);
+    if(pagadores.length === 0){
+      listaEl.innerHTML = '';
+    } else {
+      let lh = '<div style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding-top:16px;border-top:1px solid var(--line);">Quiénes pagaron</div>';
+      lh += '<div style="display:flex;flex-direction:column;gap:8px;">';
+      pagadores.forEach(u => {
+        const pack = (u.pack || 'entrenador');
+        const precio = PRECIOS[pack] || 0;
+        const club = (u.club && u.club !== '—') ? escapeHtmlA(u.club) : '<span style="color:var(--danger);">sin club</span>';
+        lh += `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 10px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;">
+          <div style="min-width:0;">
+            <div style="font-size:13px;color:var(--chalk);">${escapeHtmlA(u.name||'—')}</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);">${club} · ${NOMBRES[pack]||pack}</div>
+          </div>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--success,#4CAF6D);flex-shrink:0;">${fmt(precio)}</span>
+        </div>`;
+      });
+      lh += '</div>';
+      listaEl.innerHTML = lh;
+    }
+  }
 }
 
 // Cartel de novedad: usuarios dados de alta en las últimas 24 horas.
