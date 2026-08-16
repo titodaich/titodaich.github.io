@@ -3622,6 +3622,10 @@ body.editor-active #screen-editor{ display:block; }
           <div class="rd-card-head"><h3 data-i18n="adjConceded">🥅 Cómo nos hicieron los goles</h3><button class="btn small" id="adjAddConceded" data-i18n="adjAddOrigin">+ Origen</button></div>
           <div id="adjConceded"></div>
         </div>
+        <div class="adj-section" style="margin-top:14px;">
+          <div class="rd-card-head"><h3>🟨 Tarjetas</h3><button class="btn small" id="adjAddCard">+ Jugador</button></div>
+          <div id="adjCards"></div>
+        </div>
         <div class="adj-section" style="margin-top:14px;" id="momentosGolSection">
           <div class="rd-card-head"><h3>⏱ Momentos de gol</h3></div>
           <p style="font-size:12px;color:var(--muted);margin:0 0 12px;">En qué franja de cada tiempo caen los goles, en toda la temporada. En inferiores el minuto se carga solo desde En Vivo; en 3era y 1era, completá el minuto de cada gol en la ficha del partido.</p>
@@ -10087,7 +10091,7 @@ window.__initEditor = function(){
   let origins = [];      // formas de origen de gol (con subs)
   let originsRowId = null;
   let matches = [];      // partidos de la categoría
-  let adjustment = { scorers:[], scored:[], conceded:[], citados:[], matchesPlayed:0 };   // resumen primer semestre
+  let adjustment = { scorers:[], scored:[], conceded:[], cards:[], citados:[], matchesPlayed:0 };   // resumen primer semestre
   let adjRowId = null;   // id de la fila de ajuste en la nube
   let currentMatch = null;
   const saveTimers = {};
@@ -10197,13 +10201,13 @@ window.__initEditor = function(){
         aq = cat ? aq.eq('categoria', cat) : aq.is('categoria', null);
         const aRes = await aq;
         if(aRes.data && aRes.data.length){
-          adjustment = { scorers: aRes.data[0].scorers||[], scored: aRes.data[0].scored||[], conceded: aRes.data[0].conceded||[], citados: aRes.data[0].citados||[], matchesPlayed: aRes.data[0].matches_played||0 };
+          adjustment = { scorers: aRes.data[0].scorers||[], scored: aRes.data[0].scored||[], conceded: aRes.data[0].conceded||[], cards: aRes.data[0].cards||[], citados: aRes.data[0].citados||[], matchesPlayed: aRes.data[0].matches_played||0 };
           adjRowId = aRes.data[0].id;
         } else {
-          adjustment = { scorers:[], scored:[], conceded:[], citados:[], matchesPlayed:0 };
+          adjustment = { scorers:[], scored:[], conceded:[], cards:[], citados:[], matchesPlayed:0 };
           adjRowId = null;
         }
-      }catch(e){ adjustment = { scorers:[], scored:[], conceded:[], citados:[], matchesPlayed:0 }; adjRowId = null; }
+      }catch(e){ adjustment = { scorers:[], scored:[], conceded:[], cards:[], citados:[], matchesPlayed:0 }; adjRowId = null; }
       refreshActiveSub();
     }catch(e){ console.error('stats load', e); }
   }
@@ -13074,10 +13078,32 @@ window.__initEditor = function(){
       row.querySelector('.adj-del').addEventListener('click', () => { adjustment.conceded.splice(i,1); renderAdjEditor(); });
       cc.appendChild(row);
     });
+    // Tarjetas por jugador (amarillas y rojas)
+    const tc = document.getElementById('adjCards');
+    if(tc){
+      tc.innerHTML = '';
+      if(!adjustment.cards) adjustment.cards = [];
+      if(squad.length === 0){ tc.innerHTML = '<p class="rd-empty">Cargá jugadores en el Plantel para asignar tarjetas.</p>'; }
+      adjustment.cards.forEach((c, i) => {
+        const row = document.createElement('div');
+        row.className = 'adj-row';
+        row.innerHTML = `<select class="adj-name">${playerOpts(c.name)}</select>`+
+          `<input class="adj-num" type="number" min="0" placeholder="🟨" title="Amarillas" value="${c.yellow||''}" style="max-width:70px;">`+
+          `<input class="adj-num" type="number" min="0" placeholder="🟥" title="Rojas" value="${c.red||''}" style="max-width:70px;">`+
+          `<button class="adj-del">✕</button>`;
+        const inputs = row.querySelectorAll('.adj-num');
+        row.querySelector('.adj-name').addEventListener('change', e => c.name = e.target.value);
+        inputs[0].addEventListener('input', e => c.yellow = e.target.value);
+        inputs[1].addEventListener('input', e => c.red = e.target.value);
+        row.querySelector('.adj-del').addEventListener('click', () => { adjustment.cards.splice(i,1); renderAdjEditor(); });
+        tc.appendChild(row);
+      });
+    }
   }
   document.getElementById('adjAddScorer').addEventListener('click', () => { adjustment.scorers.push({name:'',goals:''}); renderAdjEditor(); });
   document.getElementById('adjAddScored').addEventListener('click', () => { adjustment.scored.push({origin:'',count:''}); renderAdjEditor(); });
   document.getElementById('adjAddConceded').addEventListener('click', () => { adjustment.conceded.push({origin:'',count:''}); renderAdjEditor(); });
+  document.getElementById('adjAddCard')?.addEventListener('click', () => { if(!adjustment.cards) adjustment.cards = []; adjustment.cards.push({name:'',yellow:'',red:''}); renderAdjEditor(); });
 
   document.getElementById('adjSaveBtn').addEventListener('click', async () => {
     const btn = document.getElementById('adjSaveBtn');
@@ -13091,11 +13117,13 @@ window.__initEditor = function(){
       adjustment.scorers = (adjustment.scorers||[]).filter(s => s.name && s.goals);
       adjustment.scored = (adjustment.scored||[]).filter(c => c.origin && c.count);
       adjustment.conceded = (adjustment.conceded||[]).filter(c => c.origin && c.count);
+      adjustment.cards = (adjustment.cards||[]).filter(c => c.name && (c.yellow || c.red));
       adjustment.citados = (adjustment.citados||[]).filter(c => c.name && c.citado);
       const cat = catActual();
       const payload = {
         club_id: clubId, categoria: cat, temporada: (window.__getTemporada ? window.__getTemporada() : new Date().getFullYear()),
         scorers: adjustment.scorers, scored: adjustment.scored, conceded: adjustment.conceded,
+        cards: adjustment.cards,
         citados: adjustment.citados,
         matches_played: Number(adjustment.matchesPlayed)||0,
         updated_at: new Date().toISOString()
@@ -13194,6 +13222,12 @@ window.__initEditor = function(){
     // Sumar el AJUSTE del primer semestre a los acumulados (goleadores, orígenes, totales del año)
     (adjustment.scorers||[]).forEach(s => {
       if(s.name && s.goals){ goleadores[s.name] = (goleadores[s.name]||0) + Number(s.goals); totalGF += Number(s.goals); }
+    });
+    // Tarjetas del ajuste manual (amarillas + rojas por jugador)
+    (adjustment.cards||[]).forEach(c => {
+      if(!c.name) return;
+      const suma = (Number(c.yellow)||0) + (Number(c.red)||0);
+      if(suma > 0){ tarjetas[c.name] = (tarjetas[c.name]||0) + suma; }
     });
     (adjustment.scored||[]).forEach(c => {
       if(c.origin && c.count){ origenFavor[c.origin] = (origenFavor[c.origin]||0) + Number(c.count); }
