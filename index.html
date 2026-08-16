@@ -8889,6 +8889,23 @@ window.__initEditor = function(){
             }
           }catch(eRival){ /* si la columna no existe o falla, no rompemos el volcado de los nuestros */ }
         }
+        // Tarjetas registradas en vivo → estadística del partido (stat_matches.cards).
+        // Cada evento 'card' del vivo es una tarjeta amarilla de un jugador.
+        const tarjetasEnVivo = events.filter(e => e.type === 'card').map(e => ({
+          player_id: e.pid || '',
+          player_name: e.inName || '',
+          type: 'amarilla'
+        }));
+        if(tarjetasEnVivo.length){
+          try{
+            const { data: mData3 } = await sb.from('stat_matches').select('cards').eq('id', matchId).single();
+            const existentes3 = (mData3 && Array.isArray(mData3.cards)) ? mData3.cards : [];
+            // Solo agregamos si el partido no tenía tarjetas cargadas (para no duplicar).
+            if(existentes3.length === 0){
+              await sb.from('stat_matches').update({ cards: tarjetasEnVivo, updated_at: new Date().toISOString() }).eq('id', matchId);
+            }
+          }catch(eCard){ /* si falla, no rompemos el resto del volcado */ }
+        }
       }catch(e){ console.error('volcar goles con origen', e); }
     }
 
