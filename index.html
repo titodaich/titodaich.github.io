@@ -881,6 +881,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .go-head{font-size:16px;color:var(--chalk);text-align:center;margin-bottom:16px;font-family:'Inter',sans-serif;}
 .go-head b{color:var(--accent-2);}
 .go-min-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 12px;background:var(--bg-2);border:1px solid var(--line-soft);border-radius:10px;}
+.go-min-row.go-min-destacado{background:rgba(224,169,59,0.12);border:1px solid #E0A93B;box-shadow:0 0 0 3px rgba(224,169,59,0.10);}
+.go-min-row.go-min-destacado .go-min-label{color:#E0A93B;font-weight:600;}
+.go-min-row.go-min-destacado .go-min-input{border-color:#E0A93B;}
 .go-min-label{font-size:13px;color:var(--chalk);white-space:nowrap;font-family:'Inter',sans-serif;}
 .go-min-label span{color:var(--muted);font-size:11px;}
 .go-min-input{flex:1;background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);border-radius:8px;padding:9px 11px;font-size:15px;font-family:'JetBrains Mono',monospace;min-width:0;}
@@ -1547,6 +1550,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 
 .annual-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px;}
 .annual-card h3{font-family:'Oswald',sans-serif;font-size:15px;text-transform:uppercase;letter-spacing:0.6px;margin:0 0 14px;}
+/* Tarjetas plegables (Estadísticas anuales) */
+.annual-card.plegable > h3{cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;margin-bottom:0;transition:margin .15s;}
+.annual-card.plegable.abierta > h3{margin-bottom:14px;}
+.annual-card.plegable > h3::after{content:'▾';font-size:13px;color:var(--muted);transition:transform .15s;margin-left:auto;}
+.annual-card.plegable.abierta > h3::after{transform:rotate(180deg);}
+.annual-card.plegable > .ac-body{display:none;}
+.annual-card.plegable.abierta > .ac-body{display:block;}
 .rank-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid rgba(51,73,94,0.4);}
 .rank-row:last-child{border-bottom:none;}
 .rank-row .rk-pos{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);width:24px;}
@@ -3614,7 +3624,7 @@ body.editor-active #screen-editor{ display:block; }
         </div>
         <div class="adj-section" style="margin-top:14px;" id="momentosGolSection">
           <div class="rd-card-head"><h3>⏱ Momentos de gol</h3></div>
-          <p style="font-size:12px;color:var(--muted);margin:0 0 12px;">Solo inferiores. En qué franja de cada tiempo caen los goles, en toda la temporada.</p>
+          <p style="font-size:12px;color:var(--muted);margin:0 0 12px;">En qué franja de cada tiempo caen los goles, en toda la temporada. En inferiores el minuto se carga solo desde En Vivo; en 3era y 1era, completá el minuto de cada gol en la ficha del partido.</p>
           <div id="momentosGol"></div>
         </div>
       </div>
@@ -8829,13 +8839,18 @@ window.__initEditor = function(){
         // En 3era y 1era no se registra el minuto.
         const catPartido = String(matchCategoria || (window.__getActiveCategory ? window.__getActiveCategory() : '') || '').toUpperCase();
         const esInferior = !(catPartido === '1ERA' || catPartido === '3ERA');
-        // Helper: minuto del gol a partir del tiempo del cronómetro (segundos).
-        // Solo devuelve minuto si es categoría inferior; si no, queda vacío.
+        // Helper: minuto del gol con su tiempo, listo para mostrar en la ficha.
+        // Ej: "13' PT" (primer tiempo) o "8' ST" (segundo tiempo).
+        // Solo devuelve valor si es categoría inferior; si no, queda vacío.
         const minDeGol = (ev)=>{
           if(!esInferior) return '';
-          if(ev.min != null && ev.min !== '') return ev.min;
-          const seg = (typeof ev.t === 'number') ? ev.t : 0;
-          return Math.floor(seg / 60) + 1;   // minuto 1 = primeros 60s
+          let m = ev.min;
+          if(m == null || m === ''){
+            const seg = (typeof ev.t === 'number') ? ev.t : 0;
+            m = Math.floor(seg / 60) + 1;   // minuto 1 = primeros 60s
+          }
+          const tiempo = (Number(ev.half) === 2) ? 'ST' : 'PT';
+          return m + "' " + tiempo;
         };
         // Goles NUESTROS registrados en vivo (con su minuto y origen)
         const golesEnVivo = events.filter(e => e.type === 'goal').map(e => ({
@@ -9153,15 +9168,22 @@ window.__initEditor = function(){
       ? `🥅 Gol en contra — ¿cómo nos lo hicieron?`
       : `⚽ Gol de <b>${escapeHtml(jugadorNombre)}</b> — ¿cómo fue?`;
 
-    // Campo de minuto: opcional. Solo tiene sentido mostrarlo destacado en reloj parado
-    // (1era/3era), donde el minuto no se puede autocompletar. Igual lo dejamos siempre disponible.
+    // Campo de minuto. En inferiores el minuto se toma solo del cronómetro, así
+    // que queda discreto (opcional). En 3era/1era NO es automático, así que lo
+    // resaltamos para que el DT no se olvide de cargarlo.
+    const catLive = String(matchCategoria || (window.__getActiveCategory ? window.__getActiveCategory() : '') || '').toUpperCase();
+    const minManual = (catLive === '1ERA' || catLive === '3ERA');
     const minActual = evento.min ? escapeHtml(evento.min) : '';
     const periodo = currentHalf === 1 ? 'PT' : 'ST';
+    const minRowClass = minManual ? 'go-min-row go-min-destacado' : 'go-min-row';
+    const minLabel = minManual
+      ? '⏱ Cargá el minuto del gol <span>(importante en esta categoría)</span>'
+      : '⏱ Minuto <span>(opcional)</span>';
 
     ov.innerHTML = `<div class="gol-origen-box">
       <div class="go-head">${titulo}</div>
-      <div class="go-min-row">
-        <label class="go-min-label">⏱ Minuto <span>(opcional)</span></label>
+      <div class="${minRowClass}">
+        <label class="go-min-label">${minLabel}</label>
         <input type="text" class="go-min-input" id="goMinInput" value="${minActual}" placeholder="ej: 12' ${periodo}" inputmode="numeric">
       </div>
       <div class="go-btns">${botones}</div>
@@ -10823,16 +10845,14 @@ window.__initEditor = function(){
   function matchScore(m){ return { f:(m.goalsFor||[]).length, a:(m.goalsAgainst||[]).length }; }
 
   // Dibuja el cuadro "Momentos de gol": agrupa los goles de la temporada en
-  // franjas de cada tiempo (0-8', 8-15', 15-20', 20-25'). Solo inferiores.
+  // franjas de cada tiempo (0-8', 8-15', 15-20', 20-25'). En inferiores el
+  // minuto viene solo desde En Vivo; en 3era/1era lo carga el usuario a mano.
   function renderMomentosGol(){
-    const cont = document.getElementById('momentosGol');
+    // Preferimos el contenedor de la vista anual visible; si no, el del modal de ajuste.
+    const cont = document.getElementById('momentosGolAnual') || document.getElementById('momentosGol');
     const section = document.getElementById('momentosGolSection');
     if(!cont) return;
-    const cat = String(catActual() || '').toUpperCase();
-    const esInferior = !(cat === '1ERA' || cat === '3ERA');
-    // En 3era/1era ocultamos el cuadro entero (no se registra el minuto).
-    if(section) section.style.display = esInferior ? '' : 'none';
-    if(!esInferior) return;
+    if(section) section.style.display = '';   // aparece en todas las categorías
 
     // Franjas (en minutos, dentro de cada tiempo que va de 0 a 25)
     const FRANJAS = [
@@ -10846,9 +10866,19 @@ window.__initEditor = function(){
     const cont2 = FRANJAS.map(()=>({fav:0, con:0}));
 
     const clasificar = (gol, favOrCon) => {
-      const min = Number(gol.min);
-      if(!min && min !== 0) return;          // sin minuto: no lo contamos
-      const half = Number(gol.half) === 2 ? 2 : 1;
+      // El minuto puede venir como número (13) o como texto ("13' PT" / "8' ST").
+      let min, half;
+      if(typeof gol.min === 'number'){
+        min = gol.min;
+        half = Number(gol.half) === 2 ? 2 : 1;
+      } else {
+        const txt = String(gol.min || '');
+        const mm = txt.match(/(\d+)/);
+        if(!mm) return;                         // sin minuto: no lo contamos
+        min = Number(mm[1]);
+        half = /ST/i.test(txt) ? 2 : (Number(gol.half) === 2 ? 2 : 1);
+      }
+      if(isNaN(min)) return;
       const arr = (half === 2) ? cont2 : cont1;
       // Buscar la franja: min > desde y min <= hasta (el 8 cae en 0-8, el 9 en 8-15)
       let idx = FRANJAS.findIndex(f => min > f.min && min <= f.max);
@@ -10867,7 +10897,10 @@ window.__initEditor = function(){
 
     const totalGoles = [...cont1, ...cont2].reduce((s,c)=> s + c.fav + c.con, 0);
     if(totalGoles === 0){
-      cont.innerHTML = '<div class="mg-empty">Todavía no hay goles con minuto cargado en esta categoría. Cargá partidos desde En Vivo y van a aparecer acá.</div>';
+      const msgVacio = '<div class="mg-empty">Todavía no hay goles con minuto cargado en esta categoría. Cargá el minuto de cada gol (en la ficha del partido o desde En Vivo) y van a aparecer acá.</div>';
+      cont.innerHTML = (cont.id === 'momentosGolAnual')
+        ? `<div class="annual-card"><h3>⏱ Momentos de gol</h3>${msgVacio}</div>`
+        : msgVacio;
       return;
     }
 
@@ -10905,7 +10938,14 @@ window.__initEditor = function(){
       if(bestCon.v > 0) html += `Recibís más en el <b style="color:var(--chalk);">${bestCon.txt}</b>.`;
       html += `</div>`;
     }
-    cont.innerHTML = html;
+    // Si dibujamos en la vista anual, envolvemos con título de tarjeta.
+    if(cont.id === 'momentosGolAnual'){
+      cont.innerHTML = `<div class="annual-card"><h3>⏱ Momentos de gol</h3>
+        <p style="font-size:11.5px;color:var(--muted);margin:0 0 12px;">En qué franja de cada tiempo caen los goles. En inferiores el minuto se carga solo desde En Vivo; en 3era y 1era, a mano en la ficha del partido.</p>
+        ${html}</div>`;
+    } else {
+      cont.innerHTML = html;
+    }
   }
 
   function renderMatchList(){
@@ -11220,6 +11260,7 @@ window.__initEditor = function(){
     clearTimeout(saveTimers['_flash']);
     saveTimers['_flash'] = setTimeout(() => { el.textContent = 'Los cambios se guardan solos'; }, 1500);
     saveMatch();
+    if(typeof renderMomentosGol === 'function') renderMomentosGol();
   }
 
   document.getElementById('mtRival').addEventListener('input', e => { if(currentMatch){ currentMatch.rival = e.target.value; flashMatchSaved(); }});
@@ -13283,9 +13324,38 @@ window.__initEditor = function(){
             ${rank}`;
         })()}</div>
       </details>
+      <div id="momentosGolAnual" style="margin-top:16px;"></div>
     `;
     // Cargar los remates de las sesiones de En Vivo y redibujar cuando estén.
     cargarRematesAnuales();
+    // Dibujar el cuadro de "Momentos de gol" en la vista anual visible.
+    if(typeof renderMomentosGol === 'function') renderMomentosGol();
+    // Hacer plegables todas las tarjetas (empiezan cerradas).
+    if(typeof hacerTarjetasPlegables === 'function') hacerTarjetasPlegables();
+  }
+
+  // Convierte cada .annual-card en plegable: el h3 es el botón, el resto va en
+  // un .ac-body que empieza oculto y se muestra al tocar el título.
+  function hacerTarjetasPlegables(){
+    const el = document.getElementById('annualContent');
+    if(!el) return;
+    el.querySelectorAll('.annual-card').forEach(card => {
+      if(card.classList.contains('plegable')) return;   // ya procesada
+      const h3 = card.querySelector(':scope > h3');
+      if(!h3) return;
+      card.classList.add('plegable');
+      // Envolver todo lo que no sea el h3 en un contenedor .ac-body
+      const body = document.createElement('div');
+      body.className = 'ac-body';
+      let n = h3.nextSibling;
+      while(n){
+        const sig = n.nextSibling;
+        body.appendChild(n);
+        n = sig;
+      }
+      card.appendChild(body);
+      h3.addEventListener('click', () => card.classList.toggle('abierta'));
+    });
   }
 
   // Suma los remates de todas las sesiones de En Vivo (equipo y por jugador).
