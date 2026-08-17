@@ -5522,6 +5522,12 @@ async function guardarPerfil(userId, email, perfil){
     ]);
     const { data: { session } } = await sesionConTimeout;
     if(session){
+      // ── REGISTRAR CONEXIÓN PRIMERO ──
+      // Lo hacemos apenas confirmamos que hay sesión, ANTES de cualquier otra
+      // operación (que podría fallar o colgarse y cortar el flujo). Así la
+      // última conexión queda registrada sí o sí cada vez que se abre la app.
+      // La función touch_last_seen (SECURITY DEFINER) actualiza profiles.last_seen.
+      sb.rpc('touch_last_seen').catch(()=>{});
       // Verificar suspensión
       try{
         const { data: prof } = await sb.from('profiles').select('is_blocked').eq('id', session.user.id).single();
@@ -5705,8 +5711,12 @@ form.addEventListener('submit', async (e) => {
         return;
       }
     }catch(e){ /* si falla la consulta, seguimos: no bloqueamos por un error de red */ }
+    // ── REGISTRAR CONEXIÓN PRIMERO ──
+    // Apenas el login es exitoso, antes de ensureMembership (que podría fallar
+    // y cortar el flujo). Así la última conexión queda registrada sí o sí,
+    // también para usuarios nuevos que se loguean por primera vez.
+    sb.rpc('touch_last_seen').catch(()=>{});
     await ensureMembership(data.user.id, 'Club de ' + email);
-    try{ await sb.rpc('touch_last_seen'); }catch(e){}
     window.__currentUserEmail = email;
     try{ const { data:{ user } } = await sb.auth.getUser(); if(user) window.__currentUserId = user.id; }catch(e){}
     showEditor();
