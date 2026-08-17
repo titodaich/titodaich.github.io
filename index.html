@@ -5527,7 +5527,7 @@ async function guardarPerfil(userId, email, perfil){
       // operación (que podría fallar o colgarse y cortar el flujo). Así la
       // última conexión queda registrada sí o sí cada vez que se abre la app.
       // La función touch_last_seen (SECURITY DEFINER) actualiza profiles.last_seen.
-      sb.rpc('touch_last_seen').catch(()=>{});
+      try{ sb.rpc('touch_last_seen').then(()=>{},()=>{}); }catch(e){}
       // Verificar suspensión
       try{
         const { data: prof } = await sb.from('profiles').select('is_blocked').eq('id', session.user.id).single();
@@ -5564,7 +5564,7 @@ async function guardarPerfil(userId, email, perfil){
           if(window.__lastTouch && (ahora - window.__lastTouch) < 60000) return;
           window.__lastTouch = ahora;
           if(window.__sb || window.__sbClient){
-            (window.__sb || window.__sbClient).rpc('touch_last_seen').catch(()=>{});
+            try{ (window.__sb || window.__sbClient).rpc('touch_last_seen').then(()=>{},()=>{}); }catch(e){}
           }
         }catch(e){}
       };
@@ -5712,7 +5712,7 @@ form.addEventListener('submit', async (e) => {
     }catch(e){ /* si falla la consulta, seguimos: no bloqueamos por un error de red */ }
     // ── REGISTRAR CONEXIÓN Y MEMBRESÍA SIN TRABAR EL LOGIN ──
     // El registro de conexión no se espera (dispará y seguí).
-    sb.rpc('touch_last_seen').catch(()=>{});
+    try{ sb.rpc('touch_last_seen').then(()=>{},()=>{}); }catch(e){}
     // La membresía sí la esperamos (carga el club), PERO con un tope de tiempo:
     // si por algún motivo se cuelga, entramos igual a los 6s en vez de quedar
     // trabados en "Entrando…" para siempre.
