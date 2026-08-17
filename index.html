@@ -2362,14 +2362,28 @@ body.modo-lectura .section-content textarea:read-only{
   #editorVideoPanel.modo-grande > .timecode,
   #editorVideoPanel.modo-grande > .record-status,
   #editorVideoPanel.modo-grande > .mark-hint{ grid-column:1; }
-  /* Columna derecha: las botoneras, con scroll propio si son largas */
+  /* Columna derecha: las botoneras apiladas, cada una en su bloque separado */
   #editorVideoPanel.modo-grande > #matchTagsSection,
   #editorVideoPanel.modo-grande > #playerTagsSection{
-    grid-column:2; grid-row:2; align-self:start;
-    max-height:calc(100vh - 90px); overflow-y:auto;
+    grid-column:2; align-self:start;
   }
-  #editorVideoPanel.modo-grande > #playerTagsSection{ grid-row:3; }
+  #editorVideoPanel.modo-grande > #matchTagsSection{ grid-row:2; }
+  #editorVideoPanel.modo-grande > #playerTagsSection{ grid-row:3; margin-top:18px; }
 }
+/* Cada botonera como bloque con fondo y borde propio, bien separados */
+#editorVideoPanel.modo-grande #matchTagsSection,
+#editorVideoPanel.modo-grande #playerTagsSection{
+  background:var(--panel); border:1px solid var(--line); border-radius:12px;
+  padding:14px; margin-bottom:16px;
+}
+#editorVideoPanel.modo-grande .player-tags-toggle{
+  font-family:'Oswald',sans-serif; font-size:14px; margin-bottom:12px;
+  padding-bottom:10px; border-bottom:1px solid var(--line);
+}
+/* Separación entre la botonera "Míos" y la de "Rival" (el switch) */
+#editorVideoPanel.modo-grande .botonera-switch{ margin-bottom:14px; }
+#editorVideoPanel.modo-grande #botoneraMios,
+#editorVideoPanel.modo-grande #botoneraRival{ margin-top:6px; }
 #editorVideoPanel.modo-grande .video-frame{ max-height:70vh; }
 #editorVideoPanel.modo-grande #videoEl{ max-height:70vh; width:100%; object-fit:contain; }
 /* En modo grande, las botoneras siempre abiertas y visibles */
