@@ -5711,12 +5711,18 @@ form.addEventListener('submit', async (e) => {
         return;
       }
     }catch(e){ /* si falla la consulta, seguimos: no bloqueamos por un error de red */ }
-    // ── REGISTRAR CONEXIÓN PRIMERO ──
-    // Apenas el login es exitoso, antes de ensureMembership (que podría fallar
-    // y cortar el flujo). Así la última conexión queda registrada sí o sí,
-    // también para usuarios nuevos que se loguean por primera vez.
+    // ── REGISTRAR CONEXIÓN Y MEMBRESÍA SIN TRABAR EL LOGIN ──
+    // El registro de conexión no se espera (dispará y seguí).
     sb.rpc('touch_last_seen').catch(()=>{});
-    await ensureMembership(data.user.id, 'Club de ' + email);
+    // La membresía sí la esperamos (carga el club), PERO con un tope de tiempo:
+    // si por algún motivo se cuelga, entramos igual a los 6s en vez de quedar
+    // trabados en "Entrando…" para siempre.
+    try{
+      await Promise.race([
+        ensureMembership(data.user.id, 'Club de ' + email).catch(()=>{}),
+        new Promise(r => setTimeout(r, 6000))
+      ]);
+    }catch(e){}
     window.__currentUserEmail = email;
     try{ const { data:{ user } } = await sb.auth.getUser(); if(user) window.__currentUserId = user.id; }catch(e){}
     showEditor();
