@@ -2338,6 +2338,52 @@ body.modo-lectura .section-content textarea:read-only{
 .player-tags-body{margin-top:12px;}
 .player-tags-hint{font-size:12px;color:var(--muted,#7C8B99);margin-bottom:10px;font-style:italic;}
 .botonera-switch{display:flex;gap:6px;margin-bottom:12px;}
+/* MODO GRANDE del editor de video: video grande + botonera visible al lado */
+#editorVideoPanel.modo-grande{
+  position:fixed; inset:0; z-index:9000; margin:0; border-radius:0;
+  background:var(--bg); overflow-y:auto; padding:12px 16px;
+  display:flex; flex-direction:column;
+}
+#editorVideoPanel.modo-grande > h2{ flex:0 0 auto; margin:0 0 8px; }
+/* En pantallas anchas: video a la izquierda, botonera a la derecha */
+@media (min-width:900px){
+  #editorVideoPanel.modo-grande{
+    display:grid;
+    grid-template-columns: 1fr 340px;
+    grid-template-rows: auto 1fr;
+    gap:14px; align-content:start;
+  }
+  #editorVideoPanel.modo-grande > h2{ grid-column:1 / -1; }
+  /* Columna izquierda: video + sus controles */
+  #editorVideoPanel.modo-grande > .video-frame,
+  #editorVideoPanel.modo-grande > .tele-toolbar,
+  #editorVideoPanel.modo-grande > .tele-actions,
+  #editorVideoPanel.modo-grande > .video-playback-bar,
+  #editorVideoPanel.modo-grande > .timecode,
+  #editorVideoPanel.modo-grande > .record-status,
+  #editorVideoPanel.modo-grande > .mark-hint{ grid-column:1; }
+  /* Columna derecha: las botoneras, con scroll propio si son largas */
+  #editorVideoPanel.modo-grande > #matchTagsSection,
+  #editorVideoPanel.modo-grande > #playerTagsSection{
+    grid-column:2; grid-row:2; align-self:start;
+    max-height:calc(100vh - 90px); overflow-y:auto;
+  }
+  #editorVideoPanel.modo-grande > #playerTagsSection{ grid-row:3; }
+}
+#editorVideoPanel.modo-grande .video-frame{ max-height:70vh; }
+#editorVideoPanel.modo-grande #videoEl{ max-height:70vh; width:100%; object-fit:contain; }
+/* En modo grande, las botoneras siempre abiertas y visibles */
+#editorVideoPanel.modo-grande #matchTagsBody,
+#editorVideoPanel.modo-grande #playerTagsBody{ display:block !important; }
+/* Botón para salir del modo grande */
+#salirModoGrande{
+  position:fixed; top:14px; right:16px; z-index:9100;
+  background:var(--accent); color:#fff; border:none; border-radius:8px;
+  padding:9px 14px; font-size:13px; cursor:pointer; display:none;
+  font-family:'Inter',sans-serif; font-weight:600;
+}
+#editorVideoPanel.modo-grande ~ #salirModoGrande,
+body.hay-modo-grande #salirModoGrande{ display:block; }
 .bs-tab{flex:1;background:var(--panel-2,#1B2C3D);border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--muted);font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:.3px;cursor:pointer;transition:all .12s;}
 .bs-tab.active{background:var(--accent-2,#2F8FCB);border-color:var(--accent-2,#2F8FCB);color:#fff;}
 .bs-tab:hover:not(.active){border-color:var(--accent-2,#2F8FCB);color:var(--chalk);}
@@ -3243,7 +3289,7 @@ body.editor-active #screen-editor{ display:block; }
       </div>
     </section>
 
-    <section class="panel">
+    <section class="panel" id="editorVideoPanel">
       <h2><span class="n">02</span> Empezá a editar</h2>
       <div class="video-frame" id="videoFrame">
         <video id="videoEl" controls playsinline webkit-playsinline style="display:none;"></video>
@@ -3272,6 +3318,7 @@ body.editor-active #screen-editor{ display:block; }
       </div>
       <div class="tele-actions">
         <button class="btn small" id="teleDrawBtn">✏ Dibujar sobre el video</button>
+        <button class="btn small" id="modoGrandeBtn">⛶ Modo grande</button>
       </div>
       <div class="video-playback-bar" id="videoPlaybackBar">
         <div class="vpb-group">
@@ -18272,6 +18319,44 @@ function downloadBlob(blob, name){
   const canvas = document.getElementById('teleCanvas');
   const toolbar = document.getElementById('teleToolbar');
   const drawBtn = document.getElementById('teleDrawBtn');
+  // ── MODO GRANDE del editor de video ──
+  // Agranda el video a casi toda la pantalla manteniendo la botonera visible.
+  (function initModoGrande(){
+    const btn = document.getElementById('modoGrandeBtn');
+    const panel = document.getElementById('editorVideoPanel');
+    if(!btn || !panel) return;
+    // Botón flotante para salir (se crea una vez)
+    let salir = document.getElementById('salirModoGrande');
+    if(!salir){
+      salir = document.createElement('button');
+      salir.id = 'salirModoGrande';
+      salir.textContent = '✕ Salir del modo grande';
+      document.body.appendChild(salir);
+    }
+    const activar = () => {
+      panel.classList.add('modo-grande');
+      document.body.classList.add('hay-modo-grande');
+      btn.textContent = '⛶ Salir';
+      // Botoneras abiertas y visibles
+      const mb = document.getElementById('matchTagsBody');
+      const pb = document.getElementById('playerTagsBody');
+      if(mb) mb.style.display = 'block';
+      if(pb) pb.style.display = 'block';
+      window.scrollTo(0,0);
+    };
+    const desactivar = () => {
+      panel.classList.remove('modo-grande');
+      document.body.classList.remove('hay-modo-grande');
+      btn.textContent = '⛶ Modo grande';
+    };
+    btn.addEventListener('click', () => {
+      if(panel.classList.contains('modo-grande')) desactivar(); else activar();
+    });
+    salir.addEventListener('click', desactivar);
+    document.addEventListener('keydown', (e) => {
+      if(e.key === 'Escape' && panel.classList.contains('modo-grande')) desactivar();
+    });
+  })();
   if(!video || !canvas || !toolbar || !drawBtn) return;
 
   const COLORS = ['#F0553F','#2F8FCB','#4CAF6D','#E0A93B','#FFFFFF'];
