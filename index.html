@@ -5566,6 +5566,23 @@ async function guardarPerfil(userId, email, perfil){
       window.__lastTouch = Date.now();
       // Latido periódico para reflejar "conectado" en el panel admin.
       setInterval(() => { try{ sb.rpc('touch_last_seen'); }catch(e){} }, 120000);
+      // Registrar la conexión cuando el usuario VUELVE a la app (evento confiable
+      // que sí se dispara en celulares al reabrir/volver a la pestaña). El
+      // setInterval de arriba se suspende con la pantalla apagada; esto no.
+      if(!window.__visibilityTouchSet){
+        window.__visibilityTouchSet = true;
+        document.addEventListener('visibilitychange', () => {
+          if(document.visibilityState === 'visible'){
+            // Forzamos el registro salteando el throttle, para que quede fresco.
+            window.__lastTouch = 0;
+            if(window.__touchSeen) window.__touchSeen();
+          }
+        });
+        // También al enfocar la ventana (por si visibilitychange no alcanza).
+        window.addEventListener('focus', () => {
+          if(window.__touchSeen) window.__touchSeen();
+        });
+      }
       showEditor();
       if(window.__startMetrics) window.__startMetrics();
       if(window.__cargarTemporadas) setTimeout(window.__cargarTemporadas, 500);
