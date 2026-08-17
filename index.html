@@ -5554,7 +5554,6 @@ async function guardarPerfil(userId, email, perfil){
         window.__clubIdCache = null; window.__clubIdCacheUser = null; window.__clubNombre = null;
       }
       window.__currentUserId = session.user.id;
-      try{ await sb.rpc('touch_last_seen'); }catch(e){}
       // Función global para registrar "última conexión" desde cualquier acción
       // (guardar partido, jugador, etc.). Con un throttle de 60s para no saturar.
       // Esto asegura que si el usuario USA la app, su conexión queda registrada,
