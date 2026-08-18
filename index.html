@@ -356,8 +356,6 @@ body{background-color:var(--bg);-webkit-tap-highlight-color:transparent;overflow
 
 /* ====================== ESTILOS EDITOR ====================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
-
 :root{
   --bg:#10161C;
   --panel:#152230;
@@ -13498,6 +13496,10 @@ window.__initEditor = function(){
         n = sig;
       }
       card.appendChild(body);
+      // "Resumen por período" arranca abierta; el resto, cerrado.
+      if(h3.textContent.trim().toLowerCase().includes('resumen por per')){
+        card.classList.add('abierta');
+      }
       h3.addEventListener('click', () => card.classList.toggle('abierta'));
     });
   }
