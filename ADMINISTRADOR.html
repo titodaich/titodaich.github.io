@@ -2241,19 +2241,37 @@ function estaOculto(u){
   return true;
 }
 
+// ¿Inactivo hace más de 7 días? Por defecto solo mostramos a los que
+// se conectaron en la última semana; el resto queda oculto (pero
+// disponible en el modo "ver ocultos"). Los admin nunca se ocultan.
+function inactivo7dias(u){
+  if(u.isAdmin) return false;
+  const SIETE_DIAS = 7 * 24 * 60 * 60 * 1000;
+  const ultima = u.lastSeenRaw || 0;
+  if(!ultima) return true;                 // sin ninguna conexión → oculto
+  return (Date.now() - ultima) > SIETE_DIAS;
+}
+
+// Un usuario está "fuera de la vista principal" si lo ocultaste a mano
+// O si está inactivo hace más de 7 días.
+function fueraDeVista(u){
+  return estaOculto(u) || inactivo7dias(u);
+}
+
 function render(){
   const q = search.value.trim().toLowerCase();
   const f = filter.value;
-  // Contamos cuántos quedaron ocultos (para el botón de "ver ocultos")
+  // Contamos cuántos quedaron fuera de la vista (ocultos a mano o inactivos +7 días)
   let ocultosCount = 0;
-  users.forEach(u => { if(estaOculto(u)) ocultosCount++; });
+  users.forEach(u => { if(fueraDeVista(u)) ocultosCount++; });
   window.__mostrandoOcultos = window.__mostrandoOcultos || false;
 
   const list = users.filter(u => {
-    // Si NO estamos en modo "ver ocultos", escondemos los ocultos
-    if(!window.__mostrandoOcultos && estaOculto(u)) return false;
-    // Si SÍ estamos en modo "ver ocultos", mostramos solo los ocultos
-    if(window.__mostrandoOcultos && !estaOculto(u)) return false;
+    // Si NO estamos en modo "ver ocultos", escondemos los que están fuera de vista
+    // (ocultos a mano O inactivos hace más de 7 días).
+    if(!window.__mostrandoOcultos && fueraDeVista(u)) return false;
+    // Si SÍ estamos en modo "ver ocultos", mostramos solo esos.
+    if(window.__mostrandoOcultos && !fueraDeVista(u)) return false;
     const matchesQ = !q || u.name.toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q) || (u.club||'').toLowerCase().includes(q);
     const matchesF = f==='all' || (f==='online'&&u.online&&!u.blocked) || (f==='offline'&&!u.online&&!u.blocked) || (f==='blocked'&&u.blocked);
     return matchesQ && matchesF;
