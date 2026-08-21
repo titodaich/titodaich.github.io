@@ -56,6 +56,11 @@ button{font-family:inherit;cursor:pointer;}
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px;}
 @media (max-width:820px){.stats-row{grid-template-columns:repeat(2,1fr);}}
 .stat-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;}
+.stat-card.metric-clickable{cursor:pointer;transition:border-color .12s ease, transform .12s ease;}
+.stat-card.metric-clickable:hover{border-color:var(--accent-2,#2F8FCB);transform:translateY(-2px);}
+.stat-card.metric-clickable .value{position:relative;}
+.stat-card.metric-clickable::after{content:'ver →';display:block;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--accent-2,#2F8FCB);text-transform:uppercase;letter-spacing:0.5px;margin-top:6px;opacity:0;transition:opacity .12s ease;}
+.stat-card.metric-clickable:hover::after{opacity:1;}
 .stat-card .label{font-family:'JetBrains Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;}
 .col-jugadores{background:rgba(47,143,203,0.07);text-align:center;}
 th.col-jugadores{color:var(--accent-2)!important;}
@@ -482,10 +487,10 @@ body.admin-active #adminApp{display:block;}
     <button class="btn small" id="refreshMetrics">↻ Actualizar</button>
   </div>
   <div class="stats-row" style="margin-bottom:14px;">
-    <div class="stat-card"><div class="label">Suscripciones activas</div><div class="value" id="mActive">—</div></div>
-    <div class="stat-card"><div class="label">En prueba</div><div class="value" id="mTrial">—</div></div>
-    <div class="stat-card"><div class="label">Vencidas</div><div class="value" id="mExpired">—</div></div>
-    <div class="stat-card"><div class="label">Vencen en 7 días</div><div class="value" id="mExpiring">—</div></div>
+    <div class="stat-card metric-clickable" data-subfilter="sub-active" title="Ver usuarios con suscripción activa"><div class="label">Suscripciones activas</div><div class="value" id="mActive">—</div></div>
+    <div class="stat-card metric-clickable" data-subfilter="sub-trial" title="Ver usuarios en prueba"><div class="label">En prueba</div><div class="value" id="mTrial">—</div></div>
+    <div class="stat-card metric-clickable" data-subfilter="sub-expired" title="Ver usuarios vencidos"><div class="label">Vencidas</div><div class="value" id="mExpired">—</div></div>
+    <div class="stat-card metric-clickable" data-subfilter="sub-expiring" title="Ver usuarios que vencen en 7 días"><div class="label">Vencen en 7 días</div><div class="value" id="mExpiring">—</div></div>
   </div>
   <div class="stats-row" style="margin-bottom:26px;">
     <div class="stat-card"><div class="label">Nuevos (últimos 30 días)</div><div class="value" id="mNew30">—</div></div>
@@ -537,6 +542,10 @@ body.admin-active #adminApp{display:block;}
         <option value="online">Conectados</option>
         <option value="offline">Desconectados</option>
         <option value="blocked">Bloqueados</option>
+        <option value="sub-active">Suscripción activa</option>
+        <option value="sub-trial">En prueba</option>
+        <option value="sub-expired">Vencidas</option>
+        <option value="sub-expiring">Vencen en 7 días</option>
       </select>
     </div>
   </div>
@@ -1305,27 +1314,11 @@ function renderSubscriptionMetrics(){
   const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent = v; };
   let activas=0, prueba=0, vencidas=0, porVencer=0;
   (users||[]).forEach(u => {
-    if(u.isAdmin) return;                       // no contamos a los admin
-    const st = u.subStatus || 'trial';
-    const d  = subDaysLeft(u.subUntil);         // días hasta el vencimiento (null si no hay fecha)
-
-    if(st === 'active'){
-      // Pagó. ¿Ya se venció su período pago?
-      if(d !== null && d < 0){ vencidas++; }
-      else { activas++; if(d !== null && d >= 0 && d <= 7) porVencer++; }
-    } else {
-      // En prueba (o sin estado): mirar la fecha de fin de prueba / cobro.
-      if(u.cobroActivado){
-        // Le marcaste "vence en 7 días" y todavía no pagó.
-        if(d !== null && d < 0) vencidas++;      // ya pasó la fecha → vencido
-        else porVencer++;                        // está en la cuenta regresiva
-      } else if(d !== null && d < 0){
-        vencidas++;                              // se le venció la prueba
-      } else {
-        prueba++;                                // en prueba normal
-        if(d !== null && d >= 0 && d <= 7) porVencer++;
-      }
-    }
+    const cat = subCategoria(u);   // misma lógica que el filtro de la lista
+    if(cat === 'active') activas++;
+    else if(cat === 'trial') prueba++;
+    else if(cat === 'expired') vencidas++;
+    else if(cat === 'expiring') porVencer++;
   });
   set('mActive', activas);
   set('mTrial', prueba);
@@ -2279,13 +2272,23 @@ function render(){
   window.__mostrandoOcultos = window.__mostrandoOcultos || false;
 
   const list = users.filter(u => {
-    // Si NO estamos en modo "ver ocultos", escondemos los que están fuera de vista
-    // (ocultos a mano O inactivos hace más de 7 días).
-    if(!window.__mostrandoOcultos && fueraDeVista(u)) return false;
+    const esFiltroSub = (f==='sub-active'||f==='sub-trial'||f==='sub-expired'||f==='sub-expiring');
+    // Si NO estamos en modo "ver ocultos" NI filtrando por suscripción,
+    // escondemos los que están fuera de vista (ocultos a mano o inactivos +7 días).
+    if(!window.__mostrandoOcultos && !esFiltroSub && fueraDeVista(u)) return false;
     // Si SÍ estamos en modo "ver ocultos", mostramos solo esos.
     if(window.__mostrandoOcultos && !fueraDeVista(u)) return false;
     const matchesQ = !q || u.name.toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q) || (u.club||'').toLowerCase().includes(q);
-    const matchesF = f==='all' || (f==='online'&&u.online&&!u.blocked) || (f==='offline'&&!u.online&&!u.blocked) || (f==='blocked'&&u.blocked);
+    let matchesF;
+    if(f==='all') matchesF = true;
+    else if(f==='online') matchesF = u.online && !u.blocked;
+    else if(f==='offline') matchesF = !u.online && !u.blocked;
+    else if(f==='blocked') matchesF = u.blocked;
+    else if(f==='sub-active') matchesF = subCategoria(u)==='active';
+    else if(f==='sub-trial') matchesF = subCategoria(u)==='trial';
+    else if(f==='sub-expired') matchesF = subCategoria(u)==='expired';
+    else if(f==='sub-expiring') matchesF = subCategoria(u)==='expiring';
+    else matchesF = true;
     return matchesQ && matchesF;
   });
   // Ordenar por última conexión: los que entraron más recientemente, primero.
@@ -2638,6 +2641,25 @@ function subDaysLeft(fecha){
   const hoy = new Date(); hoy.setHours(0,0,0,0);
   const f = new Date(fecha); f.setHours(0,0,0,0);
   return Math.round((f - hoy) / (1000*60*60*24));
+}
+
+// Clasifica a un usuario en una de: 'active' | 'trial' | 'expired' | 'expiring'.
+// Es la MISMA lógica que usan las métricas de arriba, para que el filtro y los
+// números coincidan siempre. Devuelve null para los admin (no se cuentan).
+function subCategoria(u){
+  if(!u || u.isAdmin) return null;
+  const st = u.subStatus || 'trial';
+  const d  = subDaysLeft(u.subUntil);
+  if(st === 'active'){
+    if(d !== null && d < 0) return 'expired';
+    return (d !== null && d >= 0 && d <= 7) ? 'expiring' : 'active';
+  }
+  // en prueba / sin estado
+  if(u.cobroActivado){
+    return (d !== null && d < 0) ? 'expired' : 'expiring';
+  }
+  if(d !== null && d < 0) return 'expired';
+  return (d !== null && d >= 0 && d <= 7) ? 'expiring' : 'trial';
 }
 
 // Setea el pack (categorías permitidas) del usuario vía RPC.
@@ -3148,6 +3170,26 @@ document.getElementById('rpApply')?.addEventListener('click', async () => {
 document.getElementById('clubSearch')?.addEventListener('input', renderClubs);
 document.getElementById('usoDias')?.addEventListener('change', () => { loadSecciones(); loadTiempoUsuarios(); });
 filter.addEventListener('change', render);
+
+// Tarjetas de métricas clickeables: al tocar una, filtra la lista de usuarios
+// por ese estado de suscripción y baja hasta la lista.
+document.querySelectorAll('.metric-clickable').forEach(card => {
+  card.addEventListener('click', () => {
+    const val = card.getAttribute('data-subfilter');
+    if(!val) return;
+    // Aseguramos estar en la solapa de Usuarios
+    const tabUsuarios = document.querySelector('button.admin-tab[data-tab="usuarios"]');
+    if(tabUsuarios) tabUsuarios.click();
+    // Salimos del modo "ver ocultos" si estaba activo
+    window.__mostrandoOcultos = false;
+    // Aplicamos el filtro
+    filter.value = val;
+    render();
+    // Bajamos hasta la sección de usuarios
+    const cont = document.getElementById('usersTableWrap') || filter;
+    if(cont && cont.scrollIntoView) cont.scrollIntoView({ behavior:'smooth', block:'center' });
+  });
+});
 
 // ============ SOLAPAS DEL ADMIN ============
 // Reparte las secciones existentes en las 4 solapas según su título, sin
