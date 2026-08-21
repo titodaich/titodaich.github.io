@@ -1250,6 +1250,9 @@ async function loadUsers(){
     updateStats();
     render();
     if(typeof renderExpiring === 'function') renderExpiring();
+    // Las métricas de suscripción (activas/prueba/vencidas/por vencer) salen de
+    // los usuarios: las recalculamos acá, ya con `users` cargado.
+    if(typeof renderSubscriptionMetrics === 'function') renderSubscriptionMetrics();
   }catch(err){
     console.error(err);
     rowsEl.innerHTML = '<tr><td colspan="8"><div class="loading-note">No se pudieron cargar los usuarios. ' + (err.message||'') + '</div></td></tr>';
@@ -1295,33 +1298,42 @@ async function loadClubs(){
   }
 }
 
-// Métricas de suscripción: se calculan del array `clubs` ya cargado (sin consultas extra).
+// Métricas de suscripción: se calculan desde los USUARIOS (array `users`),
+// que es donde vive el cobro real ahora (sub_status, sub_until, cobro_activado).
+// Antes se calculaba desde `clubs` y por eso daba siempre 0.
 function renderSubscriptionMetrics(){
   const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent = v; };
   let activas=0, prueba=0, vencidas=0, porVencer=0;
-  (clubs||[]).forEach(c => {
-    const d = daysLeft(c);
-    const st = c.subscription_status;
+  (users||[]).forEach(u => {
+    if(u.isAdmin) return;                       // no contamos a los admin
+    const st = u.subStatus || 'trial';
+    const d  = subDaysLeft(u.subUntil);         // días hasta el vencimiento (null si no hay fecha)
+
     if(st === 'active'){
-      if(d !== null && d < 0) vencidas++;
-      else { activas++; if(d !== null && d <= 7) porVencer++; }
-    } else if(st === 'trial'){
-      if(d !== null && d < 0) vencidas++;
-      else { prueba++; if(d !== null && d <= 7) porVencer++; }
+      // Pagó. ¿Ya se venció su período pago?
+      if(d !== null && d < 0){ vencidas++; }
+      else { activas++; if(d !== null && d >= 0 && d <= 7) porVencer++; }
     } else {
-      vencidas++;
+      // En prueba (o sin estado): mirar la fecha de fin de prueba / cobro.
+      if(u.cobroActivado){
+        // Le marcaste "vence en 7 días" y todavía no pagó.
+        if(d !== null && d < 0) vencidas++;      // ya pasó la fecha → vencido
+        else porVencer++;                        // está en la cuenta regresiva
+      } else if(d !== null && d < 0){
+        vencidas++;                              // se le venció la prueba
+      } else {
+        prueba++;                                // en prueba normal
+        if(d !== null && d >= 0 && d <= 7) porVencer++;
+      }
     }
   });
   set('mActive', activas);
   set('mTrial', prueba);
   set('mExpired', vencidas);
   set('mExpiring', porVencer);
-  // NOTA: el cartel "Clubes" ya NO usa (clubs||[]).length (la tabla formal 'clubs',
-  // que casi siempre tiene 1 fila). Ahora cuenta los clubes DISTINTOS de los perfiles
-  // vía actualizarClubesDistintos() en updateStats(). Por eso acá no seteamos 'mClubs'.
   if(typeof actualizarClubesDistintos === 'function') actualizarClubesDistintos();
   // guardamos para el cálculo de ingreso
-  window.__counts = { activas, prueba, vencidas, porVencer, total:(clubs||[]).length };
+  window.__counts = { activas, prueba, vencidas, porVencer, total:(users||[]).filter(u=>!u.isAdmin).length };
   renderRevenue();
 }
 
