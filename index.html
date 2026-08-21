@@ -9125,20 +9125,27 @@ window.__initEditor = function(){
             btn.classList.add('selected');
             // Quitar invitados de un partido elegido antes (dejamos solo el plantel propio)
             allSquad = allSquad.filter(p => !p.invitado);
+            window.__invitadosPartido = [];   // invitados del partido elegido (para no perderlos)
             if(m.id){
               try{
                 const { data: mData } = await sb.from('stat_matches').select('calls,invitados').eq('id', m.id).single();
                 const calls = (mData && mData.calls) || {};
                 const invitados = (mData && Array.isArray(mData.invitados)) ? mData.invitados : [];
+                // Guardamos los invitados aparte para poder re-agregarlos si el plantel
+                // se recarga (evita que un loadSquad async los pise).
+                window.__invitadosPartido = invitados.map(inv => ({ id:inv.id, name:inv.name, number:inv.number||'', position:inv.position||'', photo:'', invitado:true, fromCat:inv.fromCat||'' }));
                 // Sumar los invitados de ESTE partido a la plantilla disponible
-                invitados.forEach(inv => {
+                window.__invitadosPartido.forEach(inv => {
                   if(!allSquad.some(p => p.id === inv.id)){
-                    allSquad.push({ id:inv.id, name:inv.name, number:inv.number||'', position:inv.position||'', photo:'', invitado:true, fromCat:inv.fromCat||'' });
+                    allSquad.push(inv);
                   }
                 });
                 // Pre-tildar los convocados (citados = 'yes'), incluidos los invitados
                 setupCalled = {};
                 Object.keys(calls).forEach(pid => { if(calls[pid] === 'yes') setupCalled[pid] = true; });
+                // Además, tildar los invitados aunque no tengan 'yes' en calls: si el DT
+                // los subió a este partido, es porque van a jugar. Que aparezcan marcados.
+                window.__invitadosPartido.forEach(inv => { setupCalled[inv.id] = true; });
                 renderCallGrid();
                 const n = Object.keys(setupCalled).length;
                 if(n > 0) toast('✓ '+n+' convocados de este partido');
@@ -9157,6 +9164,13 @@ window.__initEditor = function(){
 
   function renderCallGrid(){
     const grid=document.getElementById('liveCallGrid'); if(!grid) return;
+    // Blindaje: si hay invitados guardados del partido elegido pero se perdieron
+    // de allSquad (por una recarga async del plantel), los volvemos a agregar.
+    if(Array.isArray(window.__invitadosPartido) && window.__invitadosPartido.length){
+      window.__invitadosPartido.forEach(inv => {
+        if(!allSquad.some(p => p.id === inv.id)) allSquad.push(inv);
+      });
+    }
     if(allSquad.length===0){ grid.innerHTML='<p class="rd-empty">No hay jugadores en el plantel de esta categoría. Cargalos en Estadísticas → Plantel.</p>'; return; }
     grid.innerHTML='';
     allSquad.forEach(p=>{
