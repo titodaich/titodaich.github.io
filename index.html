@@ -961,7 +961,23 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .time-picker{display:flex;align-items:center;justify-content:center;gap:12px;}
 .time-picker .tp-col{display:flex;flex-direction:column;align-items:center;gap:6px;}
 .time-picker .tp-btn{min-width:56px;padding:6px;}
-.time-picker .tp-val{font-family:'JetBrains Mono',monospace;font-size:34px;font-weight:700;color:var(--chalk);min-width:56px;text-align:center;}
+.time-picker .tp-val{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:700;color:var(--chalk);min-width:52px;text-align:center;}
+/* El número de segundos, destacado: se ve claro qué queda al tocar los dígitos */
+.time-picker .tp-sec-big{font-size:38px;color:var(--accent-2);transition:transform .08s ease;}
+.time-picker .tp-sec-big.tp-bump{transform:scale(1.18);}
+/* Minutos: campo editable (tocar y escribir) */
+.time-picker input.tp-input{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;width:64px;padding:2px 0;outline:none;cursor:text;-moz-appearance:textfield;}
+.time-picker input.tp-input:focus{border-color:var(--accent-2);background:var(--panel);}
+.time-picker .tp-col-sec .tp-val{margin-top:4px;}
+/* Segundos: elegir decena (0-5) y unidad (0-9) tocando el dígito. Cada fila en UN renglón. */
+.tp-secpick{margin-top:14px;display:flex;flex-direction:column;gap:9px;}
+.tp-secrow{display:flex;align-items:center;gap:8px;}
+.tp-secrow-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);width:34px;flex-shrink:0;text-align:right;}
+.tp-secbtns{display:flex;gap:4px;flex:1;justify-content:space-between;}
+.tp-digit{flex:1;height:34px;padding:0;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--chalk);background:var(--panel-2);border:1px solid var(--line);border-radius:6px;cursor:pointer;transition:background .1s ease,border-color .1s ease;}
+.tp-digit:hover{border-color:var(--accent-2);}
+.tp-digit.sel{background:var(--accent-2);border-color:var(--accent-2);color:#fff;}
+.tp-autohint{text-align:center;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--success);margin:14px 0 0;}
 .time-picker .tp-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
 .time-picker .tp-sep{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:700;color:var(--muted);align-self:flex-start;margin-top:34px;}
 .live-half-badge{font-family:'Oswald',sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent);padding:5px 12px;border:1px solid var(--accent);border-radius:999px;}
@@ -4531,19 +4547,46 @@ body.editor-active #screen-editor{ display:block; }
       <div class="time-picker">
         <div class="tp-col">
           <button class="btn small tp-btn" data-tp="min-up">▲</button>
-          <div class="tp-val" id="tpMin">20</div>
+          <input class="tp-val tp-input" id="tpMin" type="text" inputmode="numeric" maxlength="2" value="20">
           <button class="btn small tp-btn" data-tp="min-down">▼</button>
           <div class="tp-lbl">min</div>
         </div>
         <div class="tp-sep">:</div>
-        <div class="tp-col">
-          <button class="btn small tp-btn" data-tp="sec-up">▲</button>
-          <div class="tp-val" id="tpSec">00</div>
-          <button class="btn small tp-btn" data-tp="sec-down">▼</button>
+        <div class="tp-col tp-col-sec">
+          <div class="tp-val tp-sec-big" id="tpSec">00</div>
           <div class="tp-lbl">seg</div>
         </div>
       </div>
-      <div style="display:flex;gap:8px;margin-top:16px;">
+      <div class="tp-secpick">
+        <div class="tp-secrow">
+          <span class="tp-secrow-lbl">Dec</span>
+          <div class="tp-secbtns" id="tpSecDec">
+            <button class="tp-digit" data-dec="0">0</button>
+            <button class="tp-digit" data-dec="1">1</button>
+            <button class="tp-digit" data-dec="2">2</button>
+            <button class="tp-digit" data-dec="3">3</button>
+            <button class="tp-digit" data-dec="4">4</button>
+            <button class="tp-digit" data-dec="5">5</button>
+          </div>
+        </div>
+        <div class="tp-secrow">
+          <span class="tp-secrow-lbl">Uni</span>
+          <div class="tp-secbtns" id="tpSecUni">
+            <button class="tp-digit" data-uni="0">0</button>
+            <button class="tp-digit" data-uni="1">1</button>
+            <button class="tp-digit" data-uni="2">2</button>
+            <button class="tp-digit" data-uni="3">3</button>
+            <button class="tp-digit" data-uni="4">4</button>
+            <button class="tp-digit" data-uni="5">5</button>
+            <button class="tp-digit" data-uni="6">6</button>
+            <button class="tp-digit" data-uni="7">7</button>
+            <button class="tp-digit" data-uni="8">8</button>
+            <button class="tp-digit" data-uni="9">9</button>
+          </div>
+        </div>
+      </div>
+      <p class="tp-autohint" id="tpAutoHint">Al tocar la unidad, se confirma solo ✓</p>
+      <div style="display:flex;gap:8px;margin-top:10px;">
         <button class="btn primary" id="liveTimeOk" style="flex:1;">Confirmar</button>
       </div>
     </div>
@@ -8077,8 +8120,20 @@ window.__initEditor = function(){
     document.getElementById('liveTimeModal').style.display='flex';
   }
   function renderTP(){
-    document.getElementById('tpMin').textContent = String(tpMin).padStart(2,'0');
-    document.getElementById('tpSec').textContent = String(tpSec).padStart(2,'0');
+    const elMin = document.getElementById('tpMin');
+    const elSec = document.getElementById('tpSec');
+    // Minutos: input editable (no pisamos mientras el usuario escribe)
+    if(elMin && document.activeElement !== elMin) elMin.value = String(tpMin).padStart(2,'0');
+    // Segundos: mostramos el número y resaltamos la decena y la unidad elegidas
+    if(elSec) elSec.textContent = String(tpSec).padStart(2,'0');
+    const dec = Math.floor(tpSec / 10);
+    const uni = tpSec % 10;
+    document.querySelectorAll('#tpSecDec .tp-digit').forEach(b=>{
+      b.classList.toggle('sel', parseInt(b.dataset.dec,10) === dec);
+    });
+    document.querySelectorAll('#tpSecUni .tp-digit').forEach(b=>{
+      b.classList.toggle('sel', parseInt(b.dataset.uni,10) === uni);
+    });
   }
   // segundos transcurridos del tiempo, desde un reloj regresivo min:seg
   function regresivoToElapsed(min, sec){ return (halfMinutes*60) - (min*60 + sec); }
@@ -8088,11 +8143,50 @@ window.__initEditor = function(){
       const a=b.dataset.tp;
       if(a==='min-up') tpMin=Math.min(halfMinutes,tpMin+1);
       else if(a==='min-down') tpMin=Math.max(0,tpMin-1);
-      else if(a==='sec-up') tpSec=(tpSec+1)%60;
-      else if(a==='sec-down') tpSec=(tpSec+59)%60;
       renderTP();
     });
   });
+  // Efecto visual: resalta brevemente el número de segundos al cambiarlo,
+  // para que se vea claro qué queda escrito.
+  function bumpSec(){
+    const el = document.getElementById('tpSec');
+    if(!el) return;
+    el.classList.add('tp-bump');
+    setTimeout(()=>el.classList.remove('tp-bump'), 120);
+  }
+  // Segundos: elegir DECENA (0-5). Actualiza el número (no confirma todavía).
+  document.querySelectorAll('#tpSecDec .tp-digit').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const dec = parseInt(b.dataset.dec,10) || 0;
+      const uni = tpSec % 10;
+      tpSec = Math.max(0, Math.min(59, dec*10 + uni));
+      renderTP(); bumpSec();
+    });
+  });
+  // Segundos: elegir UNIDAD (0-9). Actualiza el número Y CONFIRMA SOLO (Opción B).
+  document.querySelectorAll('#tpSecUni .tp-digit').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const uni = parseInt(b.dataset.uni,10) || 0;
+      const dec = Math.floor(tpSec / 10);
+      tpSec = Math.max(0, Math.min(59, dec*10 + uni));
+      renderTP(); bumpSec();
+      // Confirma solo, con una micro-pausa para que el usuario vea el número final.
+      setTimeout(()=>{ const ok = document.getElementById('liveTimeOk'); if(ok) ok.click(); }, 180);
+    });
+  });
+  // Minutos: escribir el número directo en el campo
+  (function(){
+    const inp = document.getElementById('tpMin');
+    if(!inp) return;
+    inp.addEventListener('input', ()=>{
+      inp.value = inp.value.replace(/[^0-9]/g,'').slice(0,2);
+      let v = parseInt(inp.value,10); if(isNaN(v)) v = 0;
+      tpMin = Math.max(0, Math.min(halfMinutes, v));
+    });
+    inp.addEventListener('blur', ()=>{ renderTP(); });
+    inp.addEventListener('focus', ()=>{ setTimeout(()=>{ try{ inp.select(); }catch(e){} }, 0); });
+    inp.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ inp.blur(); document.getElementById('liveTimeOk').click(); } });
+  })();
   document.getElementById('liveTimeClose').addEventListener('click',()=>{ document.getElementById('liveTimeModal').style.display='none'; tpOnOk=null; });
   document.getElementById('liveTimeModal').addEventListener('click',e=>{ if(e.target.id==='liveTimeModal'){ e.target.style.display='none'; tpOnOk=null; } });
   document.getElementById('liveTimeOk').addEventListener('click',()=>{
