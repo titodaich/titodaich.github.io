@@ -977,7 +977,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .tp-digit{flex:1;height:34px;padding:0;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--chalk);background:var(--panel-2);border:1px solid var(--line);border-radius:6px;cursor:pointer;transition:background .1s ease,border-color .1s ease;}
 .tp-digit:hover{border-color:var(--accent-2);}
 .tp-digit.sel{background:var(--accent-2);border-color:var(--accent-2);color:#fff;}
-.tp-autohint{text-align:center;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--success);margin:14px 0 0;}
+.tp-autohint{text-align:center;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin:14px 0 0;}
 .time-picker .tp-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
 .time-picker .tp-sep{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:700;color:var(--muted);align-self:flex-start;margin-top:34px;}
 .live-half-badge{font-family:'Oswald',sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent);padding:5px 12px;border:1px solid var(--accent);border-radius:999px;}
@@ -996,16 +996,16 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .live-field .field-goal{position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:120px;height:8px;background:rgba(255,255,255,0.85);border-radius:2px;}
 .live-field .field-area{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:200px;height:90px;border:2px solid rgba(255,255,255,0.4);border-bottom:none;border-radius:100px 100px 0 0;}
 .live-field .field-empty{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,0.9);font-family:'JetBrains Mono',monospace;font-size:12px;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,0.5);width:80%;}
-.live-token{position:absolute;z-index:2;transform:translate(-50%,-50%);background:rgba(16,22,28,0.72);border:2px solid #fff;border-radius:12px;padding:10px 9px;width:134px;text-align:center;cursor:pointer;transition:all .12s ease;box-shadow:0 3px 10px rgba(0,0,0,0.4);}
+.live-token{position:absolute;z-index:2;transform:translate(-50%,-50%);background:rgba(16,22,28,0.72);border:2px solid #fff;border-radius:11px;padding:7px 6px;width:112px;text-align:center;cursor:pointer;transition:all .12s ease;box-shadow:0 3px 10px rgba(0,0,0,0.4);}
 .live-token:hover{background:rgba(16,22,28,0.75);}
 .live-token.swap-out{border-color:var(--danger);background:rgba(240,85,63,0.5);}
-.live-token .lt-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,0.8);}
-.live-token .lt-avatar{display:flex;justify-content:center;margin-bottom:5px;}
+.live-token .lt-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(255,255,255,0.8);}
+.live-token .lt-avatar{display:flex;justify-content:center;margin-bottom:3px;}
 .live-token .lt-avatar .pl-avatar{border-width:2px;border-color:rgba(255,255,255,0.85);box-shadow:0 2px 6px rgba(0,0,0,0.4);}
-.live-token .lt-name{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;color:#fff;margin:1px 0 4px;}
-.live-token .lt-time{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;color:#fff;}
-.live-token .lt-actions{display:flex;gap:5px;justify-content:center;margin-top:8px;}
-.live-token .lt-act{border:1px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.1);border-radius:7px;padding:3px 6px;font-size:13px;cursor:pointer;color:#fff;display:flex;align-items:center;gap:3px;}
+.live-token .lt-name{font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;color:#fff;margin:1px 0 3px;line-height:1.1;}
+.live-token .lt-time{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:#fff;}
+.live-token .lt-actions{display:flex;gap:3px;justify-content:center;margin-top:6px;}
+.live-token .lt-act{border:1px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.1);border-radius:6px;padding:3px 4px;font-size:12px;cursor:pointer;color:#fff;display:flex;align-items:center;gap:2px;}
 .live-token .lt-act:hover{background:rgba(255,255,255,0.25);}
 .live-token .lt-act .lt-cnt{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;}
 .live-token .lt-act-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;}
@@ -4585,7 +4585,7 @@ body.editor-active #screen-editor{ display:block; }
           </div>
         </div>
       </div>
-      <p class="tp-autohint" id="tpAutoHint">Al tocar la unidad, se confirma solo ✓</p>
+      <p class="tp-autohint" id="tpAutoHint">Elegí los segundos y tocá Confirmar</p>
       <div style="display:flex;gap:8px;margin-top:10px;">
         <button class="btn primary" id="liveTimeOk" style="flex:1;">Confirmar</button>
       </div>
@@ -8163,15 +8163,13 @@ window.__initEditor = function(){
       renderTP(); bumpSec();
     });
   });
-  // Segundos: elegir UNIDAD (0-9). Actualiza el número Y CONFIRMA SOLO (Opción B).
+  // Segundos: elegir UNIDAD (0-9). Actualiza el número (NO confirma: eso lo hace el botón).
   document.querySelectorAll('#tpSecUni .tp-digit').forEach(b=>{
     b.addEventListener('click',()=>{
       const uni = parseInt(b.dataset.uni,10) || 0;
       const dec = Math.floor(tpSec / 10);
       tpSec = Math.max(0, Math.min(59, dec*10 + uni));
       renderTP(); bumpSec();
-      // Confirma solo, con una micro-pausa para que el usuario vea el número final.
-      setTimeout(()=>{ const ok = document.getElementById('liveTimeOk'); if(ok) ok.click(); }, 180);
     });
   });
   // Minutos: escribir el número directo en el campo
@@ -8469,6 +8467,51 @@ window.__initEditor = function(){
     }
 
     // ── Resto de las categorías: formación futsal por rol ──
+    // Detectamos el sistema según los roles de los que están en cancha:
+    //  - Si hay al menos un PÍVOT → 3-1 (cierre atrás, 2 alas, pívot arriba).
+    //  - Si NO hay pívot → 4-0: los 4 de campo en cuadrado (2 arriba, 2 abajo),
+    //    sin nadie fijo arriba. El arquero siempre va al arco.
+    const conRolPrev = enCancha.map(p => ({ p, role: roleOf(p) }));
+    const hayPivot = conRolPrev.some(x => x.role === 'pivot');
+    const jugadoresCampo = conRolPrev.filter(x => x.role !== 'arquero');
+
+    if(!hayPivot && jugadoresCampo.length >= 3){
+      // ===== 4-0 (sin pívot) =====
+      // Arquero atrás. Dos jugadores por el MEDIO (eje central, uno más atrás y
+      // otro más adelante) y dos por los COSTADOS más adelantados.
+      // Los costados van a x=24 / x=76 para NO salirse del ancho de la cancha.
+      const arquero = conRolPrev.find(x => x.role === 'arquero');
+      // Los cierres tienden a ir por el medio; las alas, a los costados.
+      const orden = { cierre:0, otro:1, ala:2 };
+      const campoOrd = jugadoresCampo.slice().sort((a,b) =>
+        (orden[a.role] ?? 1) - (orden[b.role] ?? 1)
+      );
+      // Formación 4-0 (sin pívot): dos líneas de a dos.
+      //  - Los CIERRES van juntos en el MEDIO (uno a cada lado del eje).
+      //  - Las ALAS van juntas MÁS ADELANTE, pegadas a la línea de mitad de cancha.
+      // Slots en el orden en que vienen ordenados (cierres primero, luego alas):
+      // Formación 4-0 (sin pívot), según referencia del DT:
+      //  - Los CIERRES van ATRÁS, cerca del arquero (uno a cada lado).
+      //  - Las ALAS van más adelante, en el medio (uno a cada lado), pegadas
+      //    a la línea de mitad de cancha.
+      const SLOTS_40 = [
+        {x:30, y:70},  // cierre izquierdo (atrás, cerca del arco)
+        {x:70, y:70},  // cierre derecho (atrás, cerca del arco)
+        {x:28, y:40},  // ala izquierda (adelante, hacia el medio)
+        {x:72, y:40}   // ala derecha (adelante, hacia el medio)
+      ];
+      // Posiciones extra si hay un 5º de campo (5v4), sin salirse del ancho.
+      const EXTRA_40 = [{x:50, y:18}, {x:32, y:52}, {x:68, y:52}, {x:50, y:52}];
+      const result = [];
+      if(arquero) result.push({ p: arquero.p, slot:{x:50, y:92}, role:'arquero' });
+      campoOrd.forEach((x, i) => {
+        const slot = i < SLOTS_40.length ? SLOTS_40[i] : (EXTRA_40[(i - SLOTS_40.length) % EXTRA_40.length]);
+        result.push({ p: x.p, slot, role: x.role });
+      });
+      return result;
+    }
+
+    // ===== 3-1 (con pívot) — comportamiento de siempre =====
     // Posiciones "ideales" por rol en la cancha
     const POS = {
       arquero: {x:50, y:92},   // en el arco (abajo del todo)
