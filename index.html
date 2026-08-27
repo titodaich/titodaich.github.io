@@ -1008,7 +1008,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .live-token .lt-avatar .pl-avatar{border-width:2px;border-color:rgba(255,255,255,0.85);box-shadow:0 2px 6px rgba(0,0,0,0.4);}
 .live-token .lt-name{font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;color:#fff;margin:1px 0 3px;line-height:1.1;}
 .live-token .lt-time{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:#fff;}
-.live-token .lt-actions{display:flex;gap:3px;justify-content:center;margin-top:6px;}
+.live-token .lt-actions{display:flex;gap:3px;justify-content:center;margin-top:6px;flex-wrap:wrap;}
 .live-token .lt-act{border:1px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.1);border-radius:6px;padding:3px 4px;font-size:12px;cursor:pointer;color:#fff;display:flex;align-items:center;gap:2px;}
 .live-token .lt-act:hover{background:rgba(255,255,255,0.25);}
 .live-token .lt-act .lt-cnt{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;}
@@ -1046,7 +1046,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .bench-empty{color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;padding:10px;}
 
 .live-totals-wrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;}
-.live-totals-head,.live-total-row{display:grid;grid-template-columns:1fr 58px 58px 64px 34px 34px 34px 34px;gap:6px;align-items:center;}
+.live-totals-head,.live-total-row{display:grid;grid-template-columns:1fr 58px 58px 64px 34px 34px 34px 34px 34px;gap:6px;align-items:center;}
 .live-partial{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:6px;}
 .lp-player{background:var(--bg-2,#10161C);border:1px solid var(--line);border-radius:10px;padding:12px 14px;}
 .lp-name{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;color:var(--chalk,#dfe8f0);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--line);}
@@ -2670,7 +2670,7 @@ body.editor-active #screen-editor{ display:block; }
 
   /* Detalle de minutaje: que la grilla ancha scrollee dentro de su tarjeta, no rompa la página */
   #minutesDetail .annual-card{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-  #minutesDetail .live-totals-head,#minutesDetail .live-total-row{min-width:474px;}
+  #minutesDetail .live-totals-head,#minutesDetail .live-total-row{min-width:514px;}
 
   /* Fichas de pizarra un poco más cómodas para el dedo ya vienen por SVG;
      nos aseguramos que la cancha no tenga overflow que bloquee el gesto */
@@ -4204,7 +4204,7 @@ body.editor-active #screen-editor{ display:block; }
       <div class="live-totals-wrap">
         <div class="rd-card-head"><h3 data-i18n="liveMinBy">Minutos y acciones por jugador</h3><button class="btn small export-btn print-hide" id="livePartialBtn">📊 Entradas parciales</button></div>
         <div class="live-totals-head">
-          <span data-i18n="livePlayer">Jugador</span><span data-i18n="liveT1">1er T</span><span data-i18n="liveT2">2do T</span><span data-i18n="liveTotal">Total</span><span title="Goles">⚽</span><span title="Remates">🎯</span><span title="Faltas">⚠️</span><span title="Tarjetas">🟨</span>
+          <span data-i18n="livePlayer">Jugador</span><span data-i18n="liveT1">1er T</span><span data-i18n="liveT2">2do T</span><span data-i18n="liveTotal">Total</span><span title="Goles">⚽</span><span title="Remates">🎯</span><span title="Faltas">⚠️</span><span title="Tarjetas">🟨</span><span title="Recuperaciones">⚔️</span>
         </div>
         <div class="live-totals" id="liveTotals"></div>
       </div>
@@ -8364,7 +8364,7 @@ window.__initEditor = function(){
     if(tpOnOk){ const fn=tpOnOk; tpOnOk=null; fn(regresivoToElapsed(tpMin,tpSec), tpMin, tpSec); }
   });
 
-  function ensure(pid){ if(!state[pid]) state[pid] = {onCourt:false, acc1:0, acc2:0, lastInAt:null, goals:0, fouls1:0, fouls2:0, cards:0, shots:0}; if(state[pid].goals===undefined) state[pid].goals=0; if(state[pid].cards===undefined) state[pid].cards=0; if(state[pid].shots===undefined) state[pid].shots=0; if(state[pid].fouls1===undefined) state[pid].fouls1=0; if(state[pid].fouls2===undefined) state[pid].fouls2=0; if(state[pid].stints===undefined) state[pid].stints=[]; if(state[pid].fouls!==undefined && state[pid].fouls1===0 && state[pid].fouls2===0){ /* compat: partido viejo con fouls único → lo tratamos como del 1er tiempo */ state[pid].fouls1=state[pid].fouls; } return state[pid]; }
+  function ensure(pid){ if(!state[pid]) state[pid] = {onCourt:false, acc1:0, acc2:0, lastInAt:null, goals:0, fouls1:0, fouls2:0, cards:0, shots:0, recup:0}; if(state[pid].goals===undefined) state[pid].goals=0; if(state[pid].cards===undefined) state[pid].cards=0; if(state[pid].shots===undefined) state[pid].shots=0; if(state[pid].recup===undefined) state[pid].recup=0; if(state[pid].fouls1===undefined) state[pid].fouls1=0; if(state[pid].fouls2===undefined) state[pid].fouls2=0; if(state[pid].stints===undefined) state[pid].stints=[]; if(state[pid].fouls!==undefined && state[pid].fouls1===0 && state[pid].fouls2===0){ /* compat: partido viejo con fouls único → lo tratamos como del 1er tiempo */ state[pid].fouls1=state[pid].fouls; } return state[pid]; }
   // faltas del tiempo que se está jugando (lo que se muestra en pantalla)
   function foulsNow(pid){ const st=ensure(pid); return currentHalf===1 ? (st.fouls1||0) : (st.fouls2||0); }
   // faltas totales del partido (para guardar en el historial)
@@ -8518,7 +8518,7 @@ window.__initEditor = function(){
     st.onCourt=false; st.lastInAt=null; st.entroMin=null; st.entroSeg=null;
   }
   function totalsSnapshot(){
-    const o={}; squad.forEach(p=>{ const st=ensure(p.id); o[p.name]={t1:time1(p.id),t2:time2(p.id),total:timeTotal(p.id),goals:st.goals||0,fouls:foulsTotal(p.id),fouls1:st.fouls1||0,fouls2:st.fouls2||0,cards:st.cards||0,shots:st.shots||0,number:p.number||''}; }); return o;
+    const o={}; squad.forEach(p=>{ const st=ensure(p.id); o[p.name]={t1:time1(p.id),t2:time2(p.id),total:timeTotal(p.id),goals:st.goals||0,fouls:foulsTotal(p.id),fouls1:st.fouls1||0,fouls2:st.fouls2||0,cards:st.cards||0,shots:st.shots||0,recup:st.recup||0,number:p.number||''}; }); return o;
   }
   function logEvent(type, inId, outId){
     const inP=squad.find(p=>p.id===inId), outP=squad.find(p=>p.id===outId);
@@ -8755,17 +8755,19 @@ window.__initEditor = function(){
       d.style.top = slot.y + '%';
       const roleLabel = role==='otro' ? '' : role.charAt(0).toUpperCase()+role.slice(1);
       const st=ensure(p.id);
-      d.innerHTML=`<div class="lt-avatar">${(window.__avatarHTML?window.__avatarHTML(p,44):"")}</div><div class="lt-num">${escapeHtml(p.number?'#'+p.number:'')}${roleLabel?' · '+roleLabel:''}</div><div class="lt-name">${escapeHtml(p.name)}</div><div class="lt-time" data-t="${p.id}">${displayTimeEnCancha(p.id)}</div><div class="lt-actions"><div class="lt-act-wrap"><button class="lt-act lt-goal" title="Gol">⚽<span class="lt-cnt">${st.goals||0}</span></button><button class="lt-minus lt-goal-minus" title="Restar gol">−</button></div><div class="lt-act-wrap"><button class="lt-act lt-shot" title="Remate al arco">🎯<span class="lt-cnt">${st.shots||0}</span></button><button class="lt-minus lt-shot-minus" title="Restar remate">−</button></div><div class="lt-act-wrap"><button class="lt-act lt-foul" title="Falta (del tiempo actual)">⚠️<span class="lt-cnt">${foulsNow(p.id)}</span></button><button class="lt-minus lt-foul-minus" title="Restar falta">−</button></div><div class="lt-act-wrap"><button class="lt-act lt-card" title="Tarjeta amarilla">🟨<span class="lt-cnt">${st.cards||0}</span></button><button class="lt-minus lt-card-minus" title="Restar tarjeta">−</button></div></div>`;
+      d.innerHTML=`<div class="lt-avatar">${(window.__avatarHTML?window.__avatarHTML(p,44):"")}</div><div class="lt-num">${escapeHtml(p.number?'#'+p.number:'')}${roleLabel?' · '+roleLabel:''}</div><div class="lt-name">${escapeHtml(p.name)}</div><div class="lt-time" data-t="${p.id}">${displayTimeEnCancha(p.id)}</div><div class="lt-actions"><div class="lt-act-wrap"><button class="lt-act lt-goal" title="Gol">⚽<span class="lt-cnt">${st.goals||0}</span></button><button class="lt-minus lt-goal-minus" title="Restar gol">−</button></div><div class="lt-act-wrap"><button class="lt-act lt-shot" title="Remate al arco">🎯<span class="lt-cnt">${st.shots||0}</span></button><button class="lt-minus lt-shot-minus" title="Restar remate">−</button></div><div class="lt-act-wrap"><button class="lt-act lt-foul" title="Falta (del tiempo actual)">⚠️<span class="lt-cnt">${foulsNow(p.id)}</span></button><button class="lt-minus lt-foul-minus" title="Restar falta">−</button></div><div class="lt-act-wrap"><button class="lt-act lt-card" title="Tarjeta amarilla">🟨<span class="lt-cnt">${st.cards||0}</span></button><button class="lt-minus lt-card-minus" title="Restar tarjeta">−</button></div><div class="lt-act-wrap"><button class="lt-act lt-recup" title="Recuperación">⚔️<span class="lt-cnt">${st.recup||0}</span></button><button class="lt-minus lt-recup-minus" title="Restar recuperación">−</button></div></div>`;
       // click en la ficha (fuera de los botones) = cambio
       d.addEventListener('click',(e)=>{ if(e.target.closest('.lt-act')||e.target.closest('.lt-minus')) return; tapOnCourt(p.id); });
       d.querySelector('.lt-goal').addEventListener('click',(e)=>{ e.stopPropagation(); addGoal(p.id); });
       d.querySelector('.lt-shot').addEventListener('click',(e)=>{ e.stopPropagation(); addShot(p.id); });
       d.querySelector('.lt-foul').addEventListener('click',(e)=>{ e.stopPropagation(); addFoul(p.id); });
       d.querySelector('.lt-card').addEventListener('click',(e)=>{ e.stopPropagation(); addCard(p.id); });
+      d.querySelector('.lt-recup').addEventListener('click',(e)=>{ e.stopPropagation(); addRecup(p.id); });
       d.querySelector('.lt-goal-minus').addEventListener('click',(e)=>{ e.stopPropagation(); restarGoal(p.id); });
       d.querySelector('.lt-shot-minus').addEventListener('click',(e)=>{ e.stopPropagation(); restarShot(p.id); });
       d.querySelector('.lt-foul-minus').addEventListener('click',(e)=>{ e.stopPropagation(); restarFoul(p.id); });
       d.querySelector('.lt-card-minus').addEventListener('click',(e)=>{ e.stopPropagation(); restarCard(p.id); });
+      d.querySelector('.lt-recup-minus').addEventListener('click',(e)=>{ e.stopPropagation(); restarRecup(p.id); });
       field.appendChild(d);
     });
   }
@@ -8914,7 +8916,7 @@ window.__initEditor = function(){
       const row=document.createElement('div');
       row.className='live-total-row'+(ensure(p.id).onCourt?' on-court':'');
       row.dataset.row=p.id;
-      row.innerHTML=`<span class="ltr-name"><small>${escapeHtml(p.number?'#'+p.number:'')}</small>${escapeHtml(p.name)}</span><span data-t1="${p.id}">${fmtClock(time1(p.id))}</span><span data-t2="${p.id}">${fmtClock(time2(p.id))}</span><span class="ltr-total" data-tt="${p.id}">${fmtClock(timeTotal(p.id))}</span><span data-g="${p.id}">${ensure(p.id).goals||0}</span><span data-sh="${p.id}">${ensure(p.id).shots||0}</span><span data-f="${p.id}">${foulsTotal(p.id)}</span><span data-c="${p.id}">${ensure(p.id).cards||0}</span>`;
+      row.innerHTML=`<span class="ltr-name"><small>${escapeHtml(p.number?'#'+p.number:'')}</small>${escapeHtml(p.name)}</span><span data-t1="${p.id}">${fmtClock(time1(p.id))}</span><span data-t2="${p.id}">${fmtClock(time2(p.id))}</span><span class="ltr-total" data-tt="${p.id}">${fmtClock(timeTotal(p.id))}</span><span data-g="${p.id}">${ensure(p.id).goals||0}</span><span data-sh="${p.id}">${ensure(p.id).shots||0}</span><span data-f="${p.id}">${foulsTotal(p.id)}</span><span data-c="${p.id}">${ensure(p.id).cards||0}</span><span data-rc="${p.id}">${ensure(p.id).recup||0}</span>`;
       cont.appendChild(row);
     });
     // Si el cuadro de entradas parciales está abierto, lo refrescamos también.
@@ -8934,7 +8936,7 @@ window.__initEditor = function(){
       const wb = window.XLSX.utils.book_new();
 
       // Hoja 1: stats por jugador
-      const head1 = ['#','Jugador','Min 1T','Min 2T','Min total','Goles','Remates','Faltas','Tarjetas'];
+      const head1 = ['#','Jugador','Min 1T','Min 2T','Min total','Goles','Remates','Faltas','Tarjetas','Recuperaciones'];
       const filas1 = [head1];
       squad.forEach(p => {
         const st = ensure(p.id);
@@ -8947,7 +8949,8 @@ window.__initEditor = function(){
           st.goals || 0,
           st.shots || 0,
           foulsTotal(p.id),
-          st.cards || 0
+          st.cards || 0,
+          st.recup || 0
         ]);
       });
       const ws1 = window.XLSX.utils.aoa_to_sheet(filas1);
@@ -9047,6 +9050,7 @@ window.__initEditor = function(){
       else if(ev.type==='shot'){ desc='🎯 Remate de '+escapeHtml(ev.inName); cls='swap'; label='Remate'; }
       else if(ev.type==='foul'){ desc='⚠️ Falta de '+escapeHtml(ev.inName); cls='out'; label='Falta'; }
       else if(ev.type==='card'){ desc='🟨 Tarjeta a '+escapeHtml(ev.inName); cls='half'; label='Tarjeta'; }
+      else if(ev.type==='recup'){ desc='⚔️ Recuperación de '+escapeHtml(ev.inName); cls='in'; label='Recup.'; }
       row.innerHTML=`<span class="llr-time">${fmtClock(ev.t)}</span><span class="llr-type ${cls}">${label}</span><span class="llr-desc">${desc}</span>`;
       // Permitir editar/agregar el tag del gol tocándolo (modo manual)
       const origenEl = row.querySelector('.llr-origen');
@@ -9531,7 +9535,7 @@ window.__initEditor = function(){
     if(conv.length<5){ toast(window.t('mPick5')); return; }
     // fijar el plantel del partido = convocados
     squad=conv.map(p=>({...p}));
-    state={}; squad.forEach(p=>{ state[p.id]={onCourt:false,acc1:0,acc2:0,lastInAt:null,goals:0,fouls1:0,fouls2:0,cards:0,shots:0}; });
+    state={}; squad.forEach(p=>{ state[p.id]={onCourt:false,acc1:0,acc2:0,lastInAt:null,goals:0,fouls1:0,fouls2:0,cards:0,shots:0,recup:0}; });
     events=[]; clockSeconds=0; currentHalf=1; halfSplitAt=null; swapOutId=null; manualMin=halfMinutes; liveRowId=null;
     clockRunning=false; clearInterval(clockTimer); clockTimer=null; clockAnchor=null;
     goalsAgainstManual=0; foulsAgainst1=0; foulsAgainst2=0;
@@ -9696,6 +9700,13 @@ window.__initEditor = function(){
     guardarPartidoLocal();
     toast(window.t('mCardTo')+((squad.find(p=>p.id===pid)||{}).name||''));
   }
+  function addRecup(pid){
+    const st=ensure(pid); st.recup=(st.recup||0)+1;
+    events.unshift({ t:nowSeconds(), type:'recup', pid, inName:(squad.find(p=>p.id===pid)||{}).name||'', outName:'', half:currentHalf });
+    renderField(); renderTotals(); renderLog(); renderScoreboard();
+    guardarPartidoLocal();
+    toast('⚔️ Recuperación de '+((squad.find(p=>p.id===pid)||{}).name||''));
+  }
   // ----- Restar (corregir un dato cargado por error) -----
   // Quita el último evento de ese tipo de ese jugador y baja su contador. No baja de 0.
   function quitarUltimoEvento(pid, tipo){
@@ -9746,6 +9757,15 @@ window.__initEditor = function(){
     renderField(); renderTotals(); renderLog(); renderScoreboard();
     toast('➖ Tarjeta restada a '+((squad.find(p=>p.id===pid)||{}).name||''));
   }
+  function restarRecup(pid){
+    const st=ensure(pid);
+    if((st.recup||0)<=0){ toast('No hay recuperaciones para restar'); return; }
+    st.recup--;
+    quitarUltimoEvento(pid, 'recup');
+    renderField(); renderTotals(); renderLog(); renderScoreboard();
+    guardarPartidoLocal();
+    toast('➖ Recuperación restada a '+((squad.find(p=>p.id===pid)||{}).name||''));
+  }
   // Deshacer el último evento (gol, falta o cambio)
   function undoLastEvent(){
     if(events.length===0){ toast(window.t('mNothingUndo')); return; }
@@ -9755,6 +9775,7 @@ window.__initEditor = function(){
     else if(ev.type==='shot'){ const st=ensure(ev.pid); if(st) st.shots=Math.max(0,(st.shots||0)-1); if(ev.half===2){ shotsFor2=Math.max(0,shotsFor2-1); } else { shotsFor1=Math.max(0,shotsFor1-1); } msg='Remate deshecho'; }
     else if(ev.type==='foul'){ const st=ensure(ev.pid); if(st){ if(ev.half===2){ st.fouls2=Math.max(0,(st.fouls2||0)-1); } else { st.fouls1=Math.max(0,(st.fouls1||0)-1); } } msg='Falta deshecha'; }
     else if(ev.type==='card'){ const st=ensure(ev.pid); if(st) st.cards=Math.max(0,(st.cards||0)-1); msg='Tarjeta deshecha'; }
+    else if(ev.type==='recup'){ const st=ensure(ev.pid); if(st) st.recup=Math.max(0,(st.recup||0)-1); msg='Recuperación deshecha'; }
     else if(ev.type==='in' || ev.type==='swap' || ev.type==='out' || ev.type==='half'){
       toast(window.t('mUndoOnlyLast')); return;
     }
@@ -12584,11 +12605,11 @@ window.__initEditor = function(){
       </div>
       <div class="annual-card">
         <div class="rd-card-head"><h3>${escapeHtml(s.name||'Partido')}</h3></div>
-        <div class="live-totals-head" style="margin-top:8px;grid-template-columns:1fr 58px 58px 64px 34px 34px 34px 34px;"><span>Jugador</span><span>1er T</span><span>2do T</span><span>Total</span><span title="Goles">⚽</span><span title="Remates">🎯</span><span title="Faltas">⚠️</span><span title="Tarjetas">🟨</span></div>
+        <div class="live-totals-head" style="margin-top:8px;grid-template-columns:1fr 58px 58px 64px 34px 34px 34px 34px 34px;"><span>Jugador</span><span>1er T</span><span>2do T</span><span>Total</span><span title="Goles">⚽</span><span title="Remates">🎯</span><span title="Faltas">⚠️</span><span title="Tarjetas">🟨</span><span title="Recuperaciones">⚔️</span></div>
         <div>`;
     if(rows.length===0){ html+='<p class="rd-empty">Sin datos de minutos.</p>'; }
     rows.forEach(r=>{
-      html+=`<div class="live-total-row" style="grid-template-columns:1fr 58px 58px 64px 34px 34px 34px 34px;"><span class="ltr-name">${escapeHtml(r.name)}</span><span>${fmtMin(r.t1)}</span><span>${fmtMin(r.t2)}</span><span class="ltr-total">${fmtMin(r.total)}</span><span>${r.goals||0}</span><span>${r.shots||0}</span><span>${r.fouls||0}</span><span>${r.cards||0}</span></div>`;
+      html+=`<div class="live-total-row" style="grid-template-columns:1fr 58px 58px 64px 34px 34px 34px 34px 34px;"><span class="ltr-name">${escapeHtml(r.name)}</span><span>${fmtMin(r.t1)}</span><span>${fmtMin(r.t2)}</span><span class="ltr-total">${fmtMin(r.total)}</span><span>${r.goals||0}</span><span>${r.shots||0}</span><span>${r.fouls||0}</span><span>${r.cards||0}</span><span>${r.recup||0}</span></div>`;
     });
     html+='</div></div>';
     // eventos
@@ -12603,6 +12624,7 @@ window.__initEditor = function(){
         else if(ev.type==='goal'){desc='⚽ Gol de '+escapeHtml(ev.inName);cls='in';label='Gol';}
         else if(ev.type==='foul'){desc='⚠️ Falta de '+escapeHtml(ev.inName);cls='out';label='Falta';}
         else if(ev.type==='card'){desc='🟨 Tarjeta a '+escapeHtml(ev.inName);cls='half';label='Tarjeta';}
+        else if(ev.type==='recup'){desc='⚔️ Recuperación de '+escapeHtml(ev.inName);cls='in';label='Recup.';}
         html+=`<div class="live-log-row"><span class="llr-time">${fmtMin(ev.t)}</span><span class="llr-type ${cls}">${label}</span><span class="llr-desc">${desc}</span></div>`;
       });
       html+='</div></div>';
