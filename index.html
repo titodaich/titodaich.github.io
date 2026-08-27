@@ -5082,8 +5082,8 @@ window.__PAY = {
       desc:'Gracias por estar desde el principio. Crecemos día a día. Precio distintivo amigo.',
       feature:'Todas las herramientas, todas las categorías.',
       durations: [
-        { months:1, ars:17000, usd:15, mpLink:'https://mpago.la/1Ct5bkc', stripeLink:'', comparacion:'tu precio de amigo' },
-        { months:3, ars:42000, usd:42, mpLink:'https://mpago.la/23nvGM1', stripeLink:'', comparacion:'tu precio de amigo', promo:'Precio amigo', promoNota:'Gracias por bancar el proyecto desde el arranque. Incluye hasta enero.' }
+        { months:1, ars:17000, usd:16, mpLink:'https://mpago.la/1Ct5bkc', stripeLink:'', comparacion:'tu precio de amigo' },
+        { months:3, ars:42000, usd:46, mpLink:'https://mpago.la/23nvGM1', stripeLink:'', comparacion:'tu precio de amigo', promo:'Precio amigo', promoNota:'Gracias por bancar el proyecto desde el arranque. Incluye hasta enero.' }
       ]
     },
     entrenador: {
@@ -5091,10 +5091,10 @@ window.__PAY = {
       desc:'Para el DT que dirige una o dos categorías.',
       feature:'Todas las herramientas incluidas.',
       durations: [
-        { months:1, ars:22000, usd:15, mpLink:'https://mpago.la/2rfhDZi', stripeLink:'', comparacion:'≈ una pizza grande al mes' },
-        { months:3, ars:58000, usd:42, mpLink:'https://mpago.la/2CEUJCp', stripeLink:'', comparacion:'≈ $640 por día', promo:'Oferta lanzamiento', promoNota:'Ideal para cerrar la temporada y comenzar la que viene. Incluye hasta enero.' },
-        { months:6, ars:96000, usd:80, mpLink:'', stripeLink:'', oculta:true },
-        { months:12, ars:168000, usd:140, mpLink:'', stripeLink:'', oculta:true }
+        { months:1, ars:22000, usd:16, mpLink:'https://mpago.la/2rfhDZi', stripeLink:'', comparacion:'≈ una pizza grande al mes' },
+        { months:3, ars:58000, usd:46, mpLink:'https://mpago.la/2CEUJCp', stripeLink:'', comparacion:'≈ $640 por día', promo:'Oferta lanzamiento', promoNota:'Ideal para cerrar la temporada y comenzar la que viene. Incluye hasta enero.' },
+        { months:6, ars:96000, usd:88, mpLink:'', stripeLink:'', oculta:true },
+        { months:12, ars:168000, usd:154, mpLink:'', stripeLink:'', oculta:true }
       ]
     },
     multi: {
@@ -5102,10 +5102,10 @@ window.__PAY = {
       desc:'Para quien maneja varias divisiones a la vez.',
       feature:'Todas las herramientas incluidas.',
       durations: [
-        { months:1, ars:24000, usd:18, mpLink:'https://mpago.la/31V71yr', stripeLink:'', comparacion:'≈ una pizza grande al mes' },
-        { months:3, ars:62000, usd:48, mpLink:'https://mpago.la/1wvHkjv', stripeLink:'', comparacion:'≈ $680 por día', promo:'Oferta lanzamiento', promoNota:'Ideal para cerrar la temporada y comenzar la que viene. Incluye hasta enero.' },
-        { months:6, ars:120000, usd:100, mpLink:'', stripeLink:'', oculta:true },
-        { months:12, ars:216000, usd:180, mpLink:'', stripeLink:'', oculta:true }
+        { months:1, ars:24000, usd:20, mpLink:'https://mpago.la/31V71yr', stripeLink:'', comparacion:'≈ una pizza grande al mes' },
+        { months:3, ars:62000, usd:53, mpLink:'https://mpago.la/1wvHkjv', stripeLink:'', comparacion:'≈ $680 por día', promo:'Oferta lanzamiento', promoNota:'Ideal para cerrar la temporada y comenzar la que viene. Incluye hasta enero.' },
+        { months:6, ars:120000, usd:110, mpLink:'', stripeLink:'', oculta:true },
+        { months:12, ars:216000, usd:198, mpLink:'', stripeLink:'', oculta:true }
       ]
     },
     club: {
@@ -5113,10 +5113,10 @@ window.__PAY = {
       desc:'Ideal para coordinadores y clubes que gestionan todas las inferiores.',
       feature:'Todas las herramientas incluidas.',
       durations: [
-        { months:1, ars:26000, usd:21, mpLink:'https://mpago.la/1e9L2MW', stripeLink:'', comparacion:'≈ una pizza grande al mes' },
-        { months:3, ars:68000, usd:54, mpLink:'https://mpago.la/1hyyATj', stripeLink:'', comparacion:'≈ $750 por día', promo:'Oferta lanzamiento', promoNota:'Ideal para cerrar la temporada y comenzar la que viene. Incluye hasta enero.' },
-        { months:6, ars:132000, usd:110, mpLink:'', stripeLink:'', oculta:true },
-        { months:12, ars:240000, usd:200, mpLink:'', stripeLink:'', oculta:true }
+        { months:1, ars:26000, usd:23, mpLink:'https://mpago.la/1e9L2MW', stripeLink:'', comparacion:'≈ una pizza grande al mes' },
+        { months:3, ars:68000, usd:59, mpLink:'https://mpago.la/1hyyATj', stripeLink:'', comparacion:'≈ $750 por día', promo:'Oferta lanzamiento', promoNota:'Ideal para cerrar la temporada y comenzar la que viene. Incluye hasta enero.' },
+        { months:6, ars:132000, usd:121, mpLink:'', stripeLink:'', oculta:true },
+        { months:12, ars:240000, usd:220, mpLink:'', stripeLink:'', oculta:true }
       ]
     }
   },
@@ -5197,8 +5197,68 @@ window.__conDescuento = function(monto){
   return Math.round(monto * (100 - d) / 100);
 };
 
+// Detecta el PAÍS del usuario por la zona horaria del navegador (sin pedir permiso).
+// Devuelve el nombre del país en español, o '' si no se puede saber.
+// Es aproximado: sirve para el país, NO para la ciudad exacta.
+window.__detectarPais = function(){
+  try{
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+    const mapa = {
+      'America/Argentina':'Argentina','America/Buenos_Aires':'Argentina',
+      'America/Santiago':'Chile','America/Punta_Arenas':'Chile',
+      'America/La_Paz':'Bolivia','America/Montevideo':'Uruguay','America/Asuncion':'Paraguay',
+      'America/Lima':'Perú','America/Bogota':'Colombia','America/Caracas':'Venezuela',
+      'America/Guayaquil':'Ecuador','America/Sao_Paulo':'Brasil','America/Bahia':'Brasil',
+      'America/Fortaleza':'Brasil','America/Manaus':'Brasil',
+      'America/Mexico_City':'México','America/Monterrey':'México','America/Tijuana':'México',
+      'America/Costa_Rica':'Costa Rica','America/Panama':'Panamá','America/Guatemala':'Guatemala',
+      'America/El_Salvador':'El Salvador','America/Tegucigalpa':'Honduras','America/Managua':'Nicaragua',
+      'America/Santo_Domingo':'Rep. Dominicana','America/Havana':'Cuba','America/Puerto_Rico':'Puerto Rico',
+      'America/New_York':'EE.UU.','America/Chicago':'EE.UU.','America/Denver':'EE.UU.',
+      'America/Los_Angeles':'EE.UU.','America/Phoenix':'EE.UU.',
+      'America/Toronto':'Canadá','America/Vancouver':'Canadá',
+      'Europe/Madrid':'España','Europe/Lisbon':'Portugal','Europe/Paris':'Francia',
+      'Europe/London':'Reino Unido','Europe/Rome':'Italia','Europe/Berlin':'Alemania',
+      'Europe/Amsterdam':'Países Bajos','Europe/Brussels':'Bélgica','Europe/Zurich':'Suiza',
+      'Europe/Vienna':'Austria','Europe/Dublin':'Irlanda','Europe/Stockholm':'Suecia',
+      'Europe/Oslo':'Noruega','Europe/Copenhagen':'Dinamarca',
+      'Australia/Sydney':'Australia','Asia/Jerusalem':'Israel','Asia/Tel_Aviv':'Israel'
+    };
+    if(mapa[tz]) return mapa[tz];
+    for(const clave in mapa){ if(tz.indexOf(clave) === 0) return mapa[clave]; }
+    if(tz.indexOf('/') > 0) return tz.split('/')[0];  // continente como pista
+    return '';
+  }catch(e){ return ''; }
+};
+
+// Moneda que VE el usuario, DETECTADA automáticamente según su ubicación:
+//  - Si el dispositivo está en Argentina → pesos (ars).
+//  - Si está fuera de Argentina → dólares (usd), que es un precio más alto.
+// El usuario NO elige: se decide solo. Usamos la zona horaria del navegador
+// (no pide permisos, es instantánea y no depende de servicios externos).
+window.__esArgentina = function(){
+  try{
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+    // Todas las zonas horarias de Argentina empiezan con "America/Argentina".
+    // Sumamos "America/Buenos_Aires" por compatibilidad con navegadores viejos.
+    if(/Argentina/i.test(tz) || tz === 'America/Buenos_Aires') return true;
+    // Respaldo: si el idioma/región del navegador es AR.
+    const loc = (navigator.language || '') + ' ' + ((navigator.languages||[]).join(' '));
+    if(/-AR\b/i.test(loc)) return true;
+    return false;
+  }catch(e){
+    return true;  // ante la duda, pesos (no encarecer por error)
+  }
+};
+window.__monedaActual = function(){
+  // Permite forzar la moneda desde la config si alguna vez hace falta.
+  if(window.__PAY && window.__PAY.forzarMoneda === 'usd') return 'usd';
+  if(window.__PAY && window.__PAY.forzarMoneda === 'ars') return 'ars';
+  return window.__esArgentina() ? 'ars' : 'usd';
+};
+
 window.__fmtPrice = function(dur){
-  const cur = (window.__PAY.currency === 'usd') ? 'usd' : 'ars';
+  const cur = window.__monedaActual();
   if(cur === 'usd') return 'US$ ' + window.__conDescuento(dur.usd||0);
   return '$ ' + Number(window.__conDescuento(dur.ars||0)).toLocaleString('es-AR');
 };
@@ -5208,7 +5268,7 @@ window.__durLabel = function(months){
 };
 // Link de pago de una duración de un pack (MP para pesos, Stripe para dólares), con WhatsApp de respaldo.
 window.__planLink = function(packKey, dur){
-  const cur = (window.__PAY.currency === 'usd') ? 'usd' : 'ars';
+  const cur = window.__monedaActual();
   const link = cur === 'usd' ? dur.stripeLink : dur.mpLink;
   if(link) return link;
   const P = window.__PAY;
@@ -5569,6 +5629,11 @@ async function guardarPerfil(userId, email, perfil){
       // última conexión queda registrada sí o sí cada vez que se abre la app.
       // La función touch_last_seen (SECURITY DEFINER) actualiza profiles.last_seen.
       try{ sb.rpc('touch_last_seen').then(()=>{},()=>{}); }catch(e){}
+      // Guardar el PAÍS del usuario (detectado por zona horaria, sin pedir permiso).
+      try{
+        const pais = window.__detectarPais && window.__detectarPais();
+        if(pais) sb.rpc('set_mi_pais', { p_pais: pais }).then(()=>{},()=>{});
+      }catch(e){}
       // Verificar suspensión
       try{
         const { data: prof } = await sb.from('profiles').select('is_blocked').eq('id', session.user.id).single();
@@ -16483,20 +16548,23 @@ try{
         // con la aclaración de que baja si paga por más tiempo.
         let desde = '';
         if(P.showPrices){
-          const unMes = (pk.durations||[]).find(d => d.months === 1 && d.ars > 0);
-          const conPrecio = (pk.durations||[]).filter(d => d.ars > 0);
+          const cur = window.__monedaActual();
+          const campo = (cur === 'usd') ? 'usd' : 'ars';
+          const unMes = (pk.durations||[]).find(d => d.months === 1 && d[campo] > 0);
+          const conPrecio = (pk.durations||[]).filter(d => d[campo] > 0);
           // El pack Amigo ya tiene precio especial: NO se le aplica descuento encima.
           const precioDe = (m)=> esAmigo ? m : window.__conDescuento(m);
+          const simbolo = (v)=> (cur === 'usd') ? ('US$ ' + v) : ('$ ' + Number(v).toLocaleString('es-AR'));
           if(unMes){
             const masBarato = conPrecio.length
-              ? conPrecio.reduce((a,b) => (b.ars/b.months < a.ars/a.months ? b : a))
+              ? conPrecio.reduce((a,b) => (b[campo]/b.months < a[campo]/a.months ? b : a))
               : null;
-            const hayDescuento = masBarato && (masBarato.ars/masBarato.months) < unMes.ars;
-            desde = `<span class="plan-permonth">$ ${Number(precioDe(unMes.ars)).toLocaleString('es-AR')}/mes</span>`
+            const hayDescuento = masBarato && (masBarato[campo]/masBarato.months) < unMes[campo];
+            desde = `<span class="plan-permonth">${simbolo(precioDe(unMes[campo]))}/mes</span>`
                   + (hayDescuento ? `<span class="plan-hint">(menos si pagás 6 o 12 meses)</span>` : '');
           } else if(conPrecio.length){
-            const min = conPrecio.reduce((a,b)=> (b.ars/b.months < a.ars/a.months ? b : a));
-            desde = `<span class="plan-permonth">desde $ ${Math.round(precioDe(min.ars)/min.months).toLocaleString('es-AR')}/mes</span>`;
+            const min = conPrecio.reduce((a,b)=> (b[campo]/b.months < a[campo]/a.months ? b : a));
+            desde = `<span class="plan-permonth">desde ${simbolo(Math.round(precioDe(min[campo])/min.months))}/mes</span>`;
           }
         }
         const descHtml = pk.desc ? `<span class="plan-desc">${pk.desc}</span>` : '';
@@ -16523,7 +16591,7 @@ try{
       const precioDe = (m)=> esAmigo ? m : window.__conDescuento(m);
       const fmtP = (dur)=>{
         if(!esAmigo && window.__fmtPrice) return window.__fmtPrice(dur);
-        const cur = (window.__PAY.currency === 'usd') ? 'usd' : 'ars';
+        const cur = window.__monedaActual();
         if(cur === 'usd') return 'US$ ' + (dur.usd||0);
         return '$ ' + Number(dur.ars||0).toLocaleString('es-AR');
       };
