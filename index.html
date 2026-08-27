@@ -4274,7 +4274,7 @@ body.editor-active #screen-editor{ display:block; }
   <!-- ===== SECCIÓN: GUÍA ===== -->
   <div class="section-content active" id="section-guide">
     <h2 class="guide-title">📖 Cómo funciona Benchone</h2>
-    <p class="guide-sub">Seis herramientas que trabajan juntas. Lo que cargás en una, aparece en las otras: el plantel, los partidos, los minutos, los entrenamientos y los videos, todo conectado.</p>
+    <p class="guide-sub">Seis herramientas que trabajan juntas. Lo que cargás en una, aparece en las otras: el plantel, los partidos, los minutos, los entrenamientos y los videos, todo conectado. Y todo lo que armás lo podés bajar en PDF, Excel o imagen para compartir.</p>
 
     <!-- DIAGRAMA DE RED: todo conectado (versión escritorio + versión móvil) -->
     <div class="guide-diagram">
@@ -4398,7 +4398,7 @@ body.editor-active #screen-editor{ display:block; }
 
       <div class="guide-card">
         <div class="gcard-head"><span>📊</span><h3>Estadísticas</h3></div>
-        <p>Plantel, partidos, convocatorias, minutaje, <b>presentismo</b> y la ficha de cada jugador. Cargás cada partido con sus goleadores, asistencias y tarjetas, y podés anotar cómo fue cada gol: ataque posicional, transición, robo alto, estrategia, 5 vs 4. Podés <b>subir jugadores de otra categoría</b> para un partido puntual. Todo se suma al acumulado del año.</p>
+        <p>Plantel, partidos, convocatorias, minutaje, <b>presentismo</b> y la ficha de cada jugador. Cargás cada partido con sus goleadores, asistencias y tarjetas, y podés anotar cómo fue cada gol: ataque posicional, transición, robo alto, estrategia, 5 vs 4. Podés <b>subir jugadores de otra categoría</b> para un partido puntual, y <b>organizar los partidos por torneo</b> para ver las estadísticas de cada competencia por separado. Todo se suma al acumulado del año.</p>
         <div class="gcard-ex"><b>💡 Ejemplo:</b> cargás la fecha contra River: dos goles de tu pivot, uno de transición y otro de córner. A fin de mes ves que la mitad de tus goles salen de pelota parada, y decidís entrenar más ataque posicional.</div>
       </div>
 
@@ -4422,8 +4422,8 @@ body.editor-active #screen-editor{ display:block; }
 
       <div class="guide-card">
         <div class="gcard-head"><span>🔴</span><h3>En Vivo</h3></div>
-        <p>Llevás el partido desde el celular: minutos por jugador, goles, remates, faltas y cambios.</p>
-        <div class="gcard-ex"><b>💡 Ejemplo:</b> en pleno partido tocás la carita del jugador que entra y la del que sale. Al final tenés los minutos exactos de cada uno, sin anotar nada en papel.</div>
+        <p>Llevás el partido desde el celular: minutos por jugador, goles, remates, faltas, <b>recuperaciones (robos)</b> y cambios. Al terminar, generás un <b>resumen listo para mandar al grupo de WhatsApp</b>.</p>
+        <div class="gcard-ex"><b>💡 Ejemplo:</b> en pleno partido tocás la carita del jugador que entra y la del que sale. Al final tenés los minutos exactos de cada uno, sin anotar nada en papel, y mandás el resumen al grupo con un toque.</div>
       </div>
 
     </div>
@@ -4435,12 +4435,40 @@ body.editor-active #screen-editor{ display:block; }
         <li><span class="gl-ico">👥</span><div><b>El Plantel es la base.</b> Los jugadores que cargás ahí aparecen en convocatorias, En Vivo, goleadores y fichas.</div></li>
         <li><span class="gl-ico">⚽</span><div><b>Los Partidos son el corazón de las estadísticas.</b> Cada gol que cargás con su goleador suma en la ficha de ese jugador, en la tabla de goleadores y en el acumulado anual.</div></li>
         <li><span class="gl-ico">🎯</span><div><b>El origen de cada gol arma tu diagnóstico.</b> Si anotás cómo llegó cada gol (transición, córner, robo alto), la app te muestra de dónde vive tu equipo y por dónde te lastiman.</div></li>
+        <li><span class="gl-ico">🏆</span><div><b>Los torneos separan tus estadísticas.</b> Asignás cada partido a un torneo y después, en Estadísticas, elegís ver una competencia sola (goleadores, resultados, cómo convertís) o todo el año junto.</div></li>
         <li><span class="gl-ico">⏱</span><div><b>En Vivo alimenta Estadísticas.</b> Los minutos y goles del partido caen solos, no los cargás dos veces.</div></li>
         <li><span class="gl-ico">🚦</span><div><b>Las convocatorias alimentan el Semáforo.</b> Si marcás una ausencia por lesión, el Semáforo no lo cuenta como decisión técnica.</div></li>
         <li><span class="gl-ico">📸</span><div><b>La foto que cargás una vez</b> se ve en el plantel, en la ficha y en la cancha de En Vivo.</div></li>
         <li><span class="gl-ico">🔗</span><div><b>La Planificación se conecta con la Pizarra.</b> Cada ejercicio de tu semana puede tener vinculado el entrenamiento que dibujaste o un video de tu biblioteca, para mostrarlo en un clic.</div></li>
-        <li><span class="gl-ico">🏷️</span><div><b>Todo se guarda por categoría.</b></div></li>
+        <li><span class="gl-ico">🏷️</span><div><b>Todo se guarda por categoría</b>, y podés <b>ponerle tu propio nombre a cada una</b> (por ejemplo, llamar "Primera" a la 1era o usar el año de nacimiento).</div></li>
       </ul>
+    </div>
+
+    <!-- Torneos -->
+    <div class="guide-links">
+      <div class="gl-title">🏆 Organizá tus partidos por torneo</div>
+      <ul>
+        <li><span class="gl-ico">➕</span><div><b>Creás los torneos una vez.</b> En Estadísticas → Partidos, con el botón <b>🏆 Crear torneo</b> armás tus competencias: la Liga, la Copa, un amistoso, lo que juegues.</div></li>
+        <li><span class="gl-ico">📌</span><div><b>Asignás cada partido.</b> Al abrir un partido, elegís a qué torneo pertenece desde el selector 🏆. En la lista, los partidos se agrupan y separan por torneo.</div></li>
+        <li><span class="gl-ico">🔎</span><div><b>Filtrás las estadísticas.</b> En Estadísticas elegís "Todas las competencias" para ver el año completo, o un torneo puntual para ver solo esos números: goleadores, resultados, goles a favor y en contra, todo recalculado para esa competencia.</div></li>
+      </ul>
+      <div class="guide-growth">
+        <p>💡 Sirve para saber, por ejemplo, que en la Liga tu equipo mete goles de pelota parada pero en la Copa depende del contragolpe. Cada competencia tiene su propia historia.</p>
+      </div>
+    </div>
+
+    <!-- Exportar -->
+    <div class="guide-links">
+      <div class="gl-title">⬇ Bajá y compartí todo</div>
+      <ul>
+        <li><span class="gl-ico">📄</span><div><b>PDF.</b> Casi todas las secciones tienen su botón de PDF: la planificación de la semana, el minutaje de un partido, las estadísticas (con o sin gráficos), el scouting, la pizarra y las fichas de los jugadores.</div></li>
+        <li><span class="gl-ico">📊</span><div><b>Excel.</b> Las estadísticas, los minutos de En Vivo y el resumen de minutaje anual los bajás en planilla para trabajarlos aparte.</div></li>
+        <li><span class="gl-ico">🖼</span><div><b>Imagen.</b> La planificación semanal y el minutaje también los guardás como imagen, listos para mandar por WhatsApp.</div></li>
+        <li><span class="gl-ico">💬</span><div><b>Resumen del partido.</b> Desde En Vivo generás un texto armado del partido para copiar y pegar en el grupo del equipo, o compartir directo por WhatsApp.</div></li>
+      </ul>
+      <div class="guide-growth">
+        <p>💡 Todo funciona sin conexión una vez que abriste la app: los archivos se arman en tu propio teléfono.</p>
+      </div>
     </div>
 
     <div class="guide-tip">
