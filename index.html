@@ -686,6 +686,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 }
 .back-to-list-btn:hover{background:#ff473a;}
 .back-to-list-btn:active{transform:scale(0.97);}
+.wk-detail-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px;}
+.wk-detail-topbar .back-to-list-btn{margin-bottom:0;}
+.wk-export-btns{display:flex;gap:8px;}
+.wk-export-btns .btn{background:rgba(47,143,203,0.14);border:1px solid var(--accent-2);color:var(--accent-2);font-weight:600;}
+.wk-export-btns .btn:hover{background:rgba(47,143,203,0.26);}
+.btn.wk-exp{background:rgba(47,143,203,0.14);border:1px solid var(--accent-2);color:var(--accent-2);font-weight:600;}
+.btn.wk-exp:hover{background:rgba(47,143,203,0.26);}
 
 /* Ficha detalle */
 .rival-detail-head{margin:16px 0 20px;}
@@ -1046,7 +1053,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .bench-empty{color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;padding:10px;}
 
 .live-totals-wrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;}
-.live-totals-head,.live-total-row{display:grid;grid-template-columns:1fr 58px 58px 64px 34px 34px 34px 34px 34px;gap:6px;align-items:center;}
+.live-totals-head,.live-total-row{display:grid;grid-template-columns:1fr 58px 58px 64px 34px 34px 34px 34px 34px;gap:6px;align-items:center;min-width:460px;}
 .live-partial{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:6px;}
 .lp-player{background:var(--bg-2,#10161C);border:1px solid var(--line);border-radius:10px;padding:12px 14px;}
 .lp-name{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;color:var(--chalk,#dfe8f0);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--line);}
@@ -1062,6 +1069,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .live-totals-head{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line);}
 .live-totals-head span:not(:first-child),.live-total-row span:not(:first-child){text-align:center;font-family:'JetBrains Mono',monospace;}
 .live-totals{margin-top:6px;}
+.live-totals-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .live-total-row{padding:8px 10px;border-bottom:1px solid rgba(51,73,94,0.4);font-size:13px;}
 /* Minutaje manual (editable) */
 .mm-manual-head,.mm-manual-row{display:grid;grid-template-columns:1fr 72px 72px 60px;gap:8px;align-items:center;}
@@ -3792,7 +3800,13 @@ body.editor-active #screen-editor{ display:block; }
 
     <!-- Vista FICHA de una semana -->
     <div id="trainDetail" style="display:none;">
-      <button class="back-to-list-btn" id="backToWeeksBtn">← Volver a todas las semanas</button>
+      <div class="wk-detail-topbar">
+        <button class="back-to-list-btn" id="backToWeeksBtn">← Volver a todas las semanas</button>
+        <div class="wk-export-btns">
+          <button class="btn small" id="exportWeekPngBtn" title="Guardar la semana como imagen">🖼 Imagen</button>
+          <button class="btn small" id="exportWeekPdfBtn" title="Guardar la semana como PDF">📄 PDF</button>
+        </div>
+      </div>
 
       <div class="rival-detail-head">
         <div class="rd-fecha-badge" id="wkBadge">Semana</div>
@@ -4203,10 +4217,12 @@ body.editor-active #screen-editor{ display:block; }
 
       <div class="live-totals-wrap">
         <div class="rd-card-head"><h3 data-i18n="liveMinBy">Minutos y acciones por jugador</h3><button class="btn small export-btn print-hide" id="livePartialBtn">📊 Entradas parciales</button></div>
-        <div class="live-totals-head">
-          <span data-i18n="livePlayer">Jugador</span><span data-i18n="liveT1">1er T</span><span data-i18n="liveT2">2do T</span><span data-i18n="liveTotal">Total</span><span title="Goles">⚽</span><span title="Remates">🎯</span><span title="Faltas">⚠️</span><span title="Tarjetas">🟨</span><span title="Recuperaciones">⚔️</span>
+        <div class="live-totals-scroll">
+          <div class="live-totals-head">
+            <span data-i18n="livePlayer">Jugador</span><span data-i18n="liveT1">1er T</span><span data-i18n="liveT2">2do T</span><span data-i18n="liveTotal">Total</span><span title="Goles">⚽</span><span title="Remates">🎯</span><span title="Faltas">⚠️</span><span title="Tarjetas">🟨</span><span title="Recuperaciones">⚔️</span>
+          </div>
+          <div class="live-totals" id="liveTotals"></div>
         </div>
-        <div class="live-totals" id="liveTotals"></div>
       </div>
 
       <div class="live-totals-wrap" id="livePartialWrap" style="display:none;">
@@ -9917,7 +9933,7 @@ window.__initEditor = function(){
   }
   let weeks = [ makeWeek(semanaActualDelAnio()) ];
   let currentWeekId = null;
-  let clubId = null;
+  /* clubId ya está declarado más arriba en este mismo scope */
   const saveTimers = {};
 
   const listView = document.getElementById('trainList');
@@ -10123,6 +10139,145 @@ window.__initEditor = function(){
     });
     renderCuartetos();
   }
+
+  // ═══════════ EXPORTAR LA SEMANA (Lun-Vie) ═══════════
+  const DIAS_HABILES = ['lunes','martes','miercoles','jueves','viernes'];
+  const DIAS_HABILES_LARGO = { lunes:'Lunes', martes:'Martes', miercoles:'Miércoles', jueves:'Jueves', viernes:'Viernes' };
+  const TAC_LABEL = { ataque:'Ataque', defensa:'Defensa', abp:'ABP', '5v4':'5 vs 4', '4v5':'4 vs 5' };
+
+  // Arma un nodo HTML con la semana completa (solo Lun-Vie), listo para foto/PDF.
+  function construirExportSemana(w){
+    const c = w.content || {};
+    const club = window.__clubNombre || '';
+    const cat = (window.__getActiveCategory && window.__catLabel) ? window.__catLabel(window.__getActiveCategory()) : ((window.__getActiveCategory && window.__getActiveCategory()) || '');
+    const fmtF = (f) => { if(!f) return ''; try{ return new Date(f+'T00:00:00').toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'}); }catch(e){ return f; } };
+    const rango = (c.from || w.from || c.to || w.to) ? ((fmtF(w.from||c.from)) + (w.to||c.to ? ' al ' + fmtF(w.to||c.to) : '')) : '';
+    // Tácticos marcados
+    const tac = c.tacticos || {};
+    const tacMarcados = Object.keys(TAC_LABEL).filter(k => tac[k]);
+    // Intensidad por día
+    const inten = c.intensidad || {};
+    const intenColor = { suave:'#4CAF6D', medio:'#E0A93B', fuerte:'#E5342A' };
+
+    const cont = document.createElement('div');
+    cont.id = 'weekExportSheet';
+    cont.style.cssText = 'position:fixed;left:-9999px;top:0;width:1100px;background:#10161C;color:#F2F6F8;font-family:Inter,system-ui,sans-serif;padding:44px;box-sizing:border-box;';
+
+    // Encabezado
+    let filasEj = '';
+    (c.ejercicios||[]).forEach((ex, i) => {
+      let celdas = '';
+      DIAS_HABILES.forEach(dia => {
+        const txt = (ex.dias && ex.dias[dia]) ? ex.dias[dia] : '';
+        celdas += '<td style="border:1px solid #33495E;padding:10px 12px;font-size:16px;vertical-align:top;color:#dfe8f0;">'+(txt?escapeHtml(txt).replace(/\n/g,'<br>'):'<span style="color:#5c7186;">—</span>')+'</td>';
+      });
+      filasEj += '<tr><td style="border:1px solid #33495E;padding:10px 12px;font-size:16px;font-weight:600;background:#1B2C3D;color:#F2F6F8;font-family:Oswald,sans-serif;">'+escapeHtml(ex.nombre||('Ejercicio '+(i+1)))+'</td>'+celdas+'</tr>';
+    });
+    if(!filasEj) filasEj = '<tr><td colspan="6" style="border:1px solid #33495E;padding:16px;text-align:center;color:#5c7186;">Sin ejercicios cargados.</td></tr>';
+
+    let thDias = '';
+    DIAS_HABILES.forEach(dia => {
+      const iv = inten[dia];
+      const punto = iv ? '<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:'+intenColor[iv]+';margin-left:6px;vertical-align:middle;"></span>' : '';
+      thDias += '<th style="border:1px solid #33495E;padding:10px 12px;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;background:#1B2C3D;color:#8CA2B3;font-family:JetBrains Mono,monospace;">'+DIAS_HABILES_LARGO[dia]+punto+'</th>';
+    });
+
+    cont.innerHTML =
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:26px;padding-bottom:20px;border-bottom:2px solid #33495E;">'
+      + '<div>'
+      + '<div style="font-family:Oswald,sans-serif;font-size:38px;font-weight:700;letter-spacing:0.5px;">'+escapeHtml(w.name || 'Planificación semanal')+'</div>'
+      + '<div style="font-size:17px;color:#8CA2B3;margin-top:6px;">'+[escapeHtml(club), cat?('Categoría '+escapeHtml(cat)):'', rango].filter(Boolean).join('  ·  ')+'</div>'
+      + '</div>'
+      + '<div style="text-align:right;font-family:Oswald,sans-serif;font-size:20px;font-weight:600;color:#2F8FCB;letter-spacing:1px;">BENCHONE<span style="color:#E5342A;">·</span></div>'
+      + '</div>'
+      // Objetivo + rival
+      + (c.objetivo ? '<div style="margin-bottom:16px;"><div style="font-family:JetBrains Mono,monospace;font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#2F8FCB;margin-bottom:5px;">🎯 Objetivo de la semana</div><div style="font-size:17px;line-height:1.5;color:#dfe8f0;">'+escapeHtml(c.objetivo).replace(/\n/g,'<br>')+'</div></div>' : '')
+      + (c.puntos ? '<div style="margin-bottom:16px;"><div style="font-family:JetBrains Mono,monospace;font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#E5342A;margin-bottom:5px;">⚔️ Puntos fuertes del rival</div><div style="font-size:17px;line-height:1.5;color:#dfe8f0;">'+escapeHtml(c.puntos).replace(/\n/g,'<br>')+'</div></div>' : '')
+      // Tácticos
+      + (tacMarcados.length ? '<div style="margin-bottom:22px;"><div style="font-family:JetBrains Mono,monospace;font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#8CA2B3;margin-bottom:8px;">Aspectos tácticos trabajados</div><div>'+tacMarcados.map(k=>'<span style="display:inline-block;background:rgba(47,143,203,0.16);border:1px solid #2F8FCB;color:#2F8FCB;border-radius:999px;padding:6px 16px;font-size:15px;font-weight:600;margin:0 8px 8px 0;">'+TAC_LABEL[k]+'</span>').join('')+'</div></div>' : '')
+      // Tabla ejercicios Lun-Vie
+      + '<table style="width:100%;border-collapse:collapse;margin-top:6px;">'
+      + '<thead><tr><th style="border:1px solid #33495E;padding:10px 12px;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;background:#1B2C3D;color:#8CA2B3;font-family:JetBrains Mono,monospace;text-align:left;width:190px;">Ejercicio</th>'+thDias+'</tr></thead>'
+      + '<tbody>'+filasEj+'</tbody></table>'
+      // Leyenda de intensidad (si hay alguna cargada)
+      + (Object.keys(inten).some(d=>DIAS_HABILES.includes(d)&&inten[d]) ? '<div style="margin-top:16px;display:flex;gap:20px;align-items:center;font-size:13px;color:#8CA2B3;font-family:JetBrains Mono,monospace;"><span>Intensidad:</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#4CAF6D;margin-right:5px;"></span>Suave</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#E0A93B;margin-right:5px;"></span>Medio</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#E5342A;margin-right:5px;"></span>Fuerte</span></div>' : '')
+      + '<div style="margin-top:26px;text-align:center;font-family:JetBrains Mono,monospace;font-size:13px;color:#5c7186;letter-spacing:1px;">Generado con Benchone · benchone.app</div>';
+
+    return cont;
+  }
+
+  // Carga html2canvas bajo demanda (solo al exportar imagen).
+  const LIB_H2C = {
+    check: () => typeof window.html2canvas !== 'undefined',
+    urls: [
+      'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+      'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js',
+      'https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js'
+    ]
+  };
+  async function asegurarH2C(){
+    if(typeof loadWithFallback === 'function') return loadWithFallback(LIB_H2C);
+    if(LIB_H2C.check()) return true;
+    for(const url of LIB_H2C.urls){ try{ await loadScript(url, 8000); if(LIB_H2C.check()) return true; }catch(e){} }
+    return false;
+  }
+
+  function nombreArchivoSemana(w){
+    const base = (w.name || 'Semana').replace(/[^\wÀ-ÿ ]/g,'').trim().replace(/\s+/g,'-');
+    return 'Planificacion-' + (base || 'Semana');
+  }
+
+  // ─── Helpers genéricos de export (sirven para semana, minutaje, resumen…) ───
+  function limpiarNombreArchivo(txt, prefijo){
+    const base = String(txt||'').replace(/[^\wÀ-ÿ ]/g,'').trim().replace(/\s+/g,'-');
+    return (prefijo||'') + (base || 'Benchone');
+  }
+
+  // Exporta cualquier nodo HTML como IMAGEN (PNG).
+  async function exportarNodoPNG(nodo, nombreArchivo){
+    toast('Generando imagen…');
+    const ok = await asegurarH2C();
+    if(!ok){ toast('No se pudo cargar el generador de imágenes. Revisá tu conexión.'); return; }
+    document.body.appendChild(nodo);
+    try{
+      const canvas = await window.html2canvas(nodo, { backgroundColor:'#10161C', scale:2, logging:false, useCORS:true });
+      const url = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = url; a.download = nombreArchivo + '.png';
+      document.body.appendChild(a); a.click(); a.remove();
+      toast('Imagen lista ✓');
+    }catch(e){ console.error('export png', e); toast('No se pudo generar la imagen'); }
+    finally{ nodo.remove(); }
+  }
+
+  // Exporta cualquier nodo HTML como PDF (diálogo de impresión → "Guardar como PDF").
+  function exportarNodoPDF(nodo, nombreArchivo, landscape){
+    const vent = window.open('', '_blank');
+    if(!vent){ toast('Permití las ventanas emergentes para exportar el PDF'); return; }
+    const orient = landscape ? 'landscape' : 'portrait';
+    vent.document.write('<!DOCTYPE html><html><head><meta charset="utf8"><title>'+escapeHtml(nombreArchivo)+'</title>'
+      + '<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">'
+      + '<style>@page{size:'+orient+';margin:12mm;} body{margin:0;background:#10161C;}</style></head><body>'
+      + nodo.outerHTML.replace('position:fixed;left:-9999px;top:0;', '')
+      + '</body></html>');
+    vent.document.close();
+    setTimeout(() => { try{ vent.focus(); vent.print(); }catch(e){ console.error(e); } }, 600);
+    toast('Se abrirá el diálogo de impresión. Elegí "Guardar como PDF".');
+  }
+
+  // Exportar la SEMANA como imagen / PDF
+  async function exportarSemanaPNG(){
+    const w = currentWeek(); if(!w){ toast('Abrí una semana primero'); return; }
+    await exportarNodoPNG(construirExportSemana(w), nombreArchivoSemana(w));
+  }
+  function exportarSemanaPDF(){
+    const w = currentWeek(); if(!w){ toast('Abrí una semana primero'); return; }
+    exportarNodoPDF(construirExportSemana(w), nombreArchivoSemana(w), true);
+  }
+
+  document.getElementById('exportWeekPngBtn') && document.getElementById('exportWeekPngBtn').addEventListener('click', exportarSemanaPNG);
+  document.getElementById('exportWeekPdfBtn') && document.getElementById('exportWeekPdfBtn').addEventListener('click', exportarSemanaPDF);
+
 
   // Abre el selector para vincular un ejercicio con un entrenamiento de pizarra o un video.
   async function abrirSelectorVinculo(ex){
@@ -10558,7 +10713,7 @@ window.__initEditor = function(){
     { name:'5 vs 4', subs:[] },
     { name:'4 vs 5', subs:[] }
   ];
-  let clubId = null;
+  /* clubId ya está declarado más arriba en este mismo scope */
   let squad = [];        // jugadores de la categoría (solo activos)
   let squadArchivados = [];  // jugadores archivados de la categoría
   let origins = [];      // formas de origen de gol (con subs)
@@ -12397,7 +12552,7 @@ window.__initEditor = function(){
     const cont = document.getElementById('minutesMetrics');
     if(!cont) return;
     const fmt = (typeof fmtMin === 'function') ? fmtMin : (s=> Math.round((s||0)/60)+"'");
-    let totalSeg=0, goles=0, remates=0;
+    let totalSeg=0, goles=0, remates=0, recuperaciones=0;
     const jugadores = new Set();
     (sessions||[]).forEach(s=>{
       const totals = s.totals || {};
@@ -12407,19 +12562,23 @@ window.__initEditor = function(){
         totalSeg += (j.total||0);
         goles += (j.goals||0);
         remates += (j.shots||0);
+        recuperaciones += (j.recup||0);
       });
     });
     const nPart = (sessions||[]).length;
     const card = (num, lbl, color, bg)=>'<div style="background:'+bg+';border:1px solid '+color+';border-radius:14px;padding:14px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;aspect-ratio:1/1;">'
       + '<div style="font-family:\'Oswald\',sans-serif;font-size:23px;color:'+color+';line-height:1.1;font-weight:700;">'+num+'</div>'
       + '<div style="font-size:10px;color:var(--chalk,#dfe8f0);margin-top:5px;text-transform:uppercase;letter-spacing:.4px;opacity:.85;">'+lbl+'</div></div>';
-    if(nPart===0){ cont.innerHTML=''; return; }
-    cont.innerHTML = '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px;max-width:560px;">'
+    if(nPart===0){ cont.innerHTML=''; window.__minMetrics=null; return; }
+    // Guardo las métricas por si otra vista las reusa
+    window.__minMetrics = { nPart, minutos:fmt(totalSeg), jugadores:jugadores.size, goles, remates, recuperaciones };
+    cont.innerHTML = '<div id="minMetricsCards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;max-width:560px;">'
       + card(nPart, 'partidos', '#2F8FCB', 'rgba(47,143,203,0.10)')
       + card(fmt(totalSeg), 'minutos', '#4CAF6D', 'rgba(76,175,109,0.10)')
       + card(jugadores.size, 'jugadores', '#E0A93B', 'rgba(224,169,59,0.10)')
       + card(goles, 'goles', '#E5342A', 'rgba(229,52,42,0.10)')
       + card(remates, 'remates', '#9B7EDE', 'rgba(155,126,222,0.10)')
+      + card(recuperaciones, '⚔️ recup.', '#2F8FCB', 'rgba(47,143,203,0.10)')
       + '</div>';
   }
 
@@ -12570,6 +12729,47 @@ window.__initEditor = function(){
     window.__minKeepTab = false;
   }
 
+  // Arma un nodo con SOLO la tabla de minutaje por jugador de un partido (para exportar).
+  function construirExportMinutaje(s){
+    const totals = s.totals || {};
+    const rows = Object.keys(totals).filter(k=>k!=='__rival'&&k!=='__manual').map(name=>({name, ...totals[name]})).sort((a,b)=>(b.total||0)-(a.total||0));
+    const cont = document.createElement('div');
+    cont.id = 'minsExportSheet';
+    cont.style.cssText = 'position:fixed;left:-9999px;top:0;width:900px;background:#10161C;color:#F2F6F8;font-family:Inter,system-ui,sans-serif;padding:40px;box-sizing:border-box;';
+    const cat = (window.__getActiveCategory && window.__catLabel) ? window.__catLabel(window.__getActiveCategory()) : '';
+    const club = window.__clubNombre || '';
+    let filas = '';
+    if(rows.length === 0){
+      filas = '<tr><td colspan="9" style="border:1px solid #33495E;padding:16px;text-align:center;color:#5c7186;">Sin datos de minutos.</td></tr>';
+    } else {
+      rows.forEach(r => {
+        filas += '<tr>'
+          + '<td style="border:1px solid #33495E;padding:9px 12px;font-size:15px;font-weight:600;font-family:Oswald,sans-serif;background:#1B2C3D;">'+escapeHtml(r.name)+'</td>'
+          + '<td style="border:1px solid #33495E;padding:9px 6px;text-align:center;font-family:JetBrains Mono,monospace;font-size:14px;color:#8CA2B3;">'+fmtMin(r.t1)+'</td>'
+          + '<td style="border:1px solid #33495E;padding:9px 6px;text-align:center;font-family:JetBrains Mono,monospace;font-size:14px;color:#8CA2B3;">'+fmtMin(r.t2)+'</td>'
+          + '<td style="border:1px solid #33495E;padding:9px 6px;text-align:center;font-family:JetBrains Mono,monospace;font-size:15px;font-weight:700;color:#4CAF6D;">'+fmtMin(r.total)+'</td>'
+          + '<td style="border:1px solid #33495E;padding:9px 6px;text-align:center;font-family:JetBrains Mono,monospace;font-size:15px;">'+(r.goals||0)+'</td>'
+          + '<td style="border:1px solid #33495E;padding:9px 6px;text-align:center;font-family:JetBrains Mono,monospace;font-size:15px;">'+(r.shots||0)+'</td>'
+          + '<td style="border:1px solid #33495E;padding:9px 6px;text-align:center;font-family:JetBrains Mono,monospace;font-size:15px;">'+(r.fouls||0)+'</td>'
+          + '<td style="border:1px solid #33495E;padding:9px 6px;text-align:center;font-family:JetBrains Mono,monospace;font-size:15px;">'+(r.cards||0)+'</td>'
+          + '<td style="border:1px solid #33495E;padding:9px 6px;text-align:center;font-family:JetBrains Mono,monospace;font-size:15px;color:#2F8FCB;">'+(r.recup||0)+'</td>'
+          + '</tr>';
+      });
+    }
+    const thStyle = 'border:1px solid #33495E;padding:9px 6px;text-align:center;font-size:13px;background:#1B2C3D;color:#8CA2B3;font-family:JetBrains Mono,monospace;';
+    cont.innerHTML =
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;padding-bottom:18px;border-bottom:2px solid #33495E;">'
+      + '<div><div style="font-family:Oswald,sans-serif;font-size:32px;font-weight:700;">'+escapeHtml(s.name || 'Partido')+'</div>'
+      + '<div style="font-size:15px;color:#8CA2B3;margin-top:5px;">Minutaje por jugador'+[club?('  ·  '+escapeHtml(club)):'', cat?('  ·  Categoría '+escapeHtml(cat)):''].join('')+'</div></div>'
+      + '<div style="text-align:right;font-family:Oswald,sans-serif;font-size:18px;font-weight:600;color:#2F8FCB;letter-spacing:1px;">BENCHONE<span style="color:#E5342A;">·</span></div>'
+      + '</div>'
+      + '<table style="width:100%;border-collapse:collapse;">'
+      + '<thead><tr><th style="'+thStyle+'text-align:left;width:200px;">Jugador</th><th style="'+thStyle+'">1er T</th><th style="'+thStyle+'">2do T</th><th style="'+thStyle+'">Total</th><th style="'+thStyle+'">⚽</th><th style="'+thStyle+'">🎯</th><th style="'+thStyle+'">⚠️</th><th style="'+thStyle+'">🟨</th><th style="'+thStyle+'">⚔️</th></tr></thead>'
+      + '<tbody>'+filas+'</tbody></table>'
+      + '<div style="margin-top:22px;text-align:center;font-family:JetBrains Mono,monospace;font-size:12px;color:#5c7186;letter-spacing:1px;">Generado con Benchone · benchone.app</div>';
+    return cont;
+  }
+
   function showMinutesDetail(s){
     try{
     const list=document.getElementById('minutesList');
@@ -12590,6 +12790,8 @@ window.__initEditor = function(){
     let html=`<div class="mins-detail-actions" style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
         <button class="btn small" id="minsBack">← Volver a la lista</button>
         <button class="btn small" id="minsEditRival" data-i18n="minsEditRival">✎ Corregir marcador rival</button>
+        <button class="btn small wk-exp" id="minsExportPng">🖼 Imagen</button>
+        <button class="btn small wk-exp" id="minsExportPdf">📄 PDF</button>
         <button class="btn small danger-outline" id="minsDelete" data-i18n="minsDelete">🗑 Borrar partido</button>
       </div>
       <div class="annual-card" style="margin-bottom:14px;">
@@ -12630,6 +12832,10 @@ window.__initEditor = function(){
       html+='</div></div>';
     }
     detail.innerHTML=html;
+    const btnExpPng = document.getElementById('minsExportPng');
+    if(btnExpPng) btnExpPng.addEventListener('click', ()=> exportarNodoPNG(construirExportMinutaje(s), limpiarNombreArchivo(s.name, 'Minutaje-')));
+    const btnExpPdf = document.getElementById('minsExportPdf');
+    if(btnExpPdf) btnExpPdf.addEventListener('click', ()=> exportarNodoPDF(construirExportMinutaje(s), limpiarNombreArchivo(s.name, 'Minutaje-'), true));
     document.getElementById('minsBack').addEventListener('click',()=>{
       const detail=document.getElementById('minutesDetail'); if(detail) detail.style.display='none';
       const chP=document.getElementById('chartsPartido'); if(chP) chP.style.display='block';
@@ -13764,7 +13970,7 @@ window.__initEditor = function(){
     const el = document.getElementById('annualContent');
     const hayAjuste = (adjustment.scorers||[]).length > 0 || (adjustment.scored||[]).length > 0 || (adjustment.conceded||[]).length > 0;
     const _s = window.__annualShots || {};
-    const hayRemates = (_s.totalFor||0) > 0 || (_s.totalAgainst||0) > 0 || Object.keys(_s.porJugador||{}).length > 0 || Object.keys(_s.golesLive||{}).length > 0 || Object.keys(_s.tarjetasLive||{}).length > 0;
+    const hayRemates = (_s.totalFor||0) > 0 || (_s.totalAgainst||0) > 0 || Object.keys(_s.porJugador||{}).length > 0 || Object.keys(_s.recupPorJugador||{}).length > 0 || Object.keys(_s.golesLive||{}).length > 0 || Object.keys(_s.tarjetasLive||{}).length > 0;
     if(matches.length === 0 && !hayAjuste && !hayRemates){
       el.innerHTML = '<div class="annual-empty">Cargá partidos (o un ajuste manual) para ver las estadísticas anuales.</div>';
       cargarRematesAnuales();   // por si hay remates de En Vivo, recargamos y volvemos a dibujar
@@ -13970,6 +14176,18 @@ window.__initEditor = function(){
             <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:6px;">Remates por jugador</div>
             ${rank}`;
         })()}</div>
+        <div class="annual-card"><h3>⚔️ Recuperaciones</h3>${(function(){
+          const sh = window.__annualShots;
+          if(!sh){ return '<div class="annual-empty" style="padding:16px;">Cargando…</div>'; }
+          const rec = sh.recupPorJugador || {};
+          if(Object.keys(rec).length === 0){ return '<div class="annual-empty" style="padding:16px;">Todavía no cargaste recuperaciones en En Vivo.</div>'; }
+          const total = Object.values(rec).reduce((a,b)=>a+b, 0);
+          return `<div class="record-row" style="margin-bottom:12px;">
+              <span class="rec-item" style="color:var(--accent-2)">${total} <small>en total</small></span>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin-bottom:6px;">Recuperaciones por jugador</div>
+            ${rankHTML(rec)}`;
+        })()}</div>
       </details>
       <div id="momentosGolAnual" style="margin-top:16px;"></div>
     `;
@@ -14026,6 +14244,7 @@ window.__initEditor = function(){
       if(window.__getTemporada) q = q.eq('temporada', window.__getTemporada());
       const { data } = await q;
       let totalFor = 0, totalAgainst = 0; const porJugador = {};
+      const recupPorJugador = {};   // recuperaciones por jugador (de todas las sesiones)
       // Goles y tarjetas de En Vivo, SOLO de sesiones independientes (sin match_id):
       // si la sesión está vinculada a un partido, ese partido ya cuenta en la
       // sección Partidos, así que NO lo sumamos de nuevo (evita duplicar).
@@ -14040,6 +14259,9 @@ window.__initEditor = function(){
           if(name === '__rival' || name === '__manual') return;
           const sh = t[name] && t[name].shots;
           if(sh) porJugador[name] = (porJugador[name]||0) + sh;
+          // Recuperaciones: como los remates, se suman de TODAS las sesiones.
+          const rc = t[name] && t[name].recup;
+          if(rc) recupPorJugador[name] = (recupPorJugador[name]||0) + rc;
         });
         // Goles/tarjetas: solo si la sesión NO está vinculada a un partido.
         if(!s.match_id){
@@ -14052,7 +14274,7 @@ window.__initEditor = function(){
           });
         }
       });
-      const nueva = { totalFor, totalAgainst, porJugador, golesLive, tarjetasLive };
+      const nueva = { totalFor, totalAgainst, porJugador, recupPorJugador, golesLive, tarjetasLive };
       const firma = cat + '|' + JSON.stringify(nueva);
       if(window.__annualShotsSig === firma) return;   // sin cambios: no redibujar
       window.__annualShotsSig = firma;
