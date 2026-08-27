@@ -1527,6 +1527,27 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .match-table thead th{font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);font-weight:500;}
 .match-table th.mt-num{width:92px;}
 .match-table th.mt-comp-h{width:130px;}
+/* Título de grupo por torneo (cuando hay 2+ torneos distintos) */
+.torneo-group-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:22px 0 8px;padding-bottom:6px;border-bottom:2px solid var(--line);}
+.torneo-group-title:first-child{margin-top:4px;}
+.tgt-tag{font-family:'Oswald',sans-serif;font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent-2);}
+.tgt-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+/* Botones del header de Partidos */
+.match-head-btns{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+/* Gestor de torneos (modal) */
+.torneo-new-row{display:flex;gap:8px;margin-bottom:14px;}
+.torneo-new-row input{flex:1;background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--chalk);font-family:'Inter',sans-serif;font-size:14px;padding:9px 12px;}
+.torneo-new-row input:focus{outline:none;border-color:var(--accent-2);}
+.torneo-list{display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto;}
+.torneo-item{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:9px 12px;}
+.torneo-item-name{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;color:var(--chalk);text-transform:uppercase;letter-spacing:0.3px;}
+.torneo-del{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:2px 6px;border-radius:6px;}
+.torneo-del:hover{color:var(--accent);background:rgba(229,52,42,0.1);}
+/* Selector de torneo dentro del detalle del partido */
+.mt-torneo-sel-detail{background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--accent-2);font-family:'Inter',sans-serif;font-size:13px;padding:6px 10px;cursor:pointer;min-width:160px;}
+.mt-torneo-sel-detail:focus{outline:none;border-color:var(--accent-2);}
+.mt-torneo-sel-detail option{background:var(--panel-2);color:var(--chalk);}
+.mt-torneo-sel-detail option.crear{color:var(--success);font-weight:600;}
 /* Barra de filtro por competencia */
 .comp-filter{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
 .comp-filter-lbl{font-family:'Oswald',sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);}
@@ -3498,7 +3519,10 @@ body.editor-active #screen-editor{ display:block; }
             <h2 class="scout-title" data-i18n="stMatchesTitle">Partidos</h2>
             <p class="scout-sub" data-i18n="stMatchesSub">Cargá cada partido con sus goles, asistencias y tarjetas. Se suma solo en las estadísticas anuales.</p>
           </div>
-          <button class="btn primary" id="newMatchBtn" data-i18n="newMatch">+ Nuevo partido</button>
+          <div class="match-head-btns">
+            <button class="btn" id="crearTorneoBtn" title="Crear y administrar torneos">🏆 Crear torneo</button>
+            <button class="btn primary" id="newMatchBtn" data-i18n="newMatch">+ Nuevo partido</button>
+          </div>
         </div>
         <div class="match-list-rows" id="matchListRows"></div>
       </div>
@@ -3510,6 +3534,7 @@ body.editor-active #screen-editor{ display:block; }
         <div class="rival-detail-head">
           <input class="rd-name" id="mtRival" placeholder="Rival">
           <div class="rd-meta-row">
+            <label>🏆 Torneo <select id="mtTorneo" class="mt-torneo-sel-detail" title="Elegí el torneo de este partido"></select></label>
             <label>Fecha del partido <input type="date" id="mtDate"></label>
             <div class="score-box">
               <span class="score-num" id="scoreFor">0</span>
@@ -10901,6 +10926,7 @@ window.__initEditor = function(){
         filtroCompetencia = '';
       }
       sortMatches();
+      await cargarTorneos();   // lista de torneos creados por el DT
 
       renderMatchList(); renderSquad();
       if(typeof renderMomentosGol === 'function') renderMomentosGol();
@@ -11685,6 +11711,12 @@ window.__initEditor = function(){
 
   function renderMatchList(){
     const el = document.getElementById('matchListRows');
+    // Enganchamos el botón "🏆 Crear torneo" (una sola vez).
+    const ctBtn = document.getElementById('crearTorneoBtn');
+    if(ctBtn && !ctBtn.__enganchado){
+      ctBtn.__enganchado = true;
+      ctBtn.addEventListener('click', abrirGestorTorneos);
+    }
     if(matches.length === 0){
       el.innerHTML = '<div class="match-empty">Todavía no cargaste partidos. Tocá "+ Nuevo partido".</div>';
       return;
@@ -11702,65 +11734,212 @@ window.__initEditor = function(){
       el.appendChild(vacio);
       return;
     }
-    const tabla = document.createElement('div');
-    tabla.innerHTML = `
-      <table class="match-table">
-        <thead>
-          <tr>
-            <th class="mt-num">Fecha</th>
-            <th class="mt-rival-h">Rival</th>
-            <th class="mt-comp-h">Competencia</th>
-            <th class="mt-gf">GF</th>
-            <th class="mt-gc">GC</th>
-            <th class="mt-fecha">Fecha del partido</th>
-            <th class="mt-open"></th>
-            <th class="mt-del-h"></th>
-          </tr>
-        </thead>
-        <tbody id="matchTableBody"></tbody>
-      </table>
-    `;
-    el.appendChild(tabla);
-    const body = el.querySelector('#matchTableBody');
-    // datalist con las competencias ya usadas, para autocompletar
-    const comps = competenciasUsadas();
-    const dlId = 'compUsadas';
-    let dl = document.getElementById(dlId);
-    if(!dl){ dl = document.createElement('datalist'); dl.id = dlId; document.body.appendChild(dl); }
-    dl.innerHTML = comps.map(c => `<option value="${escapeHtml(c)}">`).join('');
 
-    lista.forEach((m, idx) => {
-      const s = matchScore(m);
-      const cls = s.f > s.a ? 'win' : (s.f < s.a ? 'loss' : '');
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td class="mt-num"><span class="mt-fecha-badge">Partido ${idx+1}</span></td>
-        <td><input class="mt-rival-in" value="${escapeHtml(m.rival||'')}" placeholder="Escribí el rival"></td>
-        <td><input class="mt-comp-in" list="${dlId}" value="${escapeHtml(m.competencia||'')}" placeholder="Torneo / Copa…"></td>
-        <td class="mt-gf"><span class="${cls==='win'?'win':''}">${s.f}</span></td>
-        <td class="mt-gc"><span class="${cls==='loss'?'loss':''}">${s.a}</span></td>
-        <td><input type="date" class="mt-date-in" value="${escapeHtml(m.date||'')}" title="Tocá para elegir la fecha"></td>
-        <td class="mt-open"><button class="btn small mt-open-btn">Abrir →</button></td>
-        <td class="mt-del"><button class="btn-del-match" title="Borrar partido">✕</button></td>
+    // Agrupamos los partidos por torneo. Si hay 2 o más torneos distintos (contando
+    // "sin torneo"), mostramos cada grupo con su título. Si hay uno solo, tabla directa.
+    const grupos = agruparPorTorneo(lista);
+    const variosTorneos = grupos.length > 1;
+
+    grupos.forEach(gr => {
+      if(variosTorneos){
+        const titulo = document.createElement('div');
+        titulo.className = 'torneo-group-title';
+        const nombre = gr.torneo || 'Sin torneo';
+        titulo.innerHTML = `<span class="tgt-tag">🏆 ${escapeHtml(nombre)}</span><span class="tgt-count">${gr.partidos.length} ${gr.partidos.length===1?'partido':'partidos'}</span>`;
+        el.appendChild(titulo);
+      }
+      const tabla = document.createElement('div');
+      tabla.innerHTML = `
+        <table class="match-table">
+          <thead>
+            <tr>
+              <th class="mt-num">Fecha</th>
+              <th class="mt-rival-h">Rival</th>
+              <th class="mt-gf">GF</th>
+              <th class="mt-gc">GC</th>
+              <th class="mt-fecha">Fecha del partido</th>
+              <th class="mt-open"></th>
+              <th class="mt-del-h"></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
       `;
-      const rivalIn = tr.querySelector('.mt-rival-in');
-      const compIn = tr.querySelector('.mt-comp-in');
-      const dateIn = tr.querySelector('.mt-date-in');
-      // Al hacer clic en cualquier parte del campo, abrir el calendario directamente
-      dateIn.addEventListener('click', () => { try{ dateIn.showPicker(); }catch(e){} });
-      dateIn.addEventListener('focus', () => { try{ dateIn.showPicker(); }catch(e){} });
-      rivalIn.addEventListener('input', e => { m.rival = e.target.value; saveMatchRow(m); });
-      compIn.addEventListener('input', e => { m.competencia = e.target.value; saveMatchRow(m); });
-      // al terminar de editar la competencia refrescamos para actualizar el filtro/datalist
-      compIn.addEventListener('change', e => { m.competencia = e.target.value; saveMatchRow(m); renderMatchList(); });
-      dateIn.addEventListener('change', e => { m.date = e.target.value; saveMatchRow(m); sortMatches(); renderMatchList(); });
-      dateIn.addEventListener('input', e => { m.date = e.target.value; saveMatchRow(m); });
-      tr.querySelector('.mt-open-btn').addEventListener('click', () => openMatch(m.id));
-      tr.querySelector('.btn-del-match').addEventListener('click', () => deleteMatch(m));
-      body.appendChild(tr);
+      el.appendChild(tabla);
+      const body = tabla.querySelector('tbody');
+      gr.partidos.forEach((m, idx) => {
+        body.appendChild(filaPartido(m, idx));
+      });
     });
   }
 
+  // Agrupa una lista de partidos por su torneo (competencia). Devuelve [{torneo, partidos:[]}]
+  // ordenado: primero los torneos con nombre (alfabético), y "sin torneo" al final.
+  function agruparPorTorneo(lista){
+    const mapa = new Map();
+    lista.forEach(m => {
+      const key = (m.competencia || '').trim();
+      if(!mapa.has(key)) mapa.set(key, []);
+      mapa.get(key).push(m);
+    });
+    const claves = [...mapa.keys()];
+    claves.sort((a,b) => {
+      if(a === '' ) return 1;   // sin torneo al final
+      if(b === '' ) return -1;
+      return a.localeCompare(b, 'es', {sensitivity:'base'});
+    });
+    return claves.map(k => ({ torneo: k, partidos: mapa.get(k) }));
+  }
+
+  // Construye la fila <tr> de un partido en la lista. El torneo NO se edita acá:
+  // se elige adentro del partido (botón Abrir →).
+  function filaPartido(m, idx){
+    const s = matchScore(m);
+    const cls = s.f > s.a ? 'win' : (s.f < s.a ? 'loss' : '');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="mt-num"><span class="mt-fecha-badge">Partido ${idx+1}</span></td>
+      <td><input class="mt-rival-in" value="${escapeHtml(m.rival||'')}" placeholder="Escribí el rival"></td>
+      <td class="mt-gf"><span class="${cls==='win'?'win':''}">${s.f}</span></td>
+      <td class="mt-gc"><span class="${cls==='loss'?'loss':''}">${s.a}</span></td>
+      <td><input type="date" class="mt-date-in" value="${escapeHtml(m.date||'')}" title="Tocá para elegir la fecha"></td>
+      <td class="mt-open"><button class="btn small mt-open-btn">Abrir →</button></td>
+      <td class="mt-del"><button class="btn-del-match" title="Borrar partido">✕</button></td>
+    `;
+    const rivalIn = tr.querySelector('.mt-rival-in');
+    const dateIn = tr.querySelector('.mt-date-in');
+    dateIn.addEventListener('click', () => { try{ dateIn.showPicker(); }catch(e){} });
+    dateIn.addEventListener('focus', () => { try{ dateIn.showPicker(); }catch(e){} });
+    rivalIn.addEventListener('input', e => { m.rival = e.target.value; saveMatchRow(m); });
+    dateIn.addEventListener('change', e => { m.date = e.target.value; saveMatchRow(m); sortMatches(); renderMatchList(); });
+    dateIn.addEventListener('input', e => { m.date = e.target.value; saveMatchRow(m); });
+    tr.querySelector('.mt-open-btn').addEventListener('click', () => openMatch(m.id));
+    tr.querySelector('.btn-del-match').addEventListener('click', () => deleteMatch(m));
+    return tr;
+  }
+
+  // Lista de torneos que el DT creó (guardada aparte). Se combina con las competencias
+  // que ya usan los partidos, así nunca se pierde nada aunque no se haya corrido el SQL.
+  let TORNEOS_CREADOS = [];   // array de nombres, cargado desde clubs.torneos
+
+  async function cargarTorneos(){
+    try{
+      const sb = window.__sb;
+      const clubId = (window.__getClubId ? await window.__getClubId() : null);
+      if(!sb || !clubId){ TORNEOS_CREADOS = []; return; }
+      const { data } = await sb.from('clubs').select('torneos').eq('id', clubId).single();
+      const guardados = data && data.torneos;
+      TORNEOS_CREADOS = Array.isArray(guardados) ? guardados.filter(x => typeof x === 'string' && x.trim()) : [];
+    }catch(e){ /* si la columna no existe todavía, seguimos con los usados por los partidos */ TORNEOS_CREADOS = []; }
+  }
+  window.__cargarTorneos = cargarTorneos;
+
+  async function guardarTorneos(){
+    try{
+      const sb = window.__sb;
+      const clubId = (window.__getClubId ? await window.__getClubId() : null);
+      if(!sb || !clubId) return false;
+      const { error } = await sb.from('clubs').update({ torneos: TORNEOS_CREADOS }).eq('id', clubId);
+      if(error){
+        const msg = (error.message||'').toLowerCase();
+        if(msg.includes('torneos') || msg.includes('column')){
+          toast('Para guardar torneos permanentes, corré el SQL de mejoras en Supabase');
+        }
+        return false;
+      }
+      return true;
+    }catch(e){ console.error('guardar torneos', e); return false; }
+  }
+
+  // Lista final de torneos = los creados por el DT + los que ya usan los partidos, sin repetir y ordenados.
+  function torneosGuardados(){
+    const set = new Set();
+    (TORNEOS_CREADOS || []).forEach(t => { if(t && t.trim()) set.add(t.trim()); });
+    competenciasUsadas().forEach(t => { if(t && t.trim()) set.add(t.trim()); });
+    return [...set].sort((a,b) => a.localeCompare(b, 'es', {sensitivity:'base'}));
+  }
+
+  // Arma las <option> del selector de torneo para un partido (solo elegir entre los creados).
+  function opcionesTorneo(torneos, actual){
+    const act = (actual || '').trim();
+    let html = `<option value="">— Sin torneo —</option>`;
+    let encontrado = false;
+    torneos.forEach(t => {
+      const sel = (t === act) ? ' selected' : '';
+      if(t === act) encontrado = true;
+      html += `<option value="${escapeHtml(t)}"${sel}>${escapeHtml(t)}</option>`;
+    });
+    // Si el partido tiene un torneo que por algún motivo no está en la lista, lo agregamos igual.
+    if(act && !encontrado){
+      html += `<option value="${escapeHtml(act)}" selected>${escapeHtml(act)}</option>`;
+    }
+    return html;
+  }
+
+  // ─── Panel para crear / borrar torneos (botón "🏆 Crear torneo") ───
+  function abrirGestorTorneos(){
+    const ov = document.createElement('div');
+    ov.className = 'plans-overlay';
+    ov.id = 'torneosOverlay';
+    const dibujar = () => {
+      const lista = torneosGuardados();
+      const items = lista.length
+        ? lista.map(t => `<div class="torneo-item"><span class="torneo-item-name">🏆 ${escapeHtml(t)}</span><button class="torneo-del" data-t="${escapeHtml(t)}" title="Borrar torneo">✕</button></div>`).join('')
+        : '<div style="color:var(--muted);font-size:13px;padding:8px 0;">Todavía no creaste ningún torneo.</div>';
+      ov.innerHTML = `
+        <div class="plans-box" style="max-width:440px;">
+          <button class="plans-close" id="torneosClose">✕</button>
+          <h2 style="font-family:'Oswald',sans-serif;">🏆 Torneos</h2>
+          <p style="color:var(--muted);font-size:13px;margin:6px 0 14px;">Creá los torneos en los que participás. Después, en cada partido elegís a cuál pertenece.</p>
+          <div class="torneo-new-row">
+            <input type="text" id="torneoNuevoInput" placeholder="Nombre del torneo (ej: Liga A)" maxlength="60">
+            <button class="btn primary" id="torneoAddBtn">+ Crear</button>
+          </div>
+          <div class="torneo-list" id="torneoList">${items}</div>
+        </div>`;
+      // eventos
+      ov.querySelector('#torneosClose').addEventListener('click', cerrar);
+      const input = ov.querySelector('#torneoNuevoInput');
+      const add = async () => {
+        const nombre = (input.value || '').trim();
+        if(!nombre) return;
+        if(torneosGuardados().some(t => t.toLowerCase() === nombre.toLowerCase())){
+          toast('Ese torneo ya existe'); return;
+        }
+        if(!TORNEOS_CREADOS.includes(nombre)) TORNEOS_CREADOS.push(nombre);
+        await guardarTorneos();
+        input.value = '';
+        dibujar();
+        toast('Torneo creado ✓');
+      };
+      ov.querySelector('#torneoAddBtn').addEventListener('click', add);
+      input.addEventListener('keydown', e => { if(e.key === 'Enter') add(); });
+      input.focus();
+      ov.querySelectorAll('.torneo-del').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const t = btn.getAttribute('data-t');
+          const usados = competenciasUsadas().includes(t);
+          const msg = usados
+            ? '"'+t+'" está en uso por algún partido. Si lo borrás, esos partidos quedan sin torneo asignado (no se borran). ¿Seguir?'
+            : '¿Borrar el torneo "'+t+'"?';
+          if(!confirm(msg)) return;
+          TORNEOS_CREADOS = TORNEOS_CREADOS.filter(x => x !== t);
+          await guardarTorneos();
+          // Si estaba en uso, lo sacamos de los partidos que lo tenían
+          if(usados){
+            matches.forEach(m => { if((m.competencia||'').trim() === t){ m.competencia = ''; saveMatchRow(m); } });
+            renderMatchList();
+          }
+          dibujar();
+          toast('Torneo borrado');
+        });
+      });
+    };
+    dibujar();
+    document.body.appendChild(ov);
+    function cerrar(){ ov.remove(); }
+    ov.addEventListener('click', e => { if(e.target === ov) cerrar(); });
+  }
   async function deleteMatch(m){
     const nombre = m.rival ? ('"'+m.rival+'"') : 'este partido';
     if(!confirm('¿Borrar '+nombre+'? Se elimina el partido y sus goles. No afecta a los demás.')) return;
@@ -11828,6 +12007,15 @@ window.__initEditor = function(){
     currentMatch = m;
     document.getElementById('mtRival').value = m.rival||'';
     document.getElementById('mtDate').value = m.date||'';
+    // Selector de torneo dentro del partido (solo elegir entre los creados)
+    const torneoSel = document.getElementById('mtTorneo');
+    if(torneoSel){
+      torneoSel.innerHTML = opcionesTorneo(torneosGuardados(), m.competencia);
+      torneoSel.onchange = (e) => {
+        m.competencia = e.target.value;
+        saveMatchRow(m);
+      };
+    }
     renderGoals();
     document.getElementById('matchList').style.display = 'none';
     document.getElementById('matchDetail').style.display = 'block';
