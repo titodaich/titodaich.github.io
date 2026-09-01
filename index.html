@@ -12101,26 +12101,29 @@ window.__initEditor = function(){
       }
       // Armamos el registro base. La competencia solo se incluye si tiene valor,
       // así el insert no falla si la columna 'competencia' todavía no existe en la base.
+      const catSegura = catActual() || (window.__getActiveCategory && window.__getActiveCategory()) || '1era';
       const registro = {
-        club_id:clubId, categoria:catActual(), temporada:(window.__getTemporada?window.__getTemporada():new Date().getFullYear()), rival:'', match_date:null,
-        goals_for:[], goals_against:[], assists:[], cards:[], created_by: session?session.user.id:null
+        club_id:clubId, categoria:catSegura, temporada:(window.__getTemporada?window.__getTemporada():new Date().getFullYear()), rival:'', match_date:null,
+        goals_for:[], goals_against:[], assists:[], cards:[], citacion:[], invitados:[], created_by: session?session.user.id:null
       };
       if(compNueva) registro.competencia = compNueva;
       let { data, error } = await sb.from('stat_matches').insert(registro).select().single();
-      // Si falló justamente por la columna competencia, reintentamos sin ella.
-      if(error && compNueva && /competencia|column|does not exist|no existe|schema/i.test((error.message||error.details||'').toString())){
+      // Reintento 1: si falló por la columna competencia, la sacamos.
+      if(error && registro.competencia && /competencia/i.test((error.message||error.details||error.hint||'').toString())){
         delete registro.competencia;
         ({ data, error } = await sb.from('stat_matches').insert(registro).select().single());
       }
+      // Reintento 2: si falla por alguna otra columna que no existe (ej: created_by,
+      // goals_*, assists, cards), probamos con el registro mínimo indispensable.
+      if(error && /column|does not exist|schema cache|could not find/i.test((error.message||error.details||error.hint||'').toString())){
+        const minimo = { club_id:clubId, categoria:catSegura, temporada:registro.temporada, rival:'', match_date:null, citacion:[], invitados:[] };
+        ({ data, error } = await sb.from('stat_matches').insert(minimo).select().single());
+      }
       if(error){
         console.error('Error al crear partido:', error);
-        // Mostramos el motivo real para poder diagnosticar (columna faltante, permiso, etc.)
-        const detalle = (error.message || error.hint || error.details || '').toString();
-        if(/column|competencia|schema|does not exist|no existe/i.test(detalle)){
-          toast('Falta actualizar la base: la columna "competencia" no existe. Corré el SQL agregar-selecciones.sql en Supabase.');
-        } else {
-          toast(window.t('mCreateMatchErr') + (detalle ? ' (' + detalle.slice(0,80) + ')' : ''));
-        }
+        const detalle = (error.message || error.details || error.hint || JSON.stringify(error) || '').toString();
+        // Alert grande para que se lea completo y me puedas mandar la foto exacta.
+        alert('No se pudo crear el partido.\n\nMotivo (mostráselo a tu técnico):\n' + detalle);
         return;
       }
       const m = { id:data.id, rival:'', date:'', competencia:compNueva, goalsFor:[], goalsAgainst:[], assists:[], cards:[] };
