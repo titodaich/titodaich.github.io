@@ -12122,8 +12122,16 @@ window.__initEditor = function(){
       if(error){
         console.error('Error al crear partido:', error);
         const detalle = (error.message || error.details || error.hint || JSON.stringify(error) || '').toString();
-        // Alert grande para que se lea completo y me puedas mandar la foto exacta.
-        alert('No se pudo crear el partido.\n\nMotivo (mostráselo a tu técnico):\n' + detalle);
+        // Si el error es de permiso/seguridad, casi siempre es la suscripción vencida.
+        if(/row-level security|violates row-level|policy|permission|not authorized|rls/i.test(detalle)){
+          if(window.__mostrarSuscripcionVencida){ window.__mostrarSuscripcionVencida(); }
+          else {
+            alert('Tu prueba gratuita de Benchone terminó.\n\nPara seguir cargando partidos y usar todas las herramientas, vas a poder activar tu suscripción muy pronto.\n\n¡Gracias por probar Benchone!');
+          }
+        } else {
+          // Otro tipo de error (técnico): lo mostramos para diagnosticar.
+          alert('No se pudo crear el partido.\n\nMotivo (mostráselo a tu técnico):\n' + detalle);
+        }
         return;
       }
       const m = { id:data.id, rival:'', date:'', competencia:compNueva, goalsFor:[], goalsAgainst:[], assists:[], cards:[] };
@@ -16822,6 +16830,35 @@ try{
   // Exponer el cliente para que otras secciones (scouting, etc.) puedan usarlo.
   window.__sb = sb;
 
+  // ─── Interceptor global de "suscripción vencida" ───
+  // Envolvemos .from() para que CUALQUIER escritura (insert/update/
+  // upsert/delete) que falle por la regla de suscripción muestre el
+  // modal lindo automáticamente, en toda la app, sin tocar cada caso.
+  if(sb && !sb.__interceptorSuscripcion){
+    sb.__interceptorSuscripcion = true;
+    const fromOriginal = sb.from.bind(sb);
+    sb.from = function(tabla){
+      const qb = fromOriginal(tabla);
+      ['insert','update','upsert','delete'].forEach(function(metodo){
+        if(typeof qb[metodo] !== 'function') return;
+        const original = qb[metodo].bind(qb);
+        qb[metodo] = function(){
+          const resultado = original.apply(null, arguments);
+          // resultado es "thenable": enganchamos sin romper la cadena.
+          if(resultado && typeof resultado.then === 'function'){
+            resultado.then(function(res){
+              if(res && res.error && window.__esErrorSuscripcion){
+                window.__esErrorSuscripcion(res.error);
+              }
+            }, function(){ /* errores de red: no hacemos nada acá */ });
+          }
+          return resultado;
+        };
+      });
+      return qb;
+    };
+  }
+
   // Obtiene (y cachea) el club_id del usuario logueado.
   window.__getClubId = async function(){
     try{
@@ -17757,6 +17794,60 @@ function escapeHtml(s){
 
 // ---------- Exportar a PDF cualquier sección (vía impresión del navegador) ----------
 // Agrega un encabezado con club, categoría y fecha, imprime, y limpia después.
+// ─── Detector central de "suscripción vencida" ───
+// Recibe el error de cualquier operación a la base. Si es el
+// bloqueo por suscripción vencida (regla RLS), muestra el modal
+// lindo y devuelve true (para que quien llama corte con return).
+// Si es otro error, devuelve false (que cada quien lo maneje).
+window.__esErrorSuscripcion = function(error){
+  if(!error) return false;
+  const t = (error.message || error.details || error.hint || '').toString().toLowerCase();
+  const esSusc = /row-level security|violates row-level|new row violates|policy|not authorized|permission denied/i.test(t);
+  if(esSusc && window.__mostrarSuscripcionVencida){
+    window.__mostrarSuscripcionVencida();
+    return true;
+  }
+  return esSusc;
+};
+
+// ─── Modal "prueba/suscripción vencida" ───
+// Se muestra cuando el DT intenta editar pero su prueba terminó
+// (la base rechaza la escritura por la regla de suscripción).
+window.__mostrarSuscripcionVencida = function(){
+  // Si ya está abierto, no lo duplicamos.
+  if(document.getElementById('subVencidaOverlay')) return;
+  const ov = document.createElement('div');
+  ov.className = 'plans-overlay';
+  ov.id = 'subVencidaOverlay';
+  ov.innerHTML = `
+    <div class="plans-box" style="max-width:440px;text-align:center;">
+      <button class="plans-close" id="subVencidaClose">✕</button>
+      <div style="font-size:46px;line-height:1;margin:6px 0 10px;">⏳</div>
+      <h2 style="font-family:'Oswald',sans-serif;font-size:26px;margin:0 0 6px;">Tu prueba terminó</h2>
+      <p style="color:var(--muted);font-size:14.5px;line-height:1.6;margin:0 0 18px;">
+        Se terminó tu período de prueba gratuito de <b style="color:var(--chalk);">Benchone</b>.
+        Podés seguir <b style="color:var(--chalk);">viendo</b> todo lo que ya cargaste, pero para
+        <b style="color:var(--chalk);">crear o editar</b> partidos, entrenamientos y demás,
+        activá tu suscripción.
+      </p>
+      <div style="background:rgba(76,175,109,0.12);border:1px solid rgba(76,175,109,0.35);border-radius:12px;padding:14px 16px;margin-bottom:18px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--success);margin-bottom:4px;">Seguí sin límites</div>
+        <div style="font-size:13.5px;color:var(--chalk);line-height:1.5;">Activás tu suscripción y recuperás el acceso completo al instante: todas las herramientas y todo tu trabajo, tal como lo dejaste.</div>
+      </div>
+      <button class="btn primary" id="subVencidaPlanes" style="width:100%;">Ver planes y activar</button>
+      <button class="btn" id="subVencidaOk" style="width:100%;margin-top:8px;background:transparent;border:1px solid var(--line);color:var(--muted);">Ahora no</button>
+    </div>`;
+  document.body.appendChild(ov);
+  const cerrar = () => ov.remove();
+  ov.querySelector('#subVencidaClose').addEventListener('click', cerrar);
+  ov.querySelector('#subVencidaOk').addEventListener('click', cerrar);
+  ov.querySelector('#subVencidaPlanes').addEventListener('click', () => {
+    cerrar();
+    if(window.__openPlansModal){ window.__openPlansModal(); }
+  });
+  ov.addEventListener('click', e => { if(e.target === ov) cerrar(); });
+};
+
 window.__exportarSeccionPDF = function(idSeccion, titulo){
   const sec = document.getElementById(idSeccion);
   if(!sec){ toast('No se pudo preparar el PDF'); return; }
