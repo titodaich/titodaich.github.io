@@ -12099,11 +12099,30 @@ window.__initEditor = function(){
         const ultimo = ordenados[ordenados.length - 1];
         compNueva = (ultimo && ultimo.competencia) ? ultimo.competencia : '';
       }
-      const { data, error } = await sb.from('stat_matches').insert({
-        club_id:clubId, categoria:catActual(), temporada:(window.__getTemporada?window.__getTemporada():new Date().getFullYear()), rival:'', match_date:null, competencia:compNueva,
+      // Armamos el registro base. La competencia solo se incluye si tiene valor,
+      // así el insert no falla si la columna 'competencia' todavía no existe en la base.
+      const registro = {
+        club_id:clubId, categoria:catActual(), temporada:(window.__getTemporada?window.__getTemporada():new Date().getFullYear()), rival:'', match_date:null,
         goals_for:[], goals_against:[], assists:[], cards:[], created_by: session?session.user.id:null
-      }).select().single();
-      if(error){ toast(window.t('mCreateMatchErr')); return; }
+      };
+      if(compNueva) registro.competencia = compNueva;
+      let { data, error } = await sb.from('stat_matches').insert(registro).select().single();
+      // Si falló justamente por la columna competencia, reintentamos sin ella.
+      if(error && compNueva && /competencia|column|does not exist|no existe|schema/i.test((error.message||error.details||'').toString())){
+        delete registro.competencia;
+        ({ data, error } = await sb.from('stat_matches').insert(registro).select().single());
+      }
+      if(error){
+        console.error('Error al crear partido:', error);
+        // Mostramos el motivo real para poder diagnosticar (columna faltante, permiso, etc.)
+        const detalle = (error.message || error.hint || error.details || '').toString();
+        if(/column|competencia|schema|does not exist|no existe/i.test(detalle)){
+          toast('Falta actualizar la base: la columna "competencia" no existe. Corré el SQL agregar-selecciones.sql en Supabase.');
+        } else {
+          toast(window.t('mCreateMatchErr') + (detalle ? ' (' + detalle.slice(0,80) + ')' : ''));
+        }
+        return;
+      }
       const m = { id:data.id, rival:'', date:'', competencia:compNueva, goalsFor:[], goalsAgainst:[], assists:[], cards:[] };
       matches.push(m);
       renderMatchList();
