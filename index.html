@@ -1589,13 +1589,32 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .match-table td.mt-gc .loss{color:var(--danger);}
 .mt-fecha-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:2px 8px;white-space:nowrap;}
 /* Botones Local / Visitante / Neutral en la lista de partidos */
-.mt-cond{white-space:nowrap;}
-.lvn-group{display:inline-flex;gap:2px;border:1px solid var(--line);border-radius:7px;padding:2px;background:var(--bg);}
+.mt-cond{white-space:nowrap;min-width:88px;}
+.lvn-group{display:inline-flex;gap:2px;border:1px solid var(--line);border-radius:7px;padding:2px;background:var(--bg);width:max-content;}
 .lvn-btn{width:26px;height:26px;border:none;background:transparent;color:var(--muted);font-family:'Oswald',sans-serif;font-weight:700;font-size:13px;border-radius:5px;cursor:pointer;transition:all .12s ease;padding:0;}
 .lvn-btn:hover{background:var(--panel-2);color:var(--chalk);}
 .lvn-btn.on[data-cond="local"]{background:var(--success);color:#0b1015;}
 .lvn-btn.on[data-cond="visitante"]{background:var(--accent-2);color:#fff;}
 .lvn-btn.on[data-cond="neutral"]{background:var(--gold, #E0A93B);color:#0b1015;}
+/* Select compacto de condición: oculto en compu, se usa solo en móvil */
+.lvn-select{display:none;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--muted);font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;padding:5px 4px;cursor:pointer;text-align:center;text-align-last:center;-webkit-appearance:none;appearance:none;}
+.lvn-select.lvn-local{color:var(--success);border-color:var(--success);}
+.lvn-select.lvn-visitante{color:var(--accent-2);border-color:var(--accent-2);}
+.lvn-select.lvn-neutral{color:var(--gold,#E0A93B);border-color:var(--gold,#E0A93B);}
+/* Sin elegir: se muestra la flechita ▾ como invitación a elegir */
+.lvn-select.lvn-none{color:var(--accent-2);border-color:var(--line);font-size:15px;}
+/* En teléfono: compactar la tabla de partidos para que entre sin cortarse.
+   La fecha se muestra corta (día + mes) en vez del input largo. */
+@media (max-width:600px){
+  /* En el teléfono: en vez de los 3 botones, un selector compacto que
+     muestra la letra elegida (L/V/N) y al tocarlo se despliega. */
+  .lvn-group{display:none !important;}
+  .lvn-select{display:inline-block !important;min-width:52px;}
+  .mt-fecha-badge{font-size:9px;padding:2px 5px;white-space:nowrap;}
+  /* Fecha corta (día + mes) en vez del input largo: la tabla queda más angosta */
+  .mt-date-in{display:none;}
+  .mt-date-short{display:inline-block;font-size:11px;padding:5px 6px;}
+}
 .mt-rival-in{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-family:'Oswald',sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:0.3px;padding:5px 8px;}
 .mt-rival-in:focus{outline:none;border-color:var(--accent);}
 .mt-rival-in::placeholder{color:var(--muted);font-size:12px;text-transform:none;}
@@ -1603,6 +1622,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .mt-date-in:hover{border-color:var(--accent-2);}
 .mt-date-in::-webkit-calendar-picker-indicator{cursor:pointer;filter:invert(0.7);}
 .mt-date-in:focus{outline:none;border-color:var(--accent-2);}
+/* Texto corto de fecha: oculto en compu (se ve el input completo),
+   visible solo en teléfono para ahorrar espacio. */
+.mt-date-short{display:none;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--chalk);padding:6px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;white-space:nowrap;}
+.mt-date-short:hover{border-color:var(--accent-2);}
 .match-table .mt-open-btn{padding:5px 10px;font-size:11px;}
 .mt-open-btn{white-space:nowrap;}
 .match-table th.mt-del{width:38px;}
@@ -1649,12 +1672,38 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .lv-table.lv-grid{border:1px solid var(--line);border-radius:8px;overflow:hidden;}
 .lv-table.lv-grid th,.lv-table.lv-grid td{border:1px solid var(--line);}
 .lv-table.lv-grid thead th{background:var(--panel-2);}
+/* ── Vida: barra de fondo proporcional al % de puntos en cada fila ── */
+.lv-row{position:relative;}
+.lv-row .lv-cond{position:relative;}
+.lv-row .lv-cond::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:var(--pct,0%);
+  opacity:0.16;transition:width .5s ease;z-index:0;pointer-events:none;
+}
+.lv-row .lv-cond{padding-left:12px;}
+.lv-row.lv-local  .lv-cond::before{background:var(--success);}
+.lv-row.lv-visitante .lv-cond::before{background:var(--accent-2);}
+.lv-row.lv-neutral .lv-cond::before{background:var(--gold,#E0A93B);}
+/* Borde lateral de color según la condición */
+.lv-row.lv-local  .lv-cond{border-left:3px solid var(--success) !important;}
+.lv-row.lv-visitante .lv-cond{border-left:3px solid var(--accent-2) !important;}
+.lv-row.lv-neutral .lv-cond{border-left:3px solid var(--gold,#E0A93B) !important;}
+/* El % de cada fila toma el color de su condición */
+.lv-row.lv-local  .lv-pct{color:var(--success);font-weight:700;}
+.lv-row.lv-visitante .lv-pct{color:var(--accent-2);font-weight:700;}
+.lv-row.lv-neutral .lv-pct{color:var(--gold,#E0A93B);font-weight:700;}
+/* Diferencia positiva/negativa con fondo suave para que resalte */
+.lv-table td.lv-pos{color:var(--success);background:rgba(76,175,109,0.1);}
+.lv-table td.lv-neg{color:var(--danger);background:rgba(240,85,63,0.1);}
 .lv-table.lv-grid tbody tr:nth-child(even){background:rgba(27,44,61,0.35);}
 /* Fila TOTAL: destacada, como el renglón de totales de una planilla */
-.lv-table .lv-total{background:var(--panel-2) !important;}
+.lv-table .lv-total{background:linear-gradient(90deg, rgba(47,143,203,0.12), rgba(47,143,203,0.04)) !important;}
 .lv-table .lv-total td{font-weight:700;color:var(--chalk);border-top:2px solid var(--accent-2) !important;}
-.lv-table .lv-total td.lv-cond{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:0.5px;}
+.lv-table .lv-total td.lv-cond{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:0.5px;border-left:3px solid var(--accent-2) !important;}
 .lv-table .lv-total td.lv-pts{color:var(--accent-2);font-size:16px;}
+.lv-table .lv-total td.lv-pct{color:var(--chalk);}
+/* El texto de cada celda va por encima de la barra de fondo */
+.lv-row .lv-cond{overflow:hidden;}
+.lv-row .lv-cond{z-index:1;}
 .annual-card h3{font-family:'Oswald',sans-serif;font-size:15px;text-transform:uppercase;letter-spacing:0.6px;margin:0 0 14px;}
 /* Tarjetas plegables (Estadísticas anuales) */
 .annual-card.plegable > h3{cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;margin-bottom:0;transition:margin .15s;}
@@ -11955,6 +12004,19 @@ window.__initEditor = function(){
 
   // Construye la fila <tr> de un partido en la lista. El torneo NO se edita acá:
   // se elige adentro del partido (botón Abrir →).
+  // Formatea una fecha "AAAA-MM-DD" como "29 jun" (día + mes abreviado).
+  // Se usa en la vista móvil de la lista de partidos.
+  function fechaCorta(fecha){
+    if(!fecha) return 'Sin fecha';
+    const partes = String(fecha).split('-');
+    if(partes.length < 3) return 'Sin fecha';
+    const mesesCortos = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    const dia = parseInt(partes[2], 10);
+    const mes = mesesCortos[parseInt(partes[1], 10) - 1] || '';
+    if(!dia || !mes) return 'Sin fecha';
+    return dia + ' ' + mes;
+  }
+
   function filaPartido(m, idx){
     const s = matchScore(m);
     const cls = s.f > s.a ? 'win' : (s.f < s.a ? 'loss' : '');
@@ -11970,29 +12032,52 @@ window.__initEditor = function(){
           <button type="button" class="lvn-btn ${m.condicion==='visitante'?'on':''}" data-cond="visitante" title="Visitante">V</button>
           <button type="button" class="lvn-btn ${m.condicion==='neutral'?'on':''}" data-cond="neutral" title="Neutral">N</button>
         </div>
+        <select class="lvn-select lvn-${m.condicion||'none'}" title="Local / Visitante / Neutral">
+          <option value="" ${!m.condicion?'selected':''}>▾</option>
+          <option value="local" ${m.condicion==='local'?'selected':''}>L</option>
+          <option value="visitante" ${m.condicion==='visitante'?'selected':''}>V</option>
+          <option value="neutral" ${m.condicion==='neutral'?'selected':''}>N</option>
+        </select>
       </td>
-      <td><input type="date" class="mt-date-in" value="${escapeHtml(m.date||'')}" title="Tocá para elegir la fecha"></td>
+      <td class="mt-fecha-cell">
+        <input type="date" class="mt-date-in" value="${escapeHtml(m.date||'')}" title="Tocá para elegir la fecha">
+        <button type="button" class="mt-date-short" title="Tocá para cambiar la fecha">${fechaCorta(m.date)}</button>
+      </td>
       <td class="mt-open"><button class="btn small mt-open-btn">Abrir →</button></td>
       <td class="mt-del"><button class="btn-del-match" title="Borrar partido">✕</button></td>
     `;
     const rivalIn = tr.querySelector('.mt-rival-in');
     const dateIn = tr.querySelector('.mt-date-in');
+    const dateShort = tr.querySelector('.mt-date-short');
     dateIn.addEventListener('click', () => { try{ dateIn.showPicker(); }catch(e){} });
     dateIn.addEventListener('focus', () => { try{ dateIn.showPicker(); }catch(e){} });
+    // En móvil, tocar el texto corto abre el mismo selector de fecha.
+    if(dateShort) dateShort.addEventListener('click', () => { try{ dateIn.showPicker(); }catch(e){ dateIn.focus(); } });
     rivalIn.addEventListener('input', e => { m.rival = e.target.value; saveMatchRow(m); });
     dateIn.addEventListener('change', e => { m.date = e.target.value; saveMatchRow(m); sortMatches(); renderMatchList(); });
     dateIn.addEventListener('input', e => { m.date = e.target.value; saveMatchRow(m); });
     // Botones L/V/N: al tocar, si ya estaba marcado lo destildan (vuelve a "sin definir").
+    // Función que aplica una condición y sincroniza botones + select.
+    const condSelect = tr.querySelector('.lvn-select');
+    function aplicarCondicion(val){
+      m.condicion = val;
+      tr.querySelectorAll('.lvn-btn').forEach(b => {
+        b.classList.toggle('on', b.getAttribute('data-cond') === m.condicion);
+      });
+      if(condSelect){
+        condSelect.value = m.condicion || '';
+        condSelect.className = 'lvn-select lvn-' + (m.condicion || 'none');
+      }
+      saveMatchRow(m);
+    }
     tr.querySelectorAll('.lvn-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const val = btn.getAttribute('data-cond');
-        m.condicion = (m.condicion === val) ? '' : val;
-        tr.querySelectorAll('.lvn-btn').forEach(b => {
-          b.classList.toggle('on', b.getAttribute('data-cond') === m.condicion);
-        });
-        saveMatchRow(m);
+        // Si ya estaba marcado, lo destilda (vuelve a "sin definir").
+        aplicarCondicion(m.condicion === val ? '' : val);
       });
     });
+    if(condSelect) condSelect.addEventListener('change', e => aplicarCondicion(e.target.value));
     tr.querySelector('.mt-open-btn').addEventListener('click', () => openMatch(m.id));
     tr.querySelector('.btn-del-match').addEventListener('click', () => deleteMatch(m));
     return tr;
@@ -14618,19 +14703,22 @@ window.__initEditor = function(){
       const signo = (n) => (n > 0 ? '+' : '') + n;
       // Total de puntos de todas las condiciones, para calcular el % de cada una.
       const ptsTotal = pts(L) + pts(V) + pts(N);
-      const pct = (c) => ptsTotal > 0 ? Math.round(pts(c) / ptsTotal * 100) + '%' : '—';
-      const fila = (etiqueta, c) => `
-        <tr>
+      const pct = (c) => ptsTotal > 0 ? Math.round(pts(c) / ptsTotal * 100) : 0;
+      const pctTxt = (c) => ptsTotal > 0 ? pct(c) + '%' : '—';
+      // Cada fila lleva su clase de color (local/visitante/neutral) y una barra
+      // de fondo proporcional al % de puntos, para darle vida visual.
+      const fila = (etiqueta, c, clase) => `
+        <tr class="lv-row lv-${clase}" style="--pct:${pct(c)}%">
           <td class="lv-cond">${etiqueta}</td>
           <td>${c.pj}</td>
           <td class="lv-pts">${pts(c)}</td>
-          <td class="lv-pct">${pct(c)}</td>
+          <td class="lv-pct">${pctTxt(c)}</td>
           <td>${c.g}</td><td>${c.e}</td><td>${c.p}</td>
           <td>${c.gf}</td><td>${c.gc}</td>
           <td class="${dif(c)>0?'lv-pos':(dif(c)<0?'lv-neg':'')}">${signo(dif(c))}</td>
         </tr>`;
       // La fila Neutral solo aparece si hay al menos un partido neutral.
-      const filaNeutral = N.pj > 0 ? fila('🅝 Neutral', N) : '';
+      const filaNeutral = N.pj > 0 ? fila('🅝 Neutral', N, 'neutral') : '';
       // Fila TOTAL: suma de todas las condiciones (todos los partidos marcados).
       const T = {
         pj: L.pj + V.pj + N.pj,
@@ -14666,8 +14754,8 @@ window.__initEditor = function(){
               <th title="Diferencia de gol">Dif</th>
             </tr></thead>
             <tbody>
-              ${fila('🏠 Local', L)}
-              ${fila('✈️ Visitante', V)}
+              ${fila('🏠 Local', L, 'local')}
+              ${fila('✈️ Visitante', V, 'visitante')}
               ${filaNeutral}
               ${filaTotal}
             </tbody>
