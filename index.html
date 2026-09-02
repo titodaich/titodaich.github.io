@@ -1164,6 +1164,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   .section-content th,.section-content td{border:1px solid #999 !important;padding:4px 6px !important;}
   .section-content svg text{fill:#000 !important;}
   .panel,.rd-card,.week-card,.scout-card{background:#fff !important;box-shadow:none !important;page-break-inside:avoid;}
+  /* Minutaje En Vivo: forzar fondo blanco y texto negro al imprimir,
+     sin importar la clase de cada tarjeta/tabla (evita la "hoja oscura"). */
+  #section-live,#section-live *{background:#fff !important;background-color:#fff !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important;}
+  #section-live th,#section-live td,#section-live .live-totals-head span,#section-live .mm-manual-head span{border:1px solid #999 !important;}
+  #section-live .live-totals-head,#section-live .mm-manual-head{border:1px solid #999 !important;}
   /* Planificación: que la semana entre bien */
   #section-training details{display:block !important;}
   #section-training details > summary{list-style:none;}
@@ -1565,10 +1570,32 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .btn-del-match{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px;transition:all .12s ease;}
 .btn-del-match:hover{border-color:var(--danger);color:var(--danger);background:rgba(240,85,63,0.1);}
 .match-table td{padding:4px 8px;border-bottom:1px solid rgba(51,73,94,0.4);vertical-align:middle;}
+/* Tabla de "Totales del año por jugador" (resumen de minutaje):
+   que entre completa en pantalla sin scroll horizontal. Anulamos el
+   min-width gigante que hereda de .match-table y comprimimos las columnas. */
+#minAnioView .informe-tabla{min-width:0 !important;width:100% !important;table-layout:fixed;}
+#minAnioView .informe-tabla th,#minAnioView .informe-tabla td{padding:5px 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#minAnioView .informe-tabla th:first-child,#minAnioView .informe-tabla td:first-child{white-space:normal;word-break:break-word;}
+@media (max-width:600px){
+  #minAnioView .informe-tabla{font-size:12px;}
+  #minAnioView .informe-tabla th,#minAnioView .informe-tabla td{padding:5px 2px;font-size:11.5px;}
+  #minAnioView .informe-tabla td[style*="monospace"]{font-size:11px;}
+  /* la columna Jugador se lleva el espacio flexible; las de tiempo van justas */
+  #minAnioView .informe-tabla th:not(:first-child),#minAnioView .informe-tabla td:not(:first-child){width:15%;text-align:center;}
+  #minAnioView .informe-tabla th:first-child,#minAnioView .informe-tabla td:first-child{width:25%;}
+}
 .match-table td.mt-gf,.match-table td.mt-gc{text-align:center;font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;}
 .match-table td.mt-gf .win{color:var(--success);}
 .match-table td.mt-gc .loss{color:var(--danger);}
 .mt-fecha-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:2px 8px;white-space:nowrap;}
+/* Botones Local / Visitante / Neutral en la lista de partidos */
+.mt-cond{white-space:nowrap;}
+.lvn-group{display:inline-flex;gap:2px;border:1px solid var(--line);border-radius:7px;padding:2px;background:var(--bg);}
+.lvn-btn{width:26px;height:26px;border:none;background:transparent;color:var(--muted);font-family:'Oswald',sans-serif;font-weight:700;font-size:13px;border-radius:5px;cursor:pointer;transition:all .12s ease;padding:0;}
+.lvn-btn:hover{background:var(--panel-2);color:var(--chalk);}
+.lvn-btn.on[data-cond="local"]{background:var(--success);color:#0b1015;}
+.lvn-btn.on[data-cond="visitante"]{background:var(--accent-2);color:#fff;}
+.lvn-btn.on[data-cond="neutral"]{background:var(--gold, #E0A93B);color:#0b1015;}
 .mt-rival-in{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-family:'Oswald',sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:0.3px;padding:5px 8px;}
 .mt-rival-in:focus{outline:none;border-color:var(--accent);}
 .mt-rival-in::placeholder{color:var(--muted);font-size:12px;text-transform:none;}
@@ -1608,6 +1635,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .archivo-row-pos{font-size:12px;color:var(--muted);}
 
 .annual-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px;}
+.lv-wrap{overflow-x:auto;}
+.lv-table{width:100%;border-collapse:collapse;font-size:13px;}
+.lv-table th{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);text-align:center;padding:6px 4px;border-bottom:1px solid var(--line);font-weight:500;white-space:nowrap;}
+.lv-table th.lv-cond-h{text-align:left;}
+.lv-table td{text-align:center;padding:9px 4px;border-bottom:1px solid rgba(51,73,94,0.4);font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--chalk);}
+.lv-table td.lv-cond{text-align:left;font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;}
+.lv-table td.lv-pts{font-weight:700;color:var(--accent-2);font-size:15px;}
+.lv-table td.lv-pos{color:var(--success);}
+.lv-table td.lv-neg{color:var(--danger);}
 .annual-card h3{font-family:'Oswald',sans-serif;font-size:15px;text-transform:uppercase;letter-spacing:0.6px;margin:0 0 14px;}
 /* Tarjetas plegables (Estadísticas anuales) */
 .annual-card.plegable > h3{cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;margin-bottom:0;transition:margin .15s;}
@@ -3536,6 +3572,7 @@ body.editor-active #screen-editor{ display:block; }
           <input class="rd-name" id="mtRival" placeholder="Rival">
           <div class="rd-meta-row">
             <label>🏆 Torneo <select id="mtTorneo" class="mt-torneo-sel-detail" title="Elegí el torneo de este partido"></select></label>
+            <label>🏟️ Condición <select id="mtCondicion" class="mt-torneo-sel-detail" title="¿Jugamos de local o de visitante?"><option value="">— Sin definir —</option><option value="local">🏠 Local</option><option value="visitante">✈️ Visitante</option></select></label>
             <label>Fecha del partido <input type="date" id="mtDate"></label>
             <div class="score-box">
               <span class="score-num" id="scoreFor">0</span>
@@ -11024,6 +11061,7 @@ window.__initEditor = function(){
       matches = (mRes.data||[]).map(m => ({
         id:m.id, rival:m.rival||'', date:m.match_date||'', createdAt:m.created_at||'',
         competencia:m.competencia||'',
+        condicion:m.condicion||'',
         goalsFor:m.goals_for||[], goalsAgainst:m.goals_against||[],
         assists:m.assists||[], cards:m.cards||[], calls:m.calls||{},
         invitados: Array.isArray(m.invitados) ? m.invitados : []
@@ -11869,6 +11907,7 @@ window.__initEditor = function(){
               <th class="mt-rival-h">Rival</th>
               <th class="mt-gf">GF</th>
               <th class="mt-gc">GC</th>
+              <th class="mt-cond" title="Local / Visitante / Neutral">L/V/N</th>
               <th class="mt-fecha">Fecha del partido</th>
               <th class="mt-open"></th>
               <th class="mt-del-h"></th>
@@ -12073,6 +12112,13 @@ window.__initEditor = function(){
     saveTimers['row_'+m.id] = setTimeout(async () => {
       try{
         await sb.from('stat_matches').update({ rival:m.rival||'', match_date:m.date||null, competencia:m.competencia||'', updated_at:new Date().toISOString() }).eq('id', m.id);
+        // Guardamos la condición (local/visitante) aparte, de forma tolerante:
+        // si la columna 'condicion' todavía no existe en la base, este update
+        // falla en silencio y NO afecta al guardado de arriba.
+        if(m.condicion !== undefined){
+          try{ await sb.from('stat_matches').update({ condicion:m.condicion||null }).eq('id', m.id); }
+          catch(errCond){ /* columna 'condicion' aún no creada: se ignora */ }
+        }
         // el calendario de Planificación muestra los partidos: lo refrescamos
         if(window.__refrescarCalendarioPartidos) window.__refrescarCalendarioPartidos();
       }catch(e){ console.error(e); }
@@ -12155,6 +12201,14 @@ window.__initEditor = function(){
       torneoSel.innerHTML = opcionesTorneo(torneosGuardados(), m.competencia);
       torneoSel.onchange = (e) => {
         m.competencia = e.target.value;
+        saveMatchRow(m);
+      };
+    }
+    const condSel = document.getElementById('mtCondicion');
+    if(condSel){
+      condSel.value = m.condicion || '';
+      condSel.onchange = (e) => {
+        m.condicion = e.target.value;
         saveMatchRow(m);
       };
     }
@@ -14363,6 +14417,13 @@ window.__initEditor = function(){
     const golesFavorDetalle = [];   // lista de goles a favor con detalle
     const golesContraDetalle = [];  // lista de goles en contra con detalle
     let ganados = 0, empatados = 0, perdidos = 0, vallasInvictas = 0;
+    // Rendimiento local vs visitante: por cada condición acumulamos
+    // partidos jugados, ganados/empatados/perdidos (para puntos) y goles.
+    const condStats = {
+      local:     { pj:0, g:0, e:0, p:0, gf:0, gc:0 },
+      visitante: { pj:0, g:0, e:0, p:0, gf:0, gc:0 },
+      neutral:   { pj:0, g:0, e:0, p:0, gf:0, gc:0 }
+    };
     // Con un filtro de competencia activo mostramos SOLO esos partidos.
     // El ajuste manual del 1er semestre y los agregados de En Vivo son del
     // año completo (no tienen competencia), así que no se suman al filtrar.
@@ -14376,6 +14437,15 @@ window.__initEditor = function(){
       else if(gfMatch < gaMatch) perdidos++;
       else empatados++;
       if(gaMatch === 0) vallasInvictas++;
+      // Rendimiento local/visitante (solo si el partido tiene condición definida)
+      const cond = m.condicion === 'local' ? 'local' : (m.condicion === 'visitante' ? 'visitante' : (m.condicion === 'neutral' ? 'neutral' : null));
+      if(cond){
+        const cs = condStats[cond];
+        cs.pj++; cs.gf += gfMatch; cs.gc += gaMatch;
+        if(gfMatch > gaMatch) cs.g++;
+        else if(gfMatch < gaMatch) cs.p++;
+        else cs.e++;
+      }
       (m.goalsFor||[]).forEach(g => {
         totalGF++;
         if(g.player_name) goleadores[g.player_name] = (goleadores[g.player_name]||0)+1;
@@ -14508,6 +14578,50 @@ window.__initEditor = function(){
       }).join('');
     };
 
+    // Tabla comparativa Local vs Visitante (puntos, PJ, GF, GC).
+    // Puntos = 3 por ganado + 1 por empatado (fútbol/futsal estándar).
+    function tablaLocalVisitanteHTML(cs){
+      const L = cs.local, V = cs.visitante, N = cs.neutral;
+      // Si no hay ningún partido con condición definida, no mostramos la tarjeta.
+      if(L.pj === 0 && V.pj === 0 && N.pj === 0) return '';
+      const pts = (c) => c.g*3 + c.e;
+      const dif = (c) => (c.gf - c.gc);
+      const signo = (n) => (n > 0 ? '+' : '') + n;
+      const fila = (etiqueta, c) => `
+        <tr>
+          <td class="lv-cond">${etiqueta}</td>
+          <td>${c.pj}</td>
+          <td class="lv-pts">${pts(c)}</td>
+          <td>${c.g}</td><td>${c.e}</td><td>${c.p}</td>
+          <td>${c.gf}</td><td>${c.gc}</td>
+          <td class="${dif(c)>0?'lv-pos':(dif(c)<0?'lv-neg':'')}">${signo(dif(c))}</td>
+        </tr>`;
+      // La fila Neutral solo aparece si hay al menos un partido neutral.
+      const filaNeutral = N.pj > 0 ? fila('🅝 Neutral', N) : '';
+      return `
+      <div class="annual-card">
+        <h3>🏟️ Local vs Visitante</h3>
+        <div class="lv-wrap">
+          <table class="lv-table">
+            <thead><tr>
+              <th class="lv-cond-h">Condición</th>
+              <th title="Partidos jugados">PJ</th>
+              <th title="Puntos (3 por ganado, 1 por empatado)">Pts</th>
+              <th title="Ganados">G</th><th title="Empatados">E</th><th title="Perdidos">P</th>
+              <th title="Goles a favor">GF</th><th title="Goles en contra">GC</th>
+              <th title="Diferencia de gol">Dif</th>
+            </tr></thead>
+            <tbody>
+              ${fila('🏠 Local', L)}
+              ${fila('✈️ Visitante', V)}
+              ${filaNeutral}
+            </tbody>
+          </table>
+        </div>
+        <p class="record-note">Solo se cuentan los partidos donde marcaste la condición (local, visitante o neutral). Puntos: 3 por ganado, 1 por empatado.</p>
+      </div>`;
+    }
+
     el.innerHTML = `
       <div id="annualCompFilter"></div>
       ${hayFiltroComp ? `<p class="record-note" style="color:var(--accent-2);margin:0 0 14px;">📊 Mostrando solo <b>${escapeHtml(filtroCompetencia)}</b>. El ajuste del 1er semestre y los datos de En Vivo no se incluyen en esta vista.</p>` : ''}
@@ -14522,6 +14636,7 @@ window.__initEditor = function(){
         </div>
         <p class="record-note">Ganados/empatados/perdidos y vallas invictas corresponden al 2º semestre (partidos cargados en la app).</p>
       </div>
+      ${tablaLocalVisitanteHTML(condStats)}
       <div class="annual-grid">
         <div class="annual-card annual-featured">
           <h3>⚽ Cómo convertimos</h3>
@@ -17524,7 +17639,7 @@ try{
         const promoBadge = dur.promo ? `<span class="plan-promo">${dur.promo}</span>` : '';
         const promoNota = dur.promoNota ? `<span class="plan-promo-nota">${dur.promoNota}</span>` : '';
         const comparacion = (P.showPrices && dur.comparacion) ? `<span class="plan-comparacion">${dur.comparacion}</span>` : '';
-        cards += `<a class="plan-card${destacado}" href="${link}" target="_blank" rel="noopener" data-paylink="1">${promoBadge}<span class="plan-label">${window.__durLabel(dur.months)}</span>${priceHtml}${perMonth}${comparacion}${promoNota}<span class="plan-go">${window.t('planGo')} →</span></a>`;
+        cards += `<a class="plan-card${destacado}" href="${link}" target="_blank" rel="noopener" data-paylink="1" data-months="${dur.months}">${promoBadge}<span class="plan-label">${window.__durLabel(dur.months)}</span>${priceHtml}${perMonth}${comparacion}${promoNota}<span class="plan-go">${window.t('planGo')} →</span></a>`;
       });
       const gridClass = visibles.length <= 2 ? 'plans-grid plans-grid-2' : 'plans-grid plans-grid-3';
       const confirmarBox = P.whatsapp ? `<div class="plans-confirmar">
@@ -17536,14 +17651,22 @@ try{
       wire();
       const back = document.getElementById('plansBack');
       if(back) back.addEventListener('click', renderPaso1);
+      // Recordamos qué duración eligió el DT al ir a pagar, para que el
+      // botón "Ya pagué" arme el mensaje con el plan correcto (y no siempre el 1º).
+      let durElegida = null;
       const confWa = document.getElementById('plansConfirmarWa');
       if(confWa) confWa.addEventListener('click', ()=>{
-        const durPrincipal = visibles[0] || null;
-        const url = window.__confirmarPagoWhatsapp ? window.__confirmarPagoWhatsapp(packKey, durPrincipal) : '#';
+        // Si tocó un plan, usamos ese. Si no, caemos a la primera duración visible.
+        const dur = durElegida || visibles[0] || null;
+        const url = window.__confirmarPagoWhatsapp ? window.__confirmarPagoWhatsapp(packKey, dur) : '#';
         if(url && url !== '#') window.open(url, '_blank', 'noopener');
       });
       modal.querySelectorAll('a[data-paylink]').forEach(a=>{
         a.addEventListener('click', async (e)=>{
+          // Registramos la duración de este plan como la elegida.
+          const meses = parseInt(a.getAttribute('data-months'), 10);
+          const encontrada = visibles.find(d => d.months === meses);
+          if(encontrada) durElegida = encontrada;
           if(window.__exigirWhatsappParaPago){
             const destino = a.getAttribute('href');
             e.preventDefault();
@@ -17794,6 +17917,31 @@ function escapeHtml(s){
 
 // ---------- Exportar a PDF cualquier sección (vía impresión del navegador) ----------
 // Agrega un encabezado con club, categoría y fecha, imprime, y limpia después.
+// ─── ¿La suscripción del club está realmente vencida? ───
+// Devuelve true SOLO si el club no tiene acceso vigente (prueba
+// terminada sin pago, o suscripción vencida). Si está activo o en
+// prueba vigente, devuelve false. Se apoya en window.__myPlanData,
+// que carga el estado real del club desde la base.
+window.__suscripcionVencida = function(){
+  const data = window.__myPlanData;
+  // Si todavía no cargó el estado, NO afirmamos que está vencida
+  // (evitamos mostrar el cartel por las dudas).
+  if(!data) return false;
+  const st = data.subscription_status;
+  if(st === 'active'){
+    // Activo: vencido solo si la fecha de fin ya pasó.
+    if(!data.subscription_ends_at) return false; // sin fecha = sin límite
+    return new Date(data.subscription_ends_at).getTime() < Date.now();
+  }
+  if(st === 'trial'){
+    // Prueba: vencida si la fecha de prueba ya pasó.
+    if(!data.trial_ends_at) return false;
+    return new Date(data.trial_ends_at).getTime() < Date.now();
+  }
+  // Cualquier otro estado (ej: 'expired', 'cancelled') = vencido.
+  return true;
+};
+
 // ─── Detector central de "suscripción vencida" ───
 // Recibe el error de cualquier operación a la base. Si es el
 // bloqueo por suscripción vencida (regla RLS), muestra el modal
@@ -17802,12 +17950,16 @@ function escapeHtml(s){
 window.__esErrorSuscripcion = function(error){
   if(!error) return false;
   const t = (error.message || error.details || error.hint || '').toString().toLowerCase();
-  const esSusc = /row-level security|violates row-level|new row violates|policy|not authorized|permission denied/i.test(t);
-  if(esSusc && window.__mostrarSuscripcionVencida){
-    window.__mostrarSuscripcionVencida();
+  const esRLS = /row-level security|violates row-level|new row violates|policy|not authorized|permission denied/i.test(t);
+  if(!esRLS) return false;
+  // El error es de permiso, PERO solo lo tratamos como "prueba vencida"
+  // si el club realmente está vencido. Si está pago/activo, este error
+  // es otra cosa (no mostramos el cartel de suscripción).
+  if(window.__suscripcionVencida && window.__suscripcionVencida()){
+    if(window.__mostrarSuscripcionVencida){ window.__mostrarSuscripcionVencida(); }
     return true;
   }
-  return esSusc;
+  return false;
 };
 
 // ─── Modal "prueba/suscripción vencida" ───
