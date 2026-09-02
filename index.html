@@ -3572,7 +3572,7 @@ body.editor-active #screen-editor{ display:block; }
           <input class="rd-name" id="mtRival" placeholder="Rival">
           <div class="rd-meta-row">
             <label>🏆 Torneo <select id="mtTorneo" class="mt-torneo-sel-detail" title="Elegí el torneo de este partido"></select></label>
-            <label>🏟️ Condición <select id="mtCondicion" class="mt-torneo-sel-detail" title="¿Jugamos de local o de visitante?"><option value="">— Sin definir —</option><option value="local">🏠 Local</option><option value="visitante">✈️ Visitante</option></select></label>
+            <label>🏟️ Condición <select id="mtCondicion" class="mt-torneo-sel-detail" title="¿Jugamos de local, visitante o en cancha neutral?"><option value="">— Sin definir —</option><option value="local">🏠 Local</option><option value="visitante">✈️ Visitante</option><option value="neutral">🅝 Neutral</option></select></label>
             <label>Fecha del partido <input type="date" id="mtDate"></label>
             <div class="score-box">
               <span class="score-num" id="scoreFor">0</span>
@@ -11953,6 +11953,13 @@ window.__initEditor = function(){
       <td><input class="mt-rival-in" value="${escapeHtml(m.rival||'')}" placeholder="Escribí el rival"></td>
       <td class="mt-gf"><span class="${cls==='win'?'win':''}">${s.f}</span></td>
       <td class="mt-gc"><span class="${cls==='loss'?'loss':''}">${s.a}</span></td>
+      <td class="mt-cond">
+        <div class="lvn-group" title="Local / Visitante / Neutral">
+          <button type="button" class="lvn-btn ${m.condicion==='local'?'on':''}" data-cond="local" title="Local">L</button>
+          <button type="button" class="lvn-btn ${m.condicion==='visitante'?'on':''}" data-cond="visitante" title="Visitante">V</button>
+          <button type="button" class="lvn-btn ${m.condicion==='neutral'?'on':''}" data-cond="neutral" title="Neutral">N</button>
+        </div>
+      </td>
       <td><input type="date" class="mt-date-in" value="${escapeHtml(m.date||'')}" title="Tocá para elegir la fecha"></td>
       <td class="mt-open"><button class="btn small mt-open-btn">Abrir →</button></td>
       <td class="mt-del"><button class="btn-del-match" title="Borrar partido">✕</button></td>
@@ -11964,6 +11971,17 @@ window.__initEditor = function(){
     rivalIn.addEventListener('input', e => { m.rival = e.target.value; saveMatchRow(m); });
     dateIn.addEventListener('change', e => { m.date = e.target.value; saveMatchRow(m); sortMatches(); renderMatchList(); });
     dateIn.addEventListener('input', e => { m.date = e.target.value; saveMatchRow(m); });
+    // Botones L/V/N: al tocar, si ya estaba marcado lo destildan (vuelve a "sin definir").
+    tr.querySelectorAll('.lvn-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const val = btn.getAttribute('data-cond');
+        m.condicion = (m.condicion === val) ? '' : val;
+        tr.querySelectorAll('.lvn-btn').forEach(b => {
+          b.classList.toggle('on', b.getAttribute('data-cond') === m.condicion);
+        });
+        saveMatchRow(m);
+      });
+    });
     tr.querySelector('.mt-open-btn').addEventListener('click', () => openMatch(m.id));
     tr.querySelector('.btn-del-match').addEventListener('click', () => deleteMatch(m));
     return tr;
