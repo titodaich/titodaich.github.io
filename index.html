@@ -13725,6 +13725,18 @@ window.__initEditor = function(){
     return set;
   }
 
+  // Presentismo SOLO a entrenamientos (excluye los días que son de partido).
+  // Devuelve el % o null si no hay días de entrenamiento o el jugador está excluido.
+  window.__attendanceTrainingPercent = function(playerId){
+    loadExcluded();
+    if(attIsExcluded(playerId)) return null;
+    const soloEntren = new Set();
+    attActiveDaysYear().forEach(dk => {
+      if(!attMatchDays[dk]) soloEntren.add(dk);   // no es día de partido = entrenamiento
+    });
+    return attPercentForDays(playerId, soloEntren);
+  };
+
   // Totales del EQUIPO para un conjunto de días activos.
   // Cuenta cada casilla (jugador visible × día activo) y saca los % sobre ese total.
   // Devuelve null si no hay actividad.
@@ -16180,15 +16192,20 @@ window.__initEditor = function(){
     // Acumular datos por jugador (por nombre, que es la clave común entre fuentes)
     const stat = {};   // name -> {tarjetas, minutos, sesiones, goles}
     squad.forEach(p => { stat[p.name] = { tarjetas:0, minutos:0, sesiones:0, goles:0, number:p.number||'' }; });
+    // Minutos por partido: matchId -> { nombre -> minutos }. Sirve para el
+    // criterio de "últimos 2 partidos con minutaje".
+    const minsPorPartido = {};
 
     // De las sesiones de En Vivo: minutos (todas) y tarjetas/goles (solo independientes, sin match_id)
     sessions.forEach(s => {
       const t = s.totals || {};
+      if(s.match_id){ minsPorPartido[s.match_id] = minsPorPartido[s.match_id] || {}; }
       Object.keys(t).forEach(name => {
         if(name === '__rival' || name === '__manual') return;
         if(!stat[name]) return;   // jugador que ya no está en el plantel
         const tot = t[name].total || 0;
         if(tot > 0){ stat[name].minutos += tot; stat[name].sesiones++; }
+        if(s.match_id){ minsPorPartido[s.match_id][name] = (minsPorPartido[s.match_id][name]||0) + tot; }
         if(!s.match_id){
           stat[name].tarjetas += (t[name].cards || 0);
           stat[name].goles += (t[name].goals || 0);
@@ -16246,20 +16263,56 @@ window.__initEditor = function(){
       cards.push({ icon:'🟨', title:'Riesgo de suspensión', body, tone: alLimite.length>0?'crit':'warn' });
     }
 
-    // 2) Pocos minutos (jugadores del plantel con muy pocos minutos acumulados)
-    const conMin = Object.keys(stat).filter(n => stat[n].sesiones > 0);
-    if(conMin.length >= 3){
-      const totalMin = conMin.reduce((a,n)=>a+stat[n].minutos,0);
-      const promedio = totalMin / conMin.length;
-      const pocos = conMin.filter(n => stat[n].minutos < promedio * 0.4)
-        .sort((a,b)=>stat[a].minutos-stat[b].minutos);
-      if(pocos.length > 0){
-        let body = '';
-        pocos.forEach(n => { const min = Math.round(stat[n].minutos/60); body += `<div class="health-item"><span class="health-badge info">${min}′</span> <strong>${escapeHtml(n)}</strong> — viene jugando poco</div>`; });
-        body += `<div class="health-note">Promedio del plantel: ${Math.round(promedio/60)}′ (según minutajes de En Vivo). Ojo con la motivación de estos jugadores.</div>`;
-        cards.push({ icon:'⏱', title:'Pocos minutos', body, tone:'info' });
-      }
-    }
+    // 2) Pocos minutos — criterio: jugó menos del 15% de los minutos totales
+    //    de los ÚLTIMOS 2 PARTIDOS con minutaje cargado.
+    //    Duración por partido: 40' en 1era/3era, 50' en el resto.
+    (function pocosMinutos(){
+      // Partidos con minutaje cargado, ordenados del más reciente al más antiguo.
+      const partidosConMin = matches
+        .filter(m => minsPorPartido[m.id] && Object.keys(minsPorPartido[m.id]).length > 0)
+        .slice()
+        .sort((a,b) => {
+          const da = a.date || '', db = b.date || '';
+          if(da && db) return db.localeCompare(da);   // más nuevo primero
+          if(da && !db) return -1;
+          if(!da && db) return 1;
+          return (b.createdAt||'').localeCompare(a.createdAt||'');
+        });
+      // Necesitamos al menos 2 partidos con minutaje para aplicar el criterio.
+      if(partidosConMin.length < 2) return;
+      const ultimos2 = partidosConMin.slice(0, 2);
+
+      // Duración de un partido según la categoría actual.
+      const cat = (catActual() || '').toLowerCase();
+      const durPartido = (cat === '1era' || cat === '3era') ? 40 : 50;  // minutos
+      const minutosTotales = durPartido * 2;        // los 2 partidos
+      const umbralSeg = minutosTotales * 0.15 * 60;  // 15%, en segundos
+
+      // Minutos de cada jugador en esos 2 partidos (en segundos).
+      const minJugador = {};
+      squad.forEach(p => { minJugador[p.name] = 0; });
+      ultimos2.forEach(m => {
+        const mp = minsPorPartido[m.id] || {};
+        Object.keys(mp).forEach(name => {
+          if(minJugador[name] === undefined) return;
+          minJugador[name] += mp[name] || 0;
+        });
+      });
+
+      // Jugadores del plantel por debajo del umbral.
+      const pocos = Object.keys(minJugador)
+        .filter(n => minJugador[n] < umbralSeg)
+        .sort((a,b) => minJugador[a] - minJugador[b]);
+      if(pocos.length === 0) return;
+
+      let body = '';
+      pocos.forEach(n => {
+        const min = Math.round(minJugador[n] / 60);
+        body += `<div class="health-item"><span class="health-badge info">${min}′</span> <strong>${escapeHtml(n)}</strong> — jugó poco en los últimos 2 partidos</div>`;
+      });
+      body += `<div class="health-note">Umbral: menos de ${Math.round(minutosTotales*0.15)}′ en los últimos 2 partidos (15% de ${minutosTotales}′). Ojo con la motivación de estos jugadores.</div>`;
+      cards.push({ icon:'⏱', title:'Pocos minutos', body, tone:'info' });
+    })();
 
     // 3) Sin convocar en los últimos partidos
     if(sinConvocar.length > 0){
@@ -16298,25 +16351,63 @@ window.__initEditor = function(){
       }
     }
 
-    // 4) Goleadores en racha (positivo)
-    const goleadores = Object.keys(stat).filter(n => stat[n].goles > 0)
-      .map(n => ({ name:n, g:stat[n].goles }))
-      .sort((a,b)=>b.g-a.g).slice(0,3);
-    if(goleadores.length > 0){
+    // 4) Racha goleadora — en los últimos 6 PARTIDOS con goles cargados,
+    //    quien convirtió 3 o más. Muestra (a) goles en esos 6 y (b) total del año.
+    (function rachaGoleadora(){
+      // Partidos que tienen al menos un gol cargado, más recientes primero.
+      const partidosConGol = matches
+        .filter(m => (m.goalsFor||[]).length > 0)
+        .slice()
+        .sort((a,b) => {
+          const da = a.date || '', db = b.date || '';
+          if(da && db) return db.localeCompare(da);
+          if(da && !db) return -1;
+          if(!da && db) return 1;
+          return (b.createdAt||'').localeCompare(a.createdAt||'');
+        });
+      if(partidosConGol.length === 0) return;
+      const ultimos6 = partidosConGol.slice(0, 6);
+
+      // Goles por jugador en esos 6 partidos (por player_id) y total del año.
+      const golesRacha = {};   // player_id -> goles en los últimos 6
+      const golesAnio = {};    // player_id -> goles en todo el año
+      matches.forEach(m => {
+        (m.goalsFor||[]).forEach(g => {
+          if(!g.player_id) return;
+          golesAnio[g.player_id] = (golesAnio[g.player_id]||0) + 1;
+        });
+      });
+      ultimos6.forEach(m => {
+        (m.goalsFor||[]).forEach(g => {
+          if(!g.player_id) return;
+          golesRacha[g.player_id] = (golesRacha[g.player_id]||0) + 1;
+        });
+      });
+
+      // Jugadores con 3+ goles en los últimos 6, ordenados de más a menos.
+      const enRacha = squad
+        .map(p => ({ name:p.name, racha: golesRacha[p.id]||0, total: golesAnio[p.id]||0 }))
+        .filter(x => x.racha >= 3)
+        .sort((a,b) => b.racha - a.racha);
+      if(enRacha.length === 0) return;
+
       let body = '';
-      goleadores.forEach(x => { body += `<div class="health-item"><span class="health-badge good">${x.g} ⚽</span> <strong>${escapeHtml(x.name)}</strong></div>`; });
+      enRacha.forEach(x => {
+        body += `<div class="health-item"><span class="health-badge good">${x.racha} ⚽</span> <strong>${escapeHtml(x.name)}</strong> — ${x.racha} en los últimos 6 partidos · ${x.total} en el año</div>`;
+      });
+      body += `<div class="health-note">Convirtieron 3 goles o más en los últimos 6 partidos. ¡En racha!</div>`;
       cards.push({ icon:'⭐', title:'En racha goleadora', body, tone:'good' });
-    }
+    })();
 
     // 5) ASISTENCIA (viene del módulo Presentismo)
     //    Bajo = alerta; alto = reconocimiento. Usa el % anual por jugador.
     try{
       if(window.__loadAttendance) await window.__loadAttendance();
-      if(window.__attendancePercent){
+      if(window.__attendanceTrainingPercent){
         const bajos = [], altos = [];
         squad.forEach(p => {
-          const pct = window.__attendancePercent(p.id);
-          if(pct === null) return;   // sin datos de asistencia: no opina
+          const pct = window.__attendanceTrainingPercent(p.id);
+          if(pct === null) return;   // sin datos de entrenamiento: no opina
           if(pct < 60) bajos.push({ name:p.name, pct });
           else if(pct >= 90) altos.push({ name:p.name, pct });
         });
