@@ -1644,6 +1644,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .lv-table td.lv-pts{font-weight:700;color:var(--accent-2);font-size:15px;}
 .lv-table td.lv-pos{color:var(--success);}
 .lv-table td.lv-neg{color:var(--danger);}
+/* Formato cuadro: bordes en todas las celdas (tipo planilla) */
+.lv-table.lv-grid{border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+.lv-table.lv-grid th,.lv-table.lv-grid td{border:1px solid var(--line);}
+.lv-table.lv-grid thead th{background:var(--panel-2);}
+.lv-table.lv-grid tbody tr:nth-child(even){background:rgba(27,44,61,0.35);}
 .annual-card h3{font-family:'Oswald',sans-serif;font-size:15px;text-transform:uppercase;letter-spacing:0.6px;margin:0 0 14px;}
 /* Tarjetas plegables (Estadísticas anuales) */
 .annual-card.plegable > h3{cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;margin-bottom:0;transition:margin .15s;}
@@ -14618,9 +14623,9 @@ window.__initEditor = function(){
       const filaNeutral = N.pj > 0 ? fila('🅝 Neutral', N) : '';
       return `
       <div class="annual-card">
-        <h3>🏟️ Local vs Visitante</h3>
+        <h3>🏟️ Rendimiento L/V</h3>
         <div class="lv-wrap">
-          <table class="lv-table">
+          <table class="lv-table lv-grid">
             <thead><tr>
               <th class="lv-cond-h">Condición</th>
               <th title="Partidos jugados">PJ</th>
@@ -14636,7 +14641,7 @@ window.__initEditor = function(){
             </tbody>
           </table>
         </div>
-        <p class="record-note">Solo se cuentan los partidos donde marcaste la condición (local, visitante o neutral). Puntos: 3 por ganado, 1 por empatado.</p>
+        <p class="record-note">Solo se cuentan los partidos donde marcaste la condición (local, visitante o neutral). En todos los casos: 3 puntos por partido ganado, 1 por empatado, 0 por perdido. Los goles a favor y en contra se suman normalmente.</p>
       </div>`;
     }
 
