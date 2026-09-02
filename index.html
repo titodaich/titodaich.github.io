@@ -1642,6 +1642,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .lv-table td{text-align:center;padding:9px 4px;border-bottom:1px solid rgba(51,73,94,0.4);font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--chalk);}
 .lv-table td.lv-cond{text-align:left;font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;}
 .lv-table td.lv-pts{font-weight:700;color:var(--accent-2);font-size:15px;}
+.lv-table td.lv-pct{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);}
 .lv-table td.lv-pos{color:var(--success);}
 .lv-table td.lv-neg{color:var(--danger);}
 /* Formato cuadro: bordes en todas las celdas (tipo planilla) */
@@ -1649,6 +1650,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .lv-table.lv-grid th,.lv-table.lv-grid td{border:1px solid var(--line);}
 .lv-table.lv-grid thead th{background:var(--panel-2);}
 .lv-table.lv-grid tbody tr:nth-child(even){background:rgba(27,44,61,0.35);}
+/* Fila TOTAL: destacada, como el renglón de totales de una planilla */
+.lv-table .lv-total{background:var(--panel-2) !important;}
+.lv-table .lv-total td{font-weight:700;color:var(--chalk);border-top:2px solid var(--accent-2) !important;}
+.lv-table .lv-total td.lv-cond{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:0.5px;}
+.lv-table .lv-total td.lv-pts{color:var(--accent-2);font-size:16px;}
 .annual-card h3{font-family:'Oswald',sans-serif;font-size:15px;text-transform:uppercase;letter-spacing:0.6px;margin:0 0 14px;}
 /* Tarjetas plegables (Estadísticas anuales) */
 .annual-card.plegable > h3{cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;margin-bottom:0;transition:margin .15s;}
@@ -14610,17 +14616,41 @@ window.__initEditor = function(){
       const pts = (c) => c.g*3 + c.e;
       const dif = (c) => (c.gf - c.gc);
       const signo = (n) => (n > 0 ? '+' : '') + n;
+      // Total de puntos de todas las condiciones, para calcular el % de cada una.
+      const ptsTotal = pts(L) + pts(V) + pts(N);
+      const pct = (c) => ptsTotal > 0 ? Math.round(pts(c) / ptsTotal * 100) + '%' : '—';
       const fila = (etiqueta, c) => `
         <tr>
           <td class="lv-cond">${etiqueta}</td>
           <td>${c.pj}</td>
           <td class="lv-pts">${pts(c)}</td>
+          <td class="lv-pct">${pct(c)}</td>
           <td>${c.g}</td><td>${c.e}</td><td>${c.p}</td>
           <td>${c.gf}</td><td>${c.gc}</td>
           <td class="${dif(c)>0?'lv-pos':(dif(c)<0?'lv-neg':'')}">${signo(dif(c))}</td>
         </tr>`;
       // La fila Neutral solo aparece si hay al menos un partido neutral.
       const filaNeutral = N.pj > 0 ? fila('🅝 Neutral', N) : '';
+      // Fila TOTAL: suma de todas las condiciones (todos los partidos marcados).
+      const T = {
+        pj: L.pj + V.pj + N.pj,
+        g:  L.g  + V.g  + N.g,
+        e:  L.e  + V.e  + N.e,
+        p:  L.p  + V.p  + N.p,
+        gf: L.gf + V.gf + N.gf,
+        gc: L.gc + V.gc + N.gc
+      };
+      const difT = T.gf - T.gc;
+      const filaTotal = `
+        <tr class="lv-total">
+          <td class="lv-cond">Σ Total</td>
+          <td>${T.pj}</td>
+          <td class="lv-pts">${T.g*3 + T.e}</td>
+          <td class="lv-pct">${ptsTotal > 0 ? '100%' : '—'}</td>
+          <td>${T.g}</td><td>${T.e}</td><td>${T.p}</td>
+          <td>${T.gf}</td><td>${T.gc}</td>
+          <td class="${difT>0?'lv-pos':(difT<0?'lv-neg':'')}">${(difT>0?'+':'')+difT}</td>
+        </tr>`;
       return `
       <div class="annual-card">
         <h3>🏟️ Rendimiento L/V</h3>
@@ -14630,6 +14660,7 @@ window.__initEditor = function(){
               <th class="lv-cond-h">Condición</th>
               <th title="Partidos jugados">PJ</th>
               <th title="Puntos (3 por ganado, 1 por empatado)">Pts</th>
+              <th title="Porcentaje de tus puntos totales sacados en esta condición">%Pts</th>
               <th title="Ganados">G</th><th title="Empatados">E</th><th title="Perdidos">P</th>
               <th title="Goles a favor">GF</th><th title="Goles en contra">GC</th>
               <th title="Diferencia de gol">Dif</th>
@@ -14638,6 +14669,7 @@ window.__initEditor = function(){
               ${fila('🏠 Local', L)}
               ${fila('✈️ Visitante', V)}
               ${filaNeutral}
+              ${filaTotal}
             </tbody>
           </table>
         </div>
