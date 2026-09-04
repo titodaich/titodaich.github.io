@@ -897,6 +897,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .go-min-label span{color:var(--muted);font-size:11px;}
 .go-min-input{flex:1;background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);border-radius:8px;padding:9px 11px;font-size:15px;font-family:'JetBrains Mono',monospace;min-width:0;}
 .go-min-input:focus{outline:none;border-color:var(--accent-2);}
+.go-detail-row{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 12px;background:var(--bg-2);border:1px solid var(--line-soft);border-radius:10px;}
+.go-detail-row .go-min-input{font-family:'Inter',sans-serif;font-size:13px;}
 .gol-origen-overlay.go-contra .go-min-input:focus{border-color:var(--danger);}
 .go-btns{display:flex;flex-direction:column;gap:8px;}
 .go-btn{background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);border-radius:10px;padding:13px 14px;font-size:15px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .12s;width:100%;text-align:center;}
@@ -9490,12 +9492,14 @@ window.__initEditor = function(){
           player_id: e.pid || '',
           player_name: e.inName || '',
           origin: e.origen || '',
+          detail: e.detail || '',
           min: minDeGol(e),
           half: e.half || ''
         }));
         // Goles del RIVAL registrados en vivo (con su minuto)
         const golesRival = events.filter(e => e.type === 'goalAgainst').map(e => ({
           origin: e.origen || '',
+          detail: e.detail || '',
           min: minDeGol(e),
           half: e.half || ''
         }));
@@ -9872,11 +9876,23 @@ window.__initEditor = function(){
         <input type="text" class="go-min-input" id="goMinInput" value="${minActual}" placeholder="ej: 12' ${periodo}" inputmode="numeric">
       </div>
       <div class="go-btns">${botones}</div>
+      <div class="go-detail-row">
+        <label class="go-min-label">✎ Detalle <span>(opcional)</span></label>
+        <input type="text" class="go-min-input" id="goDetailInput" placeholder="ej: 2v1, contra, pared, doble pase…">
+      </div>
       <button class="go-skip" id="goSkip">Saltear ✕</button>
     </div>`;
     document.body.appendChild(ov);
 
     const minInput = ov.querySelector('#goMinInput');
+    const detailInput = ov.querySelector('#goDetailInput');
+    // El detalle se guarda en su propio campo (evento.detail), igual que en
+    // la sección Partidos, para que se muestre bien en el resumen y en las
+    // estadísticas. El origen (tag) queda limpio.
+    const guardarDetalle = () => {
+      const d = (detailInput && detailInput.value || '').trim();
+      evento.detail = d || '';
+    };
     // Guarda el minuto tipeado en el evento (si hay algo)
     const guardarMin = () => {
       const v = (minInput.value || '').trim();
@@ -9890,8 +9906,10 @@ window.__initEditor = function(){
       btn.addEventListener('click', () => {
         evento.origen = btn.dataset.tag;
         guardarMin();
+        guardarDetalle();
         renderLog();
-        toast('🏷️ '+btn.dataset.tag + (evento.min ? ' · '+evento.min : ''));
+        const detTxt = evento.detail ? ' → '+evento.detail : '';
+        toast('🏷️ '+btn.dataset.tag + detTxt + (evento.min ? ' · '+evento.min : ''));
         cerrar();
       });
     });
