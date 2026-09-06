@@ -1611,11 +1611,16 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   /* En el teléfono: en vez de los 3 botones, un selector compacto que
      muestra la letra elegida (L/V/N) y al tocarlo se despliega. */
   .lvn-group{display:none !important;}
-  .lvn-select{display:inline-block !important;min-width:52px;}
+  .lvn-select{display:inline-block !important;min-width:48px;}
   .mt-fecha-badge{font-size:9px;padding:2px 5px;white-space:nowrap;}
   /* Fecha corta (día + mes) en vez del input largo: la tabla queda más angosta */
   .mt-date-in{display:none;}
   .mt-date-short{display:inline-block;font-size:11px;padding:5px 6px;}
+  /* El rival tiene MÁS espacio y menos espaciado, para que se lea entero */
+  .match-table td .mt-rival-in{font-size:12px;letter-spacing:0;padding:5px 5px;}
+  .match-table th.mt-rival-h,.match-table td:nth-child(2){min-width:120px;}
+  .match-table th,.match-table td{padding:6px 4px;}
+  .match-table th.mt-gf,.match-table td.mt-gf,.match-table th.mt-gc,.match-table td.mt-gc{padding:6px 2px;}
 }
 .mt-rival-in{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-family:'Oswald',sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:0.3px;padding:5px 8px;}
 .mt-rival-in:focus{outline:none;border-color:var(--accent);}
@@ -12603,7 +12608,11 @@ window.__initEditor = function(){
   function buildOriginButtons(g, onChange){
     const wrap = document.createElement('div');
     wrap.className = 'origin-tags';
-    origins.forEach(o => {
+    // Red de seguridad: si los tags todavía no se cargaron desde la base
+    // (conexión lenta en el celular, etc.), usamos los tags por defecto para
+    // que SIEMPRE aparezcan los botones de "cómo fue el gol".
+    const listaTags = (Array.isArray(origins) && origins.length) ? origins : DEFAULT_ORIGINS;
+    listaTags.forEach(o => {
       const btn = document.createElement('button');
       btn.className = 'origin-tag' + (g.origin === o.name ? ' active' : '');
       btn.textContent = o.name;
@@ -12615,7 +12624,7 @@ window.__initEditor = function(){
       wrap.appendChild(btn);
     });
     // Si el tag activo tiene sub-opciones, mostrarlas
-    const activeTag = origins.find(o => o.name === g.origin);
+    const activeTag = listaTags.find(o => o.name === g.origin);
     if(activeTag && activeTag.subs && activeTag.subs.length){
       const subWrap = document.createElement('div');
       subWrap.className = 'origin-subs';
