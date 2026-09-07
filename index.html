@@ -1605,10 +1605,12 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .lvn-select.lvn-neutral{color:var(--gold,#E0A93B);border-color:var(--gold,#E0A93B);}
 /* Sin elegir: se muestra la flechita ▾ como invitación a elegir */
 .lvn-select.lvn-none{color:var(--accent-2);border-color:var(--line);font-size:15px;}
-/* En teléfono: compactar la tabla de partidos para que entre sin cortarse.
-   La fecha se muestra corta (día + mes) en vez del input largo. */
-@media (max-width:600px){
-  /* En el teléfono: en vez de los 3 botones, un selector compacto que
+/* En teléfono Y TABLET vertical: compactar la tabla de partidos para que
+   entre sin cortarse. La fecha se muestra corta (día + mes) en vez del
+   input largo, y la condición como selector compacto. Corte a 900px para
+   cubrir también tablets en vertical (que suelen medir 700-850px). */
+@media (max-width:900px){
+  /* En vez de los 3 botones, un selector compacto que
      muestra la letra elegida (L/V/N) y al tocarlo se despliega. */
   .lvn-group{display:none !important;}
   .lvn-select{display:inline-block !important;min-width:48px;}
