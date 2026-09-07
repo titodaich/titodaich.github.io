@@ -1099,6 +1099,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .live-log-row .llr-type.swap{color:var(--accent-2);border-color:var(--accent-2);}
 .live-log-row .llr-type.half{color:var(--accent);border-color:var(--accent);}
 .live-log-row .llr-desc{flex:1;}
+.llr-acciones{display:inline-flex;gap:4px;flex-shrink:0;}
+.llr-edit,.llr-del{background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--muted);font-size:13px;padding:4px 8px;cursor:pointer;line-height:1;transition:all .12s ease;}
+.llr-edit:hover{border-color:var(--accent-2);color:var(--accent-2);}
+.llr-del:hover{border-color:var(--danger);color:var(--danger);}
 
 /* ===== ESTADÍSTICAS ===== */
 .stats-subnav{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap;}
@@ -1481,6 +1485,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .goal-row-top{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
 .goal-row-top .g-player{flex:1;min-width:0;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-size:13px;padding:7px 9px;cursor:pointer;}
 .goal-row-top .g-min{width:90px;flex-shrink:0;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-size:12px;padding:7px 8px;}
+.goal-row-top .g-min-lock{background:var(--bg);border-color:var(--line-soft,#263846);color:var(--muted);cursor:default;opacity:0.85;}
 .goal-row-top .g-keeper{flex:1;min-width:0;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-size:13px;padding:7px 9px;cursor:pointer;}
 .g-detail{width:100%;margin-top:8px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--chalk);font-family:'Inter',sans-serif;font-size:12px;padding:7px 9px;}
 .g-detail:focus{outline:none;border-color:var(--accent-2);}
@@ -4268,7 +4273,10 @@ body.editor-active #screen-editor{ display:block; }
           <div class="lsb-result">
             <div class="lsb-col">
               <div class="lsb-team" data-i18n="sbUs">NOSOTROS</div>
-              <div class="lsb-goals" id="sbGoalsFor">0</div>
+              <div class="lsb-goals-manual">
+                <button class="lsb-mini" id="sbGFminus" aria-label="−" title="Quitar el último gol nuestro">−</button>
+                <span class="lsb-goals" id="sbGoalsFor">0</span>
+              </div>
             </div>
             <div class="lsb-dash">-</div>
             <div class="lsb-col">
@@ -9285,13 +9293,26 @@ window.__initEditor = function(){
       else if(ev.type==='foul'){ desc='⚠️ Falta de '+escapeHtml(ev.inName); cls='out'; label='Falta'; }
       else if(ev.type==='card'){ desc='🟨 Tarjeta a '+escapeHtml(ev.inName); cls='half'; label='Tarjeta'; }
       else if(ev.type==='recup'){ desc='⚔️ Recuperación de '+escapeHtml(ev.inName); cls='in'; label='Recup.'; }
-      row.innerHTML=`<span class="llr-time">${fmtClock(ev.t)}</span><span class="llr-type ${cls}">${label}</span><span class="llr-desc">${desc}</span>`;
+      // Botones de corrección para los goles (propio y en contra)
+      let accionesGol = '';
+      if(ev.type==='goal'){
+        accionesGol = `<span class="llr-acciones"><button class="llr-edit" title="Cambiar jugador">✎</button><button class="llr-del" title="Borrar gol">🗑</button></span>`;
+      } else if(ev.type==='goalAgainst'){
+        accionesGol = `<span class="llr-acciones"><button class="llr-del" title="Borrar gol">🗑</button></span>`;
+      }
+      row.innerHTML=`<span class="llr-time">${fmtClock(ev.t)}</span><span class="llr-type ${cls}">${label}</span><span class="llr-desc">${desc}</span>${accionesGol}`;
       // Permitir editar/agregar el tag del gol tocándolo (modo manual)
       const origenEl = row.querySelector('.llr-origen');
       if(origenEl){
         origenEl.style.cursor='pointer';
         origenEl.addEventListener('click', () => abrirSelectorOrigenGol(ev, ev.inName, ev.type==='goalAgainst'));
       }
+      // Borrar el gol
+      const delBtn = row.querySelector('.llr-del');
+      if(delBtn) delBtn.addEventListener('click', () => borrarGolDelLog(ev));
+      // Cambiar el jugador (solo gol propio)
+      const editBtn = row.querySelector('.llr-edit');
+      if(editBtn) editBtn.addEventListener('click', () => cambiarJugadorDelGol(ev));
       el.appendChild(row);
     });
   }
@@ -9358,6 +9379,22 @@ window.__initEditor = function(){
     renderScoreboard(); renderLog(); guardarPartidoLocal();
     // Abrir el cartelito de "cómo fue el gol en contra"
     abrirSelectorOrigenGol(evento, 'Rival', true);
+  });
+  bindMini('sbGFminus',()=>{
+    // Quita el último gol NUESTRO: lo saca del jugador que lo hizo, del
+    // remate automático y del registro. Igual que borrarlo desde el log.
+    const idx = events.findIndex(e => e.type==='goal');
+    if(idx>=0){
+      const ev = events[idx];
+      const st = ensure(ev.pid);
+      if(st){ st.goals=Math.max(0,(st.goals||0)-1); st.shots=Math.max(0,(st.shots||0)-1); }
+      if(ev.half===2){ shotsFor2=Math.max(0,shotsFor2-1); } else { shotsFor1=Math.max(0,shotsFor1-1); }
+      events.splice(idx,1);
+      renderField(); renderTotals(); renderLog(); renderScoreboard(); guardarPartidoLocal();
+      toast('🗑 Se quitó el último gol nuestro');
+    } else {
+      toast('No hay goles nuestros para quitar');
+    }
   });
   bindMini('sbGAminus',()=>{
     if(goalsAgainstManual>0){
@@ -9501,14 +9538,16 @@ window.__initEditor = function(){
           origin: e.origen || '',
           detail: e.detail || '',
           min: minDeGol(e),
-          half: e.half || ''
+          half: e.half || '',
+          fromLive: true
         }));
         // Goles del RIVAL registrados en vivo (con su minuto)
         const golesRival = events.filter(e => e.type === 'goalAgainst').map(e => ({
           origin: e.origen || '',
           detail: e.detail || '',
           min: minDeGol(e),
-          half: e.half || ''
+          half: e.half || '',
+          fromLive: true
         }));
         if(golesEnVivo.length){
           // Traer el partido actual para no pisar goles ya cargados a mano
@@ -10017,6 +10056,72 @@ window.__initEditor = function(){
     toast('➖ Recuperación restada a '+((squad.find(p=>p.id===pid)||{}).name||''));
   }
   // Deshacer el último evento (gol, falta o cambio)
+  // Borra un gol PUNTUAL del registro (propio o en contra), aunque no sea el
+  // último. Revierte el marcador, el remate que suma automáticamente, y para
+  // el gol propio descuenta del jugador.
+  function borrarGolDelLog(ev){
+    if(!ev) return;
+    const idx = events.indexOf(ev);
+    if(idx < 0) return;
+    if(ev.type === 'goal'){
+      const st = ensure(ev.pid);
+      if(st){
+        st.goals = Math.max(0, (st.goals||0) - 1);
+        // el gol suma un remate automático: lo descontamos también
+        st.shots = Math.max(0, (st.shots||0) - 1);
+      }
+      if(ev.half === 2){ shotsFor2 = Math.max(0, shotsFor2 - 1); }
+      else { shotsFor1 = Math.max(0, shotsFor1 - 1); }
+    }
+    // Para el gol en contra no hay stats de jugador que revertir; el marcador
+    // del rival se recalcula solo al contar los eventos 'goalAgainst'.
+    events.splice(idx, 1);
+    renderField(); renderTotals(); renderLog(); renderScoreboard();
+    guardarPartidoLocal();
+    toast('🗑 Gol borrado');
+  }
+
+  // Cambia el jugador de un gol propio (por si se marcó al que no era).
+  function cambiarJugadorDelGol(ev){
+    if(!ev || ev.type !== 'goal') return;
+    // Lista de jugadores del plantel para elegir
+    const opciones = squad.map(p => p.name);
+    if(!opciones.length){ toast('No hay jugadores en el plantel'); return; }
+    const ov = document.createElement('div');
+    ov.className = 'gol-origen-overlay';
+    ov.style.display = 'flex';
+    let botones = squad.map(p =>
+      `<button class="go-btn" data-pid="${p.id}">${escapeHtml(p.name)}</button>`
+    ).join('');
+    ov.innerHTML = `
+      <div class="gol-origen-box">
+        <div class="go-head">⚽ ¿Quién hizo el gol?</div>
+        <div class="go-btns">${botones}</div>
+        <button class="go-skip" id="goCancel">Cancelar ✕</button>
+      </div>`;
+    document.body.appendChild(ov);
+    const cerrar = () => ov.remove();
+    ov.querySelector('#goCancel').addEventListener('click', cerrar);
+    ov.addEventListener('click', e => { if(e.target === ov) cerrar(); });
+    ov.querySelectorAll('.go-btn[data-pid]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const nuevoPid = btn.dataset.pid;
+        const nuevoNombre = (squad.find(p => p.id === nuevoPid) || {}).name || '';
+        // descontar el gol al jugador viejo, sumar al nuevo
+        const stViejo = ensure(ev.pid);
+        if(stViejo) stViejo.goals = Math.max(0, (stViejo.goals||0) - 1);
+        const stNuevo = ensure(nuevoPid);
+        if(stNuevo) stNuevo.goals = (stNuevo.goals||0) + 1;
+        ev.pid = nuevoPid;
+        ev.inName = nuevoNombre;
+        renderField(); renderTotals(); renderLog();
+        guardarPartidoLocal();
+        toast('✎ Gol reasignado a ' + nuevoNombre);
+        cerrar();
+      });
+    });
+  }
+
   function undoLastEvent(){
     if(events.length===0){ toast(window.t('mNothingUndo')); return; }
     const ev = events[0];
@@ -12659,7 +12764,7 @@ window.__initEditor = function(){
       row.className = 'goal-row-v';
       const top = document.createElement('div');
       top.className = 'goal-row-top';
-      top.innerHTML = `<span class="g-num">${idx+1}</span><select class="g-player">${playerOptions(g.player_id)}</select><input class="g-min" value="${escapeHtml(g.min||'')}" placeholder="min (ej 6' PT)"><button class="g-remove">✕</button>`;
+      top.innerHTML = `<span class="g-num">${idx+1}</span><select class="g-player">${playerOptions(g.player_id)}</select><input class="g-min${g.fromLive?' g-min-lock':''}" value="${escapeHtml(g.min||'')}" placeholder="min (ej 6' PT)"${g.fromLive?' readonly title="Minuto registrado en vivo (no editable)"':''}><button class="g-remove">✕</button>`;
       top.querySelector('.g-player').addEventListener('change', e => {
         const p = buscarJugadorPartido(e.target.value); g.player_id=e.target.value; g.player_name=p?p.name:''; flashMatchSaved();
       });
@@ -12683,7 +12788,7 @@ window.__initEditor = function(){
       row.className = 'goal-row-v';
       const top = document.createElement('div');
       top.className = 'goal-row-top';
-      top.innerHTML = `<span class="g-num">${idx+1}</span><input class="g-min" value="${escapeHtml(g.min||'')}" placeholder="min"><select class="g-keeper">${playerOptions(g.keeper_id)}</select><button class="g-remove">✕</button>`;
+      top.innerHTML = `<span class="g-num">${idx+1}</span><input class="g-min${g.fromLive?' g-min-lock':''}" value="${escapeHtml(g.min||'')}" placeholder="min"${g.fromLive?' readonly title="Minuto registrado en vivo (no editable)"':''}><select class="g-keeper">${playerOptions(g.keeper_id)}</select><button class="g-remove">✕</button>`;
       top.querySelector('.g-min').addEventListener('input', e => { g.min = e.target.value; flashMatchSaved(); });
       top.querySelector('.g-keeper').addEventListener('change', e => {
         const p = buscarJugadorPartido(e.target.value); g.keeper_id=e.target.value; g.keeper_name=p?p.name:''; flashMatchSaved();
