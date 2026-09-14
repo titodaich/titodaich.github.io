@@ -10482,6 +10482,9 @@ window.__initEditor = function(){
   // ═══════════ EXPORTAR LA SEMANA (Lun-Vie) ═══════════
   const DIAS_HABILES = ['lunes','martes','miercoles','jueves','viernes'];
   const DIAS_HABILES_LARGO = { lunes:'Lunes', martes:'Martes', miercoles:'Miércoles', jueves:'Jueves', viernes:'Viernes' };
+  // Los 7 días para la exportación (la app carga hasta domingo).
+  const DIAS_EXPORT = ['lunes','martes','miercoles','jueves','viernes','sabado','domingo'];
+  const DIAS_EXPORT_LARGO = { lunes:'Lunes', martes:'Martes', miercoles:'Miércoles', jueves:'Jueves', viernes:'Viernes', sabado:'Sábado', domingo:'Domingo' };
   const TAC_LABEL = { ataque:'Ataque', defensa:'Defensa', abp:'ABP', '5v4':'5 vs 4', '4v5':'4 vs 5' };
 
   // Arma un nodo HTML con la semana completa (solo Lun-Vie), listo para foto/PDF.
@@ -10506,19 +10509,40 @@ window.__initEditor = function(){
     let filasEj = '';
     (c.ejercicios||[]).forEach((ex, i) => {
       let celdas = '';
-      DIAS_HABILES.forEach(dia => {
+      DIAS_EXPORT.forEach(dia => {
         const txt = (ex.dias && ex.dias[dia]) ? ex.dias[dia] : '';
         celdas += '<td style="border:1px solid #33495E;padding:10px 12px;font-size:16px;vertical-align:top;color:#dfe8f0;">'+(txt?escapeHtml(txt).replace(/\n/g,'<br>'):'<span style="color:#5c7186;">—</span>')+'</td>';
       });
       filasEj += '<tr><td style="border:1px solid #33495E;padding:10px 12px;font-size:16px;font-weight:600;background:#1B2C3D;color:#F2F6F8;font-family:Oswald,sans-serif;">'+escapeHtml(ex.nombre||('Ejercicio '+(i+1)))+'</td>'+celdas+'</tr>';
     });
-    if(!filasEj) filasEj = '<tr><td colspan="6" style="border:1px solid #33495E;padding:16px;text-align:center;color:#5c7186;">Sin ejercicios cargados.</td></tr>';
+    if(!filasEj) filasEj = '<tr><td colspan="8" style="border:1px solid #33495E;padding:16px;text-align:center;color:#5c7186;">Sin ejercicios cargados.</td></tr>';
+
+    // Fila de CUARTETOS (grupos de jugadores por día). Se agrega al pie de
+    // la tabla de ejercicios, igual que se ve en la app.
+    const cuartetos = c.cuartetos || {};
+    const labelsCuart = ['1er cuarteto','2do cuarteto','3er cuarteto'];
+    let hayCuartetos = false;
+    let celdasCuart = '';
+    DIAS_EXPORT.forEach(dia => {
+      const vals = cuartetos[dia] || ['','',''];
+      let inner = '';
+      for(let i=0;i<3;i++){
+        const v = (vals[i]||'').trim();
+        if(v) hayCuartetos = true;
+        inner += '<div style="margin-bottom:8px;"><div style="font-family:JetBrains Mono,monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.3px;color:#8CA2B3;margin-bottom:2px;">'+labelsCuart[i]+'</div><div style="font-size:15px;color:#dfe8f0;line-height:1.35;">'+(v?escapeHtml(v).replace(/\n/g,'<br>'):'<span style="color:#5c7186;">—</span>')+'</div></div>';
+      }
+      celdasCuart += '<td style="border:1px solid #33495E;padding:10px 12px;vertical-align:top;">'+inner+'</td>';
+    });
+    // Solo agregamos la fila si hay al menos un cuarteto cargado.
+    const filaCuartetos = hayCuartetos
+      ? '<tr><td style="border:1px solid #33495E;padding:10px 12px;font-size:15px;font-weight:600;background:#1B2C3D;color:#F2F6F8;font-family:Oswald,sans-serif;vertical-align:top;">🧩 Cuartetos<br><span style="font-family:Inter,sans-serif;font-size:11px;font-weight:400;color:#8CA2B3;">grupos de jugadores</span></td>'+celdasCuart+'</tr>'
+      : '';
 
     let thDias = '';
-    DIAS_HABILES.forEach(dia => {
+    DIAS_EXPORT.forEach(dia => {
       const iv = inten[dia];
       const punto = iv ? '<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:'+intenColor[iv]+';margin-left:6px;vertical-align:middle;"></span>' : '';
-      thDias += '<th style="border:1px solid #33495E;padding:10px 12px;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;background:#1B2C3D;color:#8CA2B3;font-family:JetBrains Mono,monospace;">'+DIAS_HABILES_LARGO[dia]+punto+'</th>';
+      thDias += '<th style="border:1px solid #33495E;padding:10px 12px;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;background:#1B2C3D;color:#8CA2B3;font-family:JetBrains Mono,monospace;">'+DIAS_EXPORT_LARGO[dia]+punto+'</th>';
     });
 
     cont.innerHTML =
@@ -10537,9 +10561,9 @@ window.__initEditor = function(){
       // Tabla ejercicios Lun-Vie
       + '<table style="width:100%;border-collapse:collapse;margin-top:6px;">'
       + '<thead><tr><th style="border:1px solid #33495E;padding:10px 12px;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;background:#1B2C3D;color:#8CA2B3;font-family:JetBrains Mono,monospace;text-align:left;width:190px;">Ejercicio</th>'+thDias+'</tr></thead>'
-      + '<tbody>'+filasEj+'</tbody></table>'
+      + '<tbody>'+filasEj+filaCuartetos+'</tbody></table>'
       // Leyenda de intensidad (si hay alguna cargada)
-      + (Object.keys(inten).some(d=>DIAS_HABILES.includes(d)&&inten[d]) ? '<div style="margin-top:16px;display:flex;gap:20px;align-items:center;font-size:13px;color:#8CA2B3;font-family:JetBrains Mono,monospace;"><span>Intensidad:</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#4CAF6D;margin-right:5px;"></span>Suave</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#E0A93B;margin-right:5px;"></span>Medio</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#E5342A;margin-right:5px;"></span>Fuerte</span></div>' : '')
+      + (Object.keys(inten).some(d=>DIAS_EXPORT.includes(d)&&inten[d]) ? '<div style="margin-top:16px;display:flex;gap:20px;align-items:center;font-size:13px;color:#8CA2B3;font-family:JetBrains Mono,monospace;"><span>Intensidad:</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#4CAF6D;margin-right:5px;"></span>Suave</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#E0A93B;margin-right:5px;"></span>Medio</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#E5342A;margin-right:5px;"></span>Fuerte</span></div>' : '')
       + '<div style="margin-top:26px;text-align:center;font-family:JetBrains Mono,monospace;font-size:13px;color:#5c7186;letter-spacing:1px;">Generado con Benchone · benchone.app</div>';
 
     return cont;
