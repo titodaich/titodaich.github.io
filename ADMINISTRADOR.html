@@ -1281,6 +1281,9 @@ function daysLeft(club){
 function clubStatusInfo(club){
   const d = daysLeft(club);
   const st = club.subscription_status;
+  if(st === 'demo'){
+    return { label:'🎁 Demo', color:'var(--gold, #E0A93B)' };
+  }
   if(st === 'active'){
     if(d !== null && d < 0) return { label:'Vencido', color:'var(--danger)' };
     return { label:'Activo', color:'var(--success)' };
@@ -2438,7 +2441,9 @@ function renderUserSubscription(u){
   const d = subDaysLeft(u.subUntil);
   const estado = u.subStatus || 'trial';
   let detalle = '';
-  if(estado === 'active'){
+  if(estado === 'demo'){
+    detalle = '🎁 DEMO · gratis ilimitado (no vence)';
+  } else if(estado === 'active'){
     detalle = d!==null ? (d < 0 ? '💰 Pago vencido hace '+Math.abs(d)+' días' : '✅ Pagó · '+d+' días restantes') : '✅ Pagó';
   } else if(estado === 'trial'){
     detalle = d!==null ? (d < 0 ? '⏳ Prueba vencida hace '+Math.abs(d)+' días' : '⏳ En prueba · '+d+' días restantes') : '⏳ En prueba';
