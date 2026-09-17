@@ -17641,6 +17641,29 @@ try{
 
   // Chequea el estado de la suscripción y muestra el cartel si corresponde
   window.__checkSubscription = async function(){
+    // ── Rescate de los usuarios con prueba vieja (fecha 2026-08-01) ──
+    // Estos usuarios quedaron con una fecha de prueba vencida por una
+    // operación vieja. La primera vez que entran, les damos 10 días de
+    // prueba REALES desde este momento. Como después la fecha ya no es
+    // 2026-08-01, esto corre una sola vez por usuario y nunca más.
+    try{
+      const clubIdRescate = await window.__getClubId();
+      if(clubIdRescate){
+        const { data: cRes } = await sb.from('clubs')
+          .select('subscription_status, trial_ends_at')
+          .eq('id', clubIdRescate).single();
+        if(cRes && cRes.subscription_status === 'trial' && cRes.trial_ends_at){
+          const fechaVieja = new Date(cRes.trial_ends_at).getTime();
+          const marca = new Date('2026-08-01T00:00:00+00:00').getTime();
+          // Si la fecha es exactamente la marca del problema, activamos 10 días desde ahora.
+          if(Math.abs(fechaVieja - marca) < 1000){
+            const nuevaFecha = new Date(Date.now() + 10*24*60*60*1000).toISOString();
+            await sb.from('clubs').update({ trial_ends_at: nuevaFecha }).eq('id', clubIdRescate);
+          }
+        }
+      }
+    }catch(e){ /* si falla el rescate, seguimos normal */ }
+
     // Leemos si es amigo fundador SIEMPRE (para cualquier modo de cobro),
     // así el pack Amigo aparece aunque el usuario esté en prueba o selectivo.
     if(window.__cargarFundador) await window.__cargarFundador();
