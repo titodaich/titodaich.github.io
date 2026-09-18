@@ -1208,13 +1208,14 @@ async function loadUsers(){
     // Membresías (club + rol) de todos
     const { data: memberships } = await sb.from('memberships').select('user_id, role, club_id');
     // Clubes
-    const { data: clubs } = await sb.from('clubs').select('id, name, es_fundador');
+    const { data: clubs } = await sb.from('clubs').select('id, name, es_fundador, subscription_status, trial_ends_at, subscription_ends_at');
     // Proyectos (para contar por club -> por usuario creador)
     const { data: projects } = await sb.from('projects').select('id, name, club_id, created_by, created_at');
 
     const clubById = {};
+    const clubDataById = {};
     const fundadorByClub = {};
-    (clubs||[]).forEach(c => { clubById[c.id] = c.name; fundadorByClub[c.id] = !!c.es_fundador; });
+    (clubs||[]).forEach(c => { clubById[c.id] = c.name; clubDataById[c.id] = c; fundadorByClub[c.id] = !!c.es_fundador; });
 
     users = (profiles||[]).map(p => {
       const mem = (memberships||[]).find(m => m.user_id === p.id);
@@ -1252,6 +1253,11 @@ async function loadUsers(){
         pack: p.pack || 'entrenador',
         cobroActivado: !!p.cobro_activado,
         esFundador: clubId ? !!fundadorByClub[clubId] : false,
+        // Estado y fecha REALES del club (la fuente de verdad que usa la app).
+        // Se usan para mostrar la suscripción sin contradicciones.
+        clubSubStatus: clubId && clubDataById[clubId] ? clubDataById[clubId].subscription_status : null,
+        clubTrialEnds: clubId && clubDataById[clubId] ? clubDataById[clubId].trial_ends_at : null,
+        clubSubEnds: clubId && clubDataById[clubId] ? clubDataById[clubId].subscription_ends_at : null,
         projects: userProjects
       };
     });
@@ -1281,9 +1287,6 @@ function daysLeft(club){
 function clubStatusInfo(club){
   const d = daysLeft(club);
   const st = club.subscription_status;
-  if(st === 'demo'){
-    return { label:'🎁 Demo', color:'var(--gold, #E0A93B)' };
-  }
   if(st === 'active'){
     if(d !== null && d < 0) return { label:'Vencido', color:'var(--danger)' };
     return { label:'Activo', color:'var(--success)' };
@@ -2437,9 +2440,12 @@ function renderUserSubscription(u){
   if(!info || !btns) return;
   btns.innerHTML = '';
 
-  // Días restantes según la fecha de vencimiento del usuario
-  const d = subDaysLeft(u.subUntil);
-  const estado = u.subStatus || 'trial';
+  // Días y estado según el CLUB (la fuente de verdad que usa la app),
+  // no el perfil. Así el admin muestra siempre lo mismo que la app.
+  const estadoReal = u.clubSubStatus || u.subStatus || 'trial';
+  const fechaReal = estadoReal === 'active' ? u.clubSubEnds : u.clubTrialEnds;
+  const d = subDaysLeft(fechaReal);
+  const estado = estadoReal;
   let detalle = '';
   if(estado === 'demo'){
     detalle = '🎁 DEMO · gratis ilimitado (no vence)';
