@@ -20686,7 +20686,7 @@ function abrirOrdenarRecortes(grupo){
     const nombre = it.name || (tag ? tag.name : 'Recorte');
     const dur = Math.max(0, (it.end||0)-(it.start||0));
     return `<div class="ord-row" data-clip-idx="${idx}">
-      <input type="number" class="ord-num" inputmode="numeric" pattern="[0-9]*" min="1" max="${grupo.clips.length}" value="${idx+1}" />
+      <input type="number" class="ord-num" inputmode="numeric" pattern="[0-9]*" min="0" max="${grupo.clips.length}" value="${idx+1}" />
       <span class="ord-name">${escapeHtml(nombre)}</span>
       <span class="ord-dur">${fmt(dur)}</span>
     </div>`;
@@ -20694,7 +20694,7 @@ function abrirOrdenarRecortes(grupo){
   ov.innerHTML = `
     <div class="gol-origen-box" style="max-width:440px;">
       <div class="go-head">🔢 Ordená los recortes</div>
-      <div style="font-size:13px;color:var(--muted);margin:-4px 0 12px;">Poné el número de orden en cada uno (1 = primero). Después se exportan juntos en ese orden.</div>
+      <div style="font-size:13px;color:var(--muted);margin:-4px 0 12px;">Poné el número de orden en cada uno (1 = primero). Poné <b style="color:var(--chalk);">0</b> a los que <b style="color:var(--chalk);">no</b> quieras incluir en el video.</div>
       <div class="ord-list">${filas}</div>
       <button class="go-btn primary" id="ordConfirm" style="margin-top:12px;">✅ Exportar en este orden</button>
       <button class="go-skip" id="ordCancel">Cancelar ✕</button>
@@ -20719,12 +20719,19 @@ function abrirOrdenarRecortes(grupo){
     const conOrden = filasEl.map((f, pos) => {
       const idx = parseInt(f.dataset.clipIdx, 10);
       let num = parseInt(f.querySelector('.ord-num').value, 10);
-      if(isNaN(num) || num < 1) num = 999;   // vacío o inválido → al final
+      if(isNaN(num)) num = 0;   // vacío = 0 = no aparece
       return { clip: grupo.clips[idx], num, pos };
     });
+    // El 0 (o vacío) EXCLUYE el recorte: solo entran los que tienen 1 o más.
+    const incluidos = conOrden.filter(x => x.num >= 1);
+    if(incluidos.length === 0){
+      toast('Poné al menos un recorte con número 1 o más.');
+      return;
+    }
     // Ordena por el número elegido; si dos tienen el mismo, respeta el orden original.
-    conOrden.sort((a,b) => (a.num - b.num) || (a.pos - b.pos));
-    const ordenados = conOrden.map(x => x.clip);
+    incluidos.sort((a,b) => (a.num - b.num) || (a.pos - b.pos));
+    const ordenados = incluidos.map(x => x.clip);
+    const excluidos = conOrden.length - incluidos.length;
     cerrar2();
     exportarGrupoOrdenado(grupo.nombre, ordenados);
   });
