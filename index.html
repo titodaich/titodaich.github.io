@@ -87,8 +87,12 @@ body{background-color:var(--bg);-webkit-tap-highlight-color:transparent;overflow
 .top-nav-btn{background:rgba(255,255,255,0.06);border:1px solid var(--line);color:var(--chalk);border-radius:9px;padding:9px 16px;font-size:13.5px;font-weight:600;cursor:pointer;transition:all .15s ease;backdrop-filter:blur(4px);}
 .top-nav-btn:hover{background:var(--accent-2);border-color:var(--accent-2);color:#fff;}
 @media (max-width:860px){
-  .top-nav{position:static;justify-content:center;margin:64px 12px 0;flex-wrap:wrap;}
-  .top-nav-btn{font-size:12px;padding:8px 12px;}
+  /* En móvil: logo arriba a la izquierda, botones arriba a la derecha,
+     en la misma línea, sin encimarse. El contenido arranca más abajo. */
+  .corner-tag{position:absolute;top:14px;left:14px;gap:8px;}
+  .corner-tag .brand{font-size:15px;}
+  .top-nav{position:absolute;top:14px;right:14px;left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px;margin:0;max-width:52%;}
+  .top-nav-btn{font-size:10.5px;padding:6px 9px;white-space:nowrap;}
 }
 .corner-tag .sub{
   font-family:'JetBrains Mono',monospace;
@@ -132,18 +136,19 @@ body{background-color:var(--bg);-webkit-tap-highlight-color:transparent;overflow
 
 /* En celular: separar el encabezado fijo del contenido para que no se amontone */
 @media (max-width:720px){
-  .corner-tag{top:12px; left:14px; gap:9px;}
-  .corner-tag .brand{font-size:16px;}
-  .brand-logo{width:34px;height:34px;border-radius:8px;margin-right:0;}
+  .corner-tag{top:14px; left:14px; gap:9px;}
+  .corner-tag .brand{font-size:15px;}
+  .brand-logo{width:32px;height:32px;border-radius:8px;margin-right:0;}
   .scoreboard{top:13px; right:16px; font-size:9.5px; padding:5px 10px; letter-spacing:0.6px;}
-  /* el contenido arranca más abajo, para no chocar con el encabezado fijo */
-  #screen-login{padding-top:64px;}
+  /* El contenido arranca bien abajo, para no chocar con el header fijo (logo + botones). */
+  #screen-login{padding-top:104px;}
   .hero-eyebrow{
     font-size:9px;
     letter-spacing:0.8px;
+    margin-top:20px;
     margin-bottom:14px;
     line-height:1.6;
-    max-width:290px;
+    max-width:230px;
     margin-left:auto;
     margin-right:auto;
     opacity:0.85;
@@ -224,7 +229,11 @@ body{background-color:var(--bg);-webkit-tap-highlight-color:transparent;overflow
 .hero-extra{background:rgba(255,255,255,0.04);border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:12px;color:var(--muted);font-weight:500;}
 @media (max-width:860px){ .hero-extras{justify-content:center;margin:-2px auto 18px;} }
 /* ── Modal de planes de la landing ── */
-.plans-landing-overlay{position:fixed;inset:0;background:rgba(6,10,14,0.85);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:30px 16px;}
+.plans-landing-overlay{position:fixed;inset:0;background:rgba(6,10,14,0.85);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:30px 16px;}
+@media (max-width:720px){
+  /* En móvil el fondo tapa por completo lo de atrás y el modal scrollea solo. */
+  .plans-landing-overlay{background:#0a0f14;padding:16px 12px;align-items:flex-start;}
+}
 .plans-landing-box{background:var(--panel);border:1px solid var(--line);border-radius:20px;max-width:1000px;width:100%;padding:32px 28px;position:relative;box-shadow:0 20px 70px rgba(0,0,0,0.6);}
 .pl-close{position:absolute;top:16px;right:18px;background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;}
 .pl-close:hover{color:var(--chalk);}
@@ -361,7 +370,11 @@ body{background-color:var(--bg);-webkit-tap-highlight-color:transparent;overflow
   align-items:center;
   margin:-4px 0 18px;
   font-size:12px;
+  gap:10px;
+  flex-wrap:wrap;
 }
+.row-between .remember{white-space:nowrap;}
+.row-between .link-muted{white-space:nowrap;}
 .remember{
   display:flex;align-items:center;gap:7px;
   color:var(--muted);
@@ -2286,6 +2299,7 @@ body.modo-lectura .section-content textarea:read-only{
 .sub-banner .sb-btn{cursor:pointer;border:none;}
 .plans-overlay{position:fixed;inset:0;background:rgba(6,10,14,0.8);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
 .plans-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:28px;max-width:540px;width:100%;position:relative;}
+.plans-box-wide{max-width:1000px;max-height:92vh;overflow-y:auto;}
 .plans-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;}
 .plans-close-btn{display:block;width:100%;margin-top:16px;background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);border-radius:10px;padding:12px;font-family:'Inter',sans-serif;font-size:14px;cursor:pointer;transition:background .12s ease;}
 .plans-close-btn:hover{background:var(--panel);}
@@ -18337,57 +18351,115 @@ try{
     modal.className = 'plans-overlay';
     document.body.appendChild(modal);
 
-    // ── PASO 1: elegir el pack ──
+    // ── PASO 1: elegir el pack (rediseñado estilo landing, con selector de duración) ──
     function renderPaso1(){
       const order = P.packOrder || Object.keys(P.packs);
       const esFundador = !!window.__esFundador;
+      const cur = window.__monedaActual();
+      const campo = (cur === 'usd') ? 'usd' : 'ars';
+      const simbolo = (v)=> (cur === 'usd') ? ('US$ ' + v) : ('$ ' + Number(v).toLocaleString('es-AR'));
+      const durLabels = { 1:'1 mes', 3:'3 meses', 6:'6 meses', 12:'12 meses' };
+
+      // Barra de herramientas incluidas en TODOS los planes.
+      const herramientas = [
+        { i:'🎬', t:'Editor de video' }, { i:'📊', t:'Estadísticas' }, { i:'🗓️', t:'Planificación' },
+        { i:'🔍', t:'Scouting' }, { i:'🔴', t:'Control en vivo' }
+      ];
+      const herramientasHTML = herramientas.map(h => `<div class="pl-tool"><span class="pl-tool-ico">${h.i}</span><div class="pl-tool-txt"><b>${h.t}</b></div></div>`).join('');
+
       let cards = '';
       order.forEach(key=>{
         const pk = P.packs[key]; if(!pk) return;
-        // El pack "Amigo" solo lo ven los fundadores; el resto no lo ve.
         if(pk.soloFundador && !esFundador) return;
         const esAmigo = !!pk.soloFundador;
-        const badge = esAmigo ? `<span class="plan-badge plan-badge-amigo">⭐ Tu precio distintivo</span>` : (pk.badge ? `<span class="plan-badge">${pk.badge}</span>` : '');
-        const destacado = esAmigo ? ' plan-featured plan-amigo' : (pk.badge === 'Mejor precio' ? ' plan-featured' : '');
-        // Precio de referencia: el de 1 mes (el que la gente usa para comparar),
-        // con la aclaración de que baja si paga por más tiempo.
-        let desde = '';
-        if(P.showPrices){
-          const cur = window.__monedaActual();
-          const campo = (cur === 'usd') ? 'usd' : 'ars';
-          const unMes = (pk.durations||[]).find(d => d.months === 1 && d[campo] > 0);
-          const conPrecio = (pk.durations||[]).filter(d => d[campo] > 0);
-          // El pack Amigo ya tiene precio especial: NO se le aplica descuento encima.
-          const precioDe = (m)=> esAmigo ? m : window.__conDescuento(m);
-          const simbolo = (v)=> (cur === 'usd') ? ('US$ ' + v) : ('$ ' + Number(v).toLocaleString('es-AR'));
-          if(unMes){
-            const masBarato = conPrecio.length
-              ? conPrecio.reduce((a,b) => (b[campo]/b.months < a[campo]/a.months ? b : a))
-              : null;
-            const hayDescuento = masBarato && (masBarato[campo]/masBarato.months) < unMes[campo];
-            desde = `<span class="plan-permonth">${simbolo(precioDe(unMes[campo]))}/mes</span>`
-                  + (hayDescuento ? `<span class="plan-hint">(menos si pagás 6 o 12 meses)</span>` : '');
-          } else if(conPrecio.length){
-            const min = conPrecio.reduce((a,b)=> (b[campo]/b.months < a[campo]/a.months ? b : a));
-            desde = `<span class="plan-permonth">desde ${simbolo(Math.round(precioDe(min[campo])/min.months))}/mes</span>`;
+        const precioDe = (m)=> esAmigo ? m : window.__conDescuento(m);
+        // Número de categorías para el título grande.
+        const catNum = pk.maxCategories >= 8 ? '∞' : String(pk.maxCategories);
+        const color = esAmigo ? 'var(--gold, #E0A93B)' : (key==='multi' ? 'var(--gold, #E0A93B)' : (key==='club' ? 'var(--success)' : 'var(--accent-2)'));
+        const badge = esAmigo ? '⭐ Tu precio distintivo' : (pk.badge || '');
+        // Duraciones visibles con precio, para el selector.
+        const durs = (pk.durations||[]).filter(d => d[campo] > 0);
+        // Datos para el selector (precio + link + ahorro).
+        const durData = durs.map(d => {
+          const precioTotal = precioDe(d[campo]);
+          const link = window.__planLink ? window.__planLink(key, d) : '#';
+          // Ahorro vs pagar 1 mes ese mismo tiempo.
+          const unMes = durs.find(x => x.months === 1);
+          let ahorro = '';
+          if(unMes && d.months > 1){
+            const sinDesc = precioDe(unMes[campo]) * d.months;
+            const dif = sinDesc - precioTotal;
+            if(dif > 0) ahorro = 'Ahorrás ' + simbolo(Math.round(dif));
           }
-        }
-        const descHtml = pk.desc ? `<span class="plan-desc">${pk.desc}</span>` : '';
-        const featHtml = pk.feature ? `<span class="plan-feature">✓ ${pk.feature}</span>` : '';
-        const btnTxt = esAmigo ? 'Este es el mío →' : 'Sumarme →';
-        cards += `<div class="plan-card${destacado}" data-pack="${key}">${badge}<span class="plan-label">${pk.name}</span><span class="plan-note">${pk.note||''}</span>${descHtml}${featHtml}${desde}<span class="plan-go">${btnTxt}</span></div>`;
+          return { months:d.months, precio:simbolo(precioTotal), link, ahorro };
+        });
+        if(durData.length === 0) return;
+        const primera = durData[0];
+        // Botones del selector de duración.
+        const selBtns = durData.map((dd,i)=>`<button type="button" class="pl-dur-btn ${i===0?'on':''}" data-dur-i="${i}">${durLabels[dd.months]||dd.months+'m'}</button>`).join('');
+        // Guardo los datos de duración en el atributo para el JS.
+        const durJson = encodeURIComponent(JSON.stringify(durData));
+        cards += `
+        <div class="pl-card ${badge?'pl-destacado':''}" style="--plan-color:${color}" data-pack="${key}" data-durs="${durJson}">
+          ${badge ? `<div class="pl-badge">${badge}</div>` : ''}
+          <div class="pl-cat-num">${catNum}<span>${catNum==='∞'?'categorías':'cat.'}</span></div>
+          <div class="pl-nombre">${pk.name}</div>
+          <div class="pl-cat">${pk.note||''}</div>
+          <div class="pl-incluye">✅ Todas las herramientas incluidas</div>
+          ${pk.desc?`<div class="pl-desc">${pk.desc}</div>`:'<div class="pl-desc"></div>'}
+          ${P.showPrices?`<div class="pl-precio-box"><div class="pl-precio-big pl-precio-num">${primera.precio}</div><div class="pl-precio-ahorro">${primera.ahorro||''}</div></div>`:''}
+          ${durData.length>1?`<div class="pl-dur-selector">${selBtns}</div>`:''}
+          <a class="pl-pay-btn" href="${primera.link}" target="_blank" rel="noopener" data-paylink="1" data-months="${primera.months}">💳 Pagar con MercadoPago</a>
+        </div>`;
       });
+
       const subT = esFundador
         ? 'Sos amigo de Benchone: tenés un precio especial. Elegí y pagás con Mercado Pago en un clic.'
-        : 'Elegí tu pack. Pagás con Mercado Pago en un clic.';
-      const gridCols = esFundador ? 'plans-grid plans-grid-amigo' : 'plans-grid plans-grid-3';
-      modal.innerHTML = `<div class="plans-box"><button class="plans-close" id="plansClose">✕</button><h2>${window.t('plansTitle')}</h2><p class="plans-sub">${subT}</p>${fundadorLine}${codigoLineHTML()}<div class="${gridCols}">${cards}</div>${contactLine}${aliasLine}${legalLine}<button class="plans-close-btn" id="plansCloseBtn">← Volver</button></div>`;
+        : 'Todos los planes tienen las mismas herramientas. Lo único que cambia es cuántas categorías podés manejar.';
+      modal.innerHTML = `<div class="plans-box plans-box-wide"><button class="plans-close" id="plansClose">✕</button>
+        <div class="pl-head">
+          <div class="pl-head-eyebrow">🎁 o pagá directo con MercadoPago</div>
+          <h2 style="margin:0 0 6px;">${window.t('plansTitle')}</h2>
+          <p class="plans-sub">${subT}</p>
+        </div>
+        ${fundadorLine}${codigoLineHTML()}
+        <div class="pl-tools-bar"><div class="pl-tools-title">✅ Incluido en TODOS los planes:</div><div class="pl-tools-grid">${herramientasHTML}</div></div>
+        <div class="pl-grid">${cards}</div>
+        ${contactLine}${aliasLine}${legalLine}
+        <button class="plans-close-btn" id="plansCloseBtn">← Volver</button></div>`;
       wire();
-      modal.querySelectorAll('.plan-card[data-pack]').forEach(c=>{
-        c.addEventListener('click', ()=> renderPaso2(c.dataset.pack));
+      // Selector de duración: cambia precio, ahorro y link de pago.
+      modal.querySelectorAll('.pl-card[data-durs]').forEach(card => {
+        let durData = [];
+        try{ durData = JSON.parse(decodeURIComponent(card.dataset.durs)); }catch(e){}
+        const numEl = card.querySelector('.pl-precio-num');
+        const ahorroEl = card.querySelector('.pl-precio-ahorro');
+        const payBtn = card.querySelector('.pl-pay-btn');
+        card.querySelectorAll('.pl-dur-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            card.querySelectorAll('.pl-dur-btn').forEach(b => b.classList.remove('on'));
+            btn.classList.add('on');
+            const d = durData[parseInt(btn.dataset.durI,10)];
+            if(!d) return;
+            if(numEl) numEl.textContent = d.precio;
+            if(ahorroEl) ahorroEl.textContent = d.ahorro || '';
+            if(payBtn){ payBtn.href = d.link; payBtn.setAttribute('data-months', d.months); }
+          });
+        });
+      });
+      // Enganche de pago (mantiene la exigencia de WhatsApp si está activa).
+      modal.querySelectorAll('a[data-paylink]').forEach(a=>{
+        a.addEventListener('click', async (e)=>{
+          if(window.__exigirWhatsappParaPago){
+            const destino = a.getAttribute('href');
+            e.preventDefault();
+            const ok = await window.__exigirWhatsappParaPago();
+            if(ok && destino && destino !== '#'){ window.open(destino, '_blank', 'noopener'); }
+          }
+        });
       });
     }
-
+    // renderPaso2 queda como respaldo pero ya no se usa desde el paso 1.
     // ── PASO 2: elegir la duración del pack elegido ──
     function renderPaso2(packKey){
       const pk = P.packs[packKey]; if(!pk) return renderPaso1();
