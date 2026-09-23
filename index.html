@@ -87,12 +87,12 @@ body{background-color:var(--bg);-webkit-tap-highlight-color:transparent;overflow
 .top-nav-btn{background:rgba(255,255,255,0.06);border:1px solid var(--line);color:var(--chalk);border-radius:9px;padding:9px 16px;font-size:13.5px;font-weight:600;cursor:pointer;transition:all .15s ease;backdrop-filter:blur(4px);}
 .top-nav-btn:hover{background:var(--accent-2);border-color:var(--accent-2);color:#fff;}
 @media (max-width:860px){
-  /* En móvil: logo arriba a la izquierda, botones arriba a la derecha,
-     en la misma línea, sin encimarse. El contenido arranca más abajo. */
-  .corner-tag{position:absolute;top:14px;left:14px;gap:8px;}
-  .corner-tag .brand{font-size:15px;}
-  .top-nav{position:absolute;top:14px;right:14px;left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px;margin:0;max-width:52%;}
-  .top-nav-btn{font-size:10.5px;padding:6px 9px;white-space:nowrap;}
+  /* En móvil: logo BENCHONE arriba a la izquierda; los botones centrados
+     debajo, en su propia altura. Después el texto y el resto. */
+  .corner-tag{position:absolute;top:16px;left:16px;transform:none;gap:8px;justify-content:flex-start;z-index:60;}
+  .corner-tag .brand{font-size:18px;}
+  .top-nav{position:absolute;top:56px;left:50%;transform:translateX(-50%);right:auto;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:10px;margin:0;max-width:none;width:auto;z-index:60;}
+  .top-nav-btn{font-size:11px;padding:8px 13px;white-space:nowrap;}
 }
 .corner-tag .sub{
   font-family:'JetBrains Mono',monospace;
@@ -136,22 +136,24 @@ body{background-color:var(--bg);-webkit-tap-highlight-color:transparent;overflow
 
 /* En celular: separar el encabezado fijo del contenido para que no se amontone */
 @media (max-width:720px){
-  .corner-tag{top:14px; left:14px; gap:9px;}
-  .corner-tag .brand{font-size:15px;}
+  .corner-tag{top:16px;left:16px;margin:0;}
+  .corner-tag .brand{font-size:18px;}
   .brand-logo{width:32px;height:32px;border-radius:8px;margin-right:0;}
-  .scoreboard{top:13px; right:16px; font-size:9.5px; padding:5px 10px; letter-spacing:0.6px;}
-  /* El contenido arranca bien abajo, para no chocar con el header fijo (logo + botones). */
-  #screen-login{padding-top:104px;}
+  .scoreboard{display:none;}
+  /* El contenido arranca debajo del header escalonado (logo top:16 + botones top:58). */
+  #screen-login{padding-top:20px;}
   .hero-eyebrow{
-    font-size:9px;
-    letter-spacing:0.8px;
-    margin-top:20px;
-    margin-bottom:14px;
-    line-height:1.6;
-    max-width:230px;
+    font-size:10px;
+    letter-spacing:0.6px;
+    margin-top:78px;
+    margin-bottom:16px;
+    line-height:1.55;
+    max-width:280px;
     margin-left:auto;
     margin-right:auto;
-    opacity:0.85;
+    opacity:1;
+    color:var(--accent-2);
+    font-weight:600;
   }
   .hero-copy h1{margin-bottom:12px;}
 }
