@@ -6432,13 +6432,16 @@ function abrirComoFunciona(){
 // ── Modal "Preguntas frecuentes" ──
 function abrirFaq(){
   const faqs = [
+    { q:'¿Qué es Benchone y para qué sirve?', a:'Es la plataforma que reúne todo lo que un DT de futsal necesita en un solo lugar: planificás tus entrenamientos, cargás y analizás los partidos, recortás jugadas en video con tus tags, armás el scouting del rival y llevás las estadísticas de tu equipo, que se calculan solas. Reemplaza las planillas de Excel, los videos sueltos y los papeles: todo ordenado y conectado.' },
+    { q:'¿Qué herramientas dispone?', a:'Cinco, todas incluidas en cualquier plan: 🎬 Editor de video (recortás jugadas y las etiquetás con tus tags), 📊 Estadísticas automáticas (goles, minutaje, rendimiento local/visitante), 🗓️ Planificación semanal (entrenamientos, cargas y pizarra interactiva), 🔍 Scouting del rival (analizás cada partido) y 🔴 Control en vivo (minutaje, goles, remates y tarjetas al instante durante el partido).' },
     { q:'¿Necesito tarjeta para probar?', a:'No. Creás tu cuenta y tenés 7 días gratis con todas las herramientas, sin cargar ningún dato de pago.' },
     { q:'¿Sirve para cualquier categoría?', a:'Sí. Funciona para inferiores, primera, femenino y masculino. Vos elegís el plan según cuántas categorías manejás.' },
     { q:'¿Qué pasa cuando termina la prueba?', a:'Podés seguir viendo lo que cargaste, y para seguir usando todo activás tu plan. Elegís la duración que te convenga (1, 3, 6 o 12 meses).' },
     { q:'¿Puedo usarlo con mi cuerpo técnico?', a:'Sí. Podés exportar informes en PDF y Excel para compartir con tu ayudante, preparador físico o dirigencia.' },
     { q:'¿Necesito saber de tecnología?', a:'Para nada. Está pensado por un entrenador para entrenadores: es simple e intuitivo. Si sabés usar WhatsApp, sabés usar Benchone.' },
     { q:'¿En qué dispositivos funciona?', a:'En cualquiera con navegador: celular, tablet o computadora. Se puede instalar como app en el teléfono.' },
-    { q:'¿Mis datos están seguros?', a:'Sí. Cada entrenador tiene su cuenta privada. Tus jugadores, videos y estadísticas son solo tuyos.' }
+    { q:'¿Mis datos están seguros?', a:'Sí. Cada entrenador tiene su cuenta privada. Tus jugadores, videos y estadísticas son solo tuyos.' },
+    { q:'¿Se pueden exportar los informes y los videos?', a:'Sí. Los informes (estadísticas, fichas de jugadores, planificaciones) los descargás en PDF y Excel para compartir con tu cuerpo técnico o la dirigencia. Y del editor de video exportás tus jugadas recortadas: podés bajarlas juntas, por separado o agrupadas por tag (por ejemplo, todos los córners a favor en un solo video).' }
   ];
   const ov = document.createElement('div');
   ov.className = 'plans-landing-overlay';
