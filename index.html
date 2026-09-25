@@ -132,6 +132,9 @@ body{background-color:var(--bg);-webkit-tap-highlight-color:transparent;overflow
 @media (max-width:860px){
   .wrap{grid-template-columns:1fr;gap:28px;}
   .hero-copy{text-align:center;}
+  /* El contenido arranca debajo del header escalonado (logo + botones). */
+  #screen-login{padding-top:20px;}
+  .hero-eyebrow{margin-top:78px;}
 }
 
 /* En celular: separar el encabezado fijo del contenido para que no se amontone */
@@ -12180,7 +12183,9 @@ window.__initEditor = function(){
         const sb = window.__sb;
         if(sb && !String(p.id).startsWith('tmp')){
           try{
-            const { error } = await sb.from('players').update({ archivado:true }).eq('id', p.id);
+            let aq = sb.from('players').update({ archivado:true }).eq('id', p.id);
+            if(window.__getTemporada) aq = aq.eq('temporada', window.__getTemporada());
+            const { error } = await aq;
             if(error){ toast('No se pudo archivar'); return; }
           }catch(e){ console.error('archivar', e); toast('No se pudo archivar'); return; }
         }
@@ -12217,7 +12222,15 @@ window.__initEditor = function(){
       card.querySelector('.sq-del').addEventListener('click', async () => {
         if(!confirm('¿Quitar a '+p.name+' del plantel?')) return;
         const sb = window.__sb;
-        if(sb && !String(p.id).startsWith('tmp')){ try{ await sb.from('players').delete().eq('id', p.id); }catch(e){} }
+        if(sb && !String(p.id).startsWith('tmp')){
+          try{
+            // Borramos SOLO este jugador de la temporada activa: filtramos por
+            // id + temporada para nunca tocar el mismo jugador en otra temporada.
+            let dq = sb.from('players').delete().eq('id', p.id);
+            if(window.__getTemporada) dq = dq.eq('temporada', window.__getTemporada());
+            await dq;
+          }catch(e){}
+        }
         squad = squad.filter(x => x.id !== p.id);
         renderSquad();
       });
