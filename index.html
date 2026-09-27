@@ -9142,6 +9142,17 @@ window.__initEditor = function(){
       const { __localId, ...payload } = item;
       if(!payload.created_by && uidSesion) payload.created_by = uidSesion;
       try{
+        // Anti-duplicado: si este partido ya se subió en un intento anterior
+        // (la señal se cortó justo después de insertar), su __uid ya está en la
+        // base. En ese caso lo damos por subido y NO lo insertamos de nuevo.
+        const uid = payload && payload.totals && payload.totals.__uid;
+        if(uid && payload.club_id){
+          try{
+            const { data: yaExiste } = await sb.from('live_sessions')
+              .select('id').eq('club_id', payload.club_id).eq('totals->>__uid', uid).limit(1);
+            if(yaExiste && yaExiste.length){ subidas++; if(window.__touchSeen) window.__touchSeen(); continue; }
+          }catch(eChk){ /* si la comprobación falla, seguimos e intentamos insertar igual */ }
+        }
         const res = await sb.from('live_sessions').insert(payload).select('id').single();
         if(res && res.error){ quedan.push(item); }   // no se pudo: la dejamos para el próximo intento
         else { subidas++; if(window.__touchSeen) window.__touchSeen(); }
@@ -9181,6 +9192,10 @@ window.__initEditor = function(){
       inicial2T: equipoInicial2T || [],
       cierre: (equipoCierre && equipoCierre.length) ? equipoCierre : enCanchaAhora()
     };
+    // Huella única de este partido. Sirve para que, si la subida se reintenta
+    // (se cortó la señal justo después de insertar), NO se cree un duplicado:
+    // antes de insertar comprobamos que no exista ya una fila con este mismo uid.
+    totals.__uid = 'lv_' + Date.now() + '_' + Math.random().toString(36).slice(2,9);
     // Generar el resumen para compartir ANTES de limpiar el estado.
     const resumen = generarResumenPartido(totals, rivalName);
     const payload = {
