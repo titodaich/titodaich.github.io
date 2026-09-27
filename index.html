@@ -1599,6 +1599,16 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .lu-chips{display:flex;flex-wrap:wrap;gap:6px;}
 .lu-chip{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:13.5px;color:var(--chalk);font-weight:500;}
 .lu-empty{color:var(--muted);font-size:13px;}
+/* Detalle partido por partido (plegable, dentro de anuales) */
+.lu-detalle{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+.lu-detalle-sum{list-style:none;cursor:pointer;user-select:none;display:flex;align-items:center;gap:10px;padding:15px 18px;}
+.lu-detalle-sum::-webkit-details-marker{display:none;}
+.lu-detalle-tit{font-family:'Oswald',sans-serif;font-size:16px;font-weight:600;color:var(--chalk);text-transform:uppercase;letter-spacing:0.4px;}
+.lu-detalle-meta{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);margin-left:auto;}
+.lu-detalle-flecha{font-size:14px;color:var(--muted);transition:transform .15s;}
+.lu-detalle[open] .lu-detalle-flecha{transform:rotate(180deg);}
+.lu-detalle[open] .lu-detalle-sum{border-bottom:1px solid var(--line);}
+.lu-detalle .lu-list{padding:16px 18px;}
 /* Tarjetas plegables (Estadísticas anuales) */
 .annual-card.plegable > h3{cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;margin-bottom:0;transition:margin .15s;}
 .annual-card.plegable.abierta > h3{margin-bottom:14px;}
@@ -3487,7 +3497,6 @@ body.editor-active #screen-editor{ display:block; }
       <button class="stats-subtab" data-sub="calls" data-i18n="stCalls">✅ Convocatorias</button>
       <button class="stats-subtab" data-sub="attendance" data-i18n="stAttendance">📅 Presentismo</button>
       <button class="stats-subtab" data-sub="minutes" data-i18n="stMinutes">⏱ Minutaje</button>
-      <button class="stats-subtab" data-sub="lineups" data-i18n="stLineups">🔀 Equipos</button>
       <button class="stats-subtab" data-sub="annual" data-i18n="stAnnual">📈 Estadísticas anuales</button>
       <button class="stats-subtab" data-sub="player" data-i18n="stPlayer">🎯 Ficha del jugador</button>
       <button class="stats-subtab" data-sub="health" data-i18n="stHealth">🚦 Semáforo del Plantel</button>
@@ -3657,6 +3666,7 @@ body.editor-active #screen-editor{ display:block; }
         <button class="btn small" id="openAdjBtn" data-i18n="openAdj">＋ Ajuste manual</button>
       </div>
       <div id="annualContent"></div>
+      <div id="annualLineupsContent"></div>
     </div>
 
     <div class="stats-sub" id="stats-player">
@@ -3692,17 +3702,6 @@ body.editor-active #screen-editor{ display:block; }
         </div>
       </div>
       <div id="healthContent"></div>
-    </div>
-
-    <!-- ===== SUB: EQUIPOS (inicial / inicio 2ºT / cierre) ===== -->
-    <div class="stats-sub" id="stats-lineups">
-      <div class="scout-head">
-        <div>
-          <h2 class="scout-title">🔀 Equipos por partido</h2>
-          <p class="scout-sub">Quiénes iniciaron el partido, quiénes arrancaron el segundo tiempo y quiénes lo terminaron. Se registra automáticamente desde el módulo En Vivo.</p>
-        </div>
-      </div>
-      <div id="lineupsContent"></div>
     </div>
 
     <!-- ===== SUB: PROYECCIÓN 2027 ===== -->
@@ -4717,7 +4716,7 @@ window.I18N = {
     aiTitle:'Análisis automático con IA', aiSub:'La IA recorre el video y sugiere jugadas con tus tags (córners, laterales, 3-1, 4-0, defensas, 5vs4...). Vos revisás y aceptás. Los recortes aceptados aparecen en la pestaña Video como los manuales.',
     aiAnalyze:'⚡ Analizar', aiCancel:'Cancelar',
     // Estadísticas subtabs
-    stMatches:'⚽ Partidos', stSquad:'👥 Plantel', stCalls:'✅ Convocatorias', stMinutes:'⏱ Minutaje', stLineups:'🔀 Equipos', stAnnual:'📈 Estadísticas anuales', stPlayer:'🎯 Ficha del jugador', playerTitle:'Ficha del jugador', playerSub:'Elegí un jugador y mirá su evolución partido a partido.', playerPick:'Jugador:', stHealth:'🚦 Semáforo del Plantel', healthTitle:'Semáforo del Plantel', healthSub:'Alertas automáticas según tus datos: tarjetas, minutos y convocatorias.',
+    stMatches:'⚽ Partidos', stSquad:'👥 Plantel', stCalls:'✅ Convocatorias', stMinutes:'⏱ Minutaje', stAnnual:'📈 Estadísticas anuales', stPlayer:'🎯 Ficha del jugador', playerTitle:'Ficha del jugador', playerSub:'Elegí un jugador y mirá su evolución partido a partido.', playerPick:'Jugador:', stHealth:'🚦 Semáforo del Plantel', healthTitle:'Semáforo del Plantel', healthSub:'Alertas automáticas según tus datos: tarjetas, minutos y convocatorias.',
     stProjection:'🔮 Proyección', projTitle:'🔮 Proyección', projSub:'Cómo queda esta categoría el año que viene, según el año de nacimiento. Quiénes se quedan, quiénes suben desde abajo y quiénes pasan a la categoría de arriba. Vista de solo lectura para planificar el plantel.',
     stAttendance:'📅 Presentismo', attTitle:'Presentismo', attSub:'Marcá la asistencia de cada jugador a entrenamientos y partidos. Tocá una celda para cambiar el estado. El porcentaje se calcula solo.',
     exportLbl:'Exportar:', exportExcel:'⬇ Excel', exportPdf:'⬇ PDF', exportPdfGraph:'⬇ PDF con gráficos', exportEmpty:'No hay datos para exportar en esta pestaña.', exportReady:'Preparando la descarga…', exportPdfReady:'Se abrirá el diálogo de impresión. Elegí "Guardar como PDF".',
@@ -4803,7 +4802,7 @@ window.I18N = {
     vExportJson:'Download data (.json)', vExportEach:'Export clips separately', vExportSeq:'Export full sequence',
     aiTitle:'Automatic AI analysis', aiSub:'The AI scans the video and suggests plays with your tags (corners, sidelines, 3-1, 4-0, defenses, 5v4...). You review and accept. Accepted clips appear in the Video tab like manual ones.',
     aiAnalyze:'⚡ Analyze', aiCancel:'Cancel',
-    stMatches:'⚽ Matches', stSquad:'👥 Roster', stCalls:'✅ Call-ups', stMinutes:'⏱ Minutes', stLineups:'🔀 Lineups', stAnnual:'📈 Season stats', stPlayer:'🎯 Player card', playerTitle:'Player card', playerSub:'Pick a player and see their match-by-match evolution.', playerPick:'Player:', stHealth:'🚦 Squad Traffic Light', healthTitle:'Squad Traffic Light', healthSub:'Automatic alerts from your data: cards, minutes and call-ups.',
+    stMatches:'⚽ Matches', stSquad:'👥 Roster', stCalls:'✅ Call-ups', stMinutes:'⏱ Minutes', stAnnual:'📈 Season stats', stPlayer:'🎯 Player card', playerTitle:'Player card', playerSub:'Pick a player and see their match-by-match evolution.', playerPick:'Player:', stHealth:'🚦 Squad Traffic Light', healthTitle:'Squad Traffic Light', healthSub:'Automatic alerts from your data: cards, minutes and call-ups.',
     stProjection:'🔮 Projection', projTitle:'🔮 Projection', projSub:'How this category looks next year, based on birth year. Who stays, who moves up from below, and who moves up to the category above. Read-only view for squad planning.',
     stAttendance:'📅 Attendance', attTitle:'Attendance', attSub:'Mark attendance for each player to trainings and matches. Tap a cell to change the status. The percentage is calculated automatically.',
     exportLbl:'Export:', exportExcel:'⬇ Excel', exportPdf:'⬇ PDF', exportPdfGraph:'⬇ PDF with charts', exportEmpty:'No data to export in this tab.', exportReady:'Preparing download…', exportPdfReady:'The print dialog will open. Choose "Save as PDF".',
@@ -4884,7 +4883,7 @@ window.I18N = {
     vExportJson:'Baixar dados (.json)', vExportEach:'Exportar clipes separados', vExportSeq:'Exportar sequência completa',
     aiTitle:'Análise automática com IA', aiSub:'A IA percorre o vídeo e sugere jogadas com suas tags (escanteios, laterais, 3-1, 4-0, defesas, 5x4...). Você revisa e aceita. Os cortes aceitos aparecem na aba Vídeo como os manuais.',
     aiAnalyze:'⚡ Analisar', aiCancel:'Cancelar',
-    stMatches:'⚽ Jogos', stSquad:'👥 Elenco', stCalls:'✅ Convocações', stMinutes:'⏱ Minutagem', stLineups:'🔀 Equipes', stAnnual:'📈 Estatísticas anuais', stPlayer:'🎯 Ficha do jogador', playerTitle:'Ficha do jogador', playerSub:'Escolha um jogador e veja sua evolução jogo a jogo.', playerPick:'Jogador:', stHealth:'🚦 Semáforo do Elenco', healthTitle:'Semáforo do Elenco', healthSub:'Alertas automáticos dos seus dados: cartões, minutos e convocações.',
+    stMatches:'⚽ Jogos', stSquad:'👥 Elenco', stCalls:'✅ Convocações', stMinutes:'⏱ Minutagem', stAnnual:'📈 Estatísticas anuais', stPlayer:'🎯 Ficha do jogador', playerTitle:'Ficha do jogador', playerSub:'Escolha um jogador e veja sua evolução jogo a jogo.', playerPick:'Jogador:', stHealth:'🚦 Semáforo do Elenco', healthTitle:'Semáforo do Elenco', healthSub:'Alertas automáticos dos seus dados: cartões, minutos e convocações.',
     stProjection:'🔮 Projeção', projTitle:'🔮 Projeção', projSub:'Como fica esta categoria no ano que vem, de acordo com o ano de nascimento. Quem fica, quem sobe de baixo e quem passa para a categoria de cima. Visualização somente leitura para planejar o elenco.',
     stAttendance:'📅 Presença', attTitle:'Presença', attSub:'Marque a presença de cada jogador em treinos e jogos. Toque numa célula para mudar o estado. A porcentagem é calculada sozinha.',
     exportLbl:'Exportar:', exportExcel:'⬇ Excel', exportPdf:'⬇ PDF', exportPdfGraph:'⬇ PDF com gráficos', exportEmpty:'Não há dados para exportar nesta aba.', exportReady:'Preparando o download…', exportPdfReady:'A janela de impressão será aberta. Escolha "Salvar como PDF".',
@@ -10583,7 +10582,6 @@ window.__initEditor = function(){
       if(sub === 'calls') renderCalls();
       if(sub === 'attendance') renderAttendance();
       if(sub === 'minutes') renderMinutes();
-      if(sub === 'lineups') renderLineups();
       if(sub === 'player') renderPlayerCard();
       if(sub === 'health') renderHealth();
       if(sub === 'projection') renderProjection();
@@ -10678,7 +10676,6 @@ window.__initEditor = function(){
     else if(sub === 'calls') renderCalls();
     else if(sub === 'attendance') renderAttendance();
     else if(sub === 'minutes') renderMinutes();
-    else if(sub === 'lineups') renderLineups();
     else if(sub === 'player') renderPlayerCard();
     else if(sub === 'health') renderHealth();
     else if(sub === 'projection') renderProjection();
@@ -12300,7 +12297,7 @@ window.__initEditor = function(){
 
   // ===== EQUIPOS por partido (inicial / inicio 2ºT / cierre) =====
   async function renderLineups(){
-    const cont = document.getElementById('lineupsContent');
+    const cont = document.getElementById('annualLineupsContent');
     if(!cont) return;
     cont.innerHTML = '<p class="rd-empty">Cargando…</p>';
     const sb = window.__sb; if(!sb){ cont.innerHTML='<p class="rd-empty">Sin conexión.</p>'; return; }
@@ -12325,7 +12322,9 @@ window.__initEditor = function(){
        (s.totals.__equipos.cierre && s.totals.__equipos.cierre.length)));
 
     if(!conEquipos.length){
-      cont.innerHTML = '<div class="rd-empty" style="padding:20px;line-height:1.5;">Todavía no hay equipos registrados.<br><br>Esta información se guarda automáticamente cuando dirigís un partido desde <b>🔴 En Vivo</b>: al armar los 5 titulares, al cortar el 1er tiempo y al finalizar. Los partidos que ya terminaste antes de esta actualización no la tienen.</div>';
+      // Dentro de Estadísticas anuales: si todavía no hay equipos registrados,
+      // no metemos ruido. Dejamos el contenedor vacío.
+      cont.innerHTML = '';
       return;
     }
 
@@ -12406,7 +12405,54 @@ window.__initEditor = function(){
         + '</div>';
     }).join('');
 
-    cont.innerHTML = resumenHTML + '<div class="lu-list">' + partidosHTML + '</div>';
+    // El detalle partido por partido va PLEGADO: aparece cerrado y se abre al
+    // hacer click en el título. El resumen del año queda visible arriba.
+    const detalleHTML = '<details class="lu-detalle">'
+      + '<summary class="lu-detalle-sum"><span class="lu-detalle-tit">📋 Detalle partido por partido</span>'
+      +   '<span class="lu-detalle-meta">'+totalP+' partido'+(totalP!==1?'s':'')+'</span>'
+      +   '<span class="lu-detalle-flecha">▾</span></summary>'
+      + '<div class="lu-list">' + partidosHTML + '</div>'
+      + '</details>';
+
+    cont.innerHTML = resumenHTML + detalleHTML;
+  }
+
+  // Agrupa sesiones que son el MISMO partido cargado más de una vez.
+  // Criterio de agrupación (de más fuerte a más débil):
+  //   1) mismo __uid (huella exacta del partido) → duplicado seguro
+  //   2) mismo rival + mismo día + mismo match_id
+  //   3) mismo rival + mismo día (si ninguno tiene match_id)
+  // Dentro de cada grupo, ordena para que quede PRIMERO el que conviene conservar
+  // (el que tiene más jugadores; a igualdad, el más antiguo). El resto son sobrantes.
+  // Devuelve solo los grupos con 2+ sesiones (los que tienen duplicados).
+  function detectarDuplicados(sessions){
+    const nJug = s => s && s.totals ? Object.keys(s.totals).filter(k=>k!=='__rival'&&k!=='__manual'&&k!=='__equipos'&&k!=='__uid').length : 0;
+    const dia = s => { const d = s && s.created_at ? new Date(s.created_at) : null; return d ? d.toISOString().slice(0,10) : ''; };
+    const clave = s => {
+      const uid = s && s.totals && s.totals.__uid;
+      if(uid) return 'uid:'+uid;
+      const rival = String((s && s.name) || '').trim().toLowerCase();
+      const mid = (s && s.match_id) || '';
+      return 'rd:'+rival+'|'+dia(s)+'|'+mid;
+    };
+    const mapa = new Map();
+    (sessions||[]).forEach(s => {
+      const k = clave(s);
+      if(!mapa.has(k)) mapa.set(k, []);
+      mapa.get(k).push(s);
+    });
+    const grupos = [];
+    mapa.forEach(arr => {
+      if(arr.length < 2) return;
+      // Conservar el más completo; a igualdad, el más antiguo (created_at asc).
+      arr.sort((a,b)=>{
+        const dj = nJug(b) - nJug(a);
+        if(dj !== 0) return dj;
+        return String(a.created_at||'').localeCompare(String(b.created_at||''));
+      });
+      grupos.push(arr);
+    });
+    return grupos;
   }
 
   async function renderMinutes(){
@@ -12450,6 +12496,42 @@ window.__initEditor = function(){
 
     if(sessions.length===0 && pendientes.length===0){ list.innerHTML='<p class="rd-empty">Todavía no hay partidos ni minutajes. Creá un partido en 📊 Estadísticas o terminá uno en 🔴 En vivo.</p>'; return; }
     list.innerHTML='';
+
+    // ===== Detección de partidos duplicados =====
+    // Un mismo partido puede haber quedado cargado dos veces si en su momento se
+    // cortó la señal justo después de subirlo (se reintentó e insertó de nuevo).
+    // Agrupamos por rival + día + partido asociado; de cada grupo dejamos UNA
+    // sesión (la más completa, o la más antigua) y marcamos el resto como sobrantes.
+    const dupGrupos = detectarDuplicados(sessions);
+    const sobrantes = [];
+    dupGrupos.forEach(g => { g.slice(1).forEach(s => sobrantes.push(s)); });
+    if(sobrantes.length){
+      const aviso = document.createElement('div');
+      aviso.style.cssText = 'background:var(--panel-2);border:1px solid var(--gold,#E0A93B);border-radius:12px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;';
+      aviso.innerHTML = '<span style="font-size:20px;">🧹</span>'
+        + '<div style="flex:1;min-width:180px;"><strong style="color:var(--gold,#E0A93B);">Hay '+sobrantes.length+' partido'+(sobrantes.length>1?'s':'')+' duplicado'+(sobrantes.length>1?'s':'')+'</strong>'
+        + '<div style="color:var(--muted);font-size:13px;margin-top:2px;">Se cargaron dos veces. Podés borrar las copias sobrantes y dejar una sola de cada uno.</div></div>'
+        + '<button class="btn small" id="mtLimpiarDup" style="background:var(--gold,#E0A93B);color:#10161C;font-weight:700;white-space:nowrap;">Limpiar duplicados</button>';
+      list.appendChild(aviso);
+      aviso.querySelector('#mtLimpiarDup').addEventListener('click', async ()=>{
+        if(!confirm('¿Borrar '+sobrantes.length+' copia'+(sobrantes.length>1?'s':'')+' duplicada'+(sobrantes.length>1?'s':'')+'? Se conserva una sola de cada partido. Esta acción no se puede deshacer.')) return;
+        const sbx=window.__sb;
+        if(!sbx){ toast('Sin conexión'); return; }
+        const btn = aviso.querySelector('#mtLimpiarDup');
+        btn.disabled = true; btn.textContent = 'Limpiando…';
+        let borradas = 0;
+        for(const s of sobrantes){
+          if(!s.id) continue;
+          try{
+            const { error } = await sbx.from('live_sessions').delete().eq('id', s.id);
+            if(!error) borradas++;
+          }catch(e){ /* seguimos con el resto */ }
+        }
+        toast(borradas ? ('Se borraron '+borradas+' duplicado'+(borradas>1?'s':'')) : 'No se pudo borrar');
+        renderMinutes();
+      });
+    }
+
     const table=document.createElement('table'); table.className='match-table minutes-table';
     table.innerHTML='<thead><tr><th>Partido</th><th class="mt-fecha">Fecha</th><th>Jugadores</th><th class="mt-open"></th><th class="mt-del"></th></tr></thead><tbody></tbody>';
     const tb=table.querySelector('tbody');
@@ -13924,6 +14006,8 @@ window.__initEditor = function(){
     if(typeof renderMomentosGol === 'function') renderMomentosGol();
     // Hacer plegables todas las tarjetas (empiezan cerradas).
     if(typeof hacerTarjetasPlegables === 'function') hacerTarjetasPlegables();
+    // Equipos por partido (resumen del año + detalle plegable partido por partido).
+    if(typeof renderLineups === 'function') renderLineups();
   }
 
   // Convierte cada .annual-card en plegable: el h3 es el botón, el resto va en
