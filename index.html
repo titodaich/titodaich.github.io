@@ -3386,6 +3386,55 @@ body.editor-active #screen-editor{ display:block; }
 .faq-item.open .faq-arrow{transform:rotate(180deg);}
 .faq-a{max-height:0;overflow:hidden;color:var(--muted);font-size:14px;line-height:1.5;padding:0 18px;transition:max-height .25s ease,padding .25s ease;}
 .faq-item.open .faq-a{max-height:220px;padding:0 18px 16px;}
+/* ══════════ CARTEL LED DEL LOGIN (estilo publicidad de cancha) ══════════ */
+.bo-led-wrap{position:relative;max-width:460px;margin:0 0 18px;}
+.bo-led{
+  position:relative;width:100%;height:52px;
+  background:#05090C;border:2px solid #1C2A36;border-radius:10px;overflow:hidden;
+  box-shadow:0 0 0 3px rgba(11,18,25,.9),0 10px 28px rgba(0,0,0,.45),inset 0 0 18px rgba(0,0,0,.9);
+  cursor:pointer;user-select:none;-webkit-user-select:none;
+}
+.bo-led::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
+  background:radial-gradient(circle at 50% 50%,transparent 0 1.2px,rgba(5,9,12,.5) 1.7px) 0 0/3px 3px;}
+.bo-led::before{content:"";position:absolute;left:0;right:0;top:0;height:45%;z-index:3;pointer-events:none;
+  background:linear-gradient(to bottom,rgba(255,255,255,.07),transparent);}
+.bo-led-track{position:absolute;top:0;left:0;height:100%;display:flex;align-items:center;white-space:nowrap;
+  will-change:transform;animation:bo-led-scroll var(--bo-led-dur,40s) linear infinite;}
+.bo-led:hover .bo-led-track,.bo-led.is-paused .bo-led-track{animation-play-state:paused;}
+@keyframes bo-led-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.bo-led-item{display:inline-flex;align-items:center;height:100%;padding:0 28px;margin:0;
+  font-family:'Oswald',sans-serif;font-weight:700;font-size:24px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--c,#F2F6F8);text-shadow:0 0 6px var(--c,#F2F6F8),0 0 14px var(--c,#F2F6F8);
+  background:none;border:0;cursor:pointer;}
+.bo-led-item:focus-visible{outline:2px solid #F2F6F8;outline-offset:-6px;}
+.bo-led-sep{display:inline-flex;align-items:center;height:100%;padding:0 14px;
+  font-family:'Oswald',sans-serif;font-weight:700;font-size:20px;letter-spacing:4px;
+  color:#C9D3DB;text-shadow:0 0 8px rgba(201,211,219,.8);}
+.bo-led-sep b{color:#40C8D6;text-shadow:0 0 8px #40C8D6;font-weight:700;}
+.bo-led.is-flash .bo-led-track{filter:brightness(1.6);}
+/* Globito que explica cada mensaje al tocarlo (no mueve nada de lugar) */
+.bo-led-tip{position:absolute;left:0;right:0;top:calc(100% + 8px);z-index:20;
+  background:#152230;border:1px solid #33495E;border-radius:10px;padding:10px 14px;
+  font-size:13.5px;line-height:1.4;color:var(--chalk);text-align:left;
+  box-shadow:0 10px 26px rgba(0,0,0,.45);opacity:0;transform:translateY(-4px);pointer-events:none;
+  transition:opacity .2s ease,transform .2s ease;}
+.bo-led-tip.show{opacity:1;transform:none;}
+/* Tablet y celu: el cartel ocupa el lugar del título "Gestioná tu equipo" */
+@media (max-width:860px){
+  .bo-led-wrap{margin:0 auto 14px;max-width:440px;}
+  .bo-led{height:44px;}
+  .bo-led-item{font-size:20px;padding:0 22px;letter-spacing:2px;}
+  .bo-led-sep{font-size:17px;padding:0 10px;}
+  .bo-led-wrap + h1{position:absolute;width:1px;height:1px;margin:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+}
+@media (max-width:600px){
+  .bo-led{height:38px;border-radius:8px;}
+  .bo-led-item{font-size:17px;padding:0 18px;}
+  .bo-led-sep{font-size:15px;padding:0 8px;}
+}
+/* Compu: un poco más de aire arriba para que el contenido no quede pegado al logo */
+@media (min-width:861px){ #screen-login{padding-top:76px;} }
+@media (prefers-reduced-motion:reduce){ .bo-led-track{animation:none;} }
 </style>
 </head>
 <body>
@@ -3428,6 +3477,21 @@ body.editor-active #screen-editor{ display:block; }
 <div class="wrap">
   <div class="hero-copy">
     <div class="hero-eyebrow">Creado por un entrenador de futsal, para entrenadores de futsal</div>
+    <!-- Cartel LED tipo publicidad de cancha. En celu/tablet reemplaza al título de abajo. -->
+    <div class="bo-led-wrap">
+      <div class="bo-led" id="boLed" role="marquee" aria-label="Novedades de BenchOne">
+        <div class="bo-led-track" id="boLedTrack">
+          <button type="button" class="bo-led-item" style="--c:#F2F6F8" data-action="none">Gestioná tu equipo</button>
+          <button type="button" class="bo-led-item" style="--c:#EB9646" data-action="registro">Probá 7 días gratis!</button>
+          <button type="button" class="bo-led-item" style="--c:#5AB0E4" data-action="info" data-msg="⏱️ Minutaje: los minutos de cada jugador, partido a partido y en el año.">¿Quién juega de más?</button>
+          <button type="button" class="bo-led-item" style="--c:#B397F0" data-action="info" data-msg="📊 Estadísticas anuales: goles, minutos y rendimiento de todo el año, jugador por jugador.">Estadísticas anuales</button>
+          <button type="button" class="bo-led-item" style="--c:#E6AF46" data-action="info" data-msg="🎬 Editor de video premium: clickeás, recortás y editás con tus propios tags.">Editor de video premium</button>
+          <button type="button" class="bo-led-item" style="--c:#40C8D6" data-action="none">Hecha por un DT, para DTs</button>
+          <button type="button" class="bo-led-item" style="--c:#4CC882" data-action="whatsapp">Consultas por WhatsApp</button>
+        </div>
+      </div>
+      <div class="bo-led-tip" id="boLedTip" aria-live="polite"></div>
+    </div>
     <h1>Gestioná<br>tu equipo</h1>
     <p class="hero-lead">Todas las herramientas del DT, en un solo lugar</p>
 
@@ -22053,5 +22117,77 @@ async function exportarGrupoOrdenado(nombre, clips){
 })();
 </script>
 
+<script>
+/* ══════════ CARTEL LED DEL LOGIN ══════════ */
+(function(){
+  var led = document.getElementById('boLed');
+  var track = document.getElementById('boLedTrack');
+  var tip = document.getElementById('boLedTip');
+  if(!led || !track) return;
+  var WHATSAPP = '5491164517593';
+  var VELOCIDAD = 80; // píxeles por segundo
+
+  // Separadores BENCH·ONE entre mensajes
+  Array.prototype.slice.call(track.children).forEach(function(item){
+    var sep = document.createElement('span');
+    sep.className = 'bo-led-sep';
+    sep.setAttribute('aria-hidden','true');
+    sep.innerHTML = 'BENCH<b>ONE</b>';
+    track.insertBefore(sep, item.nextSibling);
+  });
+  var original = track.innerHTML;
+
+  // Repite el contenido para que el loop no tenga cortes
+  function armar(){
+    if(!led.clientWidth) return; // pantalla de login oculta
+    track.innerHTML = original;
+    var n = 0;
+    while(track.scrollWidth < led.clientWidth * 1.2 && n < 6){ track.innerHTML += original; n++; }
+    var bloque = track.innerHTML;
+    track.innerHTML = bloque + bloque; // la animación recorre la mitad exacta
+    var items = track.querySelectorAll('.bo-led-item');
+    var cantOriginal = track.querySelectorAll('.bo-led-item').length / (2 * (n + 1));
+    for(var i = cantOriginal; i < items.length; i++){
+      items[i].setAttribute('tabindex','-1');
+      items[i].setAttribute('aria-hidden','true');
+    }
+    led.style.setProperty('--bo-led-dur', ((track.scrollWidth / 2) / VELOCIDAD) + 's');
+  }
+  armar();
+  var t;
+  window.addEventListener('resize', function(){ clearTimeout(t); t = setTimeout(armar, 200); });
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(armar);
+
+  // Pausa con el dedo apoyado (celu/tablet)
+  led.addEventListener('touchstart', function(){ led.classList.add('is-paused'); }, {passive:true});
+  led.addEventListener('touchend', function(){ setTimeout(function(){ led.classList.remove('is-paused'); }, 1500); });
+
+  var tipTimer;
+  function mostrarTip(txt){
+    if(!tip) return;
+    tip.textContent = txt;
+    tip.classList.add('show');
+    led.classList.add('is-paused');
+    clearTimeout(tipTimer);
+    tipTimer = setTimeout(function(){ tip.classList.remove('show'); led.classList.remove('is-paused'); }, 3500);
+  }
+
+  track.addEventListener('click', function(e){
+    var btn = e.target.closest('.bo-led-item');
+    if(!btn) return;
+    led.classList.add('is-flash');
+    setTimeout(function(){ led.classList.remove('is-flash'); }, 180);
+    var accion = btn.getAttribute('data-action');
+    if(accion === 'whatsapp'){
+      window.open('https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent('Hola! Quiero saber más de BenchOne'), '_blank');
+    } else if(accion === 'registro'){
+      if(typeof irACrearCuenta === 'function'){ irACrearCuenta(); }
+      else { var tg = document.getElementById('toggleModeBtn'); if(tg) tg.click(); }
+    } else if(accion === 'info'){
+      mostrarTip(btn.getAttribute('data-msg') || '');
+    }
+  });
+})();
+</script>
 </body>
 </html>
