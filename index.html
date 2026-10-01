@@ -3386,6 +3386,36 @@ body.editor-active #screen-editor{ display:block; }
 .faq-item.open .faq-arrow{transform:rotate(180deg);}
 .faq-a{max-height:0;overflow:hidden;color:var(--muted);font-size:14px;line-height:1.5;padding:0 18px;transition:max-height .25s ease,padding .25s ease;}
 .faq-item.open .faq-a{max-height:220px;padding:0 18px 16px;}
+/* ── Pizarra: animación por pasos ── */
+.board-dir-btn.on{border-color:#40C8D6!important;color:#40C8D6!important;}
+.board-wrap{position:relative;}
+.board-steps-btn{border-color:var(--accent-2)!important;color:var(--accent-2)!important;font-weight:600;}
+.board-steps-btn.on{background:var(--accent-2)!important;color:#0b1015!important;}
+.board-rec:disabled{opacity:.4;cursor:not-allowed;}
+.board-steps{margin-top:10px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:10px;}
+.board-steps[hidden]{display:none;}
+.bs-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;}
+.bs-title{font-family:'Oswald',sans-serif;font-size:15px;text-transform:uppercase;letter-spacing:.5px;color:var(--chalk);}
+.bs-hint{font-size:12.5px;color:var(--muted);line-height:1.4;}
+.bs-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;}
+.bs-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.bs-chip{height:40px;padding:0 13px;border-radius:9px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:.3px;cursor:pointer;}
+.bs-chip:hover{border-color:var(--accent-2);color:var(--chalk);}
+.bs-chip.on{background:var(--accent-2);border-color:var(--accent-2);color:#0b1015;font-weight:600;}
+.bs-add{height:40px;padding:0 14px;border-radius:9px;border:1px dashed var(--accent-2);background:rgba(47,143,203,0.08);color:var(--accent-2);font-weight:700;font-size:13.5px;cursor:pointer;}
+.bs-actions{justify-content:flex-end;padding-top:10px;border-top:1px solid var(--line);}
+.bs-speed{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);margin-right:auto;}
+.bs-speed select{background:var(--panel);color:var(--chalk);border:1px solid var(--line);border-radius:8px;height:38px;padding:0 8px;font-size:13px;}
+.bs-btn{height:40px;padding:0 14px;border-radius:9px;border:1px solid var(--line);background:transparent;color:var(--chalk);font-size:13px;font-weight:600;cursor:pointer;}
+.bs-btn:hover{border-color:var(--accent-2);}
+.bs-btn:disabled{opacity:.4;cursor:not-allowed;}
+.bs-save{background:var(--success)!important;border-color:var(--success)!important;color:#0b1015!important;}
+.board-play-actions .bp-reel:hover{border-color:#E6AF46;color:#E6AF46;}
+.board-play-actions .bp-edit:hover{border-color:var(--accent-2);color:var(--accent-2);}
+@media (max-width:600px){
+  .bs-speed{width:100%;margin-right:0;}
+  .bs-actions .bs-btn{flex:1 1 calc(50% - 8px);}
+}
 /* ══════════ CARTEL LED DEL LOGIN (estilo publicidad de cancha) ══════════ */
 .bo-led-wrap{position:relative;max-width:460px;margin:0 0 18px;}
 .bo-led{
@@ -3497,10 +3527,11 @@ body.editor-active #screen-editor{ display:block; }
 
     <div class="hero-features">
       <div class="hero-feat"><span class="hf-ico">🎬</span><div><b>Editor de video</b><small>Clickeás, recortás y editás. Usá tus propios tags. Fácil e intuitivo.</small></div></div>
-      <div class="hero-feat"><span class="hf-ico">📊</span><div><b>Estadísticas automáticas</b><small>Goles, minutaje, rendimiento local/visitante</small></div></div>
-      <div class="hero-feat"><span class="hf-ico">🗓️</span><div><b>Planificación semanal</b><small>Tus semanas, tus entrenamientos y tu pizarra interactiva.</small></div></div>
-      <div class="hero-feat"><span class="hf-ico">🔍</span><div><b>Scouting del rival</b><small>Analizá y preparás cada partido</small></div></div>
+      <div class="hero-feat"><span class="hf-ico">✏️</span><div><b>Pizarra animada</b><small>Mové las fichas, grabá la jugada y exportala en video para tu plantel.</small></div></div>
       <div class="hero-feat"><span class="hf-ico">🔴</span><div><b>Control en vivo</b><small>Minutaje, goles y tarjetas al instante</small></div></div>
+      <div class="hero-feat"><span class="hf-ico">📊</span><div><b>Estadísticas automáticas</b><small>Goles, minutaje, rendimiento local/visitante</small></div></div>
+      <div class="hero-feat"><span class="hf-ico">👥</span><div><b>Ficha de cada jugador</b><small>Asistencia, lesiones, evaluaciones y seguimiento individual.</small></div></div>
+      <div class="hero-feat"><span class="hf-ico">🗓️</span><div><b>Planificación y scouting</b><small>Tus semanas, tus entrenamientos y el análisis de cada rival.</small></div></div>
     </div>
 
     <div class="hero-extras">
@@ -4415,7 +4446,7 @@ body.editor-active #screen-editor{ display:block; }
       <button class="board-mode-btn" id="modeEntrenamiento" data-mode="entrenamiento">🏋 Pizarra de entrenamiento</button>
     </div>
     <div class="board-note" id="boardNoteJugadas">
-      💡 <b>Modo jugadas.</b> Dibujá y grabá jugadas de partido moviendo los jugadores y la pelota. Ideal para explicar salidas, presiones y movimientos. Después podés <b>exportar cada jugada como video (.mp4)</b> para compartirla.
+      💡 <b>Modo jugadas.</b> Armá la jugada <b>por pasos</b>: ubicás las fichas, tocás “+ Paso”, movés las que cambian… y se animan solas, con flechas de recorrido. Tocá un jugador y arrastrá el punto celeste para <b>orientarlo</b>. También podés <b>grabarla en vivo</b> arrastrando. Después exportala como <b>video</b> o como <b>reel vertical</b> para Instagram.
     </div>
     <div class="board-note" id="boardNoteEntrenamiento" style="display:none;">
       💡 <b>Modo entrenamiento.</b> Diseñá ejercicios: sumá <b>jugadores de apoyo</b> (verdes), <b>conos</b> y <b>arcos</b> extra, y armá el espacio moviéndolos por la cancha. <span style="color:var(--muted);">Doble clic sobre un cono, arco o apoyo para quitarlo. Después podés exportar el ejercicio como video (.mp4).</span>
@@ -4426,12 +4457,14 @@ body.editor-active #screen-editor{ display:block; }
       <div class="board-tool-sep"></div>
       <button class="btn small" id="boardAddHome">+ Jugador (local)</button>
       <button class="btn small" id="boardAddAway">+ Rival</button>
+      <button class="btn small board-dir-btn" id="boardDirBtn" title="Mostrar u ocultar hacia dónde mira cada jugador">🧭 Orientación</button>
       <button class="btn small board-tool-train" id="boardAddSupport" style="display:none;">+ Apoyo</button>
       <div class="board-tool-sep board-tool-train" style="display:none;"></div>
       <button class="btn small board-tool-train" id="boardAddCone" style="display:none;">▲ Cono</button>
       <button class="btn small board-tool-train" id="boardAddGoal" style="display:none;">🥅 Arco</button>
       <div class="board-tool-sep"></div>
-      <button class="btn small board-rec" id="boardRecBtn">● Grabar</button>
+      <button class="btn small board-steps-btn" id="boardStepsBtn">🎞 Animar por pasos</button>
+      <button class="btn small board-rec" id="boardRecBtn">● Grabar en vivo</button>
     </div>
 
     <div class="board-desc-wrap">
@@ -4442,6 +4475,29 @@ body.editor-active #screen-editor{ display:block; }
       <div class="board-wrap">
         <div class="board-desc-show" id="boardDescShow" style="display:none;"></div>
         <svg id="futsalBoard" viewBox="0 0 680 400" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div class="board-steps" id="boardSteps" hidden>
+          <div class="bs-head">
+            <span class="bs-title">🎞 Animación por pasos</span>
+            <span class="bs-hint" id="bsHint"></span>
+          </div>
+          <div class="bs-row">
+            <div class="bs-chips" id="bsChips"></div>
+            <button type="button" class="bs-add" id="bsAdd">+ Paso</button>
+          </div>
+          <div class="bs-row bs-actions">
+            <label class="bs-speed">Velocidad
+              <select id="bsSpeed">
+                <option value="1400">Lenta</option>
+                <option value="900" selected>Normal</option>
+                <option value="550">Rápida</option>
+              </select>
+            </label>
+            <button type="button" class="bs-btn" id="bsDel">🗑 Borrar paso</button>
+            <button type="button" class="bs-btn" id="bsPreview">▶ Ver animación</button>
+            <button type="button" class="bs-btn" id="bsCancel">Cancelar</button>
+            <button type="button" class="bs-btn bs-save" id="bsSave">✓ Guardar jugada</button>
+          </div>
+        </div>
       </div>
       <div class="board-plays">
         <h3 class="board-plays-title">⚽ Jugadas grabadas</h3>
@@ -7922,6 +7978,71 @@ window.__initEditor = function(){
   // Estado de las fichas: {id, team:'home'|'away'|'ball', x, y, label}
   let tokens = [];
 
+  // ----- Animación por pasos (estado) -----
+  // steps: lista de "fotos" de la cancha [{ id:{x,y} }]. Al guardar se convierten en
+  // frames interpolados (mismo formato que una grabación en vivo), así la reproducción,
+  // la exportación y las jugadas viejas siguen funcionando igual.
+  let stepMode = false;
+  let steps = [];
+  let stepCur = 0;
+  let stepMs = 900;
+  let stepEdit = null;      // jugada que se está editando (si vino de "✏️ Editar")
+  let previewing = false;   // vista previa de los pasos en curso
+
+  // ----- Orientación corporal -----
+  // Cada jugador tiene un ángulo "d" (grados; 0 = mira hacia el arco de la derecha).
+  let selectedId = null;    // jugador elegido para girar
+  let showDir = (function(){ try{ return localStorage.getItem('bo_board_dir') !== '0'; }catch(e){ return true; } })();
+  const esJugador = (t) => !!t && (t.team === 'home' || t.team === 'away' || t.team === 'support');
+  const dirDe = (t) => (typeof t.d === 'number') ? t.d : (t.team === 'away' ? 180 : 0);
+  const angInterp = (a, b, p) => { const diff = ((b - a + 540) % 360) - 180; return a + diff*p; };
+
+  // Definiciones gráficas compartidas (degradados, texturas y puntas de flecha).
+  const BOARD_DEFS = `
+    <pattern id="parquetP" width="84" height="240" patternUnits="userSpaceOnUse">
+      <rect width="84" height="240" fill="#cf9659"/>
+      <rect x="0" width="21" height="240" fill="#d49d61"/>
+      <rect x="21" width="21" height="240" fill="#c78d51"/>
+      <rect x="42" width="21" height="240" fill="#d8a468"/>
+      <rect x="63" width="21" height="240" fill="#ca9155"/>
+      <path d="M21 0V240M42 0V240M63 0V240M84 0V240" stroke="rgba(92,55,24,0.32)" stroke-width="1"/>
+      <path d="M0 64H21M21 152H42M42 22H63M63 198H84M0 192H21M42 128H63" stroke="rgba(92,55,24,0.38)" stroke-width="1"/>
+      <path d="M7 0V240M31 0V240M52 0V240M74 0V240" stroke="rgba(255,255,255,0.05)" stroke-width="2"/>
+    </pattern>
+    <linearGradient id="courtBlue" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#155a71"/><stop offset="1" stop-color="#0f465a"/>
+    </linearGradient>
+    <linearGradient id="courtSheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.08"/>
+      <stop offset="0.45" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="courtVignette" cx="50%" cy="50%" r="70%">
+      <stop offset="0.6" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0.26"/>
+    </radialGradient>
+    <pattern id="netP" width="4" height="4" patternUnits="userSpaceOnUse">
+      <path d="M0 0L4 4M4 0L0 4" stroke="rgba(255,255,255,0.55)" stroke-width="0.6"/>
+    </pattern>
+    <linearGradient id="homeFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4fb0ec"/><stop offset="1" stop-color="#1d6fa8"/></linearGradient>
+    <linearGradient id="awayFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f25a50"/><stop offset="1" stop-color="#b1221a"/></linearGradient>
+    <linearGradient id="supportFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#62d487"/><stop offset="1" stop-color="#2d8650"/></linearGradient>
+    <linearGradient id="gkHomeFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6cd62"/><stop offset="1" stop-color="#c88b18"/></linearGradient>
+    <linearGradient id="gkAwayFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ad92ef"/><stop offset="1" stop-color="#6644c2"/></linearGradient>
+    <radialGradient id="homeGrad" cx="40%" cy="35%" r="70%"><stop offset="0%" stop-color="#5bb3e8"/><stop offset="100%" stop-color="#1c6699"/></radialGradient>
+    <radialGradient id="awayGrad" cx="40%" cy="35%" r="70%"><stop offset="0%" stop-color="#ff6a5f"/><stop offset="100%" stop-color="#a81f18"/></radialGradient>
+    <radialGradient id="supportGrad" cx="40%" cy="35%" r="70%"><stop offset="0%" stop-color="#6fd48f"/><stop offset="100%" stop-color="#357a4c"/></radialGradient>
+    <radialGradient id="ballGrad" cx="38%" cy="32%" r="70%">
+      <stop offset="0%" stop-color="#ffffff"/><stop offset="70%" stop-color="#eef0f2"/><stop offset="100%" stop-color="#cdd1d6"/>
+    </radialGradient>
+    <marker id="arHome" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto"><path d="M0 0L10 5L0 10z" fill="#0f5f9c"/></marker>
+    <marker id="arAway" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto"><path d="M0 0L10 5L0 10z" fill="#b2221a"/></marker>
+    <marker id="arSupport" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto"><path d="M0 0L10 5L0 10z" fill="#23784a"/></marker>
+    <marker id="arBall" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ffffff"/></marker>
+    <marker id="arHomeL" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto"><path d="M0 0L10 5L0 10z" fill="#9fd6ff"/></marker>
+    <marker id="arAwayL" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ffb3ad"/></marker>
+    <marker id="arSupportL" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto"><path d="M0 0L10 5L0 10z" fill="#b6f2c9"/></marker>
+  `;
+
   function defaultTokens(){
     // 5 locales (azul) a la izquierda, 5 rivales (rojo) a la derecha, pelota al medio
     const home = [
@@ -7939,104 +8060,65 @@ window.__initEditor = function(){
       {x:390,y:240,label:'5'}
     ];
     let t = [];
-    home.forEach((p,i) => t.push({ id:'h'+i, team:'home', x:p.x, y:p.y, label:p.label }));
-    away.forEach((p,i) => t.push({ id:'a'+i, team:'away', x:p.x, y:p.y, label:p.label }));
+    home.forEach((p,i) => t.push({ id:'h'+i, team:'home', x:p.x, y:p.y, label:p.label, d:0 }));
+    away.forEach((p,i) => t.push({ id:'a'+i, team:'away', x:p.x, y:p.y, label:p.label, d:180 }));
     t.push({ id:'ball', team:'ball', x:340, y:200, label:'' });
     return t;
   }
 
   // ----- Dibujar la cancha -----
+  // Medidas de futsal (40x20 m) llevadas al tablero de 680x400. Modo jugadas: parquet;
+  // modo entrenamiento: cancha azul (para diferenciarlas de un vistazo).
   function drawPitch(){
     const g = document.createElementNS(SVGNS, 'g');
     g.setAttribute('id', 'pitch');
-    // El modo entrenamiento usa cancha AZUL (para diferenciarla de un vistazo);
-    // el modo jugadas mantiene el piso de parquet (madera).
     const esEntren = (window.__boardMode === 'entrenamiento');
-    const COL = esEntren
-      ? { base:'#0d3d4f', a:'#104453', b:'#0b3646', linea:'rgba(160,90,40,0.0)' }  // azul petróleo (contrasta con fichas celestes)
-      : { base:'#c8925a', a:'#cd9860', b:'#c28a52', linea:'rgba(120,80,40,0.25)' }; // parquet
-    // Fondo
-    const bg = document.createElementNS(SVGNS,'rect');
-    bg.setAttribute('x',0); bg.setAttribute('y',0); bg.setAttribute('width',W); bg.setAttribute('height',H);
-    bg.setAttribute('fill',COL.base);
-    g.appendChild(bg);
-    // Tablas verticales alternas (parquet en madera; franjas sutiles en azul)
-    const plankW = W/17;
-    for(let i=0;i<17;i++){
-      const r = document.createElementNS(SVGNS,'rect');
-      r.setAttribute('x', i*plankW); r.setAttribute('y',0); r.setAttribute('width',plankW); r.setAttribute('height',H);
-      r.setAttribute('fill', i%2===0 ? COL.a : COL.b);
-      g.appendChild(r);
-      // línea sutil entre tablas (solo en madera; en azul queda transparente)
-      const l = document.createElementNS(SVGNS,'line');
-      l.setAttribute('x1', i*plankW); l.setAttribute('y1',0); l.setAttribute('x2', i*plankW); l.setAttribute('y2',H);
-      l.setAttribute('stroke', COL.linea); l.setAttribute('stroke-width','1');
-      g.appendChild(l);
-    }
-    const line = (x1,y1,x2,y2) => {
-      const l = document.createElementNS(SVGNS,'line');
-      l.setAttribute('x1',x1); l.setAttribute('y1',y1); l.setAttribute('x2',x2); l.setAttribute('y2',y2);
-      l.setAttribute('stroke','rgba(255,255,255,0.9)'); l.setAttribute('stroke-width','2');
-      g.appendChild(l);
+    const M = 16;                              // margen (zona fuera de la cancha)
+    const LINE = 'rgba(255,255,255,0.94)';
+    const add = (tag, attrs) => {
+      const el = document.createElementNS(SVGNS, tag);
+      for(const k in attrs) el.setAttribute(k, attrs[k]);
+      g.appendChild(el);
+      return el;
     };
-    const M = 16; // margen
-    // Perímetro
-    const rect = document.createElementNS(SVGNS,'rect');
-    rect.setAttribute('x',M); rect.setAttribute('y',M); rect.setAttribute('width',W-2*M); rect.setAttribute('height',H-2*M);
-    rect.setAttribute('fill','none'); rect.setAttribute('stroke','rgba(255,255,255,0.9)'); rect.setAttribute('stroke-width','2');
-    g.appendChild(rect);
-    // Línea de medio campo
-    line(W/2, M, W/2, H-M);
-    // Círculo central
-    const circ = document.createElementNS(SVGNS,'circle');
-    circ.setAttribute('cx',W/2); circ.setAttribute('cy',H/2); circ.setAttribute('r',50);
-    circ.setAttribute('fill','none'); circ.setAttribute('stroke','rgba(255,255,255,0.9)'); circ.setAttribute('stroke-width','2');
-    g.appendChild(circ);
-    const dot = document.createElementNS(SVGNS,'circle');
-    dot.setAttribute('cx',W/2); dot.setAttribute('cy',H/2); dot.setAttribute('r',3); dot.setAttribute('fill','rgba(255,255,255,0.9)');
-    g.appendChild(dot);
+    const L = (extra) => Object.assign({ fill:'none', stroke:LINE, 'stroke-width':2.4, 'stroke-linecap':'round', 'stroke-linejoin':'round' }, extra);
 
-    // Áreas de futsal: la línea de área se forma con dos cuartos de círculo (radio 6m)
-    // trazados desde cada poste, unidos por un tramo recto. Postes en y=160 y y=240.
-    const R = 58;            // radio del cuarto de círculo (escalado)
-    const postTop = 160, postBottom = 240;
-    // Área izquierda
-    const areaL = document.createElementNS(SVGNS,'path');
-    areaL.setAttribute('d',
-      `M ${M} ${postTop} `+                            // arranca en el poste de arriba
-      `A ${R} ${R} 0 0 1 ${M+R} ${postTop} `+          // cuarto de círculo hacia el campo
-      `L ${M+R} ${postBottom} `+                        // tramo recto vertical
-      `A ${R} ${R} 0 0 1 ${M} ${postBottom}`            // cuarto de círculo de vuelta al poste de abajo
-    );
-    areaL.setAttribute('fill','none'); areaL.setAttribute('stroke','rgba(255,255,255,0.9)'); areaL.setAttribute('stroke-width','2');
-    g.appendChild(areaL);
-    // Punto penal izquierdo
-    const penL = document.createElementNS(SVGNS,'circle');
-    penL.setAttribute('cx',M+52); penL.setAttribute('cy',H/2); penL.setAttribute('r',2.5); penL.setAttribute('fill','rgba(255,255,255,0.9)');
-    g.appendChild(penL);
-    // Área derecha (espejada)
-    const areaR = document.createElementNS(SVGNS,'path');
-    areaR.setAttribute('d',
-      `M ${W-M} ${postTop} `+
-      `A ${R} ${R} 0 0 0 ${W-M-R} ${postTop} `+
-      `L ${W-M-R} ${postBottom} `+
-      `A ${R} ${R} 0 0 0 ${W-M} ${postBottom}`
-    );
-    areaR.setAttribute('fill','none'); areaR.setAttribute('stroke','rgba(255,255,255,0.9)'); areaR.setAttribute('stroke-width','2');
-    g.appendChild(areaR);
-    const penR = document.createElementNS(SVGNS,'circle');
-    penR.setAttribute('cx',W-M-52); penR.setAttribute('cy',H/2); penR.setAttribute('r',2.5); penR.setAttribute('fill','rgba(255,255,255,0.9)');
-    g.appendChild(penR);
+    // Fondo exterior y superficie de juego
+    add('rect', { x:0, y:0, width:W, height:H, fill: esEntren ? '#0a3442' : '#7a4b2a' });
+    add('rect', { x:M, y:M, width:W-2*M, height:H-2*M, fill: esEntren ? 'url(#courtBlue)' : 'url(#parquetP)' });
+    // Brillo y viñeta: le dan profundidad sin distraer
+    add('rect', { x:0, y:0, width:W, height:H, fill:'url(#courtSheen)' });
+    add('rect', { x:0, y:0, width:W, height:H, fill:'url(#courtVignette)' });
 
-    // Arcos
-    const goalL = document.createElementNS(SVGNS,'rect');
-    goalL.setAttribute('x',M-6); goalL.setAttribute('y',postTop); goalL.setAttribute('width',6); goalL.setAttribute('height',postBottom-postTop);
-    goalL.setAttribute('fill','rgba(255,255,255,0.95)');
-    g.appendChild(goalL);
-    const goalR = document.createElementNS(SVGNS,'rect');
-    goalR.setAttribute('x',W-M); goalR.setAttribute('y',postTop); goalR.setAttribute('width',6); goalR.setAttribute('height',postBottom-postTop);
-    goalR.setAttribute('fill','rgba(255,255,255,0.95)');
-    g.appendChild(goalR);
+    // Perímetro, medio campo y círculo central (3 m)
+    add('rect', L({ x:M, y:M, width:W-2*M, height:H-2*M }));
+    add('line', L({ x1:W/2, y1:M, x2:W/2, y2:H-M }));
+    add('circle', L({ cx:W/2, cy:H/2, r:50 }));
+    add('circle', { cx:W/2, cy:H/2, r:3.2, fill:LINE });
+
+    // Áreas: cuartos de círculo de 6 m desde cada poste, unidos por un tramo recto
+    const R = 100, pT = 172.5, pB = 227.5;     // postes (arco de 3 m)
+    add('path', L({ d:`M ${M} ${pT-R} A ${R} ${R} 0 0 1 ${M+R} ${pT} L ${M+R} ${pB} A ${R} ${R} 0 0 1 ${M} ${pB+R}` }));
+    add('path', L({ d:`M ${W-M} ${pT-R} A ${R} ${R} 0 0 0 ${W-M-R} ${pT} L ${W-M-R} ${pB} A ${R} ${R} 0 0 0 ${W-M} ${pB+R}` }));
+    // Puntos penales (6 m) y doble penal (10 m)
+    [[M+97, 3], [M+162, 2.6], [W-M-97, 3], [W-M-162, 2.6]].forEach(([x, r]) => add('circle', { cx:x, cy:H/2, r:r, fill:LINE }));
+    // Arcos de esquina
+    const c = 7;
+    add('path', L({ d:`M ${M+c} ${M} A ${c} ${c} 0 0 1 ${M} ${M+c}` }));
+    add('path', L({ d:`M ${W-M} ${M+c} A ${c} ${c} 0 0 1 ${W-M-c} ${M}` }));
+    add('path', L({ d:`M ${W-M-c} ${H-M} A ${c} ${c} 0 0 1 ${W-M} ${H-M-c}` }));
+    add('path', L({ d:`M ${M} ${H-M-c} A ${c} ${c} 0 0 1 ${M+c} ${H-M}` }));
+    // Zona de cambios (marcas a 5 y 10 m del medio, sobre la línea lateral)
+    [81, 162].forEach(d => {
+      add('line', L({ x1:W/2-d, y1:H-M, x2:W/2-d, y2:H-M+8, 'stroke-width':2 }));
+      add('line', L({ x1:W/2+d, y1:H-M, x2:W/2+d, y2:H-M+8, 'stroke-width':2 }));
+    });
+
+    // Arcos con red (hacia afuera de la cancha)
+    add('rect', { x:M-12, y:pT, width:12, height:pB-pT, fill:'url(#netP)', stroke:'rgba(255,255,255,0.95)', 'stroke-width':2 });
+    add('rect', { x:W-M, y:pT, width:12, height:pB-pT, fill:'url(#netP)', stroke:'rgba(255,255,255,0.95)', 'stroke-width':2 });
+    add('line', { x1:M, y1:pT-1, x2:M, y2:pB+1, stroke:'#ffffff', 'stroke-width':4, 'stroke-linecap':'round' });
+    add('line', { x1:W-M, y1:pT-1, x2:W-M, y2:pB+1, stroke:'#ffffff', 'stroke-width':4, 'stroke-linecap':'round' });
     return g;
   }
 
@@ -8115,67 +8197,199 @@ window.__initEditor = function(){
     const g = document.createElementNS(SVGNS,'g');
     g.setAttribute('class','board-token'); g.setAttribute('data-id',t.id);
     g.setAttribute('transform',`translate(${t.x},${t.y})`);
+    // Arquero: el primero de cada equipo en la formación inicial (o marcado con gk:true)
+    const esGK = (t.gk === true) || ((t.id === 'h0' || t.id === 'a0') && t.gk !== false);
+    let fill = 'url(#awayFill)', txt = '#ffffff';
+    if(t.team === 'home') fill = esGK ? 'url(#gkHomeFill)' : 'url(#homeFill)';
+    else if(t.team === 'support') fill = 'url(#supportFill)';
+    else if(esGK) fill = 'url(#gkAwayFill)';
+    if(t.team === 'home' && esGK) txt = '#2b1d04';
+    const mk = (tag, attrs) => { const el = document.createElementNS(SVGNS, tag); for(const k in attrs) el.setAttribute(k, attrs[k]); g.appendChild(el); return el; };
     // área táctil invisible: más grande que la ficha, para agarrarla fácil con el dedo
-    const hit = document.createElementNS(SVGNS,'circle');
-    hit.setAttribute('r',30); hit.setAttribute('fill','transparent');
-    hit.setAttribute('class','tk-hit');
-    g.appendChild(hit);
-    // sombra bajo la ficha
-    const sh = document.createElementNS(SVGNS,'ellipse');
-    sh.setAttribute('cx',0); sh.setAttribute('cy',15); sh.setAttribute('rx',13); sh.setAttribute('ry',4);
-    sh.setAttribute('fill','rgba(0,0,0,0.30)');
-    g.appendChild(sh);
-    // anillo exterior claro
-    const ring = document.createElementNS(SVGNS,'circle');
-    ring.setAttribute('r',15); ring.setAttribute('fill', t.team==='home' ? 'url(#homeGrad)' : (t.team==='support' ? 'url(#supportGrad)' : 'url(#awayGrad)'));
-    ring.setAttribute('stroke','rgba(255,255,255,0.9)'); ring.setAttribute('stroke-width','2');
-    g.appendChild(ring);
-    // brillo superior (highlight)
-    const hl = document.createElementNS(SVGNS,'ellipse');
-    hl.setAttribute('cx',0); hl.setAttribute('cy',-5); hl.setAttribute('rx',8); hl.setAttribute('ry',4);
-    hl.setAttribute('fill','rgba(255,255,255,0.22)');
-    g.appendChild(hl);
-    // número
-    const label = document.createElementNS(SVGNS,'text');
-    label.setAttribute('class','tk-label'); label.textContent = t.label || '';
-    g.appendChild(label);
+    mk('circle', { r:30, fill:'transparent', class:'tk-hit' });
+    // sombra
+    mk('ellipse', { cx:0, cy:12, rx:14, ry:5, fill:'rgba(0,0,0,0.32)' });
+    if(showDir){
+      // Orientación corporal: cono de visión suave + "nariz" hacia donde mira
+      const dir = document.createElementNS(SVGNS, 'g');
+      dir.setAttribute('class', 'tk-dir');
+      dir.setAttribute('pointer-events', 'none');
+      dir.setAttribute('transform', `rotate(${dirDe(t)})`);
+      dir.innerHTML = '<path d="M 14 -9 L 52 -24 A 56 56 0 0 1 52 24 L 14 9 Z" fill="#ffffff" fill-opacity="0.13"/>'
+        + '<path d="M 11 -8 L 25 0 L 11 8 Z" fill="#ffffff" stroke="rgba(0,0,0,0.45)" stroke-width="1.2" stroke-linejoin="round"/>';
+      g.appendChild(dir);
+    }
+    // ficha
+    mk('circle', { r:15, fill:fill, stroke:'#ffffff', 'stroke-width':2.6 });
+    mk('circle', { r:11.3, fill:'none', stroke:'rgba(255,255,255,0.28)', 'stroke-width':1 });
+    mk('ellipse', { cx:0, cy:-6.5, rx:8, ry:3.4, fill:'rgba(255,255,255,0.18)' });
+    // número (estilos en línea para que salga igual en el video exportado)
+    const label = mk('text', {
+      class:'tk-label', x:0, y:0.5, 'text-anchor':'middle', 'dominant-baseline':'central',
+      'font-family':"Oswald, 'Arial Narrow', Arial, sans-serif", 'font-size':15, 'font-weight':700
+    });
+    label.style.fill = txt;
+    label.textContent = t.label || '';
     return g;
   }
 
   function render(){
     svg.innerHTML = '';
-    // Definiciones de degradados (look moderno)
     const defs = document.createElementNS(SVGNS,'defs');
-    defs.innerHTML = `
-      <radialGradient id="homeGrad" cx="40%" cy="35%" r="70%">
-        <stop offset="0%" stop-color="#5bb3e8"/>
-        <stop offset="60%" stop-color="#2F8FCB"/>
-        <stop offset="100%" stop-color="#1c6699"/>
-      </radialGradient>
-      <radialGradient id="awayGrad" cx="40%" cy="35%" r="70%">
-        <stop offset="0%" stop-color="#ff6a5f"/>
-        <stop offset="60%" stop-color="#E5342A"/>
-        <stop offset="100%" stop-color="#a81f18"/>
-      </radialGradient>
-      <radialGradient id="supportGrad" cx="40%" cy="35%" r="70%">
-        <stop offset="0%" stop-color="#6fd48f"/>
-        <stop offset="60%" stop-color="#4CAF6D"/>
-        <stop offset="100%" stop-color="#357a4c"/>
-      </radialGradient>
-      <radialGradient id="ballGrad" cx="38%" cy="32%" r="70%">
-        <stop offset="0%" stop-color="#ffffff"/>
-        <stop offset="70%" stop-color="#eef0f2"/>
-        <stop offset="100%" stop-color="#cdd1d6"/>
-      </radialGradient>
-    `;
+    defs.innerHTML = BOARD_DEFS;
     svg.appendChild(defs);
     svg.appendChild(drawPitch());
+    // Capa de recorridos (flechas de movimiento y pase), debajo de las fichas
+    const trails = document.createElementNS(SVGNS,'g');
+    trails.setAttribute('id','boardTrails');
+    svg.appendChild(trails);
+    if(stepMode) syncStepsWithTokens();
     tokens.forEach(t => {
       const el = drawToken(t);
       svg.appendChild(el);
       makeDraggable(el, t);
     });
+    if(stepMode && !previewing) drawEditTrails();
+    drawHandle();
   }
+
+  // Control para girar al jugador elegido: un punto celeste que se arrastra alrededor.
+  function setDirVisual(t){
+    const el = svg.querySelector(`[data-id="${t.id}"] .tk-dir`);
+    if(el) el.setAttribute('transform', `rotate(${dirDe(t)})`);
+  }
+  function drawHandle(){
+    const prev = svg.querySelector('#boardHandle');
+    if(prev) prev.remove();
+    if(!selectedId || !showDir || playingRaf || previewing) return;
+    const t = tokens.find(x => x.id === selectedId);
+    if(!esJugador(t)){ selectedId = null; return; }
+    const R = 40, a = dirDe(t) * Math.PI/180;
+    const hx = t.x + Math.cos(a)*R, hy = t.y + Math.sin(a)*R;
+    const g = document.createElementNS(SVGNS, 'g');
+    g.setAttribute('id', 'boardHandle');
+    g.innerHTML = `<circle cx="${t.x}" cy="${t.y}" r="${R}" fill="none" stroke="#40C8D6" stroke-opacity="0.55" stroke-width="1.5" stroke-dasharray="4 4"/>`
+      + `<line x1="${t.x}" y1="${t.y}" x2="${hx}" y2="${hy}" stroke="#40C8D6" stroke-width="2"/>`
+      + `<circle class="bh-hit" cx="${hx}" cy="${hy}" r="20" fill="transparent"/>`
+      + `<circle cx="${hx}" cy="${hy}" r="8" fill="#40C8D6" stroke="#ffffff" stroke-width="2.5"/>`;
+    g.style.cursor = 'grab';
+    g.style.touchAction = 'none';
+    svg.appendChild(g);
+    let girando = false;
+    const toSvgP = (evt) => { const pt = svg.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()); };
+    g.addEventListener('pointerdown', (evt) => { evt.preventDefault(); evt.stopPropagation(); girando = true; try{ g.setPointerCapture(evt.pointerId); }catch(e){} });
+    g.addEventListener('pointermove', (evt) => {
+      if(!girando) return;
+      evt.preventDefault();
+      const p = toSvgP(evt);
+      let ang = Math.atan2(p.y - t.y, p.x - t.x) * 180/Math.PI;
+      ang = Math.round(ang / 5) * 5;          // de a 5° para que sea fácil dejarlo derecho
+      t.d = (ang + 360) % 360;
+      setDirVisual(t);
+      const r = t.d * Math.PI/180, x2 = t.x + Math.cos(r)*R, y2 = t.y + Math.sin(r)*R;
+      const ln = g.querySelector('line'); ln.setAttribute('x2', x2); ln.setAttribute('y2', y2);
+      g.querySelectorAll('circle').forEach((c, i) => { if(i > 0){ c.setAttribute('cx', x2); c.setAttribute('cy', y2); } });
+    });
+    const fin = (evt) => { if(!girando) return; girando = false; try{ g.releasePointerCapture(evt.pointerId); }catch(e){} };
+    g.addEventListener('pointerup', fin);
+    g.addEventListener('pointercancel', fin);
+  }
+  // Tocar la cancha (fuera de las fichas) suelta al jugador elegido
+  svg.addEventListener('pointerdown', (e) => {
+    if(!selectedId) return;
+    if(e.target.closest && e.target.closest('.board-token, .board-ball, #boardHandle')) return;
+    selectedId = null;
+    drawHandle();
+  });
+
+  // ----- Recorridos: flechas de movimiento (jugadores) y de pase (pelota) -----
+  function trailStyle(team){
+    const oscuro = (window.__boardMode === 'entrenamiento');   // cancha azul: flechas claras
+    if(team === 'ball')    return { color:'#ffffff', marker:'arBall', dash:'7 6', w:2.3 };
+    if(team === 'home')    return { color: oscuro ? '#9fd6ff' : '#0f5f9c', marker: oscuro ? 'arHomeL' : 'arHome', dash:'', w:2.6 };
+    if(team === 'support') return { color: oscuro ? '#b6f2c9' : '#23784a', marker: oscuro ? 'arSupportL' : 'arSupport', dash:'', w:2.6 };
+    if(team === 'away')    return { color: oscuro ? '#ffb3ad' : '#b2221a', marker: oscuro ? 'arAwayL' : 'arAway', dash:'', w:2.6 };
+    return null;   // conos y arcos no dejan recorrido
+  }
+  function teamOf(id){ const t = tokens.find(x => x.id === id); return t ? t.team : null; }
+  function trailLine(layer, from, to, team, op){
+    const st = trailStyle(team);
+    if(!st || !from || !to) return;
+    const dx = to.x - from.x, dy = to.y - from.y, len = Math.hypot(dx, dy);
+    if(len < 12) return;
+    const ux = dx/len, uy = dy/len;
+    const cutEnd = Math.min(team === 'ball' ? 12 : 18, len*0.45);   // que la flecha no quede tapada por la ficha
+    const cutIni = Math.min(team === 'ball' ? 6 : 10, len*0.2);
+    const x1 = from.x + ux*cutIni, y1 = from.y + uy*cutIni, x2 = to.x - ux*cutEnd, y2 = to.y - uy*cutEnd;
+    if(team === 'ball'){
+      // halo oscuro para que el pase se lea sobre cualquier cancha
+      const halo = document.createElementNS(SVGNS,'line');
+      halo.setAttribute('x1',x1); halo.setAttribute('y1',y1); halo.setAttribute('x2',x2); halo.setAttribute('y2',y2);
+      halo.setAttribute('stroke','rgba(0,0,0,0.28)'); halo.setAttribute('stroke-width', st.w + 2.4);
+      halo.setAttribute('stroke-linecap','round'); halo.setAttribute('stroke-dasharray', st.dash);
+      halo.setAttribute('opacity', op);
+      layer.appendChild(halo);
+    }
+    const l = document.createElementNS(SVGNS,'line');
+    l.setAttribute('x1',x1); l.setAttribute('y1',y1); l.setAttribute('x2',x2); l.setAttribute('y2',y2);
+    l.setAttribute('stroke', st.color); l.setAttribute('stroke-width', st.w);
+    l.setAttribute('stroke-linecap','round');
+    if(st.dash) l.setAttribute('stroke-dasharray', st.dash);
+    l.setAttribute('marker-end', `url(#${st.marker})`);
+    l.setAttribute('opacity', op);
+    layer.appendChild(l);
+  }
+  function ghostToken(layer, p, team){
+    const st = trailStyle(team);
+    if(!st || !p) return;
+    const c = document.createElementNS(SVGNS,'circle');
+    c.setAttribute('cx', p.x); c.setAttribute('cy', p.y); c.setAttribute('r', team === 'ball' ? 8 : 13);
+    c.setAttribute('fill','rgba(255,255,255,0.14)'); c.setAttribute('stroke', st.color);
+    c.setAttribute('stroke-width', 1.6); c.setAttribute('stroke-dasharray','3 3'); c.setAttribute('opacity', 0.75);
+    layer.appendChild(c);
+  }
+  // Mientras armás los pasos: recorridos anteriores tenues + el del paso actual marcado.
+  function drawEditTrails(){
+    const layer = svg.querySelector('#boardTrails');
+    if(!layer) return;
+    layer.innerHTML = '';
+    if(stepCur === 0) return;
+    const actual = snapshotPositions();
+    for(let j = 0; j < stepCur; j++){
+      const from = steps[j], to = (j + 1 === stepCur) ? actual : steps[j + 1];
+      const ultimo = (j + 1 === stepCur);
+      Object.keys(to).forEach(id => {
+        const a = from[id], b = to[id];
+        if(!a || !b || Math.hypot(b.x - a.x, b.y - a.y) < 12) return;
+        const team = teamOf(id);
+        if(ultimo) ghostToken(layer, a, team);
+        trailLine(layer, a, b, team, ultimo ? 0.95 : 0.45);
+      });
+    }
+  }
+  // Durante la reproducción de una jugada por pasos: los recorridos se van dibujando.
+  function drawPlayTrails(meta, ms){
+    const layer = svg.querySelector('#boardTrails');
+    if(!layer || !meta || !meta.steps || !meta.segs) return;
+    layer.innerHTML = '';
+    meta.segs.forEach((seg, j) => {
+      if(ms < seg.s) return;
+      const p = Math.min(1, (ms - seg.s) / Math.max(1, seg.e - seg.s));
+      const e = easeInOut(p);
+      const from = meta.steps[j], to = meta.steps[j + 1];
+      if(!from || !to) return;
+      const actual = (ms <= seg.e);
+      const siguiente = meta.segs[j + 1];
+      const reciente = actual || !siguiente || ms < siguiente.s;
+      Object.keys(to).forEach(id => {
+        const a = from[id], b = to[id];
+        if(!a || !b || Math.hypot(b.x - a.x, b.y - a.y) < 12) return;
+        const tip = { x: a.x + (b.x - a.x)*e, y: a.y + (b.y - a.y)*e };
+        trailLine(layer, a, tip, teamOf(id), reciente ? 0.95 : 0.45);
+      });
+    });
+  }
+  function easeInOut(p){ return p < 0.5 ? 4*p*p*p : 1 - Math.pow(-2*p + 2, 3)/2; }
 
   // ----- Arrastre (Pointer Events: mouse + touch unificados) -----
   function makeDraggable(el, t){
@@ -8186,10 +8400,12 @@ window.__initEditor = function(){
       const ctm = svg.getScreenCTM().inverse();
       return pt.matrixTransform(ctm);
     }
+    let downX = 0, downY = 0, movio = false;
     function onDown(evt){
       evt.preventDefault();
       evt.stopPropagation();
       dragging = true;
+      downX = evt.clientX; downY = evt.clientY; movio = false;
       // feedback inmediato: se agranda y se aclara, así se nota que la agarraste
       el.style.opacity = '0.9';
       el.classList.add('tk-grabbing');
@@ -8204,10 +8420,17 @@ window.__initEditor = function(){
       t.x = Math.max(8, Math.min(W-8, p.x));
       t.y = Math.max(8, Math.min(H-8, p.y));
       el.setAttribute('transform', `translate(${t.x},${t.y})`);
+      if(Math.hypot(evt.clientX - downX, evt.clientY - downY) > 5) movio = true;
+      if(stepMode && !previewing) drawEditTrails();
+      if(selectedId === t.id) drawHandle();
     }
     function onUp(evt){
       if(!dragging) return;
       dragging = false;
+      if(!movio && esJugador(t) && showDir && !playingRaf && !previewing){
+        selectedId = (selectedId === t.id) ? null : t.id;
+        drawHandle();
+      }
       el.style.opacity = '1';
       el.classList.remove('tk-grabbing');
       try{ el.releasePointerCapture(evt.pointerId); }catch(e){}
@@ -8236,17 +8459,29 @@ window.__initEditor = function(){
   document.getElementById('boardClearBtn').addEventListener('click', () => { tokens = [{ id:'ball', team:'ball', x:340, y:200, label:'' }]; render(); });
   document.getElementById('boardAddHome').addEventListener('click', () => {
     const n = tokens.filter(t=>t.team==='home').length + 1;
-    tokens.push({ id:'h'+Date.now(), team:'home', x:120, y:200, label:String(n) }); render();
+    tokens.push({ id:'h'+Date.now(), team:'home', x:120, y:200, label:String(n), d:0 }); render();
   });
   document.getElementById('boardAddAway').addEventListener('click', () => {
     const n = tokens.filter(t=>t.team==='away').length + 1;
-    tokens.push({ id:'a'+Date.now(), team:'away', x:560, y:200, label:String(n) }); render();
+    tokens.push({ id:'a'+Date.now(), team:'away', x:560, y:200, label:String(n), d:180 }); render();
+  });
+  // Mostrar / ocultar la orientación corporal
+  const dirBtn = document.getElementById('boardDirBtn');
+  const pintarDirBtn = () => { if(dirBtn) dirBtn.classList.toggle('on', showDir); };
+  pintarDirBtn();
+  if(dirBtn) dirBtn.addEventListener('click', () => {
+    showDir = !showDir;
+    try{ localStorage.setItem('bo_board_dir', showDir ? '1' : '0'); }catch(e){}
+    if(!showDir) selectedId = null;
+    pintarDirBtn();
+    render();
+    toast(showDir ? 'Orientación visible. Tocá un jugador para girarlo.' : 'Orientación oculta.');
   });
   // Jugador de apoyo (comodín, verde)
   const addSup = document.getElementById('boardAddSupport');
   if(addSup) addSup.addEventListener('click', () => {
     const n = tokens.filter(t=>t.team==='support').length + 1;
-    tokens.push({ id:'s'+Date.now(), team:'support', x:340, y:120, label:'A' }); render();
+    tokens.push({ id:'s'+Date.now(), team:'support', x:340, y:120, label:'A', d:0 }); render();
   });
   // Cono
   const addCone = document.getElementById('boardAddCone');
@@ -8266,6 +8501,10 @@ window.__initEditor = function(){
   const boardStates = { jugadas: null, entrenamiento: null };
   window.__boardMode = 'jugadas';
   function setBoardMode(modo){
+    if(stepMode && modo !== window.__boardMode){
+      if(steps.length > 1 && !confirm('¿Salir sin guardar los pasos?')) return;
+      stopPlayback(); stepMode = false; previewing = false; steps = []; stepEdit = null; updateStepsUI();
+    }
     const modoAnterior = window.__boardMode;
     // Si de verdad cambiamos de modo, guardamos el estado actual y cargamos el del otro.
     if(modo !== modoAnterior){
@@ -8308,7 +8547,7 @@ window.__initEditor = function(){
 
   function snapshotPositions(){
     const pos = {};
-    tokens.forEach(t => { pos[t.id] = { x:t.x, y:t.y }; });
+    tokens.forEach(t => { pos[t.id] = esJugador(t) ? { x:t.x, y:t.y, d:Math.round(dirDe(t)) } : { x:t.x, y:t.y }; });
     return pos;
   }
 
@@ -8357,6 +8596,257 @@ window.__initEditor = function(){
     savePlayToCloud(play);
     toast(window.t('mPlaySaved'));
   }
+
+  // ========== ANIMACIÓN POR PASOS ==========
+  // Armás el Paso 1, tocás "+ Paso", movés las fichas que quieras, y así. Al reproducir,
+  // todas las fichas se mueven a la vez con una transición suave entre pasos.
+  const stepsBox = document.getElementById('boardSteps');
+  const stepsBtn = document.getElementById('boardStepsBtn');
+  const descInputEl = document.getElementById('boardDescInput');
+
+  function syncStepsWithTokens(){
+    // Una ficha agregada durante los pasos aparece en todos en la misma posición.
+    steps.forEach(s => tokens.forEach(t => { if(!s[t.id]) s[t.id] = esJugador(t) ? { x:t.x, y:t.y, d:dirDe(t) } : { x:t.x, y:t.y }; }));
+  }
+  function loadStep(k){
+    const pos = steps[k] || {};
+    tokens.forEach(t => { const p = pos[t.id]; if(p){ t.x = p.x; t.y = p.y; if(typeof p.d === 'number') t.d = p.d; } });
+  }
+  function forceMode(modo){
+    if(window.__boardMode === modo) return;
+    boardStates[window.__boardMode] = JSON.parse(JSON.stringify(tokens));
+    window.__boardMode = modo;
+    const esE = (modo === 'entrenamiento');
+    document.getElementById('modeJugadas') && document.getElementById('modeJugadas').classList.toggle('active', !esE);
+    document.getElementById('modeEntrenamiento') && document.getElementById('modeEntrenamiento').classList.toggle('active', esE);
+    const nJ = document.getElementById('boardNoteJugadas');
+    const nE = document.getElementById('boardNoteEntrenamiento');
+    if(nJ) nJ.style.display = esE ? 'none' : '';
+    if(nE) nE.style.display = esE ? '' : 'none';
+    document.querySelectorAll('.board-tool-train').forEach(el => { el.style.display = esE ? '' : 'none'; });
+  }
+
+  function updateStepsUI(){
+    if(stepsBtn){
+      stepsBtn.classList.toggle('on', stepMode);
+      stepsBtn.textContent = stepMode ? '✕ Salir de pasos' : '🎞 Animar por pasos';
+    }
+    if(recBtn) recBtn.disabled = stepMode;
+    if(!stepsBox) return;
+    stepsBox.hidden = !stepMode;
+    if(!stepMode) return;
+    const chips = document.getElementById('bsChips');
+    if(chips){
+      chips.innerHTML = '';
+      steps.forEach((s, k) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'bs-chip' + (k === stepCur ? ' on' : '');
+        b.textContent = 'Paso ' + (k + 1);
+        b.addEventListener('click', () => goStep(k));
+        chips.appendChild(b);
+      });
+    }
+    const hint = document.getElementById('bsHint');
+    if(hint){
+      hint.textContent = (steps.length === 1)
+        ? 'Ubicá las fichas como arranca la jugada y tocá “+ Paso”.'
+        : 'Paso ' + (stepCur + 1) + ' de ' + steps.length + ': mové las fichas que cambian de lugar. La línea muestra el recorrido desde el paso anterior.';
+    }
+    const del = document.getElementById('bsDel');
+    if(del) del.disabled = (steps.length <= 1);
+    const sp = document.getElementById('bsSpeed');
+    if(sp) sp.value = String(stepMs);
+  }
+
+  function enterStepMode(fromPlay){
+    if(recording) return;
+    stopPlayback();
+    if(fromPlay){
+      const meta = fromPlay.frames && fromPlay.frames[0] && fromPlay.frames[0].meta;
+      if(!meta || !meta.steps){ toast('Esta jugada se grabó en vivo y no se puede editar por pasos.'); return; }
+      forceMode(((fromPlay.tipo||'jugada') === 'entrenamiento') ? 'entrenamiento' : 'jugadas');
+      tokens = JSON.parse(JSON.stringify(fromPlay.tokensSnapshot));
+      steps = meta.steps.map(s => JSON.parse(JSON.stringify(s)));
+      stepMs = meta.stepMs || 900;
+      stepEdit = fromPlay;
+      if(descInputEl) descInputEl.value = fromPlay.desc || '';
+    } else {
+      steps = [snapshotPositions()];
+      stepMs = 900;
+      stepEdit = null;
+    }
+    const descShow = document.getElementById('boardDescShow');
+    if(descShow) descShow.style.display = 'none';
+    stepMode = true;
+    stepCur = 0;
+    loadStep(0);
+    render();
+    updateStepsUI();
+    if(stepsBox && stepsBox.scrollIntoView){ try{ stepsBox.scrollIntoView({ behavior:'smooth', block:'nearest' }); }catch(e){} }
+  }
+  function exitStepMode(){
+    stopPlayback();
+    stepMode = false; previewing = false;
+    steps = []; stepCur = 0; stepEdit = null;
+    render();
+    updateStepsUI();
+  }
+  function goStep(k){
+    if(previewing) return;
+    steps[stepCur] = snapshotPositions();
+    stepCur = Math.max(0, Math.min(steps.length - 1, k));
+    loadStep(stepCur);
+    render();
+    updateStepsUI();
+  }
+  function addStep(){
+    if(previewing) return;
+    if(steps.length >= 20){ toast('Llegaste al máximo de 20 pasos.'); return; }
+    steps[stepCur] = snapshotPositions();
+    steps.splice(stepCur + 1, 0, JSON.parse(JSON.stringify(steps[stepCur])));
+    stepCur++;
+    render();
+    updateStepsUI();
+  }
+  function deleteStep(){
+    if(previewing || steps.length <= 1) return;
+    steps.splice(stepCur, 1);
+    stepCur = Math.max(0, stepCur - 1);
+    loadStep(stepCur);
+    render();
+    updateStepsUI();
+  }
+  function tokensAt(pos){
+    const snap = JSON.parse(JSON.stringify(tokens));
+    snap.forEach(t => { const p = pos[t.id]; if(p){ t.x = p.x; t.y = p.y; if(typeof p.d === 'number') t.d = p.d; } });
+    return snap;
+  }
+  function previewSteps(){
+    if(previewing) return;
+    steps[stepCur] = snapshotPositions();
+    if(steps.length < 2){ toast('Agregá al menos un paso más para ver la animación.'); return; }
+    const tmp = { name:'Vista previa', tipo: (window.__boardMode === 'entrenamiento') ? 'entrenamiento' : 'jugada',
+                  frames: buildFramesFromSteps(steps, stepMs), tokensSnapshot: tokensAt(steps[0]) };
+    previewing = true;
+    const btn = document.getElementById('bsPreview');
+    if(btn) btn.textContent = '⏳ Reproduciendo…';
+    playPlay(tmp, { preview:true, onEnd: () => {
+      previewing = false;
+      if(btn) btn.textContent = '▶ Ver animación';
+      if(stepMode){ loadStep(stepCur); render(); updateStepsUI(); }
+    }});
+  }
+
+  // Convierte los pasos en frames (cada 40 ms) con transición suave. Los pasos quedan
+  // guardados dentro del primer frame (meta) para poder editarlos después.
+  function buildFramesFromSteps(stepsArr, ms){
+    const DT = 40, HOLD_INI = 500, HOLD = 300, HOLD_FIN = 1000;
+    const ids = new Set();
+    stepsArr.forEach(s => Object.keys(s).forEach(id => ids.add(id)));
+    const full = stepsArr.map(s => {
+      const o = {};
+      ids.forEach(id => {
+        const p = s[id] || (stepsArr.find(x => x[id]) || {})[id];
+        if(p){ o[id] = { x: Math.round(p.x*10)/10, y: Math.round(p.y*10)/10 }; if(typeof p.d === 'number') o[id].d = p.d; }
+      });
+      return o;
+    });
+    const frames = [];
+    const segs = [];
+    const push = (t, pos) => frames.push({ t: Math.round(t), positions: pos });
+    let t = 0;
+    for(; t < HOLD_INI; t += DT) push(t, full[0]);
+    t = HOLD_INI;
+    for(let i = 0; i < full.length - 1; i++){
+      const a = full[i], b = full[i + 1];
+      const s0 = t, s1 = t + ms;
+      segs.push({ s:s0, e:s1 });
+      for(; t < s1; t += DT){
+        const p = easeInOut((t - s0) / ms);
+        const pos = {};
+        Object.keys(b).forEach(id => {
+          const A = a[id] || b[id], B = b[id];
+          pos[id] = { x: Math.round((A.x + (B.x - A.x)*p)*10)/10, y: Math.round((A.y + (B.y - A.y)*p)*10)/10 };
+          if(typeof B.d === 'number') pos[id].d = Math.round(angInterp(typeof A.d === 'number' ? A.d : B.d, B.d, p));
+        });
+        push(t, pos);
+      }
+      const espera = (i < full.length - 2) ? HOLD : HOLD_FIN;
+      const fin = s1 + espera;
+      for(t = s1; t < fin; t += DT) push(t, b);
+      t = fin;
+    }
+    push(t, full[full.length - 1]);
+    frames[0].meta = { v:1, steps: full, stepMs: ms, segs: segs };
+    return frames;
+  }
+
+  async function updatePlayInCloud(play){
+    const sb = window.__sb;
+    if(!sb || !play.dbId) return;
+    try{
+      const payload = { name: play.name, frames: play.frames, tokens_snapshot: play.tokensSnapshot, description: play.desc || null };
+      let { error } = await sb.from('board_plays').update(payload).eq('id', play.dbId);
+      if(error){
+        delete payload.description;
+        const r = await sb.from('board_plays').update(payload).eq('id', play.dbId);
+        error = r.error;
+      }
+      if(error) console.error('board update', error);
+    }catch(e){ console.error(e); }
+  }
+
+  async function saveSteps(){
+    if(previewing) return;
+    steps[stepCur] = snapshotPositions();
+    if(steps.length < 2){ toast('Agregá al menos 2 pasos: tocá “+ Paso” y mové las fichas.'); return; }
+    const esEntren = (window.__boardMode === 'entrenamiento');
+    const n = plays.filter(p => ((p.tipo||'jugada') === 'entrenamiento') === esEntren).length;
+    const porDefecto = stepEdit ? stepEdit.name : ((esEntren ? 'Ejercicio ' : 'Jugada ') + (n + 1));
+    const name = prompt(window.t('mPlayName'), porDefecto);
+    if(name === null) return;
+    const desc = descInputEl ? (descInputEl.value || '').trim() : '';
+    const frames = buildFramesFromSteps(steps, stepMs);
+    const snap = tokensAt(steps[0]);
+    if(stepEdit){
+      stepEdit.name = name || porDefecto;
+      stepEdit.desc = desc;
+      stepEdit.frames = frames;
+      stepEdit.tokensSnapshot = snap;
+      await updatePlayInCloud(stepEdit);
+    } else {
+      const play = {
+        id: 'play' + Date.now(),
+        name: name || porDefecto,
+        desc: desc,
+        tipo: esEntren ? 'entrenamiento' : 'jugada',
+        frames: frames,
+        tokensSnapshot: snap
+      };
+      plays.unshift(play);
+      savePlayToCloud(play);
+    }
+    exitStepMode();
+    renderPlays();
+    toast(window.t('mPlaySaved'));
+  }
+
+  if(stepsBtn) stepsBtn.addEventListener('click', () => {
+    if(!stepMode){ enterStepMode(null); return; }
+    if(steps.length > 1 && !confirm('¿Salir sin guardar los pasos?')) return;
+    exitStepMode();
+  });
+  (function bindStepsBar(){
+    const on = (id, fn) => { const el = document.getElementById(id); if(el) el.addEventListener('click', fn); };
+    on('bsAdd', addStep);
+    on('bsDel', deleteStep);
+    on('bsPreview', previewSteps);
+    on('bsSave', saveSteps);
+    on('bsCancel', () => { if(steps.length > 1 && !confirm('¿Descartar los pasos?')) return; exitStepMode(); });
+    const sp = document.getElementById('bsSpeed');
+    if(sp) sp.addEventListener('change', () => { stepMs = parseInt(sp.value, 10) || 900; });
+  })();
 
   // Guardar una jugada en la nube
   async function savePlayToCloud(play){
@@ -8410,7 +8900,11 @@ window.__initEditor = function(){
   }
 
   // Reproducir una jugada
-  let playingTimer = null;
+  let playingTimer = null;   // (compatibilidad)
+  let playingRaf = null;
+  function stopPlayback(){
+    if(playingRaf){ cancelAnimationFrame(playingRaf); playingRaf = null; }
+  }
   // Reproduce un entrenamiento/jugada por su id de base (usado desde la planificación).
   window.__playBoardById = function(dbId){
     const play = plays.find(p => String(p.dbId) === String(dbId));
@@ -8420,53 +8914,67 @@ window.__initEditor = function(){
       if(window.toast) toast('Abrí la pizarra en la categoría del ejercicio para verlo.');
     }
   };
-  function playPlay(play){
-    if(playingTimer) return;
-    // Poner la pizarra en el modo que corresponde a esta jugada (partido o entrenamiento),
-    // para que los elementos y el color de cancha coincidan con lo grabado.
-    const modoDeLaJugada = ((play.tipo||'jugada') === 'entrenamiento') ? 'entrenamiento' : 'jugadas';
-    if(window.__boardMode !== modoDeLaJugada){
-      // Guardamos el estado del modo actual antes de cambiar (sin pisar los tokens de la jugada).
-      boardStates[window.__boardMode] = JSON.parse(JSON.stringify(tokens));
-      window.__boardMode = modoDeLaJugada;
-      const esE = (modoDeLaJugada === 'entrenamiento');
-      document.getElementById('modeJugadas') && document.getElementById('modeJugadas').classList.toggle('active', !esE);
-      document.getElementById('modeEntrenamiento') && document.getElementById('modeEntrenamiento').classList.toggle('active', esE);
-      const nJ = document.getElementById('boardNoteJugadas');
-      const nE = document.getElementById('boardNoteEntrenamiento');
-      if(nJ) nJ.style.display = esE ? 'none' : '';
-      if(nE) nE.style.display = esE ? '' : 'none';
-      document.querySelectorAll('.board-tool-train').forEach(el => { el.style.display = esE ? '' : 'none'; });
+
+  // Ubica todas las fichas en el instante "ms" de la jugada, interpolando entre frames
+  // (así el movimiento sale fluido, también en las jugadas grabadas en vivo).
+  function applyTime(play, ms){
+    const fr = play.frames;
+    if(!fr || !fr.length) return;
+    let i = play.__i || 0;
+    if(i >= fr.length || fr[i].t > ms) i = 0;
+    while(i < fr.length - 1 && fr[i + 1].t <= ms) i++;
+    play.__i = i;
+    const A = fr[i], B = fr[Math.min(i + 1, fr.length - 1)];
+    const span = B.t - A.t;
+    const p = span > 0 ? Math.min(1, Math.max(0, (ms - A.t) / span)) : 0;
+    tokens.forEach(t => {
+      const a = A.positions[t.id];
+      if(!a) return;
+      const b = B.positions[t.id] || a;
+      t.x = a.x + (b.x - a.x)*p;
+      t.y = a.y + (b.y - a.y)*p;
+      if(typeof a.d === 'number') t.d = angInterp(a.d, (typeof b.d === 'number') ? b.d : a.d, p);
+      const el = svg.querySelector(`[data-id="${t.id}"]`);
+      if(el){
+        el.setAttribute('transform', `translate(${t.x},${t.y})`);
+        if(typeof a.d === 'number'){ const dg = el.querySelector('.tk-dir'); if(dg) dg.setAttribute('transform', `rotate(${t.d})`); }
+      }
+    });
+    const meta = fr[0].meta;
+    if(meta && meta.steps) drawPlayTrails(meta, ms);
+  }
+
+  function playPlay(play, opts){
+    opts = opts || {};
+    if(stepMode && !opts.preview){
+      if(steps.length > 1 && !confirm('Estás armando una jugada por pasos. ¿Salir sin guardar?')) return;
+      stepMode = false; steps = []; stepEdit = null; updateStepsUI();
     }
+    stopPlayback();
+    selectedId = null;
+    // Poner la pizarra en el modo que corresponde a esta jugada (partido o entrenamiento).
+    forceMode(((play.tipo||'jugada') === 'entrenamiento') ? 'entrenamiento' : 'jugadas');
     // mostrar la descripción sobre la cancha (si tiene)
     const descShow = document.getElementById('boardDescShow');
     if(descShow){
-      if(play.desc){ descShow.textContent = play.desc; descShow.style.display='block'; }
+      if(play.desc && !opts.preview){ descShow.textContent = play.desc; descShow.style.display='block'; }
       else { descShow.style.display='none'; }
     }
     // restaurar las fichas al estado inicial de la jugada
     tokens = JSON.parse(JSON.stringify(play.tokensSnapshot));
     render();
     const frames = play.frames;
-    const startAt = Date.now();
-    playingTimer = setInterval(() => {
-      const elapsed = Date.now() - startAt;
-      // buscar el frame correspondiente
-      let frame = frames[0];
-      for(let i=0;i<frames.length;i++){ if(frames[i].t <= elapsed) frame = frames[i]; else break; }
-      // aplicar posiciones
-      tokens.forEach(t => {
-        const p = frame.positions[t.id];
-        if(p){
-          t.x = p.x; t.y = p.y;
-          const el = svg.querySelector(`[data-id="${t.id}"]`);
-          if(el) el.setAttribute('transform',`translate(${t.x},${t.y})`);
-        }
-      });
-      if(elapsed >= frames[frames.length-1].t){
-        clearInterval(playingTimer); playingTimer = null;
-      }
-    }, 30);
+    if(!frames || !frames.length){ if(opts.onEnd) opts.onEnd(); return; }
+    const total = frames[frames.length - 1].t;
+    const startAt = performance.now();
+    play.__i = 0;
+    const tick = () => {
+      const ms = performance.now() - startAt;
+      applyTime(play, Math.min(ms, total));
+      if(ms < total){ playingRaf = requestAnimationFrame(tick); }
+      else { playingRaf = null; if(opts.onEnd) opts.onEnd(); }
+    };
+    playingRaf = requestAnimationFrame(tick);
   }
 
   // ========== BIBLIOTECA DE VIDEOS (links) ==========
@@ -8590,27 +9098,41 @@ window.__initEditor = function(){
       items.forEach((play) => {
         const item = document.createElement('div');
         item.className = 'board-play';
-        const dur = (play.frames[play.frames.length-1].t/1000).toFixed(1);
+        const fr = play.frames || [];
+        const dur = fr.length ? (fr[fr.length-1].t/1000).toFixed(1) : '0';
+        const meta = fr[0] && fr[0].meta;
+        const porPasos = !!(meta && meta.steps);
         item.innerHTML = `
-          <div class="board-play-name">${escapeHtml(play.name)} <span style="color:var(--muted);font-weight:400;font-size:11px;">${dur}s</span></div>
+          <div class="board-play-name">${escapeHtml(play.name)} <span style="color:var(--muted);font-weight:400;font-size:11px;">${porPasos ? (meta.steps.length + ' pasos · ') : ''}${dur}s</span></div>
           ${play.desc ? `<div class="board-play-desc">${escapeHtml(play.desc)}</div>` : ''}
           <div class="board-play-actions">
             <button class="bp-play">▶ Ver</button>
-            <button class="bp-export">⬇ Exportar</button>
-            <button class="bp-del">🗑</button>
+            ${porPasos ? '<button class="bp-edit" title="Editar los pasos">✏️ Editar</button>' : ''}
+            <button class="bp-export" title="Video horizontal">⬇ Video</button>
+            <button class="bp-reel" title="Video vertical para Instagram">📱 Reel</button>
+            <button class="bp-del" title="Eliminar">🗑</button>
           </div>
         `;
         item.querySelector('.bp-play').addEventListener('click', () => playPlay(play));
-        const btnExp = item.querySelector('.bp-export');
-        btnExp.addEventListener('click', async () => {
-          if(exportingPlay) return;
-          const txtOrig = btnExp.textContent;
-          btnExp.textContent = '⏳ Generando…';
-          btnExp.disabled = true;
-          try{ await exportPlay(play); }catch(e){ if(window.toast) toast('No se pudo exportar el video.'); }
-          btnExp.textContent = txtOrig;
-          btnExp.disabled = false;
+        const btnEdit = item.querySelector('.bp-edit');
+        if(btnEdit) btnEdit.addEventListener('click', () => {
+          if(stepMode && steps.length > 1 && !confirm('¿Salir sin guardar los pasos actuales?')) return;
+          if(stepMode){ stepMode = false; steps = []; }
+          enterStepMode(play);
         });
+        const exportar = (btn, reel) => {
+          btn.addEventListener('click', async () => {
+            if(exportingPlay) return;
+            const txtOrig = btn.textContent;
+            btn.textContent = '⏳ Generando…';
+            btn.disabled = true;
+            try{ await exportPlay(play, { reel: reel }); }catch(e){ console.error(e); if(window.toast) toast('No se pudo exportar el video.'); exportingPlay = false; }
+            btn.textContent = txtOrig;
+            btn.disabled = false;
+          });
+        };
+        exportar(item.querySelector('.bp-export'), false);
+        exportar(item.querySelector('.bp-reel'), true);
         item.querySelector('.bp-del').addEventListener('click', async () => {
           if(!confirm('¿Eliminar "'+play.name+'"?')) return;
           if(play.dbId && window.__sb){ try{ await window.__sb.from('board_plays').delete().eq('id', play.dbId); }catch(e){} }
@@ -8621,114 +9143,193 @@ window.__initEditor = function(){
       });
     };
 
-    pintar(listJugadas, jugadas, 'Todavía no grabaste jugadas. En modo "jugadas", tocá "● Grabar", movés las fichas, y "■ Detener".');
-    pintar(listTrain, entrenamientos, 'Todavía no guardaste entrenamientos. En modo "entrenamiento", armá el ejercicio y tocá "● Grabar".');
+    pintar(listJugadas, jugadas, 'Todavía no hay jugadas. Tocá "🎞 Animar por pasos" (o "● Grabar" para hacerlo en vivo).');
+    pintar(listTrain, entrenamientos, 'Todavía no guardaste entrenamientos. En modo "entrenamiento", armá el ejercicio y animalo por pasos o grabalo.');
   }
 
   // Exportar la jugada como VIDEO (mp4 si el navegador lo soporta, si no webm).
-  // Reproduce la jugada rasterizando el propio tablero SVG a un canvas y grabándolo,
-  // así el video sale idéntico a lo que se ve en pantalla (cancha, fichas, conos, etc.).
+  // Horizontal: el tablero tal cual. Reel (9:16): cancha vertical con título y marca BenchOne,
+  // lista para subir a Instagram. En ambos casos se rasteriza el propio SVG del tablero.
   let exportingPlay = false;
-  async function exportPlay(play){
+  async function exportPlay(play, opts){
+    opts = opts || {};
+    const reel = !!opts.reel;
     if(exportingPlay){ toast('Ya hay una exportación en curso. Esperá a que termine.'); return; }
     if(!play || !play.frames || play.frames.length < 2){ toast('Esta jugada no tiene animación para exportar.'); return; }
     if(typeof MediaRecorder === 'undefined' || !HTMLCanvasElement.prototype.captureStream){
       toast('Tu navegador no permite exportar video. Probá con Chrome o Edge.');
       return;
     }
+    if(stepMode){ toast('Guardá o cancelá la animación por pasos antes de exportar.'); return; }
+    stopPlayback();
+    selectedId = null;
     exportingPlay = true;
+    if(reel && document.fonts && document.fonts.load){
+      try{ await Promise.all([ document.fonts.load('700 80px Oswald'), document.fonts.load('500 34px Inter'), document.fonts.load('600 30px Inter') ]); }catch(e){}
+    }
     return await new Promise((resolveExport) => {
 
     // Recordar el estado actual para restaurarlo al terminar.
     const modoPrevio = window.__boardMode;
     const tokensPrevios = JSON.parse(JSON.stringify(tokens));
-
-    // Poner la pizarra en el modo de la jugada y sus fichas iniciales (para que la cancha
-    // y los elementos se dibujen como corresponde).
     const modoJugada = ((play.tipo||'jugada') === 'entrenamiento') ? 'entrenamiento' : 'jugadas';
     window.__boardMode = modoJugada;
     tokens = JSON.parse(JSON.stringify(play.tokensSnapshot));
     render();
 
-    // Escala de salida: el tablero es 680x400; multiplicamos para que el video se vea nítido.
-    const SC = 2;
-    const OUT_W = 680 * SC, OUT_H = 400 * SC;
+    const OUT_W = reel ? 1080 : 1360, OUT_H = reel ? 1920 : 800;
     const canvas = document.createElement('canvas');
     canvas.width = OUT_W; canvas.height = OUT_H;
     const ctx = canvas.getContext('2d');
 
     // Elegir el mejor formato disponible (mp4 preferido).
-    const tipos = [
-      'video/mp4;codecs=avc1',
-      'video/mp4',
-      'video/webm;codecs=vp9',
-      'video/webm;codecs=vp8',
-      'video/webm'
-    ];
+    const tipos = ['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'];
     let mime = '';
     for(const t of tipos){ if(MediaRecorder.isTypeSupported(t)){ mime = t; break; } }
     const esMp4 = mime.indexOf('mp4') !== -1;
     const ext = esMp4 ? 'mp4' : 'webm';
 
+    const restaurar = () => { window.__boardMode = modoPrevio; tokens = tokensPrevios; render(); exportingPlay = false; };
+
     const stream = canvas.captureStream(30);
     let rec;
-    try{ rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined); }
-    catch(e){ exportingPlay = false; window.__boardMode = modoPrevio; tokens = tokensPrevios; render(); toast('No se pudo iniciar la grabación en este navegador.'); resolveExport(); return; }
-
+    try{ rec = new MediaRecorder(stream, mime ? { mimeType: mime, videoBitsPerSecond: reel ? 6000000 : 4000000 } : undefined); }
+    catch(e){ restaurar(); toast('No se pudo iniciar la grabación en este navegador.'); resolveExport(); return; }
     const chunks = [];
     rec.ondataavailable = (ev) => { if(ev.data && ev.data.size) chunks.push(ev.data); };
 
-    // Convierte el SVG actual del tablero en una imagen y la dibuja en el canvas.
+    // ---- Diseño del reel (fondo, título y pie se dibujan una sola vez) ----
+    let fondo = null, cancha = null;
+    if(reel){
+      fondo = document.createElement('canvas');
+      fondo.width = OUT_W; fondo.height = OUT_H;
+      const f = fondo.getContext('2d');
+      f.fillStyle = '#0B1219'; f.fillRect(0, 0, OUT_W, OUT_H);
+      const glow = f.createRadialGradient(OUT_W/2, -120, 40, OUT_W/2, -120, 1100);
+      glow.addColorStop(0, 'rgba(47,143,203,0.38)'); glow.addColorStop(1, 'rgba(47,143,203,0)');
+      f.fillStyle = glow; f.fillRect(0, 0, OUT_W, OUT_H);
+      const ls = (px) => { if('letterSpacing' in f) f.letterSpacing = px; };
+      // Marca
+      f.textBaseline = 'alphabetic';
+      f.font = "700 40px Oswald, 'Arial Narrow', Arial, sans-serif"; ls('6px');
+      f.fillStyle = '#C9D3DB'; f.fillText('BENCH', 72, 112);
+      const wB = f.measureText('BENCH').width;
+      f.fillStyle = '#40C8D6'; f.fillText('ONE', 72 + wB, 112);
+      // Etiqueta (jugada / ejercicio)
+      const tag = (modoJugada === 'entrenamiento') ? 'EJERCICIO' : 'JUGADA';
+      f.font = "600 24px Oswald, 'Arial Narrow', Arial, sans-serif"; ls('4px');
+      const wT = f.measureText(tag).width + 40;
+      f.strokeStyle = '#40C8D6'; f.lineWidth = 2;
+      pathRound(f, OUT_W - 72 - wT, 76, wT, 48, 24); f.stroke();
+      f.fillStyle = '#40C8D6'; f.textAlign = 'center'; f.fillText(tag, OUT_W - 72 - wT/2, 109); f.textAlign = 'left';
+      // Título y descripción
+      let y = 200;
+      f.font = "700 84px Oswald, 'Arial Narrow', Arial, sans-serif"; ls('1px');
+      f.fillStyle = '#F2F6F8';
+      wrapLines(f, (play.name || 'Jugada').toUpperCase(), OUT_W - 144, 2).forEach(l => { y += 86; f.fillText(l, 72, y); });
+      if(play.desc){
+        y += 18;
+        f.font = "500 36px Inter, Arial, sans-serif"; ls('0px');
+        f.fillStyle = '#A9BAC7';
+        wrapLines(f, play.desc, OUT_W - 144, 2).forEach(l => { y += 48; f.fillText(l, 72, y); });
+      }
+      // Pie
+      f.textAlign = 'center';
+      f.font = "600 30px Inter, Arial, sans-serif"; ls('0px');
+      f.fillStyle = '#C9D3DB'; f.fillText('Hecha con la pizarra de BenchOne', OUT_W/2, OUT_H - 92);
+      f.font = "700 30px Oswald, 'Arial Narrow', Arial, sans-serif"; ls('3px');
+      f.fillStyle = '#40C8D6'; f.fillText('BENCHONE.APP · PROBÁ 7 DÍAS GRATIS', OUT_W/2, OUT_H - 46);
+      f.textAlign = 'left';
+      // Lugar de la cancha (vertical, proporción 400x680)
+      const top = y + 44, bottom = OUT_H - 160;
+      let ch = bottom - top, cw = ch * 400/680;
+      if(cw > OUT_W - 100){ cw = OUT_W - 100; ch = cw * 680/400; }
+      cancha = { x: Math.round((OUT_W - cw)/2), y: Math.round(top + ((bottom - top) - ch)/2), w: Math.round(cw), h: Math.round(ch) };
+      f.save();
+      f.shadowColor = 'rgba(0,0,0,0.65)'; f.shadowBlur = 50; f.shadowOffsetY = 18;
+      f.fillStyle = '#000'; pathRound(f, cancha.x, cancha.y, cancha.w, cancha.h, 22); f.fill();
+      f.restore();
+    }
+
+    // Convierte el SVG actual del tablero en una imagen.
     const svgEl = document.getElementById('futsalBoard');
     function svgToImage(){
       return new Promise((resolve) => {
         const clone = svgEl.cloneNode(true);
-        clone.setAttribute('width', OUT_W);
-        clone.setAttribute('height', OUT_H);
-        clone.setAttribute('viewBox', '0 0 680 400');
+        if(reel){
+          // Cancha vertical: rotamos cancha y recorridos, y reubicamos las fichas derechas.
+          clone.setAttribute('viewBox', '0 0 400 680');
+          clone.setAttribute('width', cancha.w);
+          clone.setAttribute('height', cancha.h);
+          const wrap = document.createElementNS(SVGNS, 'g');
+          wrap.setAttribute('transform', `translate(0,${W}) rotate(-90)`);
+          ['pitch', 'boardTrails'].forEach(id => { const el = clone.querySelector('#' + id); if(el) wrap.appendChild(el); });
+          const defsEl = clone.querySelector('defs');
+          if(defsEl) clone.insertBefore(wrap, defsEl.nextSibling); else clone.insertBefore(wrap, clone.firstChild);
+          clone.querySelectorAll('[data-id]').forEach(el => {
+            const tk = tokens.find(x => x.id === el.getAttribute('data-id'));
+            if(!tk) return;
+            el.setAttribute('transform', `translate(${tk.y},${W - tk.x})` + (tk.team === 'goal' ? ' rotate(-90)' : ''));
+            const dg = el.querySelector('.tk-dir'); if(dg) dg.setAttribute('transform', `rotate(${dirDe(tk) - 90})`);
+          });
+        } else {
+          clone.setAttribute('width', OUT_W);
+          clone.setAttribute('height', OUT_H);
+          clone.setAttribute('viewBox', '0 0 680 400');
+        }
         const xml = new XMLSerializer().serializeToString(clone);
-        const svg64 = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(xml)));
         const img = new Image();
         img.onload = () => resolve(img);
         img.onerror = () => resolve(null);
-        img.src = svg64;
+        img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(xml)));
       });
     }
 
-    // Muestra un aviso de progreso.
-    toast('Generando video de la jugada… mantené la pestaña abierta.');
+    toast(reel ? 'Generando el reel… mantené la pestaña abierta.' : 'Generando video de la jugada… mantené la pestaña abierta.');
 
+    const total = play.frames[play.frames.length - 1].t;   // duración de la jugada en ms
+    const INI = reel ? 700 : 0;                            // pausa inicial (para leer el título)
+    const FIN = reel ? 1800 : 250;                         // pausa final (con el cierre)
+    play.__i = 0;
     rec.start();
-
-    const dur = play.frames[play.frames.length-1].t;   // duración total en ms
     const startAt = performance.now();
 
-    // Bucle de animación: aplica las posiciones del frame correspondiente, redibuja el SVG,
-    // lo pasa al canvas, y repite hasta terminar la jugada.
     async function tick(){
       const elapsed = performance.now() - startAt;
-      // Buscar el frame correspondiente al tiempo transcurrido.
-      let frame = play.frames[0];
-      for(let i=0;i<play.frames.length;i++){ if(play.frames[i].t <= elapsed) frame = play.frames[i]; else break; }
-      // Aplicar posiciones al SVG real.
-      tokens.forEach(t => {
-        const p = frame.positions[t.id];
-        if(p){
-          t.x = p.x; t.y = p.y;
-          const el = svg.querySelector(`[data-id="${t.id}"]`);
-          if(el) el.setAttribute('transform',`translate(${t.x},${t.y})`);
-        }
-      });
-      // Rasterizar el SVG y dibujarlo en el canvas.
+      const ms = Math.max(0, Math.min(total, elapsed - INI));
+      applyTime(play, ms);
       const img = await svgToImage();
-      if(img){ ctx.clearRect(0,0,OUT_W,OUT_H); ctx.drawImage(img, 0, 0, OUT_W, OUT_H); }
-
-      if(elapsed < dur + 200){
-        requestAnimationFrame(tick);
-      } else {
-        // Fin: detener la grabación y descargar.
-        rec.stop();
+      if(reel){
+        ctx.drawImage(fondo, 0, 0);
+        if(img){
+          ctx.save(); pathRound(ctx, cancha.x, cancha.y, cancha.w, cancha.h, 22); ctx.clip();
+          ctx.drawImage(img, cancha.x, cancha.y, cancha.w, cancha.h);
+          ctx.restore();
+        }
+        // Cierre: aparece el llamado a la acción sobre la parte baja de la cancha
+        const desdeFin = elapsed - (INI + total);
+        if(desdeFin > 150){
+          const a = Math.min(1, (desdeFin - 150) / 450);
+          const bw = cancha.w - 70, bh = 200, bx = cancha.x + 35, by = cancha.y + cancha.h - bh - 40;
+          ctx.save();
+          ctx.globalAlpha = a;
+          ctx.fillStyle = 'rgba(11,18,25,0.9)'; pathRound(ctx, bx, by, bw, bh, 22); ctx.fill();
+          ctx.strokeStyle = '#4CC882'; ctx.lineWidth = 3; ctx.stroke();
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#4CC882';
+          let fs = 62;
+          do { ctx.font = `700 ${fs}px Oswald, 'Arial Narrow', Arial, sans-serif`; fs -= 2; } while(fs > 30 && ctx.measureText('PROBÁ 7 DÍAS GRATIS').width > bw - 50);
+          ctx.fillText('PROBÁ 7 DÍAS GRATIS', bx + bw/2, by + 92);
+          ctx.fillStyle = '#F2F6F8'; ctx.font = "500 34px Inter, Arial, sans-serif";
+          ctx.fillText('benchone.app', bx + bw/2, by + 152);
+          ctx.restore();
+        }
+      } else if(img){
+        ctx.clearRect(0, 0, OUT_W, OUT_H);
+        ctx.drawImage(img, 0, 0, OUT_W, OUT_H);
       }
+      if(elapsed < INI + total + FIN){ requestAnimationFrame(tick); }
+      else { rec.stop(); }
     }
 
     rec.onstop = () => {
@@ -8736,20 +9337,47 @@ window.__initEditor = function(){
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = play.name.replace(/[^a-z0-9]/gi,'_') + '.' + ext;
+      a.download = (play.name || 'jugada').replace(/[^a-z0-9]/gi, '_') + (reel ? '_reel' : '') + '.' + ext;
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
-      // Restaurar el estado previo de la pizarra.
-      window.__boardMode = modoPrevio;
-      tokens = tokensPrevios;
-      render();
-      exportingPlay = false;
-      toast(esMp4 ? 'Video .mp4 listo ✓' : 'Video .webm listo ✓ (se abre en cualquier reproductor)');
+      restaurar();
+      toast(esMp4 ? (reel ? 'Reel .mp4 listo ✓' : 'Video .mp4 listo ✓') : 'Video .webm listo ✓ (se abre en cualquier reproductor)');
       resolveExport();
     };
 
     requestAnimationFrame(tick);
     });
+  }
+
+  // Rectángulo redondeado (compatible con navegadores sin ctx.roundRect)
+  function pathRound(c, x, y, w, h, r){
+    c.beginPath();
+    c.moveTo(x + r, y);
+    c.arcTo(x + w, y, x + w, y + h, r);
+    c.arcTo(x + w, y + h, x, y + h, r);
+    c.arcTo(x, y + h, x, y, r);
+    c.arcTo(x, y, x + w, y, r);
+    c.closePath();
+  }
+  // Corta un texto en líneas que entren en el ancho (con "…" si sobra)
+  function wrapLines(c, text, maxW, maxLines){
+    const words = String(text).split(/\s+/).filter(Boolean);
+    const lines = [];
+    let cur = '';
+    for(let i = 0; i < words.length; i++){
+      const test = cur ? cur + ' ' + words[i] : words[i];
+      if(c.measureText(test).width <= maxW || !cur){ cur = test; continue; }
+      lines.push(cur); cur = words[i];
+      if(lines.length === maxLines){ cur = ''; break; }
+    }
+    if(cur && lines.length < maxLines) lines.push(cur);
+    const usadas = lines.join(' ').split(/\s+/).filter(Boolean).length;
+    if(usadas < words.length && lines.length){
+      let l = lines[lines.length - 1];
+      while(l.length > 1 && c.measureText(l + '…').width > maxW) l = l.slice(0, -1);
+      lines[lines.length - 1] = l.replace(/\s+$/, '') + '…';
+    }
+    return lines;
   }
 
   // Inicializar
