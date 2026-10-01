@@ -3387,6 +3387,8 @@ body.editor-active #screen-editor{ display:block; }
 .faq-a{max-height:0;overflow:hidden;color:var(--muted);font-size:14px;line-height:1.5;padding:0 18px;transition:max-height .25s ease,padding .25s ease;}
 .faq-item.open .faq-a{max-height:220px;padding:0 18px 16px;}
 /* ── Pizarra: animación por pasos ── */
+.tk-rot{cursor:grab;touch-action:none;}
+.tk-rot:active{cursor:grabbing;}
 .board-dirbar{margin-top:10px;background:var(--bg);border:1px solid #40C8D6;border-radius:10px;padding:10px 12px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;}
 .board-dirbar[hidden]{display:none;}
 .bd-info{display:flex;flex-direction:column;gap:2px;min-width:150px;}
@@ -4456,7 +4458,7 @@ body.editor-active #screen-editor{ display:block; }
       <button class="board-mode-btn" id="modeEntrenamiento" data-mode="entrenamiento">🏋 Pizarra de entrenamiento</button>
     </div>
     <div class="board-note" id="boardNoteJugadas">
-      💡 <b>Modo jugadas.</b> Armá la jugada <b>por pasos</b>: ubicás las fichas, tocás “+ Paso”, movés las que cambian… y se animan solas, con flechas de recorrido. Tocá un jugador para <b>orientarlo</b>: arrastrá el punto celeste para un lado o para el otro (hasta varias vueltas) o usá los botones de giro. También podés <b>grabarla en vivo</b> arrastrando. Después exportala como <b>video</b> o como <b>reel vertical</b> para Instagram.
+      💡 <b>Modo jugadas.</b> Armá la jugada <b>por pasos</b>: ubicás las fichas, tocás “+ Paso”, movés las que cambian… y se animan solas, con flechas de recorrido. Para <b>orientar</b> a un jugador, agarrá el cono claro que sale de la ficha y giralo para un lado o para el otro, con el mouse o con el dedo. También podés <b>grabarla en vivo</b> arrastrando. Después exportala como <b>video</b> o como <b>reel vertical</b> para Instagram.
     </div>
     <div class="board-note" id="boardNoteEntrenamiento" style="display:none;">
       💡 <b>Modo entrenamiento.</b> Diseñá ejercicios: sumá <b>jugadores de apoyo</b> (verdes), <b>conos</b> y <b>arcos</b> extra, y armá el espacio moviéndolos por la cancha. <span style="color:var(--muted);">Doble clic sobre un cono, arco o apoyo para quitarlo. Después podés exportar el ejercicio como video (.mp4).</span>
@@ -4485,18 +4487,6 @@ body.editor-active #screen-editor{ display:block; }
       <div class="board-wrap">
         <div class="board-desc-show" id="boardDescShow" style="display:none;"></div>
         <svg id="futsalBoard" viewBox="0 0 680 400" xmlns="http://www.w3.org/2000/svg"></svg>
-        <div class="board-dirbar" id="boardDirBar" hidden>
-          <div class="bd-info"><span class="bd-title" id="bdTitle"></span><span class="bd-ang" id="bdAng"></span></div>
-          <div class="bd-btns">
-            <button type="button" data-rot="-90" title="Girar 90° antihorario">↺ 90°</button>
-            <button type="button" data-rot="-15" title="Girar 15° antihorario">↺ 15°</button>
-            <button type="button" data-rot="15" title="Girar 15° horario">↻ 15°</button>
-            <button type="button" data-rot="90" title="Girar 90° horario">↻ 90°</button>
-            <button type="button" data-look="ball">⚽ A la pelota</button>
-            <button type="button" data-look="goal">🥅 Al arco</button>
-            <button type="button" class="bd-close" id="bdClose" aria-label="Listo">✓ Listo</button>
-          </div>
-        </div>
         <div class="board-steps" id="boardSteps" hidden>
           <div class="bs-head">
             <span class="bs-title">🎞 Animación por pasos</span>
@@ -8236,10 +8226,11 @@ window.__initEditor = function(){
       // Orientación corporal: cono de visión suave + "nariz" hacia donde mira
       const dir = document.createElementNS(SVGNS, 'g');
       dir.setAttribute('class', 'tk-dir');
-      dir.setAttribute('pointer-events', 'none');
       dir.setAttribute('transform', `rotate(${dirDe(t)})`);
-      dir.innerHTML = '<path d="M 14 -9 L 52 -24 A 56 56 0 0 1 52 24 L 14 9 Z" fill="#ffffff" fill-opacity="0.13"/>'
-        + '<path d="M 11 -8 L 25 0 L 11 8 Z" fill="#ffffff" stroke="rgba(0,0,0,0.45)" stroke-width="1.2" stroke-linejoin="round"/>';
+      // Zona invisible (más grande que el cono) para agarrarlo y girar con el mouse o el dedo
+      dir.setAttribute('pointer-events', 'none');
+      dir.innerHTML = '<path d="M 14 -9 L 52 -24 A 56 56 0 0 1 52 24 L 14 9 Z" fill="#ffffff" fill-opacity="0.13" pointer-events="none"/>'
+        + '<path d="M 11 -8 L 25 0 L 11 8 Z" fill="#ffffff" stroke="rgba(0,0,0,0.45)" stroke-width="1.2" stroke-linejoin="round" pointer-events="none"/>';
       g.appendChild(dir);
     }
     // ficha
@@ -8267,6 +8258,19 @@ window.__initEditor = function(){
     trails.setAttribute('id','boardTrails');
     svg.appendChild(trails);
     if(stepMode) syncStepsWithTokens();
+    // Zonas para girar (el cono de cada jugador), debajo de todas las fichas:
+    // así el cuerpo de una ficha siempre se agarra para mover, aunque haya otra cerca.
+    const rz = document.createElementNS(SVGNS,'g');
+    rz.setAttribute('id','rotZones');
+    if(showDir) tokens.forEach(t => {
+      if(!esJugador(t)) return;
+      const z = document.createElementNS(SVGNS,'g');
+      z.setAttribute('class','rz'); z.setAttribute('data-for', t.id);
+      z.setAttribute('transform', `translate(${t.x},${t.y}) rotate(${dirDe(t)})`);
+      z.innerHTML = '<path class="tk-rot" d="M 14 -22 L 62 -38 A 68 68 0 0 1 62 38 L 14 22 Z" fill="transparent" pointer-events="all"/>';
+      rz.appendChild(z);
+    });
+    svg.appendChild(rz);
     tokens.forEach(t => {
       const el = drawToken(t);
       svg.appendChild(el);
@@ -8280,7 +8284,57 @@ window.__initEditor = function(){
   function setDirVisual(t){
     const el = svg.querySelector(`[data-id="${t.id}"] .tk-dir`);
     if(el) el.setAttribute('transform', `rotate(${dirDe(t)})`);
+    syncRotZone(t);
   }
+  function syncRotZone(t){
+    const z = svg.querySelector(`#rotZones [data-for="${t.id}"]`);
+    if(z) z.setAttribute('transform', `translate(${t.x},${t.y}) rotate(${dirDe(t)})`);
+  }
+  // Girar agarrando el cono (mouse o dedo). Suma el giro de a poco: respeta el sentido y las vueltas.
+  (function bindRotZones(){
+    let tk = null, acum = 0, ultimo = 0, zona = null;
+    const toP = (evt) => { const pt = svg.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()); };
+    const ang = (evt) => { const p = toP(evt); return Math.atan2(p.y - tk.y, p.x - tk.x) * 180/Math.PI; };
+    svg.addEventListener('pointerdown', (evt) => {
+      const z = evt.target && evt.target.closest && evt.target.closest('#rotZones .rz');
+      if(!z || playingRaf || previewing) return;
+      // Si se pisan los conos de dos jugadores, agarramos el del más cercano al dedo
+      const pp = toP(evt);
+      let mejor = null, dMin = Infinity;
+      tokens.forEach(x => {
+        if(!esJugador(x)) return;
+        const dist = Math.hypot(pp.x - x.x, pp.y - x.y);
+        if(dist < 12 || dist > 70) return;
+        const a = Math.atan2(pp.y - x.y, pp.x - x.x) * 180/Math.PI;
+        const dif = Math.abs((((a - dirDe(x)) % 360) + 540) % 360 - 180);
+        if(dif <= 36 && dist < dMin){ dMin = dist; mejor = x; }
+      });
+      tk = mejor || tokens.find(x => x.id === z.getAttribute('data-for'));
+      if(!esJugador(tk)){ tk = null; return; }
+      evt.preventDefault(); evt.stopPropagation();
+      zona = z; acum = dirDe(tk); ultimo = ang(evt);
+      try{ z.setPointerCapture(evt.pointerId); }catch(e){}
+      showRotLabel(tk);
+    }, true);
+    svg.addEventListener('pointermove', (evt) => {
+      if(!tk) return;
+      evt.preventDefault();
+      const raw = ang(evt);
+      acum += ((raw - ultimo + 540) % 360) - 180;
+      ultimo = raw;
+      tk.d = Math.round(acum / 5) * 5;
+      aplicarGiro(tk, svg.querySelector('#boardHandle'), 40);
+      showRotLabel(tk);
+    });
+    const fin = (evt) => {
+      if(!tk) return;
+      try{ if(zona) zona.releasePointerCapture(evt.pointerId); }catch(e){}
+      tk = null; zona = null;
+      hideRotLabel();
+    };
+    svg.addEventListener('pointerup', fin);
+    svg.addEventListener('pointercancel', fin);
+  })();
   function drawHandle(){
     const prev = svg.querySelector('#boardHandle');
     if(prev) prev.remove();
@@ -8317,8 +8371,9 @@ window.__initEditor = function(){
       ultimo = raw;
       t.d = Math.round(acum / 5) * 5;
       aplicarGiro(t, g, R);
+      showRotLabel(t);
     });
-    const fin = (evt) => { if(!girando) return; girando = false; try{ g.releasePointerCapture(evt.pointerId); }catch(e){} };
+    const fin = (evt) => { if(!girando) return; girando = false; hideRotLabel(); try{ g.releasePointerCapture(evt.pointerId); }catch(e){} };
     g.addEventListener('pointerup', fin);
     g.addEventListener('pointercancel', fin);
   }
@@ -8383,6 +8438,33 @@ window.__initEditor = function(){
     const cerrar = document.getElementById('bdClose');
     if(cerrar) cerrar.addEventListener('click', () => { selectedId = null; drawHandle(); });
   })();
+  // Cartelito sobre el jugador mientras lo girás: grados y sentido
+  let rotandoAhora = false;
+  function showRotLabel(t){
+    rotandoAhora = true;
+    let lab = svg.querySelector('#rotLabel');
+    if(!lab){
+      lab = document.createElementNS(SVGNS, 'g');
+      lab.setAttribute('id', 'rotLabel');
+      lab.setAttribute('pointer-events', 'none');
+      lab.innerHTML = '<rect rx="7" ry="7" fill="rgba(11,18,25,0.88)" stroke="#40C8D6" stroke-width="1.5"/><text text-anchor="middle" dominant-baseline="central" font-family="Oswald, \'Arial Narrow\', Arial, sans-serif" font-size="13" font-weight="700" fill="#40C8D6"></text>';
+      svg.appendChild(lab);
+    } else { svg.appendChild(lab); }
+    let txt;
+    const prev = (stepMode && stepCur > 0 && steps[stepCur - 1]) ? steps[stepCur - 1][t.id] : null;
+    if(prev && typeof prev.d === 'number'){
+      const v = Math.round(dirDe(t) - prev.d);
+      txt = Math.abs(v) < 5 ? 'sin giro' : (v > 0 ? '↻ ' : '↺ ') + Math.abs(v) + '°';
+    } else {
+      txt = (((Math.round(dirDe(t)) % 360) + 360) % 360) + '°';
+    }
+    const tx = lab.querySelector('text'), r = lab.querySelector('rect');
+    tx.textContent = txt;
+    const w = Math.max(44, txt.length * 8 + 16), y = Math.max(14, t.y - 34);
+    tx.setAttribute('x', t.x); tx.setAttribute('y', y);
+    r.setAttribute('x', t.x - w/2); r.setAttribute('y', y - 11); r.setAttribute('width', w); r.setAttribute('height', 22);
+  }
+  function hideRotLabel(){ rotandoAhora = false; const lab = svg.querySelector('#rotLabel'); if(lab) lab.remove(); if(stepMode && !previewing) drawEditTrails(); }
   // Flecha curva alrededor del jugador: muestra para qué lado gira y cuánto
   function turnArc(layer, p, d1, d2, op){
     const delta = d2 - d1;
@@ -8396,6 +8478,7 @@ window.__initEditor = function(){
     path.setAttribute('fill', 'none'); path.setAttribute('stroke', '#40C8D6'); path.setAttribute('stroke-width', 2.6);
     path.setAttribute('stroke-linecap', 'round'); path.setAttribute('marker-end', 'url(#arTurn)'); path.setAttribute('opacity', op);
     layer.appendChild(path);
+    if(rotandoAhora) return;   // mientras girás se ve el cartel de arriba
     const am = (d1 + span/2) * Math.PI/180;
     const tx = document.createElementNS(SVGNS, 'text');
     tx.setAttribute('x', p.x + Math.cos(am)*38); tx.setAttribute('y', p.y + Math.sin(am)*38);
@@ -8515,9 +8598,20 @@ window.__initEditor = function(){
       return pt.matrixTransform(ctm);
     }
     let downX = 0, downY = 0, movio = false;
+    let rotando = false, acumR = 0, ultimoR = 0, baseR = 0;
+    const angA = (evt) => { const p = toSvg(evt); return Math.atan2(p.y - t.y, p.x - t.x) * 180/Math.PI; };
     function onDown(evt){
       evt.preventDefault();
       evt.stopPropagation();
+      if(false){
+        // Girar agarrando el cono: suma el giro de a poco (respeta el sentido y las vueltas)
+        rotando = true; dragging = true;
+        acumR = dirDe(t); baseR = acumR; ultimoR = angA(evt);
+        if(el.parentNode) el.parentNode.appendChild(el);
+        try{ el.setPointerCapture(evt.pointerId); }catch(e){}
+        showRotLabel(t);
+        return;
+      }
       dragging = true;
       downX = evt.clientX; downY = evt.clientY; movio = false;
       // feedback inmediato: se agranda y se aclara, así se nota que la agarraste
@@ -8530,10 +8624,20 @@ window.__initEditor = function(){
     function onMove(evt){
       if(!dragging) return;
       evt.preventDefault();
+      if(rotando){
+        const raw = angA(evt);
+        acumR += ((raw - ultimoR + 540) % 360) - 180;
+        ultimoR = raw;
+        t.d = Math.round(acumR / 5) * 5;
+        aplicarGiro(t, svg.querySelector('#boardHandle'), 40);
+        showRotLabel(t);
+        return;
+      }
       const p = toSvg(evt);
       t.x = Math.max(8, Math.min(W-8, p.x));
       t.y = Math.max(8, Math.min(H-8, p.y));
       el.setAttribute('transform', `translate(${t.x},${t.y})`);
+      syncRotZone(t);
       if(Math.hypot(evt.clientX - downX, evt.clientY - downY) > 5) movio = true;
       if(stepMode && !previewing) drawEditTrails();
       if(selectedId === t.id) drawHandle();
@@ -8541,6 +8645,12 @@ window.__initEditor = function(){
     function onUp(evt){
       if(!dragging) return;
       dragging = false;
+      if(rotando){
+        rotando = false;
+        try{ el.releasePointerCapture(evt.pointerId); }catch(e){}
+        hideRotLabel();
+        return;
+      }
       if(!movio && esJugador(t) && showDir && !playingRaf && !previewing){
         selectedId = (selectedId === t.id) ? null : t.id;
         drawHandle();
@@ -9052,6 +9162,7 @@ window.__initEditor = function(){
       if(el){
         el.setAttribute('transform', `translate(${t.x},${t.y})`);
         if(typeof a.d === 'number'){ const dg = el.querySelector('.tk-dir'); if(dg) dg.setAttribute('transform', `rotate(${t.d})`); }
+        syncRotZone(t);
       }
     });
     const meta = fr[0].meta;
@@ -9377,6 +9488,7 @@ window.__initEditor = function(){
           clone.setAttribute('height', cancha.h);
           const wrap = document.createElementNS(SVGNS, 'g');
           wrap.setAttribute('transform', `translate(0,${W}) rotate(-90)`);
+          const rzc = clone.querySelector('#rotZones'); if(rzc) rzc.remove();
           ['pitch', 'boardTrails'].forEach(id => { const el = clone.querySelector('#' + id); if(el) wrap.appendChild(el); });
           const defsEl = clone.querySelector('defs');
           if(defsEl) clone.insertBefore(wrap, defsEl.nextSibling); else clone.insertBefore(wrap, clone.firstChild);
