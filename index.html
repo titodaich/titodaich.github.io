@@ -8191,20 +8191,31 @@ window.__initEditor = function(){
       sh.setAttribute('cx',0); sh.setAttribute('cy',9); sh.setAttribute('rx',8); sh.setAttribute('ry',3);
       sh.setAttribute('fill','rgba(0,0,0,0.28)');
       g.appendChild(sh);
-      // pelota con degradado
+      // pelota de futsal: blanca con gajos
       const c = document.createElementNS(SVGNS,'circle');
-      c.setAttribute('r',9); c.setAttribute('fill','url(#ballGrad)'); c.setAttribute('stroke','#c9ccd1'); c.setAttribute('stroke-width','0.8');
+      c.setAttribute('r',9); c.setAttribute('fill','url(#ballGrad)'); c.setAttribute('stroke','#8f959b'); c.setAttribute('stroke-width','0.9');
       g.appendChild(c);
-      // pentágonos estilizados (detalle de pelota)
-      const p1 = document.createElementNS(SVGNS,'circle');
-      p1.setAttribute('r',2.6); p1.setAttribute('cx',0); p1.setAttribute('cy',-1); p1.setAttribute('fill','#1a1d22');
-      g.appendChild(p1);
-      const p2 = document.createElementNS(SVGNS,'circle');
-      p2.setAttribute('r',1.3); p2.setAttribute('cx',4); p2.setAttribute('cy',3); p2.setAttribute('fill','#1a1d22');
-      g.appendChild(p2);
-      const p3 = document.createElementNS(SVGNS,'circle');
-      p3.setAttribute('r',1.3); p3.setAttribute('cx',-4); p3.setAttribute('cy',3); p3.setAttribute('fill','#1a1d22');
-      g.appendChild(p3);
+      const pent = [], rayos = [];
+      for(let k = 0; k < 5; k++){
+        const a1 = (-90 + 72*k) * Math.PI/180;
+        pent.push((Math.cos(a1)*3.5).toFixed(2) + ' ' + (Math.sin(a1)*3.5).toFixed(2));
+        rayos.push(`M ${(Math.cos(a1)*3.5).toFixed(2)} ${(Math.sin(a1)*3.5).toFixed(2)} L ${(Math.cos(a1)*6.4).toFixed(2)} ${(Math.sin(a1)*6.4).toFixed(2)}`);
+        const a2 = (-90 + 72*k) * Math.PI/180;
+        const gajo = document.createElementNS(SVGNS,'path');
+        const p1 = [Math.cos(a2 - 0.34)*8.7, Math.sin(a2 - 0.34)*8.7], p2 = [Math.cos(a2 + 0.34)*8.7, Math.sin(a2 + 0.34)*8.7], p0 = [Math.cos(a2)*6.4, Math.sin(a2)*6.4];
+        gajo.setAttribute('d', `M ${p0[0].toFixed(2)} ${p0[1].toFixed(2)} L ${p1[0].toFixed(2)} ${p1[1].toFixed(2)} A 8.7 8.7 0 0 1 ${p2[0].toFixed(2)} ${p2[1].toFixed(2)} Z`);
+        gajo.setAttribute('fill','#1a1d22');
+        g.appendChild(gajo);
+      }
+      const pg = document.createElementNS(SVGNS,'path');
+      pg.setAttribute('d', 'M ' + pent.join(' L ') + ' Z'); pg.setAttribute('fill','#1a1d22');
+      g.appendChild(pg);
+      const ry = document.createElementNS(SVGNS,'path');
+      ry.setAttribute('d', rayos.join(' ')); ry.setAttribute('stroke','#1a1d22'); ry.setAttribute('stroke-width','0.8'); ry.setAttribute('fill','none');
+      g.appendChild(ry);
+      const br = document.createElementNS(SVGNS,'ellipse');
+      br.setAttribute('cx',-2.6); br.setAttribute('cy',-3.2); br.setAttribute('rx',3.2); br.setAttribute('ry',2); br.setAttribute('fill','rgba(255,255,255,0.55)');
+      g.appendChild(br);
       return g;
     }
     const g = document.createElementNS(SVGNS,'g');
@@ -8212,28 +8223,61 @@ window.__initEditor = function(){
     g.setAttribute('transform',`translate(${t.x},${t.y})`);
     // Arquero: el primero de cada equipo en la formación inicial (o marcado con gk:true)
     const esGK = (t.gk === true) || ((t.id === 'h0' || t.id === 'a0') && t.gk !== false);
-    let fill = 'url(#awayFill)', txt = '#ffffff';
-    if(t.team === 'home') fill = esGK ? 'url(#gkHomeFill)' : 'url(#homeFill)';
-    else if(t.team === 'support') fill = 'url(#supportFill)';
-    else if(esGK) fill = 'url(#gkAwayFill)';
+    let fill = 'url(#awayFill)', txt = '#ffffff', borde = '#b1221a';
+    if(t.team === 'home'){ fill = esGK ? 'url(#gkHomeFill)' : 'url(#homeFill)'; borde = esGK ? '#c88b18' : '#1d6fa8'; }
+    else if(t.team === 'support'){ fill = 'url(#supportFill)'; borde = '#2d8650'; }
+    else if(esGK){ fill = 'url(#gkAwayFill)'; borde = '#6644c2'; }
     if(t.team === 'home' && esGK) txt = '#2b1d04';
     const mk = (tag, attrs) => { const el = document.createElementNS(SVGNS, tag); for(const k in attrs) el.setAttribute(k, attrs[k]); g.appendChild(el); return el; };
     // área táctil invisible: más grande que la ficha, para agarrarla fácil con el dedo
     mk('circle', { r:30, fill:'transparent', class:'tk-hit' });
-    // sombra
-    mk('ellipse', { cx:0, cy:12, rx:14, ry:5, fill:'rgba(0,0,0,0.32)' });
+
     if(showDir){
-      // Orientación corporal: cono de visión suave + "nariz" hacia donde mira
+      // ---- Jugador visto desde arriba: el cuerpo muestra hacia dónde está orientado ----
+      // (todo lo que está dentro de .tk-dir gira con el jugador; mira hacia +x)
+      mk('ellipse', { cx:2.5, cy:4.5, rx:15.5, ry:15, fill:'rgba(0,0,0,0.27)' });   // sombra en el piso
+      const PIEL = '#e8b98e', PIEL_S = '#cf9a6e', PELO = '#2a1c12';
+      const guante = esGK ? '#f4f6f8' : PIEL;
       const dir = document.createElementNS(SVGNS, 'g');
       dir.setAttribute('class', 'tk-dir');
-      dir.setAttribute('transform', `rotate(${dirDe(t)})`);
-      // Zona invisible (más grande que el cono) para agarrarlo y girar con el mouse o el dedo
       dir.setAttribute('pointer-events', 'none');
-      dir.innerHTML = '<path d="M 14 -9 L 52 -24 A 56 56 0 0 1 52 24 L 14 9 Z" fill="#ffffff" fill-opacity="0.13" pointer-events="none"/>'
-        + '<path d="M 11 -8 L 25 0 L 11 8 Z" fill="#ffffff" stroke="rgba(0,0,0,0.45)" stroke-width="1.2" stroke-linejoin="round" pointer-events="none"/>';
+      dir.setAttribute('transform', `rotate(${dirDe(t)})`);
+      dir.innerHTML =
+        // campo visual
+        '<path d="M 13 -8 L 52 -24 A 56 56 0 0 1 52 24 L 13 8 Z" fill="#ffffff" fill-opacity="0.11"/>'
+        // pies (asoman hacia adelante)
+        + '<ellipse cx="13.2" cy="-6.6" rx="4.6" ry="2.8" fill="#15181c" stroke="rgba(255,255,255,0.35)" stroke-width="0.7"/>'
+        + '<ellipse cx="13.2" cy="6.6" rx="4.6" ry="2.8" fill="#15181c" stroke="rgba(255,255,255,0.35)" stroke-width="0.7"/>'
+        // brazos: antebrazo y mano (o guante del arquero)
+        + `<ellipse cx="8" cy="-15.6" rx="4.6" ry="2.5" fill="${PIEL}" stroke="${PIEL_S}" stroke-width="0.6" transform="rotate(14 8 -15.6)"/>`
+        + `<ellipse cx="8" cy="15.6" rx="4.6" ry="2.5" fill="${PIEL}" stroke="${PIEL_S}" stroke-width="0.6" transform="rotate(-14 8 15.6)"/>`
+        + `<circle cx="12.4" cy="-14.5" r="${esGK ? 3.3 : 2.4}" fill="${guante}" stroke="${esGK ? '#9aa3ab' : PIEL_S}" stroke-width="0.6"/>`
+        + `<circle cx="12.4" cy="14.5" r="${esGK ? 3.3 : 2.4}" fill="${guante}" stroke="${esGK ? '#9aa3ab' : PIEL_S}" stroke-width="0.6"/>`
+        // mangas (hombros)
+        + `<ellipse cx="2" cy="-14.8" rx="5.2" ry="4.2" fill="${fill}" stroke="#ffffff" stroke-width="1.3"/>`
+        + `<ellipse cx="2" cy="14.8" rx="5.2" ry="4.2" fill="${fill}" stroke="#ffffff" stroke-width="1.3"/>`
+        // cuerpo (camiseta): redondeado para que el número entre adentro
+        + `<ellipse cx="0" cy="0" rx="12.2" ry="14.2" fill="${fill}" stroke="#ffffff" stroke-width="2"/>`
+        + '<ellipse cx="-5.6" cy="0" rx="5" ry="10.6" fill="rgba(0,0,0,0.12)"/>'       // espalda en sombra
+        // cabeza hacia adelante: pelo, cara y nariz
+        + '<ellipse cx="8.2" cy="0" rx="3.6" ry="6.4" fill="rgba(0,0,0,0.20)"/>'        // cuello
+        + `<circle cx="11" cy="0" r="5.5" fill="${PELO}" stroke="rgba(0,0,0,0.4)" stroke-width="0.6"/>`
+        + `<ellipse cx="13" cy="0" rx="3" ry="4.2" fill="${PIEL}"/>`
+        + `<circle cx="16" cy="0" r="1.05" fill="${PIEL_S}"/>`;
       g.appendChild(dir);
+      // Número: adentro del cuerpo y siempre derecho (no gira con el jugador)
+      const num = mk('text', {
+        x:0, y:0.6, 'text-anchor':'middle', 'dominant-baseline':'central',
+        'font-family':"Oswald, 'Arial Narrow', Arial, sans-serif", 'font-size':14, 'font-weight':700,
+        fill: txt, stroke: (txt === '#ffffff') ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.55)', 'stroke-width':2.2,
+        'paint-order':'stroke', 'stroke-linejoin':'round', 'pointer-events':'none'
+      });
+      num.textContent = t.label || '';
+      return g;
     }
-    // ficha
+
+    // ---- Ficha clásica (cuando la orientación está apagada) ----
+    mk('ellipse', { cx:0, cy:12, rx:14, ry:5, fill:'rgba(0,0,0,0.32)' });
     mk('circle', { r:15, fill:fill, stroke:'#ffffff', 'stroke-width':2.6 });
     mk('circle', { r:11.3, fill:'none', stroke:'rgba(255,255,255,0.28)', 'stroke-width':1 });
     mk('ellipse', { cx:0, cy:-6.5, rx:8, ry:3.4, fill:'rgba(255,255,255,0.18)' });
