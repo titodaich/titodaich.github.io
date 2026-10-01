@@ -3387,6 +3387,16 @@ body.editor-active #screen-editor{ display:block; }
 .faq-a{max-height:0;overflow:hidden;color:var(--muted);font-size:14px;line-height:1.5;padding:0 18px;transition:max-height .25s ease,padding .25s ease;}
 .faq-item.open .faq-a{max-height:220px;padding:0 18px 16px;}
 /* ── Pizarra: animación por pasos ── */
+.board-dirbar{margin-top:10px;background:var(--bg);border:1px solid #40C8D6;border-radius:10px;padding:10px 12px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;}
+.board-dirbar[hidden]{display:none;}
+.bd-info{display:flex;flex-direction:column;gap:2px;min-width:150px;}
+.bd-title{font-family:'Oswald',sans-serif;font-size:15px;text-transform:uppercase;letter-spacing:.5px;color:#40C8D6;}
+.bd-ang{font-size:12.5px;color:var(--chalk);}
+.bd-btns{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto;}
+.bd-btns button{height:40px;min-width:44px;padding:0 11px;border-radius:9px;border:1px solid var(--line);background:var(--panel);color:var(--chalk);font-size:13px;font-weight:600;cursor:pointer;}
+.bd-btns button:hover{border-color:#40C8D6;}
+.bd-btns .bd-close{border-color:#40C8D6;color:#40C8D6;}
+@media (max-width:600px){ .bd-btns{margin-left:0;} .bd-btns button{flex:1 1 calc(25% - 6px);padding:0 6px;} }
 .board-dir-btn.on{border-color:#40C8D6!important;color:#40C8D6!important;}
 .board-wrap{position:relative;}
 .board-steps-btn{border-color:var(--accent-2)!important;color:var(--accent-2)!important;font-weight:600;}
@@ -4446,7 +4456,7 @@ body.editor-active #screen-editor{ display:block; }
       <button class="board-mode-btn" id="modeEntrenamiento" data-mode="entrenamiento">🏋 Pizarra de entrenamiento</button>
     </div>
     <div class="board-note" id="boardNoteJugadas">
-      💡 <b>Modo jugadas.</b> Armá la jugada <b>por pasos</b>: ubicás las fichas, tocás “+ Paso”, movés las que cambian… y se animan solas, con flechas de recorrido. Tocá un jugador y arrastrá el punto celeste para <b>orientarlo</b>. También podés <b>grabarla en vivo</b> arrastrando. Después exportala como <b>video</b> o como <b>reel vertical</b> para Instagram.
+      💡 <b>Modo jugadas.</b> Armá la jugada <b>por pasos</b>: ubicás las fichas, tocás “+ Paso”, movés las que cambian… y se animan solas, con flechas de recorrido. Tocá un jugador para <b>orientarlo</b>: arrastrá el punto celeste para un lado o para el otro (hasta varias vueltas) o usá los botones de giro. También podés <b>grabarla en vivo</b> arrastrando. Después exportala como <b>video</b> o como <b>reel vertical</b> para Instagram.
     </div>
     <div class="board-note" id="boardNoteEntrenamiento" style="display:none;">
       💡 <b>Modo entrenamiento.</b> Diseñá ejercicios: sumá <b>jugadores de apoyo</b> (verdes), <b>conos</b> y <b>arcos</b> extra, y armá el espacio moviéndolos por la cancha. <span style="color:var(--muted);">Doble clic sobre un cono, arco o apoyo para quitarlo. Después podés exportar el ejercicio como video (.mp4).</span>
@@ -4475,6 +4485,18 @@ body.editor-active #screen-editor{ display:block; }
       <div class="board-wrap">
         <div class="board-desc-show" id="boardDescShow" style="display:none;"></div>
         <svg id="futsalBoard" viewBox="0 0 680 400" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div class="board-dirbar" id="boardDirBar" hidden>
+          <div class="bd-info"><span class="bd-title" id="bdTitle"></span><span class="bd-ang" id="bdAng"></span></div>
+          <div class="bd-btns">
+            <button type="button" data-rot="-90" title="Girar 90° antihorario">↺ 90°</button>
+            <button type="button" data-rot="-15" title="Girar 15° antihorario">↺ 15°</button>
+            <button type="button" data-rot="15" title="Girar 15° horario">↻ 15°</button>
+            <button type="button" data-rot="90" title="Girar 90° horario">↻ 90°</button>
+            <button type="button" data-look="ball">⚽ A la pelota</button>
+            <button type="button" data-look="goal">🥅 Al arco</button>
+            <button type="button" class="bd-close" id="bdClose" aria-label="Listo">✓ Listo</button>
+          </div>
+        </div>
         <div class="board-steps" id="boardSteps" hidden>
           <div class="bs-head">
             <span class="bs-title">🎞 Animación por pasos</span>
@@ -8038,6 +8060,7 @@ window.__initEditor = function(){
     <marker id="arAway" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto"><path d="M0 0L10 5L0 10z" fill="#b2221a"/></marker>
     <marker id="arSupport" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto"><path d="M0 0L10 5L0 10z" fill="#23784a"/></marker>
     <marker id="arBall" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ffffff"/></marker>
+    <marker id="arTurn" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10z" fill="#40C8D6"/></marker>
     <marker id="arHomeL" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto"><path d="M0 0L10 5L0 10z" fill="#9fd6ff"/></marker>
     <marker id="arAwayL" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ffb3ad"/></marker>
     <marker id="arSupportL" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto"><path d="M0 0L10 5L0 10z" fill="#b6f2c9"/></marker>
@@ -8261,9 +8284,10 @@ window.__initEditor = function(){
   function drawHandle(){
     const prev = svg.querySelector('#boardHandle');
     if(prev) prev.remove();
+    updateDirBar();
     if(!selectedId || !showDir || playingRaf || previewing) return;
     const t = tokens.find(x => x.id === selectedId);
-    if(!esJugador(t)){ selectedId = null; return; }
+    if(!esJugador(t)){ selectedId = null; updateDirBar(); return; }
     const R = 40, a = dirDe(t) * Math.PI/180;
     const hx = t.x + Math.cos(a)*R, hy = t.y + Math.sin(a)*R;
     const g = document.createElementNS(SVGNS, 'g');
@@ -8275,24 +8299,112 @@ window.__initEditor = function(){
     g.style.cursor = 'grab';
     g.style.touchAction = 'none';
     svg.appendChild(g);
-    let girando = false;
+    let girando = false, acum = 0, ultimo = 0;
     const toSvgP = (evt) => { const pt = svg.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()); };
-    g.addEventListener('pointerdown', (evt) => { evt.preventDefault(); evt.stopPropagation(); girando = true; try{ g.setPointerCapture(evt.pointerId); }catch(e){} });
+    const angPuntero = (evt) => { const p = toSvgP(evt); return Math.atan2(p.y - t.y, p.x - t.x) * 180/Math.PI; };
+    g.addEventListener('pointerdown', (evt) => {
+      evt.preventDefault(); evt.stopPropagation(); girando = true;
+      acum = dirDe(t); ultimo = angPuntero(evt);
+      try{ g.setPointerCapture(evt.pointerId); }catch(e){}
+    });
     g.addEventListener('pointermove', (evt) => {
       if(!girando) return;
       evt.preventDefault();
-      const p = toSvgP(evt);
-      let ang = Math.atan2(p.y - t.y, p.x - t.x) * 180/Math.PI;
-      ang = Math.round(ang / 5) * 5;          // de a 5° para que sea fácil dejarlo derecho
-      t.d = (ang + 360) % 360;
-      setDirVisual(t);
-      const r = t.d * Math.PI/180, x2 = t.x + Math.cos(r)*R, y2 = t.y + Math.sin(r)*R;
-      const ln = g.querySelector('line'); ln.setAttribute('x2', x2); ln.setAttribute('y2', y2);
-      g.querySelectorAll('circle').forEach((c, i) => { if(i > 0){ c.setAttribute('cx', x2); c.setAttribute('cy', y2); } });
+      // Sumamos el giro de a poco: así sabe si giraste en sentido horario o antihorario
+      // (y si diste más de una vuelta). De a 5° para que sea fácil dejarlo derecho.
+      const raw = angPuntero(evt);
+      acum += ((raw - ultimo + 540) % 360) - 180;
+      ultimo = raw;
+      t.d = Math.round(acum / 5) * 5;
+      aplicarGiro(t, g, R);
     });
     const fin = (evt) => { if(!girando) return; girando = false; try{ g.releasePointerCapture(evt.pointerId); }catch(e){} };
     g.addEventListener('pointerup', fin);
     g.addEventListener('pointercancel', fin);
+  }
+  // Actualiza ficha, control y barra sin redibujar todo (para que el arrastre sea fluido)
+  function aplicarGiro(t, g, R){
+    setDirVisual(t);
+    if(g){
+      const r = dirDe(t) * Math.PI/180, x2 = t.x + Math.cos(r)*R, y2 = t.y + Math.sin(r)*R;
+      const ln = g.querySelector('line'); if(ln){ ln.setAttribute('x2', x2); ln.setAttribute('y2', y2); }
+      g.querySelectorAll('circle').forEach((c, i) => { if(i > 0){ c.setAttribute('cx', x2); c.setAttribute('cy', y2); } });
+    }
+    if(stepMode && !previewing) drawEditTrails();
+    updateDirBar();
+  }
+  function girarElegido(delta){
+    const t = tokens.find(x => x.id === selectedId);
+    if(!esJugador(t)) return;
+    t.d = Math.round((dirDe(t) + delta) / 5) * 5;
+    aplicarGiro(t, svg.querySelector('#boardHandle'), 40);
+  }
+  function mirarHacia(x, y){
+    const t = tokens.find(x2 => x2.id === selectedId);
+    if(!esJugador(t)) return;
+    const objetivo = Math.atan2(y - t.y, x - t.x) * 180/Math.PI;
+    const cur = dirDe(t);
+    t.d = Math.round((cur + (((objetivo - cur + 540) % 360) - 180)) / 5) * 5;   // por el camino más corto
+    aplicarGiro(t, svg.querySelector('#boardHandle'), 40);
+  }
+  function giroTexto(delta){
+    const v = Math.round(delta);
+    if(Math.abs(v) < 5) return 'sin giro';
+    const vueltas = Math.abs(v) >= 360 ? ' (' + (Math.abs(v)/360).toFixed(1).replace('.0','') + ' vuelta' + (Math.abs(v) >= 720 ? 's' : '') + ')' : '';
+    return (v > 0 ? '↻ ' : '↺ ') + Math.abs(v) + '° ' + (v > 0 ? 'horario' : 'antihorario') + vueltas;
+  }
+  function updateDirBar(){
+    const bar = document.getElementById('boardDirBar');
+    if(!bar) return;
+    const t = selectedId ? tokens.find(x => x.id === selectedId) : null;
+    const ver = !!(t && esJugador(t) && showDir && !playingRaf && !previewing);
+    bar.hidden = !ver;
+    if(!ver) return;
+    const quien = (t.team === 'home') ? 'Jugador ' + (t.label || '') : (t.team === 'away' ? 'Rival ' + (t.label || '') : 'Apoyo');
+    document.getElementById('bdTitle').textContent = quien;
+    let txt;
+    if(stepMode && stepCur > 0 && steps[stepCur - 1] && steps[stepCur - 1][t.id] && typeof steps[stepCur - 1][t.id].d === 'number'){
+      txt = 'Giro desde el paso ' + stepCur + ': ' + giroTexto(dirDe(t) - steps[stepCur - 1][t.id].d);
+    } else {
+      txt = 'Orientación: ' + (((Math.round(dirDe(t)) % 360) + 360) % 360) + '°';
+    }
+    document.getElementById('bdAng').textContent = txt;
+  }
+  (function bindDirBar(){
+    const bar = document.getElementById('boardDirBar');
+    if(!bar) return;
+    bar.querySelectorAll('[data-rot]').forEach(b => b.addEventListener('click', () => girarElegido(parseFloat(b.dataset.rot))));
+    bar.querySelectorAll('[data-look]').forEach(b => b.addEventListener('click', () => {
+      const t = tokens.find(x => x.id === selectedId);
+      if(!t) return;
+      if(b.dataset.look === 'ball'){ const ball = tokens.find(x => x.team === 'ball'); if(ball) mirarHacia(ball.x, ball.y); }
+      else { mirarHacia(t.team === 'away' ? 16 : W - 16, H/2); }
+    }));
+    const cerrar = document.getElementById('bdClose');
+    if(cerrar) cerrar.addEventListener('click', () => { selectedId = null; drawHandle(); });
+  })();
+  // Flecha curva alrededor del jugador: muestra para qué lado gira y cuánto
+  function turnArc(layer, p, d1, d2, op){
+    const delta = d2 - d1;
+    if(Math.abs(delta) < 10) return;
+    const R = 25;
+    const span = Math.max(-340, Math.min(340, delta));
+    const a1 = d1 * Math.PI/180, a2 = (d1 + span) * Math.PI/180;
+    const x1 = p.x + Math.cos(a1)*R, y1 = p.y + Math.sin(a1)*R, x2 = p.x + Math.cos(a2)*R, y2 = p.y + Math.sin(a2)*R;
+    const path = document.createElementNS(SVGNS, 'path');
+    path.setAttribute('d', `M ${x1} ${y1} A ${R} ${R} 0 ${Math.abs(span) > 180 ? 1 : 0} ${span > 0 ? 1 : 0} ${x2} ${y2}`);
+    path.setAttribute('fill', 'none'); path.setAttribute('stroke', '#40C8D6'); path.setAttribute('stroke-width', 2.6);
+    path.setAttribute('stroke-linecap', 'round'); path.setAttribute('marker-end', 'url(#arTurn)'); path.setAttribute('opacity', op);
+    layer.appendChild(path);
+    const am = (d1 + span/2) * Math.PI/180;
+    const tx = document.createElementNS(SVGNS, 'text');
+    tx.setAttribute('x', p.x + Math.cos(am)*38); tx.setAttribute('y', p.y + Math.sin(am)*38);
+    tx.setAttribute('text-anchor', 'middle'); tx.setAttribute('dominant-baseline', 'central');
+    tx.setAttribute('font-family', "Oswald, 'Arial Narrow', Arial, sans-serif"); tx.setAttribute('font-size', 11); tx.setAttribute('font-weight', 700);
+    tx.setAttribute('fill', '#40C8D6'); tx.setAttribute('stroke', 'rgba(11,18,25,0.85)'); tx.setAttribute('stroke-width', 3); tx.setAttribute('paint-order', 'stroke');
+    tx.setAttribute('opacity', op);
+    tx.textContent = (delta > 0 ? '↻' : '↺') + Math.abs(Math.round(delta)) + '°';
+    layer.appendChild(tx);
   }
   // Tocar la cancha (fuera de las fichas) suelta al jugador elegido
   svg.addEventListener('pointerdown', (e) => {
@@ -8360,8 +8472,10 @@ window.__initEditor = function(){
       const ultimo = (j + 1 === stepCur);
       Object.keys(to).forEach(id => {
         const a = from[id], b = to[id];
-        if(!a || !b || Math.hypot(b.x - a.x, b.y - a.y) < 12) return;
+        if(!a || !b) return;
         const team = teamOf(id);
+        if(ultimo && typeof a.d === 'number' && typeof b.d === 'number') turnArc(layer, b, a.d, b.d, 0.95);
+        if(Math.hypot(b.x - a.x, b.y - a.y) < 12) return;
         if(ultimo) ghostToken(layer, a, team);
         trailLine(layer, a, b, team, ultimo ? 0.95 : 0.45);
       });
@@ -8768,7 +8882,7 @@ window.__initEditor = function(){
         Object.keys(b).forEach(id => {
           const A = a[id] || b[id], B = b[id];
           pos[id] = { x: Math.round((A.x + (B.x - A.x)*p)*10)/10, y: Math.round((A.y + (B.y - A.y)*p)*10)/10 };
-          if(typeof B.d === 'number') pos[id].d = Math.round(angInterp(typeof A.d === 'number' ? A.d : B.d, B.d, p));
+          if(typeof B.d === 'number'){ const Ad = (typeof A.d === 'number') ? A.d : B.d; pos[id].d = Math.round(Ad + (B.d - Ad)*p); }
         });
         push(t, pos);
       }
