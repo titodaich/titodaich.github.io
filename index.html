@@ -11621,7 +11621,8 @@ window.__initEditor = function(){
     // Registrar el evento del gol en contra (para poder etiquetar cómo fue)
     const evento = { t:nowSeconds(), type:'goalAgainst', pid:null, inName:'Rival', outName:'', half:currentHalf, origen:null };
     // A qué arquero se lo hicieron (o a qué arquero-jugador, si estábamos 5 contra 4)
-    const arco = arqueroDelMomento();
+    let arco = { p: null, modo: 'arquero' };
+    try{ arco = arqueroDelMomento(); }catch(e){ console.error('arquero del momento', e); }
     evento.gk_mode = arco.modo;
     evento.keeper_id = arco.p ? arco.p.id : null;
     evento.keeper_name = arco.p ? arco.p.name : '';
@@ -12241,7 +12242,7 @@ window.__initEditor = function(){
           pintar(); renderLog(); guardarPartidoLocal();
         });
       };
-      pintar();
+      try{ pintar(); }catch(e){ console.error('quién atajaba', e); arcoBox.style.display = 'none'; }
     }
 
     const minInput = ov.querySelector('#goMinInput');
@@ -13600,7 +13601,22 @@ window.__initEditor = function(){
         filtroCompetencia = '';
       }
       sortMatches();
-      await autoRastrearArco();   // completa solo el arquero de los goles en contra que vinieron de En Vivo
+      // Completa solo el arquero de los goles en contra de los partidos con En Vivo. Si tarda, no frena la carga:
+      // se sigue dibujando y, cuando termina, se refresca lo que esté a la vista.
+      try{
+        let rastreoListo = false;
+        const rastreo = autoRastrearArco().then(n => { rastreoListo = true; return n; }).catch(() => 0);
+        await Promise.race([rastreo, new Promise(r => setTimeout(r, 3500))]);
+        if(!rastreoListo){
+          rastreo.then(n => {
+            if(!n) return;
+            try{
+              const an = document.getElementById('stats-annual');
+              if(an && an.classList.contains('active')) renderAnnual();
+            }catch(e){}
+          });
+        }
+      }catch(e){ console.error('rastreo arqueros', e); }
       await cargarTorneos();   // lista de torneos creados por el DT
 
       renderMatchList(); renderSquad();
@@ -15032,8 +15048,13 @@ window.__initEditor = function(){
   // sin arquero asignado (o En Vivo haya contado goles en contra que no están cargados en el partido).
   // Un partido pendiente NO suma nada a los arqueros: ni minutos, ni promedio, ni valla invicta.
   // Así no aparecen números que no son reales en los partidos viejos.
+  // Goles en contra de un partido como lista de objetos, venga lo que venga guardado (evita romper con datos raros).
+  function golesArco(m){
+    const l = m && m.goalsAgainst;
+    return Array.isArray(l) ? l.filter(g => g && typeof g === 'object') : [];
+  }
   function arcoPendiente(m, gaLive){
-    const lista = (m && m.goalsAgainst) || [];
+    const lista = golesArco(m);
     if(lista.some(g => !g.keeper_id)) return true;
     if(!lista.length && gaLive > 0) return true;
     return false;
@@ -15046,7 +15067,7 @@ window.__initEditor = function(){
   }
   // Resumen del partido: cuántos goles recibió cada arquero (y cada arquero-jugador)
   function resumenArcoHTML(m){
-    const lista = (m && m.goalsAgainst) || [];
+    const lista = golesArco(m);
     if(!lista.length) return '';
     const arq = {}, aj = {};
     let sin = 0;
@@ -15074,7 +15095,7 @@ window.__initEditor = function(){
   function datosArquero(playerId, playerName, partidos, sesiones){
     // Goles en contra que contó En Vivo en cada partido (para detectar partidos sin goles cargados)
     const gaLive = {};
-    (sesiones || []).forEach(x => {
+    (Array.isArray(sesiones) ? sesiones.filter(Boolean) : []).forEach(x => {
       if(!x.match_id) return;
       const n = Number(x.totals && x.totals.__rival && x.totals.__rival.goalsAgainst) || 0;
       const k = String(x.match_id);
@@ -15087,7 +15108,7 @@ window.__initEditor = function(){
     let gc = 0, gcAJ = 0;
     const origen = {};
     partidos.forEach(m => {
-      (m.goalsAgainst || []).forEach(g => {
+      golesArco(m).forEach(g => {
         if(g.keeper_id !== playerId) return;
         const modo = (g.gk_mode === 'aj' || g.gk_mode === 'arquero') ? g.gk_mode : 'arquero';
         const r = filaDe(m);
@@ -15101,7 +15122,7 @@ window.__initEditor = function(){
     const porId = {};
     partidos.forEach(m => { porId[String(m.id)] = m; });
     let seg = 0;
-    (sesiones || []).forEach(x => {
+    (Array.isArray(sesiones) ? sesiones.filter(Boolean) : []).forEach(x => {
       if(!x.match_id || !porId[String(x.match_id)]) return;
       const t = x.totals && x.totals[playerName];
       const sg = Number(t && t.total) || 0;
@@ -15294,7 +15315,7 @@ window.__initEditor = function(){
     // Resumen arriba de la lista: a qué arquero le hicieron los goles de este partido
     const gaRes = document.createElement('div');
     gaRes.id = 'gaResumen';
-    gaRes.innerHTML = resumenArcoHTML(m);
+    try{ gaRes.innerHTML = resumenArcoHTML(m); }catch(e){ console.error('resumen de arqueros', e); gaRes.innerHTML = ''; }
     ga.appendChild(gaRes);
     (m.goalsAgainst||[]).forEach((g, idx) => {
       const row = document.createElement('div');
@@ -15307,7 +15328,7 @@ window.__initEditor = function(){
         const v = String(e.target.value || ''), corte = v.indexOf(':');
         const modo = corte > 0 ? v.slice(0, corte) : '', id = corte > 0 ? v.slice(corte + 1) : '';
         const p = buscarJugadorPartido(id); g.keeper_id = id; g.keeper_name = p ? p.name : ''; g.gk_mode = id ? modo : ''; flashMatchSaved();
-        const rr = document.getElementById('gaResumen'); if(rr) rr.innerHTML = resumenArcoHTML(m);
+        const rr = document.getElementById('gaResumen'); if(rr){ try{ rr.innerHTML = resumenArcoHTML(m); }catch(e){ console.error('resumen de arqueros', e); } }
       });
       top.querySelector('.g-remove').addEventListener('click', () => { m.goalsAgainst.splice(idx,1); renderGoals(); flashMatchSaved(); });
       row.appendChild(top);
@@ -17630,7 +17651,7 @@ window.__initEditor = function(){
           <div class="chart-row">${donutHTML(origenContra, totalGA, 'var(--danger)')}<div class="chart-bars">${barsHTML(origenContra, totalGA, true, subContra)}</div></div>
         </div>
       </div>
-      ${arquerosHTML(annualMatches)}
+      ${(() => { try{ return arquerosHTML(annualMatches); }catch(e){ console.error('cuadro de arqueros', e); return ''; } })()}
       <details class="annual-more">
         <summary>Ver más estadísticas (goleadores, asistencias, detalle, tarjetas)</summary>
         <div class="annual-grid" style="margin-top:14px;">
@@ -17726,14 +17747,14 @@ window.__initEditor = function(){
     // Los arqueros del plantel aparecen siempre, aunque todavía no les hayan hecho goles
     squad.forEach(pl => { if(esArqueroPos(pl)) fila(pl.id, pl.name); });
     // Sesiones de En Vivo de estos partidos: de ahí salen los minutos (y los goles en contra que contó En Vivo)
-    const ses = ((window.__annualShots && window.__annualShots.sesMin) || []).filter(x => x.match_id && idsPartidos.has(String(x.match_id)));
+    const ses = ((window.__annualShots && window.__annualShots.sesMin) || []).filter(x => x && x.match_id && idsPartidos.has(String(x.match_id))).map(x => ({ match_id: x.match_id, ga: x.ga, mins: (x.mins && typeof x.mins === 'object') ? x.mins : {} }));
     const gaLive = {};
     ses.forEach(x => { const k = String(x.match_id), n = Number(x.ga) || 0; if(n > (gaLive[k] || 0)) gaLive[k] = n; });
     // Partidos pendientes: con goles en contra sin arquero. No suman nada hasta completarlos.
     const pend = {};
     partidos.forEach(m => { if(arcoPendiente(m, gaLive[String(m.id)] || 0)) pend[String(m.id)] = true; });
     partidos.forEach(m => {
-      (m.goalsAgainst || []).forEach(g => {
+      golesArco(m).forEach(g => {
         total++;
         if(!g.keeper_id){ sinAsignar++; return; }
         if(pend[String(m.id)]) return;
@@ -17803,7 +17824,7 @@ window.__initEditor = function(){
       let conSugerencia = 0, filasP = '';
       pendientes.forEach(m => {
         const mid = String(m.id);
-        const sin = (m.goalsAgainst || []).filter(g => !g.keeper_id).length;
+        const sin = golesArco(m).filter(g => !g.keeper_id).length;
         if(!sin){
           filasP += `<div class="arq-pend-row"><div class="arq-pend-txt"><b>${escapeHtml(m.rival || 'Partido')}</b><small>${escapeHtml(arqFecha(m.date))} · En Vivo contó ${gaLive[mid]} ${gaLive[mid] === 1 ? 'gol' : 'goles'} en contra y no están cargados. Cargalos en “Partidos”.</small></div></div>`;
           return;
@@ -17834,7 +17855,7 @@ window.__initEditor = function(){
     const sb = window.__sb;
     if(!sb || !m || !pl) return false;
     const antes = JSON.stringify(m.goalsAgainst || []);
-    (m.goalsAgainst || []).forEach(g => { if(!g.keeper_id){ g.keeper_id = pl.id; g.keeper_name = pl.name; g.gk_mode = 'arquero'; } });
+    golesArco(m).forEach(g => { if(!g.keeper_id){ g.keeper_id = pl.id; g.keeper_name = pl.name; g.gk_mode = 'arquero'; } });
     try{
       const { error } = await sb.from('stat_matches').update({ goals_against: m.goalsAgainst, updated_at: new Date().toISOString() }).eq('id', m.id);
       if(error) throw error;
@@ -17891,7 +17912,7 @@ window.__initEditor = function(){
     const seg = {};
     let suma = 0;
     ses.forEach(s => {
-      const t = s.totals || {};
+      const t = (s && s.totals && typeof s.totals === 'object') ? s.totals : {};
       Object.keys(t).forEach(name => {
         if(name.indexOf('__') === 0) return;
         const sg = Number(t[name] && t[name].total) || 0;
@@ -17903,7 +17924,7 @@ window.__initEditor = function(){
     const arqs = Object.keys(seg);
     if(arqs.length !== 1) return null;
     if(seg[arqs[0]] < 0.97 * (suma / 5)) return null;      // en cancha hay 5: suma / 5 = duración del partido
-    const salio = ses.some(s => Array.isArray(s.events) && s.events.some(ev => ev && ev.type === 'swap' && ev.outName === arqs[0]));
+    const salio = ses.some(s => s && Array.isArray(s.events) && s.events.some(ev => ev && ev.type === 'swap' && ev.outName === arqs[0]));
     if(salio) return null;
     return jug(arqs[0]);
   }
@@ -17917,11 +17938,11 @@ window.__initEditor = function(){
   const arcoMotivo = {};               // por qué un partido no se pudo rastrear (se muestra en "Completar a mano")
   async function autoRastrearArco(){
     const sb = window.__sb;
-    const faltan = (m) => (m.goalsAgainst || []).filter(g => !g.keeper_id).length;
-    const lista = matches.filter(m => faltan(m) > 0 && !arcoSinRastro.has(String(m.id) + ':' + faltan(m)));
-    if(!sb || !lista.length) return 0;
+    const faltan = (m) => golesArco(m).filter(g => !g.keeper_id).length;
     let total = 0;
     try{
+      const lista = matches.filter(m => m && faltan(m) > 0 && !arcoSinRastro.has(String(m.id) + ':' + faltan(m)));
+      if(!sb || !lista.length) return 0;
       const ids = lista.map(m => m.id);
       let sesiones = [];
       for(let i = 0; i < ids.length; i += 40){
@@ -17932,8 +17953,8 @@ window.__initEditor = function(){
       const cambiados = [];
       lista.forEach(m => {
         const mid = String(m.id);
-        const todos = m.goalsAgainst || [];
-        const ses = sesiones.filter(s => String(s.match_id) === mid);
+        const todos = golesArco(m);
+        const ses = sesiones.filter(s => s && String(s.match_id) === mid);
         let n = 0;
         const asignar = (g, r) => { if(!g.keeper_id && r && r.id){ g.keeper_id = r.id; g.keeper_name = r.name || ''; g.gk_mode = r.modo === 'aj' ? 'aj' : 'arquero'; n++; } };
         delete arcoMotivo[mid];
@@ -18485,7 +18506,8 @@ window.__initEditor = function(){
     // ---- Arquero: goles recibidos (solo si su posición es arquero) ----
     let arqueroBox = '';
     if(esArqueroPos(player)){
-      arqueroBox = arqueroFichaHTML(datosArquero(playerId, playerName, matchesFiltrados(), liveTodas.filter(x => sesionPasaFiltro(x.match_id))));
+      try{ arqueroBox = arqueroFichaHTML(datosArquero(playerId, playerName, matchesFiltrados(), liveTodas.filter(x => x && sesionPasaFiltro(x.match_id)))); }
+      catch(e){ console.error('ficha de arquero', e); arqueroBox = ''; }
     }
 
     cont2.innerHTML = cabecera + (sinPartidos ? avisoSinPartidos : (resumen + arqueroBox)) + extras
