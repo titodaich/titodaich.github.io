@@ -4505,7 +4505,7 @@ body.editor-active #screen-editor{ display:block; }
       <button class="board-mode-btn" id="modeEntrenamiento" data-mode="entrenamiento">🏋 Pizarra de entrenamiento</button>
     </div>
     <div class="board-note" id="boardNoteJugadas" tabindex="0">
-      💡 <b>Modo jugadas.</b> Armá la jugada <b>por pasos</b>: ubicás las fichas, tocás “+ Paso”, movés las que cambian… y se animan solas, con flechas de recorrido. Para <b>orientar</b> a un jugador, agarrá el cono claro y giralo. Si un jugador tiene la pelota al lado, <b>la lleva con él</b>. Tocá un jugador para ponerle <b>nombre y número</b>. También podés <b>grabarla en vivo</b> arrastrando. Después exportala como <b>video</b> o como <b>reel vertical</b> para Instagram.
+      💡 <b>Modo jugadas.</b> Armá la jugada <b>por pasos</b>: ubicás las fichas, tocás “+ Paso”, movés las que cambian… y se animan solas, con flechas de recorrido. Para <b>orientar</b> a un jugador, tocale un brazo (gira un poquito hacia ese lado) o agarrá el cono claro y giralo. Si un jugador tiene la pelota al lado, <b>la lleva con él</b>. Tocá un jugador para ponerle <b>nombre y número</b>. También podés <b>grabarla en vivo</b> arrastrando. Después exportala como <b>video</b> o como <b>reel vertical</b> para Instagram.
     </div>
     <div class="board-note" id="boardNoteEntrenamiento" style="display:none;">
       💡 <b>Modo entrenamiento.</b> Diseñá ejercicios: sumá <b>jugadores de apoyo</b> (verdes), <b>conos</b> y <b>arcos</b> extra, y armá el espacio moviéndolos por la cancha. <span style="color:var(--muted);">Doble clic sobre un cono, arco o apoyo para quitarlo. Después podés exportar el ejercicio como video (.mp4).</span>
@@ -8677,6 +8677,37 @@ window.__initEditor = function(){
     const cerrar = document.getElementById('bdClose');
     if(cerrar) cerrar.addEventListener('click', () => { selectedId = null; drawHandle(); });
   })();
+  // Toque en el brazo: el jugador gira 15° hacia ese lado, con un movimiento corto y suave.
+  // Si tiene la pelota al pie, la pelota gira con él.
+  const girosEnCurso = {};
+  function girarUnPoco(t, sentido){
+    const previo = girosEnCurso[t.id];
+    if(previo){ cancelAnimationFrame(previo.raf); t.d = previo.hasta; if(previo.rc) previo.rc.poner(t.d); }
+    const desde = dirDe(t), hasta = Math.round((desde + sentido*15) / 5) * 5;
+    const bl = tokens.find(x => x.team === 'ball');
+    let rc = null;
+    if(bl && Math.hypot(bl.x - t.x, bl.y - t.y) < 27){
+      const dist = Math.hypot(bl.x - t.x, bl.y - t.y), off = Math.atan2(bl.y - t.y, bl.x - t.x) * 180/Math.PI - desde;
+      rc = { poner: (d) => { const ra = (d + off) * Math.PI/180; bl.x = clampX(t.x + Math.cos(ra)*dist); bl.y = clampY(t.y + Math.sin(ra)*dist); moveEl(bl); } };
+    }
+    const t0 = performance.now(), DUR = 150;
+    const paso = (now) => {
+      const k = Math.min(1, (now - t0) / DUR), e = 1 - Math.pow(1 - k, 3);
+      t.d = desde + (hasta - desde)*e;
+      if(rc) rc.poner(t.d);
+      aplicarGiro(t, (selectedId === t.id) ? svg.querySelector('#boardHandle') : null, 40);
+      if(k < 1){ girosEnCurso[t.id].raf = requestAnimationFrame(paso); }
+      else {
+        t.d = hasta;
+        delete girosEnCurso[t.id];
+        aplicarGiro(t, (selectedId === t.id) ? svg.querySelector('#boardHandle') : null, 40);
+        showRotLabel(t);
+        clearTimeout(girarUnPoco._t);
+        girarUnPoco._t = setTimeout(() => { if(!Object.keys(girosEnCurso).length) hideRotLabel(); }, 900);
+      }
+    };
+    girosEnCurso[t.id] = { raf: requestAnimationFrame(paso), hasta: hasta, rc: rc };
+  }
   // Cartelito sobre el jugador mientras lo girás: grados y sentido
   let rotandoAhora = false;
   function showRotLabel(t){
@@ -8941,8 +8972,16 @@ window.__initEditor = function(){
         return;
       }
       if(!movio && esJugador(t) && !playingRaf && !previewing){
-        selectedId = (selectedId === t.id) ? null : t.id;
-        drawHandle();
+        // ¿Dónde tocaste, mirado desde el jugador? (lx: adelante/atrás, ly: costado)
+        const pp = toSvg(evt), ddx = pp.x - t.x, ddy = pp.y - t.y, ar = -dirDe(t) * Math.PI/180;
+        const ly = ddx*Math.sin(ar) + ddy*Math.cos(ar);
+        if(showDir && Math.abs(ly) >= 8 && Math.hypot(ddx, ddy) >= 8){
+          // Toque en el brazo: gira un poquito hacia ese lado
+          girarUnPoco(t, ly > 0 ? 1 : -1);
+        } else {
+          selectedId = (selectedId === t.id) ? null : t.id;
+          drawHandle();
+        }
       }
       // Pelota al pie: si la soltás sobre un jugador, queda adelante de él
       if(movio && t.team === 'ball'){
