@@ -3387,47 +3387,184 @@ body.editor-active #screen-editor{ display:block; }
 .faq-a{max-height:0;overflow:hidden;color:var(--muted);font-size:14px;line-height:1.5;padding:0 18px;transition:max-height .25s ease,padding .25s ease;}
 .faq-item.open .faq-a{max-height:220px;padding:0 18px 16px;}
 /* ── Arqueros: goles recibidos ── */
-.ga-resumen{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 10px;padding:9px 10px;background:rgba(64,200,214,0.07);border:1px solid rgba(64,200,214,0.35);border-radius:9px;}
-.ga-res-tit{font-size:12.5px;font-weight:600;color:#40C8D6;margin-right:2px;}
-.ga-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--panel-2);border:1px solid var(--line);font-size:13px;color:var(--chalk);}
-.ga-chip i{font-style:normal;font-family:'Oswald',sans-serif;font-weight:700;font-size:15px;color:var(--danger);}
-.ga-chip-aj{border-color:rgba(224,169,59,0.6);color:#E0A93B;}
-.ga-chip-sin{border-style:dashed;color:var(--muted);}
-.pc-arquero{margin-bottom:16px;}
-.pc-arquero .pc-summary{margin-bottom:12px;}
-.arq-ficha td:nth-child(1){white-space:nowrap;color:var(--muted);text-align:left;}
-.arq-ficha th:nth-child(2),.arq-ficha td:nth-child(2){text-align:left;}
-.arq-table td.arq-gc.arq-cero{color:var(--success);}
-.llr-keeper{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:rgba(64,200,214,0.14);border:1px solid #40C8D6;color:#40C8D6;font-size:11px;font-weight:600;white-space:nowrap;}
-.llr-keeper-falta{background:rgba(224,169,59,0.14);border-color:#E0A93B;color:#E0A93B;}
-.go-arco{font-family:'Inter',sans-serif;margin-bottom:14px;padding:10px 12px;background:var(--bg-2);border:1px solid var(--line-soft);border-radius:10px;}
-.go-arco-tit{font-size:13px;font-weight:600;color:var(--chalk);margin-bottom:8px;}
-.go-arco-sub{font-size:12px;color:var(--muted);margin:10px 0 8px;}
-.go-arco-chips{display:flex;flex-wrap:wrap;gap:6px;}
-.go-arq{font-family:'Inter',sans-serif;min-height:40px;padding:0 12px;border-radius:9px;border:1px solid var(--line);background:var(--panel-2);color:var(--chalk);font-size:13px;font-weight:600;cursor:pointer;}
-.go-arq.on{background:#40C8D6;border-color:#40C8D6;color:#0b1015;}
-.go-arq-aj{border-style:dashed;color:var(--muted);}
-.go-arq-aj.on{background:rgba(224,169,59,0.18);border-color:#E0A93B;border-style:solid;color:#E0A93B;}
+.arq-card,.pc-arquero,.ga-resumen,.go-arco{--arq:#40C8D6;--aj:#E0A93B;}
+/* Cuadradito por partido: verde = valla invicta; rojo = recibió goles (más fuerte cuantos más) */
+.arq-racha{display:flex;flex-wrap:wrap;gap:5px;min-width:0;}
+.arq-q{width:26px;height:26px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;line-height:1;font-variant-numeric:tabular-nums;cursor:default;}
+.arq-q0{background:rgba(76,175,109,0.16);color:#74D898;box-shadow:inset 0 0 0 1px rgba(76,175,109,0.6);}
+.arq-q1{background:rgba(240,85,63,0.15);color:#FF9484;box-shadow:inset 0 0 0 1px rgba(240,85,63,0.45);}
+.arq-q2{background:rgba(240,85,63,0.42);color:#FFE3DE;}
+.arq-q3{background:#F0553F;color:#fff;}
+.arq-racha-vacia{font-size:12.5px;color:var(--muted);}
+.arq-qx{background:transparent;color:var(--muted);box-shadow:inset 0 0 0 1px var(--line);border-radius:7px;}
+.arq-ley .lx{box-shadow:inset 0 0 0 1px var(--muted);}
+.arq-colx .arq-col-n{color:var(--muted);}
+.arq-colx .arq-col-track i{background:repeating-linear-gradient(135deg,rgba(140,162,179,0.35) 0 4px,transparent 4px 8px);border-radius:4px 4px 0 0;}
+.arq-tr-pend td{color:var(--muted);}
+.arq-tr-pend td b{color:var(--muted);font-weight:600;}
+.pc-arquero .arq-aviso{margin:0 0 14px;}
+.arq-pend{margin-top:12px;border:1px solid rgba(224,169,59,0.55);border-radius:12px;background:rgba(224,169,59,0.06);}
+.arq-pend > summary{list-style:none;display:flex;align-items:center;gap:10px;padding:11px 12px;cursor:pointer;}
+.arq-pend > summary::-webkit-details-marker{display:none;}
+.arq-pend > summary:focus-visible{outline:2px solid var(--aj);outline-offset:2px;border-radius:12px;}
+.arq-pend-ico{flex:none;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--aj);color:#241803;font-weight:800;font-size:14px;line-height:1;}
+.arq-pend > summary > div{flex:1;min-width:0;}
+.arq-pend > summary b{display:block;font-size:13.5px;font-weight:700;color:var(--chalk);}
+.arq-pend > summary small{display:block;font-size:12px;color:var(--muted);margin-top:2px;line-height:1.4;}
+.arq-pend > summary > i{flex:none;font-style:normal;font-size:13px;font-weight:700;color:#241803;background:var(--aj);padding:8px 12px;border-radius:9px;}
+.arq-pend[open] > summary > i{background:transparent;color:var(--aj);box-shadow:inset 0 0 0 1px var(--aj);}
+.arq-pend-body{padding:0 12px 12px;}
+.arq-pend-body .arq-nota{margin:0 0 10px;}
+.arq-pend-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:10px 0;border-top:1px solid var(--line);}
+.arq-pend-txt{flex:1 1 220px;min-width:0;}
+.arq-pend-txt b{display:block;font-size:14px;font-weight:700;color:var(--chalk);}
+.arq-pend-txt small{display:block;font-size:12px;color:var(--muted);margin-top:2px;line-height:1.4;}
+.arq-pend-sel{flex:1 1 150px;max-width:240px;min-height:40px;padding:0 10px;border-radius:9px;border:1px solid var(--line);background:var(--panel-2);color:var(--chalk);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;}
+.arq-pend-btn{min-height:40px;padding:0 14px;border-radius:9px;border:1px solid var(--arq);background:transparent;color:var(--arq);font-family:'Inter',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+.arq-pend-btn:hover{background:rgba(64,200,214,0.12);}
+.arq-pend-btn:focus-visible,.arq-pend-sel:focus-visible{outline:2px solid var(--arq);outline-offset:2px;}
+.arq-pend-btn:disabled,.arq-pend-sel:disabled{opacity:.5;cursor:default;}
+.arq-pend-all{width:100%;margin-bottom:4px;background:var(--arq);color:#06242B;}
+.arq-pend-all:hover{background:#5BD6E2;}
+
+/* Estadísticas anuales */
 .arq-card{margin-bottom:16px;}
+.arq-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 18px;margin-bottom:14px;}
+.arq-card .arq-head h3{margin:0;}
+.arq-ley{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);}
+.arq-ley span{display:inline-flex;align-items:center;gap:6px;}
+.arq-ley i{width:12px;height:12px;border-radius:4px;display:inline-block;}
+.arq-ley .l0{background:rgba(76,175,109,0.16);box-shadow:inset 0 0 0 1px rgba(76,175,109,0.6);}
+.arq-ley .l1{background:#F0553F;}
+.arq-list{display:flex;flex-direction:column;gap:10px;container-type:inline-size;}
+.arq-row{position:relative;display:grid;grid-template-columns:1fr;align-items:center;gap:14px;padding:14px 16px 14px 19px;background:var(--panel-2);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+.arq-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--arq);}
+.arq-id{display:flex;align-items:center;gap:12px;min-width:0;}
+.arq-dorsal{flex:none;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:20px;line-height:1;color:#06242B;background:var(--arq);}
+.arq-id-txt{min-width:0;}
+.arq-id b{display:block;font-size:16px;font-weight:700;color:var(--chalk);line-height:1.2;overflow-wrap:anywhere;}
+.arq-id small{display:block;font-size:12px;color:var(--muted);margin-top:3px;line-height:1.35;}
+.arq-nums{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 0;margin:0;}
+.arq-nums > div{padding:0 8px;text-align:center;border-left:1px solid var(--line);min-width:0;}
+.arq-nums > div:nth-child(3n+1){border-left:0;}
+.arq-nums dt{font-size:11px;line-height:1.2;color:var(--muted);margin:0 0 5px;}
+.arq-nums dd{margin:0;font-family:'Oswald',sans-serif;font-weight:600;font-size:22px;line-height:1;color:var(--chalk);font-variant-numeric:tabular-nums;}
+.arq-nums .n-gc dd{color:var(--danger);}
+.arq-nums .n-gc.cero dd,.arq-nums .n-vi dd{color:#74D898;}
+.arq-nums .n-k40 dt,.arq-nums .n-k40 dd{color:var(--arq);}
+@container (min-width:560px){
+  .arq-row{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);}
+  .arq-nums{grid-column:1 / -1;grid-template-columns:repeat(6,1fr);padding-top:12px;border-top:1px solid var(--line);}
+  .arq-nums > div:nth-child(3n+1){border-left:1px solid var(--line);}
+  .arq-nums > div:first-child{border-left:0;}
+}
+@container (min-width:900px){
+  .arq-row{grid-template-columns:minmax(170px,1fr) minmax(0,1fr) auto;gap:14px 22px;}
+  .arq-nums{grid-column:auto;grid-template-columns:repeat(6,auto);padding-top:0;border-top:0;}
+  .arq-nums > div{padding:0 14px;}
+  .arq-nums > div:last-child{padding-right:2px;}
+  .arq-nums dt{white-space:nowrap;}
+}
+.arq-aj{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-top:12px;padding:12px 14px;border-radius:12px;border:1px dashed rgba(224,169,59,0.6);background:rgba(224,169,59,0.07);}
+.arq-aj-tit{flex:1 1 240px;min-width:0;}
+.arq-aj-tit b{display:block;font-size:13.5px;font-weight:700;color:var(--aj);}
+.arq-aj-tit small{display:block;font-size:12px;color:var(--muted);margin-top:2px;line-height:1.4;}
+.arq-aj-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.arq-aj-chips span{display:inline-flex;align-items:center;gap:8px;padding:5px 6px 5px 12px;border-radius:999px;background:rgba(224,169,59,0.12);border:1px solid rgba(224,169,59,0.55);font-size:13px;font-weight:600;color:var(--chalk);}
+.arq-aj-chips i{font-style:normal;min-width:24px;height:24px;padding:0 6px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;background:var(--aj);color:#241803;font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;line-height:1;}
+.arq-aviso{display:flex;align-items:flex-start;gap:10px;margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--bg);border:1px solid var(--line);}
+.arq-aviso > span{flex:none;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--aj);color:#241803;font-weight:800;font-size:13px;line-height:1;}
+.arq-aviso p{margin:0;font-size:12.5px;line-height:1.45;color:var(--muted);}
+.arq-aviso p b{color:var(--chalk);font-weight:600;}
+.arq-nota{font-size:12px;color:var(--muted);margin:12px 0 0;line-height:1.45;}
+
+/* Partido: quién recibió los goles */
+.ga-resumen{margin:0 0 12px;padding:12px;background:var(--bg);border:1px solid var(--line);border-radius:12px;}
+.ga-res-tit{display:block;font-size:12.5px;font-weight:700;color:var(--chalk);margin-bottom:10px;}
+.ga-bar{display:flex;gap:3px;height:6px;margin-bottom:10px;}
+.ga-bar i{display:block;border-radius:3px;min-width:6px;}
+.ga-bar .b-arq{background:var(--arq);}
+.ga-bar .b-aj{background:var(--aj);}
+.ga-bar .b-sin{background:var(--line);}
+.ga-chips{display:flex;flex-wrap:wrap;gap:8px;}
+.ga-chip{display:flex;align-items:center;gap:10px;padding:7px 14px 7px 7px;border-radius:12px;background:rgba(64,200,214,0.08);border:1px solid rgba(64,200,214,0.45);min-width:0;}
+.ga-chip i{flex:none;font-style:normal;width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:var(--arq);color:#06242B;font-family:'Oswald',sans-serif;font-weight:700;font-size:20px;line-height:1;}
+.ga-chip b{display:block;font-size:14px;font-weight:700;color:var(--chalk);line-height:1.2;}
+.ga-chip small{display:block;font-size:11.5px;color:var(--arq);margin-top:1px;}
+.ga-chip-aj{background:rgba(224,169,59,0.08);border-color:rgba(224,169,59,0.55);}
+.ga-chip-aj i{background:var(--aj);color:#241803;}
+.ga-chip-aj small{color:var(--aj);}
+.ga-chip-sin{background:transparent;border:1px dashed var(--line);}
+.ga-chip-sin i{background:var(--panel-2);color:var(--muted);box-shadow:inset 0 0 0 1px var(--line);}
+.ga-chip-sin b,.ga-chip-sin small{color:var(--muted);}
+
+/* Ficha del jugador (solo arqueros) */
+.pc-arquero{margin-bottom:16px;}
+.arq-hero{display:grid;grid-template-columns:1.45fr repeat(5,1fr);gap:9px;margin-bottom:16px;}
+.arq-hero .pc-stat{display:flex;flex-direction:column;justify-content:center;}
+.arq-arco{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px 8px 11px;border-radius:11px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(64,200,214,0.10),rgba(64,200,214,0) 70%),var(--panel-2);min-width:0;}
+.arq-arco-svg{display:block;width:100%;max-width:118px;height:auto;}
+.arq-hero .arq-k40{border-color:var(--arq);background:rgba(64,200,214,0.08);}
+.arq-hero .arq-k40 .pc-stat-num,.arq-hero .arq-k40 .pc-stat-lbl{color:var(--arq);}
+.arq-hero .arq-vi .pc-stat-num{color:#74D898;}
+.arq-sub{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 14px;margin:0 0 8px;font-size:13px;font-weight:700;color:var(--chalk);}
+.arq-sub small{font-weight:400;font-size:12px;color:var(--muted);}
+.arq-cols{display:flex;align-items:flex-end;gap:6px;padding:12px 12px 10px;margin-bottom:14px;background:var(--bg);border:1px solid var(--line);border-radius:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.arq-col{flex:1 0 58px;display:flex;flex-direction:column;align-items:center;min-width:0;}
+.arq-col-track{height:104px;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;border-bottom:1px solid var(--line);}
+.arq-col-n{font-family:'Oswald',sans-serif;font-weight:700;font-size:17px;line-height:1;color:#FF9484;margin-bottom:5px;font-variant-numeric:tabular-nums;}
+.arq-col-track i{display:block;width:62%;max-width:42px;border-radius:7px 7px 0 0;background:linear-gradient(180deg,#F0553F,rgba(240,85,63,0.55));transform-origin:bottom;animation:arqSube .5s cubic-bezier(.2,.8,.2,1) both;}
+.arq-col0 .arq-col-n{color:#74D898;}
+.arq-col0 .arq-col-track i{background:#4CAF6D;border-radius:4px 4px 0 0;}
+.arq-col-r{width:100%;margin-top:7px;font-size:12px;font-weight:600;color:var(--chalk);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.arq-col-f{font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap;}
+@keyframes arqSube{from{transform:scaleY(0);}to{transform:scaleY(1);}}
+@media (prefers-reduced-motion:reduce){ .arq-col-track i{animation:none;} }
 .arq-wrap{overflow-x:auto;}
 .arq-table{width:100%;border-collapse:collapse;font-size:13.5px;}
 .arq-table th{font-family:'Oswald',sans-serif;font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center;padding:8px 8px;border-bottom:1px solid var(--line);white-space:nowrap;}
 .arq-table th:first-child,.arq-table td:first-child{text-align:left;}
-.arq-table td{padding:10px 8px;text-align:center;border-bottom:1px solid var(--line-soft);font-variant-numeric:tabular-nums;color:var(--chalk);}
-.arq-table td small{display:block;font-size:11px;color:var(--muted);margin-top:2px;font-weight:400;}
-.arq-table td.arq-gc{font-family:'Oswald',sans-serif;font-size:17px;font-weight:700;color:var(--danger);}
-.arq-aj{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px;font-size:13px;color:var(--chalk);}
-.arq-aj b{font-weight:600;color:#E0A93B;margin-right:4px;}
-.arq-aj span{padding:4px 10px;border-radius:999px;background:rgba(224,169,59,0.12);border:1px solid rgba(224,169,59,0.5);}
-.arq-aj i{font-style:normal;font-family:'Oswald',sans-serif;font-weight:700;margin-left:4px;}
-.arq-nota{font-size:12px;color:var(--muted);margin:10px 0 0;line-height:1.45;}
+.arq-table td{padding:10px 8px;text-align:center;border-bottom:1px solid var(--line-soft,rgba(51,73,94,0.5));font-variant-numeric:tabular-nums;color:var(--chalk);}
+.arq-table tbody tr:last-child td{border-bottom:0;}
+.arq-table td small{display:block;font-size:11.5px;color:var(--muted);margin-top:2px;font-weight:400;}
+.arq-ficha td:nth-child(1){white-space:nowrap;color:var(--muted);text-align:left;}
+.arq-ficha th:nth-child(2),.arq-ficha td:nth-child(2){text-align:left;}
+.arq-ficha th:last-child,.arq-ficha td:last-child{text-align:right;}
+.arq-ficha td.arq-gc .arq-q{width:30px;height:30px;font-size:16px;}
+
+/* En Vivo: cartelito del gol en contra y registro */
+.llr-keeper{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;background:rgba(64,200,214,0.14);border:1px solid #40C8D6;color:#40C8D6;font-size:11px;font-weight:600;white-space:nowrap;}
+.llr-keeper-falta{background:rgba(224,169,59,0.14);border-color:#E0A93B;color:#E0A93B;}
+.go-arco{font-family:'Inter',sans-serif;margin-bottom:14px;padding:12px;background:var(--bg-2,#10161C);border:1px solid var(--line);border-radius:12px;text-align:left;}
+.go-arco-tit{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;color:var(--chalk);margin-bottom:10px;}
+.go-arco-chips{display:flex;flex-wrap:wrap;gap:7px;}
+.go-arq{font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px 0 7px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);color:var(--chalk);font-size:14px;font-weight:600;cursor:pointer;transition:background .15s ease,border-color .15s ease,color .15s ease;}
+.go-arq:hover{border-color:var(--arq);}
+.go-arq:focus-visible{outline:2px solid var(--arq);outline-offset:2px;}
+.go-arq-n{flex:none;min-width:30px;height:30px;padding:0 5px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;background:var(--bg);box-shadow:inset 0 0 0 1px var(--line);font-family:'Oswald',sans-serif;font-weight:700;font-size:15px;line-height:1;color:var(--muted);}
+.go-arq.on{background:var(--arq);border-color:var(--arq);color:#06242B;}
+.go-arq.on .go-arq-n{background:#06242B;box-shadow:none;color:var(--arq);}
+.go-arq-aj{padding:0 14px;border-style:dashed;border-color:rgba(224,169,59,0.6);color:var(--aj);}
+.go-arq-aj:hover{border-color:var(--aj);}
+.go-arq-aj.on{background:rgba(224,169,59,0.16);border-color:var(--aj);border-style:solid;color:var(--aj);}
+.go-arco-ajbox{margin-top:10px;padding:10px 0 2px 12px;border-left:3px solid var(--aj);}
+.go-arco-sub{font-size:12.5px;color:var(--muted);margin:0 0 9px;line-height:1.4;}
+.go-arco-ajbox .go-arq:hover{border-color:var(--aj);}
+.go-arco-ajbox .go-arq.on{background:var(--aj);border-color:var(--aj);color:#241803;}
+.go-arco-ajbox .go-arq.on .go-arq-n{background:#241803;color:var(--aj);}
+
+@media (max-width:900px){ .arq-hero{grid-template-columns:repeat(3,1fr);} }
 @media (max-width:600px){
+  .arq-row{padding:12px 12px 12px 16px;}
   .arq-table{font-size:12.5px;}
   .arq-table th{font-size:10px;letter-spacing:0;padding:6px 3px;white-space:normal;line-height:1.15;}
-  .arq-table td{padding:8px 3px;}
-  .arq-table td small{font-size:10px;}
-  .arq-table td.arq-gc{font-size:15px;}
+  .arq-table td{padding:9px 3px;}
+  .arq-table td small{font-size:10.5px;}
+  .ga-chip{flex:1 1 100%;}
+  .arq-cols{gap:4px;padding:12px 8px 10px;}
+  .arq-col{flex-basis:46px;}
 }
+@media (max-width:460px){ .arq-hero{grid-template-columns:repeat(2,1fr);} }
 /* ── Pizarra: herramientas, reproductor y nombres ── */
 .board-toolbar + .board-toolbar{margin-top:-6px;}
 .board-sel{background:var(--panel);border:1px solid var(--line);color:var(--chalk);border-radius:9px;height:36px;padding:0 10px;font-size:13px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;max-width:100%;}
@@ -12067,14 +12204,14 @@ window.__initEditor = function(){
       let verAJ = (evento.gk_mode === 'aj');
       const chip = (pl, modo) => {
         const sel = (evento.keeper_id === pl.id && (evento.gk_mode || 'arquero') === modo);
-        return `<button type="button" class="go-arq${sel ? ' on' : ''}" data-id="${escapeHtml(String(pl.id))}" data-modo="${modo}">${pl.number ? '#' + escapeHtml(String(pl.number)) + ' ' : ''}${escapeHtml(pl.name)}</button>`;
+        return `<button type="button" class="go-arq${sel ? ' on' : ''}" data-id="${escapeHtml(String(pl.id))}" data-modo="${modo}" aria-pressed="${sel ? 'true' : 'false'}"><span class="go-arq-n">${pl.number ? escapeHtml(String(pl.number)) : '–'}</span>${escapeHtml(pl.name)}</button>`;
       };
       const pintar = () => {
-        let h = '<div class="go-arco-tit">🧤 ¿Quién estaba en el arco?</div><div class="go-arco-chips">';
+        let h = '<div class="go-arco-tit">🧤 ¿Quién atajaba?</div><div class="go-arco-chips">';
         h += arqs.map(a => chip(a, 'arquero')).join('');
         h += `<button type="button" class="go-arq go-arq-aj${verAJ ? ' on' : ''}" id="goArqAJ">Arquero-jugador ${verAJ ? '▴' : '▾'}</button></div>`;
         if(verAJ){
-          h += '<div class="go-arco-sub">Jugábamos 5 contra 4. ¿Quién hacía de arquero?</div><div class="go-arco-chips">' + campo.map(c => chip(c, 'aj')).join('') + '</div>';
+          h += '<div class="go-arco-ajbox"><div class="go-arco-sub">Jugábamos 5 contra 4. ¿Quién hacía de arquero?</div><div class="go-arco-chips">' + campo.map(c => chip(c, 'aj')).join('') + '</div></div>';
         }
         arcoBox.innerHTML = h;
         arcoBox.querySelectorAll('.go-arq[data-id]').forEach(b => b.addEventListener('click', () => {
@@ -14877,6 +15014,16 @@ window.__initEditor = function(){
   }
   // ¿El jugador es arquero? (por su posición cargada en el plantel)
   function esArqueroPos(pl){ return !!pl && /arq|golero|gk|porter/.test(String(pl.position || '').toLowerCase()); }
+  // ¿El partido queda "pendiente" para las estadísticas de arqueros? Sí, mientras tenga algún gol en contra
+  // sin arquero asignado (o En Vivo haya contado goles en contra que no están cargados en el partido).
+  // Un partido pendiente NO suma nada a los arqueros: ni minutos, ni promedio, ni valla invicta.
+  // Así no aparecen números que no son reales en los partidos viejos.
+  function arcoPendiente(m, gaLive){
+    const lista = (m && m.goalsAgainst) || [];
+    if(lista.some(g => !g.keeper_id)) return true;
+    if(!lista.length && gaLive > 0) return true;
+    return false;
+  }
   // Cómo se cuenta un gol en contra: 'arquero' (en el arco) o 'aj' (arquero-jugador, 5 contra 4)
   function modoArco(g){
     if(g.gk_mode === 'aj' || g.gk_mode === 'arquero') return g.gk_mode;
@@ -14897,25 +15044,42 @@ window.__initEditor = function(){
       dest[nombre] = (dest[nombre] || 0) + 1;
     });
     const orden = (o) => Object.keys(o).sort((a, b) => o[b] - o[a]);
-    let h = '<div class="ga-resumen"><span class="ga-res-tit">🧤 Los recibió</span>';
-    orden(arq).forEach(n => { h += `<span class="ga-chip">${escapeHtml(n)} <i>${arq[n]}</i></span>`; });
-    orden(aj).forEach(n => { h += `<span class="ga-chip ga-chip-aj">Arq-jugador · ${escapeHtml(n)} <i>${aj[n]}</i></span>`; });
-    if(sin) h += `<span class="ga-chip ga-chip-sin">Sin asignar <i>${sin}</i></span>`;
-    return h + '</div>';
+    const nArq = orden(arq).reduce((s, n) => s + arq[n], 0), nAJ = orden(aj).reduce((s, n) => s + aj[n], 0);
+    let h = '<div class="ga-resumen"><span class="ga-res-tit">🧤 Quién recibió los goles</span>';
+    if((nArq ? 1 : 0) + (nAJ ? 1 : 0) + (sin ? 1 : 0) > 1){
+      h += '<div class="ga-bar" aria-hidden="true">' + (nArq ? `<i class="b-arq" style="flex:${nArq}"></i>` : '') + (nAJ ? `<i class="b-aj" style="flex:${nAJ}"></i>` : '') + (sin ? `<i class="b-sin" style="flex:${sin}"></i>` : '') + '</div>';
+    }
+    h += '<div class="ga-chips">';
+    orden(arq).forEach(n => { h += `<div class="ga-chip"><i>${arq[n]}</i><div><b>${escapeHtml(n)}</b><small>Arquero</small></div></div>`; });
+    orden(aj).forEach(n => { h += `<div class="ga-chip ga-chip-aj"><i>${aj[n]}</i><div><b>${escapeHtml(n)}</b><small>Arquero-jugador</small></div></div>`; });
+    if(sin) h += `<div class="ga-chip ga-chip-sin"><i>${sin}</i><div><b>Sin asignar</b><small>Elegí abajo quién atajaba</small></div></div>`;
+    return h + '</div></div>';
   }
   // Datos de UN arquero en un conjunto de partidos: goles recibidos, minutos, promedios y detalle por partido.
   // sesiones: [{ match_id, totals }] de En Vivo (de ahí salen los minutos en el arco).
   function datosArquero(playerId, playerName, partidos, sesiones){
+    // Goles en contra que contó En Vivo en cada partido (para detectar partidos sin goles cargados)
+    const gaLive = {};
+    (sesiones || []).forEach(x => {
+      if(!x.match_id) return;
+      const n = Number(x.totals && x.totals.__rival && x.totals.__rival.goalsAgainst) || 0;
+      const k = String(x.match_id);
+      if(n > (gaLive[k] || 0)) gaLive[k] = n;
+    });
+    const pend = {};
+    partidos.forEach(m => { if(arcoPendiente(m, gaLive[String(m.id)] || 0)) pend[String(m.id)] = true; });
     const porPartido = {};
+    const filaDe = (m) => porPartido[m.id] || (porPartido[m.id] = { m: m, gc: 0, seg: 0, origenes: [], pend: !!pend[String(m.id)] });
     let gc = 0, gcAJ = 0;
     const origen = {};
     partidos.forEach(m => {
       (m.goalsAgainst || []).forEach(g => {
         if(g.keeper_id !== playerId) return;
         const modo = (g.gk_mode === 'aj' || g.gk_mode === 'arquero') ? g.gk_mode : 'arquero';
+        const r = filaDe(m);
+        if(r.pend) return;                 // partido pendiente: no suma
         if(modo === 'aj'){ gcAJ++; return; }
         gc++;
-        const r = porPartido[m.id] || (porPartido[m.id] = { m: m, gc: 0, seg: 0, origenes: [] });
         r.gc++;
         if(g.origin){ origen[g.origin] = (origen[g.origin] || 0) + 1; r.origenes.push(g.origin); }
       });
@@ -14928,17 +15092,74 @@ window.__initEditor = function(){
       const t = x.totals && x.totals[playerName];
       const sg = Number(t && t.total) || 0;
       if(sg <= 0) return;
-      seg += sg;
-      const m = porId[String(x.match_id)];
-      const r = porPartido[m.id] || (porPartido[m.id] = { m: m, gc: 0, seg: 0, origenes: [] });
+      const r = filaDe(porId[String(x.match_id)]);
       r.seg += sg;
+      if(!r.pend) seg += sg;
     });
     const filas = Object.keys(porPartido).map(k => porPartido[k])
+      .filter(r => r.pend || r.gc > 0 || r.seg > 0)
       .sort((a, b) => String(a.m.date || '').localeCompare(String(b.m.date || '')));
-    const pj = filas.length, min = Math.round(seg / 60);
-    const vallas = filas.filter(r => r.seg > 0 && r.gc === 0).length;
-    return { pj: pj, min: min, gc: gc, gcAJ: gcAJ, vallas: vallas, origen: origen, filas: filas,
+    const buenas = filas.filter(r => !r.pend);
+    const pj = buenas.length, min = Math.round(seg / 60);
+    const vallas = buenas.filter(r => r.seg > 0 && r.gc === 0).length;
+    return { pj: pj, min: min, gc: gc, gcAJ: gcAJ, vallas: vallas, origen: origen, filas: filas, pendientes: filas.length - pj,
              promPartido: pj ? gc / pj : null, prom40: min > 0 ? gc * 40 / min : null };
+  }
+  // Un cuadradito por partido: verde = valla invicta, rojo = goles recibidos (más fuerte cuantos más).
+  // items: [{ date, rival, gc, seg }] ya ordenados por fecha. max: cuántos mostrar (los últimos).
+  function arqNivel(n){ return n <= 0 ? 0 : (n === 1 ? 1 : (n === 2 ? 2 : 3)); }
+  function arqFecha(d){ const q = String(d || '').split('-'); return q.length === 3 ? (q[2] + '/' + q[1]) : (d || ''); }
+  function arqTitulo(r){
+    const fin = r.pend ? 'faltan asignar goles: no se cuenta' : (r.gc === 0 ? 'valla invicta' : (r.gc + (r.gc === 1 ? ' gol recibido' : ' goles recibidos')));
+    return [arqFecha(r.date), r.rival || 'Partido', r.seg > 0 ? Math.round(r.seg / 60) + "'" : '', fin].filter(Boolean).join(' · ');
+  }
+  function arqRachaHTML(items, max){
+    const lista = (max && items.length > max) ? items.slice(-max) : items;
+    if(!lista.length) return '';
+    return '<div class="arq-racha" role="img" aria-label="Goles recibidos partido a partido">'
+      + lista.map(r => r.pend ? `<span class="arq-q arq-qx" title="${escapeHtml(arqTitulo(r))}">?</span>`
+                              : `<span class="arq-q arq-q${arqNivel(r.gc)}" title="${escapeHtml(arqTitulo(r))}">${r.gc}</span>`).join('') + '</div>';
+  }
+  // Bloque "Como arquero" de la ficha del jugador. da: lo que devuelve datosArquero().
+  function arqueroFichaHTML(da){
+    const n2 = (v) => (v === null) ? '—' : v.toFixed(2).replace('.', ',');
+    const colorGC = da.gc === 0 ? '#74D898' : '#F0553F';
+    const arco = `<svg class="arq-arco-svg" viewBox="0 0 150 98" role="img" aria-label="${da.gc} goles recibidos"><defs><pattern id="arqRed" width="9" height="9" patternUnits="userSpaceOnUse"><path d="M0 0L9 9M9 0L0 9" stroke="rgba(242,246,248,0.15)" stroke-width="1"/></pattern></defs><rect x="9" y="9" width="132" height="82" fill="url(#arqRed)"/><path d="M9 92V9H141V92" fill="none" stroke="#F2F6F8" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/><path d="M0 94H150" stroke="rgba(242,246,248,0.28)" stroke-width="2"/><text x="75" y="72" text-anchor="middle" font-family="Oswald, sans-serif" font-weight="700" font-size="56" fill="${colorGC}">${da.gc}</text></svg>`;
+    const maxG = Math.max(1, ...da.filas.map(r => r.pend ? 0 : r.gc));
+    let cols = '', filasHTML = '';
+    da.filas.forEach(r => {
+      const item = { date: r.m.date, rival: r.m.rival, gc: r.gc, seg: r.seg, pend: r.pend };
+      if(r.pend){
+        cols += `<div class="arq-col arq-colx" title="${escapeHtml(arqTitulo(item))}"><div class="arq-col-track"><span class="arq-col-n">?</span><i style="height:16px"></i></div><span class="arq-col-r">${escapeHtml(r.m.rival || 'Partido')}</span><span class="arq-col-f">${escapeHtml(arqFecha(r.m.date))}</span></div>`;
+        filasHTML += `<tr class="arq-tr-pend"><td>${escapeHtml(arqFecha(r.m.date))}</td><td><b>${escapeHtml(r.m.rival || 'Partido')}</b><small>Faltan asignar goles en contra: no se cuenta</small></td><td>${r.seg > 0 ? Math.round(r.seg / 60) + "'" : '—'}</td><td class="arq-gc"><span class="arq-q arq-qx">?</span></td></tr>`;
+        return;
+      }
+      const alto = r.gc === 0 ? 5 : Math.max(16, Math.round(r.gc / maxG * 74));
+      cols += `<div class="arq-col${r.gc === 0 ? ' arq-col0' : ''}" title="${escapeHtml(arqTitulo(item))}"><div class="arq-col-track"><span class="arq-col-n">${r.gc}</span><i style="height:${alto}px"></i></div><span class="arq-col-r">${escapeHtml(r.m.rival || 'Partido')}</span><span class="arq-col-f">${escapeHtml(arqFecha(r.m.date))}</span></div>`;
+      const og = {};
+      r.origenes.forEach(o => { og[o] = (og[o] || 0) + 1; });
+      const comoFue = Object.keys(og).map(o => escapeHtml(o) + (og[o] > 1 ? ' ×' + og[o] : '')).join(' · ');
+      filasHTML += `<tr><td>${escapeHtml(arqFecha(r.m.date))}</td><td><b>${escapeHtml(r.m.rival || 'Partido')}</b>${comoFue ? `<small>${comoFue}</small>` : (r.gc === 0 ? '<small>Valla invicta</small>' : '')}</td><td>${r.seg > 0 ? Math.round(r.seg / 60) + "'" : '—'}</td><td class="arq-gc"><span class="arq-q arq-q${arqNivel(r.gc)}">${r.gc}</span></td></tr>`;
+    });
+    return `
+      <div class="pc-chart-card pc-arquero">
+        <h3 class="pc-chart-title">🧤 Arquero: goles recibidos</h3>
+        <div class="arq-hero">
+          <div class="arq-arco">${arco}<div class="pc-stat-lbl">Goles recibidos</div></div>
+          <div class="pc-stat"><div class="pc-stat-num">${da.pj}</div><div class="pc-stat-lbl">Partidos en el arco</div></div>
+          <div class="pc-stat"><div class="pc-stat-num">${da.min}'</div><div class="pc-stat-lbl">Minutos en el arco</div></div>
+          <div class="pc-stat"><div class="pc-stat-num">${n2(da.promPartido)}</div><div class="pc-stat-lbl">Recibidos por partido</div></div>
+          <div class="pc-stat arq-k40"><div class="pc-stat-num">${n2(da.prom40)}</div><div class="pc-stat-lbl">Recibidos cada 40'</div></div>
+          <div class="pc-stat arq-vi"><div class="pc-stat-num">${da.vallas}</div><div class="pc-stat-lbl">Vallas invictas</div></div>
+        </div>
+        ${da.pendientes ? `<div class="arq-aviso"><span>!</span><p><b>${da.pendientes} ${da.pendientes === 1 ? 'partido no se cuenta' : 'partidos no se cuentan'} todavía.</b> Tienen goles en contra sin arquero asignado. Completalos desde Estadísticas anuales (cuadro de arqueros) o abriendo cada partido.</p></div>` : ''}
+        ${da.filas.length ? `<div class="arq-sub">Partido a partido <small>Verde: valla invicta</small></div>
+        <div class="arq-cols">${cols}</div>
+        <div class="arq-wrap"><table class="arq-table arq-ficha"><thead><tr><th>Fecha</th><th>Rival</th><th>Min</th><th>Recibidos</th></tr></thead><tbody>${filasHTML}</tbody></table></div>`
+          : '<p class="arq-nota">Todavía no tiene partidos con minutos en el arco ni goles asignados.</p>'}
+        ${da.gcAJ ? `<p class="arq-nota">Aparte recibió ${da.gcAJ} ${da.gcAJ === 1 ? 'gol' : 'goles'} jugando de arquero-jugador (5 contra 4). No se cuentan acá.</p>` : ''}
+        <p class="arq-nota">Los minutos salen del minutaje de En Vivo. Los goles, de cada gol en contra donde figura como arquero.</p>
+      </div>`;
   }
   // Opciones del selector de arquero: primero los arqueros; después, el resto como arquero-jugador.
   function keeperOptions(g){
@@ -14950,7 +15171,7 @@ window.__initEditor = function(){
     const modo = modoArco(g);
     const etiqueta = (pl) => escapeHtml((pl.number ? ('#' + pl.number + ' ') : '') + pl.name);
     const arqs = todos.filter(esArqueroPos), campo = todos.filter(pl => !esArqueroPos(pl));
-    let o = '<option value="">— ¿Quién estaba en el arco? —</option>';
+    let o = '<option value="">— ¿Quién atajaba? —</option>';
     if(arqs.length){
       o += '<optgroup label="🧤 Arqueros">';
       arqs.forEach(pl => { o += `<option value="arquero:${pl.id}" ${(modo === 'arquero' && pl.id === g.keeper_id) ? 'selected' : ''}>${etiqueta(pl)}</option>`; });
@@ -17488,13 +17709,21 @@ window.__initEditor = function(){
     let sinAsignar = 0, total = 0;
     const idsPartidos = new Set(partidos.map(m => String(m.id)));
     const nombreDe = (id, respaldo) => { const pl = squad.find(x => x.id === id) || squadArchivados.find(x => x.id === id); return pl ? pl.name : (respaldo || 'Jugador'); };
-    const fila = (id, nombre) => (filas[id] || (filas[id] = { id: id, name: nombre, gc: 0, porPartido: {}, conGol: new Set(), origen: {} }));
+    const fila = (id, nombre) => (filas[id] || (filas[id] = { id: id, name: nombre, gc: 0, porPartido: {}, origen: {} }));
     // Los arqueros del plantel aparecen siempre, aunque todavía no les hayan hecho goles
     squad.forEach(pl => { if(esArqueroPos(pl)) fila(pl.id, pl.name); });
+    // Sesiones de En Vivo de estos partidos: de ahí salen los minutos (y los goles en contra que contó En Vivo)
+    const ses = ((window.__annualShots && window.__annualShots.sesMin) || []).filter(x => x.match_id && idsPartidos.has(String(x.match_id)));
+    const gaLive = {};
+    ses.forEach(x => { const k = String(x.match_id), n = Number(x.ga) || 0; if(n > (gaLive[k] || 0)) gaLive[k] = n; });
+    // Partidos pendientes: con goles en contra sin arquero. No suman nada hasta completarlos.
+    const pend = {};
+    partidos.forEach(m => { if(arcoPendiente(m, gaLive[String(m.id)] || 0)) pend[String(m.id)] = true; });
     partidos.forEach(m => {
       (m.goalsAgainst || []).forEach(g => {
         total++;
         if(!g.keeper_id){ sinAsignar++; return; }
+        if(pend[String(m.id)]) return;
         const modo = (g.gk_mode === 'aj' || g.gk_mode === 'arquero') ? g.gk_mode : (esArqueroPos(squad.find(x => x.id === g.keeper_id)) ? 'arquero' : 'aj');
         if(modo === 'aj'){
           const a = ajs[g.keeper_id] || (ajs[g.keeper_id] = { name: nombreDe(g.keeper_id, g.keeper_name), gc: 0 });
@@ -17504,51 +17733,134 @@ window.__initEditor = function(){
         const f = fila(g.keeper_id, nombreDe(g.keeper_id, g.keeper_name));
         f.gc++;
         f.porPartido[m.id] = (f.porPartido[m.id] || 0) + 1;
-        f.conGol.add(String(m.id));
         if(g.origin) f.origen[g.origin] = (f.origen[g.origin] || 0) + 1;
       });
     });
-    // Partidos y minutos de cada arquero: salen del minutaje de En Vivo (sesiones de estos partidos)
-    const ses = ((window.__annualShots && window.__annualShots.sesMin) || []).filter(x => x.match_id && idsPartidos.has(String(x.match_id)));
+    const porId = {};
+    partidos.forEach(m => { porId[String(m.id)] = m; });
     const lista = Object.keys(filas).map(id => {
       const f = filas[id];
-      const jugados = new Set(f.conGol);
-      let seg = 0, vallas = 0;
-      const vistos = new Set();
+      const segPor = {}, gcPor = {};
       ses.forEach(x => {
         const sg = x.mins[f.name] || 0;
         if(sg <= 0) return;
-        seg += sg;
         const mid = String(x.match_id);
-        jugados.add(mid);
-        if(!vistos.has(mid)){ vistos.add(mid); if(!(f.porPartido[x.match_id] > 0)) vallas++; }
+        segPor[mid] = (segPor[mid] || 0) + sg;
       });
-      const pj = jugados.size, min = Math.round(seg / 60);
-      return { name: f.name, pj: pj, min: min, gc: f.gc, vallas: vallas,
+      Object.keys(f.porPartido).forEach(k => { gcPor[String(k)] = f.porPartido[k]; });
+      const racha = Array.from(new Set(Object.keys(segPor).concat(Object.keys(gcPor)))).map(mid => {
+        const m = porId[mid] || {};
+        return { date: m.date, rival: m.rival, gc: gcPor[mid] || 0, seg: segPor[mid] || 0, pend: !!pend[mid] };
+      }).sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')));
+      const buenas = racha.filter(r => !r.pend);
+      const pj = buenas.length, seg = buenas.reduce((s, r) => s + r.seg, 0), min = Math.round(seg / 60);
+      const vallas = buenas.filter(r => r.seg > 0 && r.gc === 0).length;
+      const pl = squad.find(x => x.id === f.id);
+      return { name: f.name, number: pl && pl.number, pj: pj, min: min, gc: f.gc, vallas: vallas, racha: racha,
                promPartido: pj ? (f.gc / pj) : null, prom40: min > 0 ? (f.gc * 40 / min) : null, origen: f.origen };
     }).sort((a, b) => (b.min - a.min) || (b.pj - a.pj) || a.name.localeCompare(b.name));
     if(!lista.length && !Object.keys(ajs).length && !total) return '';
     const n1 = (v) => (v === null) ? '—' : v.toFixed(2).replace('.', ',');
-    let h = '<div class="annual-card arq-card"><h3>🧤 Arqueros — goles recibidos</h3>';
+    const hayRacha = lista.some(f => f.racha.length);
+    const hayPend = lista.some(f => f.racha.some(r => r.pend));
+    let h = '<div class="annual-card arq-card"><div class="arq-head"><h3>🧤 Arqueros: goles recibidos</h3>'
+          + (hayRacha ? '<div class="arq-ley"><span><i class="l0"></i>Valla invicta</span><span><i class="l1"></i>Recibió goles</span>' + (hayPend ? '<span><i class="lx"></i>Falta asignar</span>' : '') + '</div>' : '') + '</div>';
     if(lista.length){
-      h += '<div class="arq-wrap"><table class="arq-table"><thead><tr><th>Arquero</th><th title="Partidos jugados">PJ</th><th title="Minutos en el arco">Min</th><th title="Goles recibidos">GC</th><th title="Goles recibidos por partido jugado">Por partido</th><th title="Goles recibidos cada 40 minutos jugados">Cada 40\'</th><th title="Partidos jugados sin recibir goles">Vallas invictas</th></tr></thead><tbody>';
+      h += '<div class="arq-list">';
       lista.forEach(f => {
         const top = Object.keys(f.origen).sort((a, b) => f.origen[b] - f.origen[a]).slice(0, 2).map(k => escapeHtml(k) + ' ' + f.origen[k]).join(' · ');
-        h += `<tr><td><b>${escapeHtml(f.name)}</b>${top ? `<small>${top}</small>` : ''}</td><td>${f.pj}</td><td>${f.min ? f.min + "'" : '—'}</td><td class="arq-gc">${f.gc}</td><td>${n1(f.promPartido)}</td><td>${n1(f.prom40)}</td><td>${f.vallas}</td></tr>`;
+        const sub = top ? ('Cómo le hicieron: ' + top) : (f.pj ? 'Sin goles recibidos' : 'Todavía sin partidos completos');
+        h += `<div class="arq-row"><div class="arq-id"><span class="arq-dorsal">${f.number ? escapeHtml(String(f.number)) : '🧤'}</span><div class="arq-id-txt"><b>${escapeHtml(f.name)}</b><small>${sub}</small></div></div>`
+           + (arqRachaHTML(f.racha, 16) || '<div class="arq-racha-vacia">Sin partidos cargados</div>')
+           + `<dl class="arq-nums"><div><dt>Partidos</dt><dd>${f.pj}</dd></div><div><dt>Minutos</dt><dd>${f.min ? f.min + "'" : '—'}</dd></div><div class="n-gc${f.gc === 0 ? ' cero' : ''}"><dt>Recibidos</dt><dd>${f.pj || f.gc ? f.gc : '—'}</dd></div><div><dt>Por partido</dt><dd>${n1(f.promPartido)}</dd></div><div class="n-k40" title="Goles recibidos cada 40 minutos jugados"><dt>Cada 40'</dt><dd>${n1(f.prom40)}</dd></div><div class="n-vi" title="Partidos jugados sin recibir goles"><dt>Vallas invictas</dt><dd>${f.pj ? f.vallas : '—'}</dd></div></dl></div>`;
       });
-      h += '</tbody></table></div>';
+      h += '</div>';
     } else {
       h += '<p class="arq-nota">Todavía no hay arqueros en el plantel. Cargales la posición "Arquero" para verlos acá.</p>';
     }
     const listaAJ = Object.keys(ajs).map(id => ajs[id]).sort((a, b) => b.gc - a.gc);
     if(listaAJ.length){
-      h += '<div class="arq-aj"><b>Como arquero-jugador (5 contra 4)</b>' + listaAJ.map(a => `<span>${escapeHtml(a.name)} <i>${a.gc}</i></span>`).join('') + '</div>';
+      h += '<div class="arq-aj"><div class="arq-aj-tit"><b>Con arquero-jugador (5 contra 4)</b><small>Van aparte: no se le cuentan a los arqueros.</small></div><div class="arq-aj-chips">'
+         + listaAJ.map(a => `<span>${escapeHtml(a.name)}<i>${a.gc}</i></span>`).join('') + '</div></div>';
     }
-    if(sinAsignar){
-      h += `<p class="arq-nota">⚠ ${sinAsignar} gol${sinAsignar === 1 ? '' : 'es'} en contra sin arquero asignado. Abrí el partido en “Partidos” y elegí quién estaba en el arco.</p>`;
+    // ---- Partidos pendientes: se pueden completar desde acá ----
+    const pendientes = partidos.filter(m => pend[String(m.id)]).sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+    if(pendientes.length){
+      const arqs = squad.filter(esArqueroPos);
+      let conSugerencia = 0, filasP = '';
+      pendientes.forEach(m => {
+        const mid = String(m.id);
+        const sin = (m.goalsAgainst || []).filter(g => !g.keeper_id).length;
+        if(!sin){
+          filasP += `<div class="arq-pend-row"><div class="arq-pend-txt"><b>${escapeHtml(m.rival || 'Partido')}</b><small>${escapeHtml(arqFecha(m.date))} · En Vivo contó ${gaLive[mid]} ${gaLive[mid] === 1 ? 'gol' : 'goles'} en contra y no están cargados. Cargalos en “Partidos”.</small></div></div>`;
+          return;
+        }
+        // Sugerencia: el arquero que tuvo minutos en En Vivo ese día (solo si fue uno)
+        const jugaron = arqs.filter(a => ses.some(x => String(x.match_id) === mid && (x.mins[a.name] || 0) > 0));
+        const sug = jugaron.length === 1 ? jugaron[0] : null;
+        if(sug) conSugerencia++;
+        const pista = sug ? 'atajó ' + escapeHtml(sug.name) + ' según En Vivo' : (jugaron.length > 1 ? 'atajaron ' + jugaron.map(a => escapeHtml(a.name)).join(' y ') + ': abrí el partido' : 'sin minutos de En Vivo');
+        filasP += `<div class="arq-pend-row" data-mid="${escapeHtml(mid)}"><div class="arq-pend-txt"><b>${escapeHtml(m.rival || 'Partido')}</b><small>${escapeHtml(arqFecha(m.date))} · ${sin} ${sin === 1 ? 'gol' : 'goles'} sin asignar · ${pista}</small></div>`
+               + `<select class="arq-pend-sel" aria-label="Arquero de este partido"><option value="">Elegí arquero</option>${arqs.map(a => `<option value="${escapeHtml(String(a.id))}"${sug && sug.id === a.id ? ' selected' : ''}>${escapeHtml((a.number ? '#' + a.number + ' ' : '') + a.name)}</option>`).join('')}</select>`
+               + `<button type="button" class="arq-pend-btn" data-arq-asignar>Asignar</button></div>`;
+      });
+      h += `<details class="arq-pend"${window.__arqPendAbierto ? ' open' : ''}><summary><span class="arq-pend-ico">!</span><div><b>${pendientes.length} ${pendientes.length === 1 ? 'partido no se cuenta' : 'partidos no se cuentan'} todavía</b><small>${sinAsignar ? sinAsignar + (sinAsignar === 1 ? ' gol en contra sin arquero asignado. ' : ' goles en contra sin arquero asignado. ') : ''}Hasta completarlos no suman a estos números.</small></div><i>Completar</i></summary>`
+         + '<div class="arq-pend-body">'
+         + (arqs.length ? `<p class="arq-nota">Elegí quién atajó en cada partido y se le asignan los goles que faltan. Si atajaron dos arqueros o hubo goles con arquero-jugador, abrí ese partido en “Partidos” y cargalo gol por gol.</p>`
+                          + (conSugerencia ? `<button type="button" class="arq-pend-btn arq-pend-all" data-arq-all>Asignar todos los que tienen arquero elegido</button>` : '')
+                        : '<p class="arq-nota">Primero cargale la posición “Arquero” a tus arqueros en el plantel.</p>')
+         + filasP + '</div></details>';
     }
-    h += '<p class="arq-nota">Los minutos y partidos salen del minutaje de En Vivo. “Cada 40\'” compara parejo a un arquero que jugó poco con uno que jugó todo.</p></div>';
+    h += '<p class="arq-nota">Solo cuentan los partidos con todos los goles en contra asignados. Los minutos y partidos salen del minutaje de En Vivo. “Cada 40\'” compara parejo a un arquero que jugó poco con uno que jugó todo.</p></div>';
     return h;
+  }
+  // Completar partidos anteriores: asigna al arquero elegido los goles en contra que no tienen arquero.
+  async function asignarArqueroPartido(m, pl){
+    const sb = window.__sb;
+    if(!sb || !m || !pl) return false;
+    const antes = JSON.stringify(m.goalsAgainst || []);
+    (m.goalsAgainst || []).forEach(g => { if(!g.keeper_id){ g.keeper_id = pl.id; g.keeper_name = pl.name; g.gk_mode = 'arquero'; } });
+    try{
+      const { error } = await sb.from('stat_matches').update({ goals_against: m.goalsAgainst, updated_at: new Date().toISOString() }).eq('id', m.id);
+      if(error) throw error;
+      return true;
+    }catch(err){
+      console.error('asignar arquero', err);
+      m.goalsAgainst = JSON.parse(antes);
+      return false;
+    }
+  }
+  window.__arqPendClick = async function(e){
+    const t = e.target;
+    if(!t || !t.closest) return;
+    const sum = t.closest('.arq-pend > summary');
+    if(sum){ const d = sum.parentElement; setTimeout(() => { window.__arqPendAbierto = d.open; }, 0); return; }
+    const todos = t.closest('[data-arq-all]'), uno = t.closest('[data-arq-asignar]');
+    if(!todos && !uno) return;
+    const caja = t.closest('.arq-pend');
+    if(!caja || caja.dataset.ocupado === '1') return;
+    const filasSel = todos ? Array.from(caja.querySelectorAll('.arq-pend-row[data-mid]')) : [uno.closest('.arq-pend-row')];
+    const tareas = [];
+    filasSel.forEach(row => {
+      const sel = row && row.querySelector('.arq-pend-sel');
+      if(!sel || !sel.value) return;
+      const m = matches.find(x => String(x.id) === row.dataset.mid);
+      const pl = squad.find(x => String(x.id) === sel.value);
+      if(m && pl) tareas.push([m, pl]);
+    });
+    if(!tareas.length){ toast('Elegí primero el arquero de ese partido.'); return; }
+    if(todos && !confirm('Se van a asignar los goles de ' + tareas.length + (tareas.length === 1 ? ' partido' : ' partidos') + ' al arquero elegido en cada uno. ¿Seguimos?')) return;
+    caja.dataset.ocupado = '1';
+    caja.querySelectorAll('button, select').forEach(b => { b.disabled = true; });
+    let ok = 0, mal = 0;
+    for(const [m, pl] of tareas){ if(await asignarArqueroPartido(m, pl)) ok++; else mal++; }
+    window.__arqPendAbierto = true;
+    renderAnnual();
+    toast(mal ? ('Se completaron ' + ok + ' y fallaron ' + mal + '. Revisá la conexión y probá de nuevo.') : (ok === 1 ? 'Listo: partido completado.' : 'Listo: ' + ok + ' partidos completados.'));
+  };
+  if(!window.__arqPendBound){
+    window.__arqPendBound = true;
+    document.addEventListener('click', (e) => { if(window.__arqPendClick) window.__arqPendClick(e); });
   }
 
   // Suma los remates de todas las sesiones de En Vivo (equipo y por jugador).
@@ -17571,8 +17883,8 @@ window.__initEditor = function(){
       (data||[]).forEach(s => {
         const t = s.totals || {};
         const mins = {};
-        Object.keys(t).forEach(name => { if(name !== '__rival' && name !== '__manual'){ const sg = Number(t[name] && t[name].total) || 0; if(sg > 0) mins[name] = sg; } });
-        sesMin.push({ match_id: s.match_id || null, mins: mins });
+        Object.keys(t).forEach(name => { if(name.indexOf('__') !== 0){ const sg = Number(t[name] && t[name].total) || 0; if(sg > 0) mins[name] = sg; } });
+        sesMin.push({ match_id: s.match_id || null, mins: mins, ga: Number(t.__rival && t.__rival.goalsAgainst) || 0 });
         const rival = t.__rival || {};
         // Remates: se suman de TODAS las sesiones (no existen en la sección Partidos).
         totalFor += (rival.shotsFor != null ? rival.shotsFor : ((rival.shotsFor1||0)+(rival.shotsFor2||0)));
@@ -18031,31 +18343,7 @@ window.__initEditor = function(){
     // ---- Arquero: goles recibidos (solo si su posición es arquero) ----
     let arqueroBox = '';
     if(esArqueroPos(player)){
-      const da = datosArquero(playerId, playerName, matchesFiltrados(), liveTodas.filter(x => sesionPasaFiltro(x.match_id)));
-      const n2 = (v) => (v === null) ? '—' : v.toFixed(2).replace('.', ',');
-      const fechaCorta = (d) => { const q = String(d || '').split('-'); return q.length === 3 ? (q[2] + '/' + q[1]) : (d || ''); };
-      let filasHTML = '';
-      da.filas.forEach(r => {
-        const og = {};
-        r.origenes.forEach(o => { og[o] = (og[o] || 0) + 1; });
-        const comoFue = Object.keys(og).map(o => escapeHtml(o) + (og[o] > 1 ? ' ×' + og[o] : '')).join(' · ');
-        filasHTML += `<tr><td>${escapeHtml(fechaCorta(r.m.date))}</td><td><b>${escapeHtml(r.m.rival || 'Partido')}</b>${comoFue ? `<small>${comoFue}</small>` : ''}</td><td>${r.seg > 0 ? Math.round(r.seg/60) + "'" : '—'}</td><td class="arq-gc${r.gc === 0 ? ' arq-cero' : ''}">${r.gc}</td></tr>`;
-      });
-      arqueroBox = `
-      <div class="pc-chart-card pc-arquero">
-        <h3 class="pc-chart-title">🧤 Como arquero — goles recibidos</h3>
-        <div class="pc-summary">
-          <div class="pc-stat"><div class="pc-stat-num" style="color:var(--danger)">${da.gc}</div><div class="pc-stat-lbl">Goles recibidos</div></div>
-          <div class="pc-stat"><div class="pc-stat-num">${da.pj}</div><div class="pc-stat-lbl">Partidos en el arco</div></div>
-          <div class="pc-stat"><div class="pc-stat-num" style="color:#E0A93B">${da.min}'</div><div class="pc-stat-lbl">Minutos en el arco</div></div>
-          <div class="pc-stat"><div class="pc-stat-num">${n2(da.promPartido)}</div><div class="pc-stat-lbl">Recibidos por partido</div></div>
-          <div class="pc-stat"><div class="pc-stat-num">${n2(da.prom40)}</div><div class="pc-stat-lbl">Recibidos cada 40'</div></div>
-          <div class="pc-stat"><div class="pc-stat-num" style="color:var(--success)">${da.vallas}</div><div class="pc-stat-lbl">Vallas invictas</div></div>
-        </div>
-        ${da.filas.length ? `<div class="arq-wrap"><table class="arq-table arq-ficha"><thead><tr><th>Fecha</th><th>Rival</th><th>Min</th><th>Goles recibidos</th></tr></thead><tbody>${filasHTML}</tbody></table></div>`
-          : '<p class="arq-nota">Todavía no tiene partidos con minutos en el arco ni goles asignados.</p>'}
-        <p class="arq-nota">Los minutos salen del minutaje de En Vivo. Los goles, de cada gol en contra donde figura como arquero.</p>
-      </div>`;
+      arqueroBox = arqueroFichaHTML(datosArquero(playerId, playerName, matchesFiltrados(), liveTodas.filter(x => sesionPasaFiltro(x.match_id))));
     }
 
     cont2.innerHTML = cabecera + (sinPartidos ? avisoSinPartidos : (resumen + arqueroBox)) + extras
