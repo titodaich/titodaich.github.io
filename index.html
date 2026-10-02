@@ -3386,6 +3386,48 @@ body.editor-active #screen-editor{ display:block; }
 .faq-item.open .faq-arrow{transform:rotate(180deg);}
 .faq-a{max-height:0;overflow:hidden;color:var(--muted);font-size:14px;line-height:1.5;padding:0 18px;transition:max-height .25s ease,padding .25s ease;}
 .faq-item.open .faq-a{max-height:220px;padding:0 18px 16px;}
+/* ── Arqueros: goles recibidos ── */
+.ga-resumen{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 10px;padding:9px 10px;background:rgba(64,200,214,0.07);border:1px solid rgba(64,200,214,0.35);border-radius:9px;}
+.ga-res-tit{font-size:12.5px;font-weight:600;color:#40C8D6;margin-right:2px;}
+.ga-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--panel-2);border:1px solid var(--line);font-size:13px;color:var(--chalk);}
+.ga-chip i{font-style:normal;font-family:'Oswald',sans-serif;font-weight:700;font-size:15px;color:var(--danger);}
+.ga-chip-aj{border-color:rgba(224,169,59,0.6);color:#E0A93B;}
+.ga-chip-sin{border-style:dashed;color:var(--muted);}
+.pc-arquero{margin-bottom:16px;}
+.pc-arquero .pc-summary{margin-bottom:12px;}
+.arq-ficha td:nth-child(1){white-space:nowrap;color:var(--muted);text-align:left;}
+.arq-ficha th:nth-child(2),.arq-ficha td:nth-child(2){text-align:left;}
+.arq-table td.arq-gc.arq-cero{color:var(--success);}
+.llr-keeper{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:rgba(64,200,214,0.14);border:1px solid #40C8D6;color:#40C8D6;font-size:11px;font-weight:600;white-space:nowrap;}
+.llr-keeper-falta{background:rgba(224,169,59,0.14);border-color:#E0A93B;color:#E0A93B;}
+.go-arco{font-family:'Inter',sans-serif;margin-bottom:14px;padding:10px 12px;background:var(--bg-2);border:1px solid var(--line-soft);border-radius:10px;}
+.go-arco-tit{font-size:13px;font-weight:600;color:var(--chalk);margin-bottom:8px;}
+.go-arco-sub{font-size:12px;color:var(--muted);margin:10px 0 8px;}
+.go-arco-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.go-arq{font-family:'Inter',sans-serif;min-height:40px;padding:0 12px;border-radius:9px;border:1px solid var(--line);background:var(--panel-2);color:var(--chalk);font-size:13px;font-weight:600;cursor:pointer;}
+.go-arq.on{background:#40C8D6;border-color:#40C8D6;color:#0b1015;}
+.go-arq-aj{border-style:dashed;color:var(--muted);}
+.go-arq-aj.on{background:rgba(224,169,59,0.18);border-color:#E0A93B;border-style:solid;color:#E0A93B;}
+.arq-card{margin-bottom:16px;}
+.arq-wrap{overflow-x:auto;}
+.arq-table{width:100%;border-collapse:collapse;font-size:13.5px;}
+.arq-table th{font-family:'Oswald',sans-serif;font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center;padding:8px 8px;border-bottom:1px solid var(--line);white-space:nowrap;}
+.arq-table th:first-child,.arq-table td:first-child{text-align:left;}
+.arq-table td{padding:10px 8px;text-align:center;border-bottom:1px solid var(--line-soft);font-variant-numeric:tabular-nums;color:var(--chalk);}
+.arq-table td small{display:block;font-size:11px;color:var(--muted);margin-top:2px;font-weight:400;}
+.arq-table td.arq-gc{font-family:'Oswald',sans-serif;font-size:17px;font-weight:700;color:var(--danger);}
+.arq-aj{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px;font-size:13px;color:var(--chalk);}
+.arq-aj b{font-weight:600;color:#E0A93B;margin-right:4px;}
+.arq-aj span{padding:4px 10px;border-radius:999px;background:rgba(224,169,59,0.12);border:1px solid rgba(224,169,59,0.5);}
+.arq-aj i{font-style:normal;font-family:'Oswald',sans-serif;font-weight:700;margin-left:4px;}
+.arq-nota{font-size:12px;color:var(--muted);margin:10px 0 0;line-height:1.45;}
+@media (max-width:600px){
+  .arq-table{font-size:12.5px;}
+  .arq-table th{font-size:10px;letter-spacing:0;padding:6px 3px;white-space:normal;line-height:1.15;}
+  .arq-table td{padding:8px 3px;}
+  .arq-table td small{font-size:10px;}
+  .arq-table td.arq-gc{font-size:15px;}
+}
 /* ── Pizarra: herramientas, reproductor y nombres ── */
 .board-toolbar + .board-toolbar{margin-top:-6px;}
 .board-sel{background:var(--panel);border:1px solid var(--line);color:var(--chalk);border-radius:9px;height:36px;padding:0 10px;font-size:13px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;max-width:100%;}
@@ -10316,6 +10358,22 @@ window.__initEditor = function(){
   let equipoInicial = null;      // 5 titulares del arranque
   let equipoInicial2T = null;    // 5 que arrancan el 2º tiempo
   let equipoCierre = null;       // 5 que terminan el partido
+  // ¿Quién está en el arco en este momento? Si hay un arquero en cancha, es él.
+  // Si no hay ninguno, el equipo está jugando con ARQUERO-JUGADOR: proponemos al
+  // jugador de campo que entró en lugar del arquero (se puede cambiar en el cartelito).
+  function arqueroDelMomento(){
+    const enC = squad.filter(p => { const st = state[p.id]; return st && st.onCourt; });
+    const arqs = enC.filter(p => roleOf(p) === 'arquero');
+    if(arqs.length) return { p: arqs[0], modo: 'arquero' };
+    let cand = null;
+    for(let i = 0; i < events.length; i++){          // del más nuevo al más viejo
+      const ev = events[i];
+      if(!ev || !ev.outName || !ev.inName) continue;
+      const outP = squad.find(p => p.name === ev.outName), inP = enC.find(p => p.name === ev.inName);
+      if(outP && inP && roleOf(outP) === 'arquero'){ cand = inP; break; }
+    }
+    return { p: cand, modo: 'aj' };
+  }
   function enCanchaAhora(){
     return squad
       .filter(p => { const st = state[p.id]; return st && st.onCourt; })
@@ -11317,6 +11375,8 @@ window.__initEditor = function(){
       }
       else if(ev.type==='goalAgainst'){
         desc='🥅 Gol en contra';
+        if(ev.keeper_name){ desc += ' <span class="llr-keeper">🧤 '+(ev.gk_mode==='aj'?'Arq-jugador: ':'')+escapeHtml(ev.keeper_name)+'</span>'; }
+        else if(ev.gk_mode==='aj'){ desc += ' <span class="llr-keeper llr-keeper-falta">🧤 ¿arquero-jugador?</span>'; }
         if(ev.min){ desc += ' <span class="llr-min">'+escapeHtml(ev.min)+'</span>'; }
         if(ev.origen){ desc += ' <span class="llr-origen llr-origen-against">🏷️ '+escapeHtml(ev.origen)+'</span>'; }
         else { desc += ' <span class="llr-origen llr-origen-add">+ ¿cómo fue?</span>'; }
@@ -11410,6 +11470,11 @@ window.__initEditor = function(){
     if(currentHalf===1) shotsAgainst1++; else shotsAgainst2++;
     // Registrar el evento del gol en contra (para poder etiquetar cómo fue)
     const evento = { t:nowSeconds(), type:'goalAgainst', pid:null, inName:'Rival', outName:'', half:currentHalf, origen:null };
+    // A qué arquero se lo hicieron (o a qué arquero-jugador, si estábamos 5 contra 4)
+    const arco = arqueroDelMomento();
+    evento.gk_mode = arco.modo;
+    evento.keeper_id = arco.p ? arco.p.id : null;
+    evento.keeper_name = arco.p ? arco.p.name : '';
     events.unshift(evento);
     renderScoreboard(); renderLog(); guardarPartidoLocal();
     // Abrir el cartelito de "cómo fue el gol en contra"
@@ -11601,6 +11666,9 @@ window.__initEditor = function(){
         }));
         // Goles del RIVAL registrados en vivo (con su minuto)
         const golesRival = events.filter(e => e.type === 'goalAgainst').map(e => ({
+          keeper_id: e.keeper_id || '',
+          keeper_name: e.keeper_name || '',
+          gk_mode: e.gk_mode || '',
           origin: e.origen || '',
           detail: e.detail || '',
           min: minDeGol(e),
@@ -11980,6 +12048,7 @@ window.__initEditor = function(){
         <label class="go-min-label">${minLabel}</label>
         <input type="text" class="go-min-input" id="goMinInput" value="${minActual}" placeholder="ej: 12' ${periodo}" inputmode="numeric">
       </div>
+      ${esContra ? '<div class="go-arco" id="goArco"></div>' : ''}
       <div class="go-btns">${botones}</div>
       <div class="go-detail-row">
         <label class="go-min-label">✎ Detalle <span>(opcional)</span></label>
@@ -11988,6 +12057,42 @@ window.__initEditor = function(){
       <button class="go-skip" id="goSkip">Saltear ✕</button>
     </div>`;
     document.body.appendChild(ov);
+
+    // ---- ¿Quién estaba en el arco? (solo en goles en contra) ----
+    const arcoBox = ov.querySelector('#goArco');
+    if(arcoBox){
+      const enC = (id) => { const st = state[id]; return !!(st && st.onCourt); };
+      const arqs = squad.filter(p => roleOf(p) === 'arquero');
+      const campo = squad.filter(p => roleOf(p) !== 'arquero').sort((a, b) => (enC(b.id) ? 1 : 0) - (enC(a.id) ? 1 : 0));
+      let verAJ = (evento.gk_mode === 'aj');
+      const chip = (pl, modo) => {
+        const sel = (evento.keeper_id === pl.id && (evento.gk_mode || 'arquero') === modo);
+        return `<button type="button" class="go-arq${sel ? ' on' : ''}" data-id="${escapeHtml(String(pl.id))}" data-modo="${modo}">${pl.number ? '#' + escapeHtml(String(pl.number)) + ' ' : ''}${escapeHtml(pl.name)}</button>`;
+      };
+      const pintar = () => {
+        let h = '<div class="go-arco-tit">🧤 ¿Quién estaba en el arco?</div><div class="go-arco-chips">';
+        h += arqs.map(a => chip(a, 'arquero')).join('');
+        h += `<button type="button" class="go-arq go-arq-aj${verAJ ? ' on' : ''}" id="goArqAJ">Arquero-jugador ${verAJ ? '▴' : '▾'}</button></div>`;
+        if(verAJ){
+          h += '<div class="go-arco-sub">Jugábamos 5 contra 4. ¿Quién hacía de arquero?</div><div class="go-arco-chips">' + campo.map(c => chip(c, 'aj')).join('') + '</div>';
+        }
+        arcoBox.innerHTML = h;
+        arcoBox.querySelectorAll('.go-arq[data-id]').forEach(b => b.addEventListener('click', () => {
+          const pl = squad.find(x => String(x.id) === b.dataset.id);
+          if(!pl) return;
+          evento.keeper_id = pl.id; evento.keeper_name = pl.name; evento.gk_mode = b.dataset.modo;
+          pintar(); renderLog(); guardarPartidoLocal();
+        }));
+        const aj = arcoBox.querySelector('#goArqAJ');
+        if(aj) aj.addEventListener('click', () => {
+          verAJ = !verAJ;
+          if(verAJ && evento.gk_mode !== 'aj'){ evento.gk_mode = 'aj'; evento.keeper_id = null; evento.keeper_name = ''; }
+          if(!verAJ && evento.gk_mode === 'aj'){ const a = arqueroDelMomento(); evento.gk_mode = 'arquero'; evento.keeper_id = (a.modo === 'arquero' && a.p) ? a.p.id : null; evento.keeper_name = (a.modo === 'arquero' && a.p) ? a.p.name : ''; }
+          pintar(); renderLog(); guardarPartidoLocal();
+        });
+      };
+      pintar();
+    }
 
     const minInput = ov.querySelector('#goMinInput');
     const detailInput = ov.querySelector('#goDetailInput');
@@ -14770,6 +14875,92 @@ window.__initEditor = function(){
     }
     return null;
   }
+  // ¿El jugador es arquero? (por su posición cargada en el plantel)
+  function esArqueroPos(pl){ return !!pl && /arq|golero|gk|porter/.test(String(pl.position || '').toLowerCase()); }
+  // Cómo se cuenta un gol en contra: 'arquero' (en el arco) o 'aj' (arquero-jugador, 5 contra 4)
+  function modoArco(g){
+    if(g.gk_mode === 'aj' || g.gk_mode === 'arquero') return g.gk_mode;
+    if(!g.keeper_id) return '';
+    return esArqueroPos(buscarJugadorPartido(g.keeper_id)) ? 'arquero' : 'aj';
+  }
+  // Resumen del partido: cuántos goles recibió cada arquero (y cada arquero-jugador)
+  function resumenArcoHTML(m){
+    const lista = (m && m.goalsAgainst) || [];
+    if(!lista.length) return '';
+    const arq = {}, aj = {};
+    let sin = 0;
+    lista.forEach(g => {
+      if(!g.keeper_id){ sin++; return; }
+      const pl = buscarJugadorPartido(g.keeper_id);
+      const nombre = pl ? pl.name : (g.keeper_name || 'Jugador');
+      const dest = (modoArco(g) === 'aj') ? aj : arq;
+      dest[nombre] = (dest[nombre] || 0) + 1;
+    });
+    const orden = (o) => Object.keys(o).sort((a, b) => o[b] - o[a]);
+    let h = '<div class="ga-resumen"><span class="ga-res-tit">🧤 Los recibió</span>';
+    orden(arq).forEach(n => { h += `<span class="ga-chip">${escapeHtml(n)} <i>${arq[n]}</i></span>`; });
+    orden(aj).forEach(n => { h += `<span class="ga-chip ga-chip-aj">Arq-jugador · ${escapeHtml(n)} <i>${aj[n]}</i></span>`; });
+    if(sin) h += `<span class="ga-chip ga-chip-sin">Sin asignar <i>${sin}</i></span>`;
+    return h + '</div>';
+  }
+  // Datos de UN arquero en un conjunto de partidos: goles recibidos, minutos, promedios y detalle por partido.
+  // sesiones: [{ match_id, totals }] de En Vivo (de ahí salen los minutos en el arco).
+  function datosArquero(playerId, playerName, partidos, sesiones){
+    const porPartido = {};
+    let gc = 0, gcAJ = 0;
+    const origen = {};
+    partidos.forEach(m => {
+      (m.goalsAgainst || []).forEach(g => {
+        if(g.keeper_id !== playerId) return;
+        const modo = (g.gk_mode === 'aj' || g.gk_mode === 'arquero') ? g.gk_mode : 'arquero';
+        if(modo === 'aj'){ gcAJ++; return; }
+        gc++;
+        const r = porPartido[m.id] || (porPartido[m.id] = { m: m, gc: 0, seg: 0, origenes: [] });
+        r.gc++;
+        if(g.origin){ origen[g.origin] = (origen[g.origin] || 0) + 1; r.origenes.push(g.origin); }
+      });
+    });
+    const porId = {};
+    partidos.forEach(m => { porId[String(m.id)] = m; });
+    let seg = 0;
+    (sesiones || []).forEach(x => {
+      if(!x.match_id || !porId[String(x.match_id)]) return;
+      const t = x.totals && x.totals[playerName];
+      const sg = Number(t && t.total) || 0;
+      if(sg <= 0) return;
+      seg += sg;
+      const m = porId[String(x.match_id)];
+      const r = porPartido[m.id] || (porPartido[m.id] = { m: m, gc: 0, seg: 0, origenes: [] });
+      r.seg += sg;
+    });
+    const filas = Object.keys(porPartido).map(k => porPartido[k])
+      .sort((a, b) => String(a.m.date || '').localeCompare(String(b.m.date || '')));
+    const pj = filas.length, min = Math.round(seg / 60);
+    const vallas = filas.filter(r => r.seg > 0 && r.gc === 0).length;
+    return { pj: pj, min: min, gc: gc, gcAJ: gcAJ, vallas: vallas, origen: origen, filas: filas,
+             promPartido: pj ? gc / pj : null, prom40: min > 0 ? gc * 40 / min : null };
+  }
+  // Opciones del selector de arquero: primero los arqueros; después, el resto como arquero-jugador.
+  function keeperOptions(g){
+    const todos = squad.slice();
+    if(currentMatch && Array.isArray(currentMatch.invitados)){
+      const ids = new Set(todos.map(x => x.id));
+      currentMatch.invitados.forEach(inv => { if(inv && inv.id && !ids.has(inv.id)) todos.push(inv); });
+    }
+    const modo = modoArco(g);
+    const etiqueta = (pl) => escapeHtml((pl.number ? ('#' + pl.number + ' ') : '') + pl.name);
+    const arqs = todos.filter(esArqueroPos), campo = todos.filter(pl => !esArqueroPos(pl));
+    let o = '<option value="">— ¿Quién estaba en el arco? —</option>';
+    if(arqs.length){
+      o += '<optgroup label="🧤 Arqueros">';
+      arqs.forEach(pl => { o += `<option value="arquero:${pl.id}" ${(modo === 'arquero' && pl.id === g.keeper_id) ? 'selected' : ''}>${etiqueta(pl)}</option>`; });
+      o += '</optgroup>';
+    }
+    o += '<optgroup label="Arquero-jugador (5 contra 4)">';
+    campo.forEach(pl => { o += `<option value="aj:${pl.id}" ${(modo === 'aj' && pl.id === g.keeper_id) ? 'selected' : ''}>${etiqueta(pl)}</option>`; });
+    o += '</optgroup>';
+    return o;
+  }
   function playerOptions(selectedId){
     let opts = '<option value="">— Jugador —</option>';
     squad.forEach(p => {
@@ -14866,15 +15057,23 @@ window.__initEditor = function(){
     // Goles en contra (sin jugador)
     const ga = document.getElementById('goalsAgainstList');
     ga.innerHTML = '';
+    // Resumen arriba de la lista: a qué arquero le hicieron los goles de este partido
+    const gaRes = document.createElement('div');
+    gaRes.id = 'gaResumen';
+    gaRes.innerHTML = resumenArcoHTML(m);
+    ga.appendChild(gaRes);
     (m.goalsAgainst||[]).forEach((g, idx) => {
       const row = document.createElement('div');
       row.className = 'goal-row-v';
       const top = document.createElement('div');
       top.className = 'goal-row-top';
-      top.innerHTML = `<span class="g-num">${idx+1}</span><input class="g-min${g.fromLive?' g-min-lock':''}" value="${escapeHtml(g.min||'')}" placeholder="min"${g.fromLive?' readonly title="Minuto registrado en vivo (no editable)"':''}><select class="g-keeper">${playerOptions(g.keeper_id)}</select><button class="g-remove">✕</button>`;
+      top.innerHTML = `<span class="g-num">${idx+1}</span><input class="g-min${g.fromLive?' g-min-lock':''}" value="${escapeHtml(g.min||'')}" placeholder="min"${g.fromLive?' readonly title="Minuto registrado en vivo (no editable)"':''}><select class="g-keeper">${keeperOptions(g)}</select><button class="g-remove">✕</button>`;
       top.querySelector('.g-min').addEventListener('input', e => { g.min = e.target.value; flashMatchSaved(); });
       top.querySelector('.g-keeper').addEventListener('change', e => {
-        const p = buscarJugadorPartido(e.target.value); g.keeper_id=e.target.value; g.keeper_name=p?p.name:''; flashMatchSaved();
+        const v = String(e.target.value || ''), corte = v.indexOf(':');
+        const modo = corte > 0 ? v.slice(0, corte) : '', id = corte > 0 ? v.slice(corte + 1) : '';
+        const p = buscarJugadorPartido(id); g.keeper_id = id; g.keeper_name = p ? p.name : ''; g.gk_mode = id ? modo : ''; flashMatchSaved();
+        const rr = document.getElementById('gaResumen'); if(rr) rr.innerHTML = resumenArcoHTML(m);
       });
       top.querySelector('.g-remove').addEventListener('click', () => { m.goalsAgainst.splice(idx,1); renderGoals(); flashMatchSaved(); });
       row.appendChild(top);
@@ -17197,6 +17396,7 @@ window.__initEditor = function(){
           <div class="chart-row">${donutHTML(origenContra, totalGA, 'var(--danger)')}<div class="chart-bars">${barsHTML(origenContra, totalGA, true, subContra)}</div></div>
         </div>
       </div>
+      ${arquerosHTML(annualMatches)}
       <details class="annual-more">
         <summary>Ver más estadísticas (goleadores, asistencias, detalle, tarjetas)</summary>
         <div class="annual-grid" style="margin-top:14px;">
@@ -17279,6 +17479,78 @@ window.__initEditor = function(){
     });
   }
 
+  // ----- Cuadro de ARQUEROS: goles recibidos por cada arquero, por partido y por tiempo jugado -----
+  // Cada gol en contra se le carga a quien estaba en el arco. Si jugábamos con arquero-jugador
+  // (5 contra 4), se le carga al jugador que hacía de arquero y se muestra en su propia lista.
+  function arquerosHTML(partidos){
+    const filas = {};          // id -> datos del arquero
+    const ajs = {};            // id -> goles recibidos como arquero-jugador
+    let sinAsignar = 0, total = 0;
+    const idsPartidos = new Set(partidos.map(m => String(m.id)));
+    const nombreDe = (id, respaldo) => { const pl = squad.find(x => x.id === id) || squadArchivados.find(x => x.id === id); return pl ? pl.name : (respaldo || 'Jugador'); };
+    const fila = (id, nombre) => (filas[id] || (filas[id] = { id: id, name: nombre, gc: 0, porPartido: {}, conGol: new Set(), origen: {} }));
+    // Los arqueros del plantel aparecen siempre, aunque todavía no les hayan hecho goles
+    squad.forEach(pl => { if(esArqueroPos(pl)) fila(pl.id, pl.name); });
+    partidos.forEach(m => {
+      (m.goalsAgainst || []).forEach(g => {
+        total++;
+        if(!g.keeper_id){ sinAsignar++; return; }
+        const modo = (g.gk_mode === 'aj' || g.gk_mode === 'arquero') ? g.gk_mode : (esArqueroPos(squad.find(x => x.id === g.keeper_id)) ? 'arquero' : 'aj');
+        if(modo === 'aj'){
+          const a = ajs[g.keeper_id] || (ajs[g.keeper_id] = { name: nombreDe(g.keeper_id, g.keeper_name), gc: 0 });
+          a.gc++;
+          return;
+        }
+        const f = fila(g.keeper_id, nombreDe(g.keeper_id, g.keeper_name));
+        f.gc++;
+        f.porPartido[m.id] = (f.porPartido[m.id] || 0) + 1;
+        f.conGol.add(String(m.id));
+        if(g.origin) f.origen[g.origin] = (f.origen[g.origin] || 0) + 1;
+      });
+    });
+    // Partidos y minutos de cada arquero: salen del minutaje de En Vivo (sesiones de estos partidos)
+    const ses = ((window.__annualShots && window.__annualShots.sesMin) || []).filter(x => x.match_id && idsPartidos.has(String(x.match_id)));
+    const lista = Object.keys(filas).map(id => {
+      const f = filas[id];
+      const jugados = new Set(f.conGol);
+      let seg = 0, vallas = 0;
+      const vistos = new Set();
+      ses.forEach(x => {
+        const sg = x.mins[f.name] || 0;
+        if(sg <= 0) return;
+        seg += sg;
+        const mid = String(x.match_id);
+        jugados.add(mid);
+        if(!vistos.has(mid)){ vistos.add(mid); if(!(f.porPartido[x.match_id] > 0)) vallas++; }
+      });
+      const pj = jugados.size, min = Math.round(seg / 60);
+      return { name: f.name, pj: pj, min: min, gc: f.gc, vallas: vallas,
+               promPartido: pj ? (f.gc / pj) : null, prom40: min > 0 ? (f.gc * 40 / min) : null, origen: f.origen };
+    }).sort((a, b) => (b.min - a.min) || (b.pj - a.pj) || a.name.localeCompare(b.name));
+    if(!lista.length && !Object.keys(ajs).length && !total) return '';
+    const n1 = (v) => (v === null) ? '—' : v.toFixed(2).replace('.', ',');
+    let h = '<div class="annual-card arq-card"><h3>🧤 Arqueros — goles recibidos</h3>';
+    if(lista.length){
+      h += '<div class="arq-wrap"><table class="arq-table"><thead><tr><th>Arquero</th><th title="Partidos jugados">PJ</th><th title="Minutos en el arco">Min</th><th title="Goles recibidos">GC</th><th title="Goles recibidos por partido jugado">Por partido</th><th title="Goles recibidos cada 40 minutos jugados">Cada 40\'</th><th title="Partidos jugados sin recibir goles">Vallas invictas</th></tr></thead><tbody>';
+      lista.forEach(f => {
+        const top = Object.keys(f.origen).sort((a, b) => f.origen[b] - f.origen[a]).slice(0, 2).map(k => escapeHtml(k) + ' ' + f.origen[k]).join(' · ');
+        h += `<tr><td><b>${escapeHtml(f.name)}</b>${top ? `<small>${top}</small>` : ''}</td><td>${f.pj}</td><td>${f.min ? f.min + "'" : '—'}</td><td class="arq-gc">${f.gc}</td><td>${n1(f.promPartido)}</td><td>${n1(f.prom40)}</td><td>${f.vallas}</td></tr>`;
+      });
+      h += '</tbody></table></div>';
+    } else {
+      h += '<p class="arq-nota">Todavía no hay arqueros en el plantel. Cargales la posición "Arquero" para verlos acá.</p>';
+    }
+    const listaAJ = Object.keys(ajs).map(id => ajs[id]).sort((a, b) => b.gc - a.gc);
+    if(listaAJ.length){
+      h += '<div class="arq-aj"><b>Como arquero-jugador (5 contra 4)</b>' + listaAJ.map(a => `<span>${escapeHtml(a.name)} <i>${a.gc}</i></span>`).join('') + '</div>';
+    }
+    if(sinAsignar){
+      h += `<p class="arq-nota">⚠ ${sinAsignar} gol${sinAsignar === 1 ? '' : 'es'} en contra sin arquero asignado. Abrí el partido en “Partidos” y elegí quién estaba en el arco.</p>`;
+    }
+    h += '<p class="arq-nota">Los minutos y partidos salen del minutaje de En Vivo. “Cada 40\'” compara parejo a un arquero que jugó poco con uno que jugó todo.</p></div>';
+    return h;
+  }
+
   // Suma los remates de todas las sesiones de En Vivo (equipo y por jugador).
   async function cargarRematesAnuales(){
     try{
@@ -17295,8 +17567,12 @@ window.__initEditor = function(){
       // si la sesión está vinculada a un partido, ese partido ya cuenta en la
       // sección Partidos, así que NO lo sumamos de nuevo (evita duplicar).
       const golesLive = {}, tarjetasLive = {};
+      const sesMin = [];   // por sesión: segundos jugados de cada jugador (para los arqueros)
       (data||[]).forEach(s => {
         const t = s.totals || {};
+        const mins = {};
+        Object.keys(t).forEach(name => { if(name !== '__rival' && name !== '__manual'){ const sg = Number(t[name] && t[name].total) || 0; if(sg > 0) mins[name] = sg; } });
+        sesMin.push({ match_id: s.match_id || null, mins: mins });
         const rival = t.__rival || {};
         // Remates: se suman de TODAS las sesiones (no existen en la sección Partidos).
         totalFor += (rival.shotsFor != null ? rival.shotsFor : ((rival.shotsFor1||0)+(rival.shotsFor2||0)));
@@ -17320,7 +17596,7 @@ window.__initEditor = function(){
           });
         }
       });
-      const nueva = { totalFor, totalAgainst, porJugador, recupPorJugador, golesLive, tarjetasLive };
+      const nueva = { totalFor, totalAgainst, porJugador, recupPorJugador, golesLive, tarjetasLive, sesMin };
       const firma = cat + '|' + JSON.stringify(nueva);
       if(window.__annualShotsSig === firma) return;   // sin cambios: no redibujar
       window.__annualShotsSig = firma;
@@ -17752,7 +18028,37 @@ window.__initEditor = function(){
       </div>`;
     }
 
-    cont2.innerHTML = cabecera + (sinPartidos ? avisoSinPartidos : resumen) + extras
+    // ---- Arquero: goles recibidos (solo si su posición es arquero) ----
+    let arqueroBox = '';
+    if(esArqueroPos(player)){
+      const da = datosArquero(playerId, playerName, matchesFiltrados(), liveTodas.filter(x => sesionPasaFiltro(x.match_id)));
+      const n2 = (v) => (v === null) ? '—' : v.toFixed(2).replace('.', ',');
+      const fechaCorta = (d) => { const q = String(d || '').split('-'); return q.length === 3 ? (q[2] + '/' + q[1]) : (d || ''); };
+      let filasHTML = '';
+      da.filas.forEach(r => {
+        const og = {};
+        r.origenes.forEach(o => { og[o] = (og[o] || 0) + 1; });
+        const comoFue = Object.keys(og).map(o => escapeHtml(o) + (og[o] > 1 ? ' ×' + og[o] : '')).join(' · ');
+        filasHTML += `<tr><td>${escapeHtml(fechaCorta(r.m.date))}</td><td><b>${escapeHtml(r.m.rival || 'Partido')}</b>${comoFue ? `<small>${comoFue}</small>` : ''}</td><td>${r.seg > 0 ? Math.round(r.seg/60) + "'" : '—'}</td><td class="arq-gc${r.gc === 0 ? ' arq-cero' : ''}">${r.gc}</td></tr>`;
+      });
+      arqueroBox = `
+      <div class="pc-chart-card pc-arquero">
+        <h3 class="pc-chart-title">🧤 Como arquero — goles recibidos</h3>
+        <div class="pc-summary">
+          <div class="pc-stat"><div class="pc-stat-num" style="color:var(--danger)">${da.gc}</div><div class="pc-stat-lbl">Goles recibidos</div></div>
+          <div class="pc-stat"><div class="pc-stat-num">${da.pj}</div><div class="pc-stat-lbl">Partidos en el arco</div></div>
+          <div class="pc-stat"><div class="pc-stat-num" style="color:#E0A93B">${da.min}'</div><div class="pc-stat-lbl">Minutos en el arco</div></div>
+          <div class="pc-stat"><div class="pc-stat-num">${n2(da.promPartido)}</div><div class="pc-stat-lbl">Recibidos por partido</div></div>
+          <div class="pc-stat"><div class="pc-stat-num">${n2(da.prom40)}</div><div class="pc-stat-lbl">Recibidos cada 40'</div></div>
+          <div class="pc-stat"><div class="pc-stat-num" style="color:var(--success)">${da.vallas}</div><div class="pc-stat-lbl">Vallas invictas</div></div>
+        </div>
+        ${da.filas.length ? `<div class="arq-wrap"><table class="arq-table arq-ficha"><thead><tr><th>Fecha</th><th>Rival</th><th>Min</th><th>Goles recibidos</th></tr></thead><tbody>${filasHTML}</tbody></table></div>`
+          : '<p class="arq-nota">Todavía no tiene partidos con minutos en el arco ni goles asignados.</p>'}
+        <p class="arq-nota">Los minutos salen del minutaje de En Vivo. Los goles, de cada gol en contra donde figura como arquero.</p>
+      </div>`;
+    }
+
+    cont2.innerHTML = cabecera + (sinPartidos ? avisoSinPartidos : (resumen + arqueroBox)) + extras
                     + (sinPartidos ? '' : (barsChart + lineChart + minutosBox))
                     + seguimientoBox;
     // Cargar las secciones nuevas (son asíncronas, se llenan solas)
