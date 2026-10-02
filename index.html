@@ -13592,6 +13592,7 @@ window.__initEditor = function(){
         filtroCompetencia = '';
       }
       sortMatches();
+      await autoRastrearArco();   // completa solo el arquero de los goles en contra que vinieron de En Vivo
       await cargarTorneos();   // lista de torneos creados por el DT
 
       renderMatchList(); renderSquad();
@@ -17809,11 +17810,7 @@ window.__initEditor = function(){
                + `<select class="arq-pend-sel" aria-label="Arquero de este partido"><option value="">Elegí arquero</option>${arqs.map(a => `<option value="${escapeHtml(String(a.id))}"${sug && sug.id === a.id ? ' selected' : ''}>${escapeHtml((a.number ? '#' + a.number + ' ' : '') + a.name)}</option>`).join('')}</select>`
                + `<button type="button" class="arq-pend-btn" data-arq-asignar>Asignar</button></div>`;
       });
-      // ¿Hay registro de En Vivo de alguno de estos partidos? Entonces se puede rastrear quién atajaba en cada gol.
-      const hayVivo = pendientes.some(m => (m.goalsAgainst || []).some(g => !g.keeper_id) && ses.some(x => String(x.match_id) === String(m.id)));
-      h += `<div class="arq-pend"><div class="arq-pend-top"><span class="arq-pend-ico">!</span><div><b>${pendientes.length} ${pendientes.length === 1 ? 'partido no se cuenta' : 'partidos no se cuentan'} todavía</b><small>${sinAsignar ? sinAsignar + (sinAsignar === 1 ? ' gol en contra sin arquero asignado. ' : ' goles en contra sin arquero asignado. ') : ''}Hasta completarlos no suman a estos números.</small></div>`
-         + (hayVivo && arqs.length ? '<button type="button" class="arq-pend-btn arq-pend-main" data-arq-rastrear>Rastrear con En Vivo</button>' : '') + '</div>'
-         + (hayVivo && arqs.length ? '<p class="arq-nota arq-pend-exp">“Rastrear con En Vivo” mira los cambios que registraste en cada partido y le pone a cada gol el arquero que estaba en cancha en ese momento (o el arquero-jugador, si habías sacado al arquero).</p>' : '')
+      h += `<div class="arq-pend"><div class="arq-pend-top"><span class="arq-pend-ico">!</span><div><b>${pendientes.length} ${pendientes.length === 1 ? 'partido no se cuenta' : 'partidos no se cuentan'} todavía</b><small>${sinAsignar ? sinAsignar + (sinAsignar === 1 ? ' gol en contra sin arquero asignado. ' : ' goles en contra sin arquero asignado. ') : ''}Los partidos que jugaste con En Vivo se completan solos; estos hay que completarlos a mano.</small></div></div>`
          + `<details class="arq-pend-det"${window.__arqPendAbierto ? ' open' : ''}><summary>Completar a mano</summary>`
          + '<div class="arq-pend-body">'
          + (arqs.length ? `<p class="arq-nota">Elegí quién atajó en cada partido y se le asignan los goles que faltan. Si atajaron dos arqueros o hubo goles con arquero-jugador, abrí ese partido en “Partidos” y cargalo gol por gol.</p>`
@@ -17864,85 +17861,71 @@ window.__initEditor = function(){
           else if(aj && ev.outName === aj) aj = esArq(ev.inName) ? null : ev.inName;      // sale el arquero-jugador
         }
       } else if(ev.type === 'goalAgainst'){
-        let r = null;
+        const r = { id: null, name: '', modo: '', half: ev.half || '' };
         if(ev.keeper_id){
-          r = { id: ev.keeper_id, name: ev.keeper_name || '', modo: ev.gk_mode === 'aj' ? 'aj' : 'arquero' };
+          r.id = ev.keeper_id; r.name = ev.keeper_name || ''; r.modo = ev.gk_mode === 'aj' ? 'aj' : 'arquero';
         } else {
           const arqs = enCancha.filter(esArq);
           const nombre = arqs.length ? arqs[arqs.length - 1] : ((aj && enCancha.indexOf(aj) >= 0) ? aj : null);
           const pl = nombre ? jug(nombre) : null;
-          if(pl) r = { id: pl.id, name: pl.name, modo: arqs.length ? 'arquero' : 'aj' };
+          if(pl){ r.id = pl.id; r.name = pl.name; r.modo = arqs.length ? 'arquero' : 'aj'; }
         }
         res.push(r);
       }
     }
     return res.reverse();
   }
-  // Completa los goles en contra sin arquero de los partidos dados, usando el registro de En Vivo de cada uno.
-  async function rastrearArcoConEnVivo(lista){
+  // Rastreo automático: al cargar los partidos, a cada gol en contra que vino de En Vivo y no tiene arquero
+  // se le pone el que estaba en cancha en ese momento (según el registro de cambios de ese partido).
+  // Los partidos sin En Vivo no se tocan: quedan sin dato hasta que el DT los complete a mano.
+  const arcoSinRastro = new Set();     // partidos ya revisados sin resultado (para no volver a consultar)
+  async function autoRastrearArco(){
     const sb = window.__sb;
-    if(!sb) throw new Error('sin conexión');
-    const clubId = await window.__getClubId();
-    const ids = lista.map(m => m.id);
-    let sesiones = [];
-    for(let i = 0; i < ids.length; i += 40){
-      const { data, error } = await sb.from('live_sessions').select('match_id, events').eq('club_id', clubId).in('match_id', ids.slice(i, i + 40));
-      if(error) throw error;
-      sesiones = sesiones.concat(data || []);
-    }
-    const out = { completos: 0, goles: 0, fallas: 0, sinRegistro: 0 };
-    for(const m of lista){
-      const todos = m.goalsAgainst || [];
-      const delVivo = todos.filter(g => g.fromLive);
-      const recon = sesiones.filter(s => String(s.match_id) === String(m.id) && Array.isArray(s.events) && s.events.length).map(s => arcoDesdeEventos(s.events));
-      // Los goles del partido tienen que ser los mismos que registró En Vivo (misma cantidad, mismo orden)
-      let goles = null, r = null;
-      recon.forEach(x => {
-        if(r || !x.length) return;
-        if(delVivo.length && x.length === delVivo.length){ goles = delVivo; r = x; }
-        else if(x.length === todos.length){ goles = todos; r = x; }
-      });
-      if(!r){ out.sinRegistro++; continue; }
-      const antes = JSON.stringify(todos);
-      let n = 0;
-      goles.forEach((g, i) => { if(!g.keeper_id && r[i] && r[i].id){ g.keeper_id = r[i].id; g.keeper_name = r[i].name; g.gk_mode = r[i].modo; n++; } });
-      if(!n){ out.sinRegistro++; continue; }
-      try{
-        const { error } = await sb.from('stat_matches').update({ goals_against: m.goalsAgainst, updated_at: new Date().toISOString() }).eq('id', m.id);
+    const faltan = (m) => (m.goalsAgainst || []).filter(g => g.fromLive && !g.keeper_id).length;
+    const lista = matches.filter(m => faltan(m) > 0 && !arcoSinRastro.has(String(m.id) + ':' + faltan(m)));
+    if(!sb || !lista.length) return 0;
+    let total = 0;
+    try{
+      const ids = lista.map(m => m.id);
+      let sesiones = [];
+      for(let i = 0; i < ids.length; i += 40){
+        const { data, error } = await sb.from('live_sessions').select('match_id, events').eq('club_id', clubId).in('match_id', ids.slice(i, i + 40));
         if(error) throw error;
-        out.goles += n;
-        if(!m.goalsAgainst.some(g => !g.keeper_id)) out.completos++;
-      }catch(err){
-        console.error('rastrear arquero', err);
-        m.goalsAgainst = JSON.parse(antes);
-        out.fallas++;
+        sesiones = sesiones.concat(data || []);
       }
-    }
-    return out;
+      const cambiados = [];
+      lista.forEach(m => {
+        const delVivo = (m.goalsAgainst || []).filter(g => g.fromLive);
+        // Tiene que ser el mismo partido que registró En Vivo: misma cantidad de goles, en el mismo orden y tiempo
+        const r = sesiones.filter(s => String(s.match_id) === String(m.id) && Array.isArray(s.events) && s.events.length)
+          .map(s => arcoDesdeEventos(s.events))
+          .find(x => x.length === delVivo.length && x.every((q, i) => !q.half || !delVivo[i].half || String(q.half) === String(delVivo[i].half)));
+        let n = 0;
+        if(r) delVivo.forEach((g, i) => { if(!g.keeper_id && r[i].id){ g.keeper_id = r[i].id; g.keeper_name = r[i].name; g.gk_mode = r[i].modo; n++; } });
+        if(n){ total += n; cambiados.push(m); }
+        if(faltan(m) > 0) arcoSinRastro.add(String(m.id) + ':' + faltan(m));
+      });
+      // Guardar en segundo plano (si falla, queda bien en pantalla y se vuelve a intentar la próxima vez)
+      cambiados.forEach(m => {
+        (async () => {
+          try{
+            const { error } = await sb.from('stat_matches').update({ goals_against: m.goalsAgainst, updated_at: new Date().toISOString() }).eq('id', m.id);
+            if(error) console.error('rastreo arqueros: no se pudo guardar', error);
+          }catch(err){ console.error('rastreo arqueros: no se pudo guardar', err); }
+        })();
+      });
+    }catch(err){ console.error('rastreo arqueros', err); }
+    return total;
   }
   window.__arqPendClick = async function(e){
     const t = e.target;
     if(!t || !t.closest) return;
     const sum = t.closest('.arq-pend-det > summary');
     if(sum){ const d = sum.parentElement; setTimeout(() => { window.__arqPendAbierto = d.open; }, 0); return; }
-    const todos = t.closest('[data-arq-all]'), uno = t.closest('[data-arq-asignar]'), rastrear = t.closest('[data-arq-rastrear]');
-    if(!todos && !uno && !rastrear) return;
+    const todos = t.closest('[data-arq-all]'), uno = t.closest('[data-arq-asignar]');
+    if(!todos && !uno) return;
     const caja = t.closest('.arq-pend');
     if(!caja || caja.dataset.ocupado === '1') return;
-    if(rastrear){
-      const lista = Array.from(caja.querySelectorAll('.arq-pend-row[data-mid]')).map(row => matches.find(x => String(x.id) === row.dataset.mid)).filter(Boolean);
-      if(!lista.length) return;
-      caja.dataset.ocupado = '1';
-      caja.querySelectorAll('button, select').forEach(b => { b.disabled = true; });
-      rastrear.textContent = 'Rastreando…';
-      let r = null;
-      try{ r = await rastrearArcoConEnVivo(lista); }catch(err){ console.error('rastrear arquero', err); }
-      renderAnnual();
-      if(!r) toast('No se pudo consultar En Vivo. Revisá la conexión y probá de nuevo.');
-      else if(!r.goles) toast(r.fallas ? 'No se pudo guardar. Revisá la conexión y probá de nuevo.' : 'No encontré registro de En Vivo que coincida con esos partidos. Completalos a mano.');
-      else toast('Listo: ' + r.goles + (r.goles === 1 ? ' gol asignado' : ' goles asignados') + ' en base a En Vivo' + (r.completos ? ' · ' + r.completos + (r.completos === 1 ? ' partido completo' : ' partidos completos') : '') + '.');
-      return;
-    }
     const filasSel = todos ? Array.from(caja.querySelectorAll('.arq-pend-row[data-mid]')) : [uno.closest('.arq-pend-row')];
     const tareas = [];
     filasSel.forEach(row => {
