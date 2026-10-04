@@ -11882,7 +11882,7 @@ window.__initEditor = function(){
     let golesFavor = 0;
     const goleadores = [];
     Object.keys(totals).forEach(name => {
-      if(name === '__rival' || name === '__manual') return;
+      if(name.indexOf('__') === 0) return;
       const g = totals[name] && totals[name].goals;
       if(g > 0){ golesFavor += g; goleadores.push({ name, g }); }
     });
@@ -14850,7 +14850,7 @@ window.__initEditor = function(){
       // Caso A: hay minutaje de 🔴 En Vivo (no manual) → SOLO LECTURA, como siempre.
       if(s && !esManual){
         const totals = s.totals || {};
-        const rows = Object.keys(totals).filter(k=>k!=='__rival'&&k!=='__manual').map(name=>({name, ...totals[name]})).sort((a,b)=>(b.total||0)-(a.total||0));
+        const rows = Object.keys(totals).filter(k=>k.indexOf('__')!==0).map(name=>({name, ...totals[name]})).sort((a,b)=>(b.total||0)-(a.total||0));
         if(rows.length===0) return;
         let html = `<div class="live-totals-head" style="margin-top:4px;"><span>Jugador</span><span>1er T</span><span>2do T</span><span>Total</span></div>`;
         rows.forEach(r=>{
@@ -15597,7 +15597,7 @@ window.__initEditor = function(){
     (sesiones||[]).forEach(s=>{
       const t = s.totals || {};
       Object.keys(t).forEach(name=>{
-        if(name==='__rival'||name==='__manual') return;
+        if(name.indexOf('__')===0) return;
         const j = t[name]; if(!j) return;
         const t1 = Math.round((j.t1||0)/60), t2 = Math.round((j.t2||0)/60);
         if(t1+t2<=0) return;
@@ -15637,15 +15637,24 @@ window.__initEditor = function(){
 
     // Sesiones con datos de minutos (excluye vacías).
     const conMin = sessions.filter(s=>{
-      const t=s.totals||{}; return Object.keys(t).some(k=>k!=='__rival'&&k!=='__manual'&&t[k]&&((t[k].t1||0)+(t[k].t2||0))>0);
+      const t=s.totals||{}; return Object.keys(t).some(k=>k.indexOf('__')!==0&&t[k]&&((t[k].t1||0)+(t[k].t2||0))>0);
     });
     if(conMin.length===0){ cont.innerHTML=''; return; }
 
     // Sesiones según la vista: todo el año, o un partido puntual.
     let sesionesUsar = conMin;
+    let todos = false;           // en "Uno por uno": opción "Todos los partidos" (comparativa acumulada)
     if(st.vista==='partido'){
-      if(!st.partidoId || !conMin.some(s=>s.id===st.partidoId)) st.partidoId = conMin[0].id;
-      sesionesUsar = conMin.filter(s=>s.id===st.partidoId);
+      if(st.partidoId === '__todos'){
+        todos = true;
+        // Un partido cargado dos veces cuenta una sola vez (se queda la copia más completa)
+        const repetidas = new Set();
+        try{ detectarDuplicados(conMin).forEach(g => g.slice(1).forEach(s => repetidas.add(s.id))); }catch(e){}
+        sesionesUsar = conMin.filter(s => !repetidas.has(s.id));
+      } else {
+        if(!st.partidoId || !conMin.some(s=>s.id===st.partidoId)) st.partidoId = conMin[0].id;
+        sesionesUsar = conMin.filter(s=>s.id===st.partidoId);
+      }
     }
     const datos = mchAgregarMinutos(sesionesUsar);           // {nombre:{t1,t2,total}}
     const nombres = Object.keys(datos).sort((a,b)=>datos[b].total-datos[a].total);
@@ -15654,7 +15663,7 @@ window.__initEditor = function(){
     // En modo partido, un selector para elegir cuál.
     let html = '';
     if(st.vista==='partido'){
-      html += `<div class="mch-controls"><select id="mchPartidoSel">`;
+      html += `<div class="mch-controls"><select id="mchPartidoSel"><option value="__todos" ${todos?'selected':''}>📊 Todos los partidos (comparativa)</option>`;
       conMin.forEach(s=>{
         const fecha = s.created_at?new Date(s.created_at).toLocaleDateString('es-AR'):'';
         html += `<option value="${mchEscapar(s.id)}" ${s.id===st.partidoId?'selected':''}>${mchEscapar(s.name||'Partido')}${fecha?(' · '+fecha):''}</option>`;
@@ -15666,7 +15675,7 @@ window.__initEditor = function(){
 
     // ---- Gráfico 1: Reparto 1T vs 2T del equipo (COLUMNAS verticales apiladas) ----
     html += `<div class="mch-card"><h4>⏱ Reparto 1er vs 2do tiempo</h4>
-      <p class="mch-sub">${st.vista==='anio'?'Acumulado del año.':'Este partido.'} Cada columna es un jugador; la altura son sus minutos.</p>`;
+      <p class="mch-sub">${st.vista==='anio'?'Acumulado del año.':(todos?('Todos los partidos: ' + sesionesUsar.length + (sesionesUsar.length===1?' partido sumado.':' partidos sumados.')):'Este partido.')} Cada columna es un jugador; la altura son sus minutos.</p>`;
     if(nombres.length===0){ html += `<p class="mch-empty">Sin minutos cargados.</p>`; }
     else {
       let sumT1=0, sumT2=0;
@@ -15697,9 +15706,9 @@ window.__initEditor = function(){
     html += `</div>`;
 
     // ---- Gráfico 2: Comparar 2-3 jugadores (solo en Resumen, para no duplicar) ----
-    if(st.vista==='anio'){
+    if(st.vista==='anio' || todos){
     html += `<div class="mch-card"><h4>👥 Comparar jugadores</h4>
-      <p class="mch-sub">Elegí hasta 3 jugadores para comparar sus minutos del año (1er + 2do tiempo).</p>
+      <p class="mch-sub">Elegí hasta 3 jugadores para comparar sus minutos ${todos?'en todos los partidos':'del año'} (1er + 2do tiempo).</p>
       <div class="mch-controls">`;
     for(let i=0;i<3;i++){
       const sel = st.cmp[i]||'';
@@ -15774,7 +15783,7 @@ window.__initEditor = function(){
     const jugadores = new Set();
     (sessions||[]).forEach(s=>{
       const totals = s.totals || {};
-      Object.keys(totals).filter(k=>k!=='__rival'&&k!=='__manual').forEach(name=>{
+      Object.keys(totals).filter(k=>k.indexOf('__')!==0).forEach(name=>{
         const j = totals[name] || {};
         if((j.total||0) > 0){ jugadores.add(name); }
         totalSeg += (j.total||0);
@@ -15805,7 +15814,7 @@ window.__initEditor = function(){
   // Deja PRIMERO el que conviene conservar (más jugadores; a igualdad, más antiguo).
   // Devuelve solo los grupos con 2+ sesiones (los que tienen duplicados).
   function detectarDuplicados(sessions){
-    const nJug = s => s && s.totals ? Object.keys(s.totals).filter(k=>k!=='__rival'&&k!=='__manual'&&k!=='__equipos'&&k!=='__uid').length : 0;
+    const nJug = s => s && s.totals ? Object.keys(s.totals).filter(k=>k.indexOf('__')!==0).length : 0;
     const dia = s => { const d = s && s.created_at ? new Date(s.created_at) : null; return d ? d.toISOString().slice(0,10) : ''; };
     const clave = s => {
       const uid = s && s.totals && s.totals.__uid;
@@ -16042,7 +16051,7 @@ window.__initEditor = function(){
     // Primero los CARGADOS (arriba), que son los que ya tienen minutaje.
     sessionsVis.forEach(s=>{
       const when=s.created_at?new Date(s.created_at).toLocaleDateString('es-AR'):'';
-      const nJug=s.totals?Object.keys(s.totals).filter(k=>k!=='__rival'&&k!=='__manual').length:0;
+      const nJug=s.totals?Object.keys(s.totals).filter(k=>k.indexOf('__')!==0).length:0;
       const esManual = s.totals && s.totals.__manual === true;
       const origenBadge = esManual ? ' <small style="color:var(--muted);font-weight:400;">✎ manual</small>' : ' <small style="color:var(--accent-2);font-weight:400;">🔴 en vivo</small>';
       const tr=document.createElement('tr');
@@ -16128,7 +16137,7 @@ window.__initEditor = function(){
   // Arma un nodo con SOLO la tabla de minutaje por jugador de un partido (para exportar).
   function construirExportMinutaje(s){
     const totals = s.totals || {};
-    const rows = Object.keys(totals).filter(k=>k!=='__rival'&&k!=='__manual').map(name=>({name, ...totals[name]})).sort((a,b)=>(b.total||0)-(a.total||0));
+    const rows = Object.keys(totals).filter(k=>k.indexOf('__')!==0).map(name=>({name, ...totals[name]})).sort((a,b)=>(b.total||0)-(a.total||0));
     const cont = document.createElement('div');
     cont.id = 'minsExportSheet';
     cont.style.cssText = 'position:fixed;left:-9999px;top:0;width:900px;background:#10161C;color:#F2F6F8;font-family:Inter,system-ui,sans-serif;padding:40px;box-sizing:border-box;';
@@ -16179,7 +16188,7 @@ window.__initEditor = function(){
     const totals=s.totals||{};
     const rival = totals.__rival || { goalsAgainst:0, foulsAgainst:0 };
     // ordenar por total desc (excluyendo la entrada especial del rival)
-    const rows=Object.keys(totals).filter(k=>k!=='__rival'&&k!=='__manual').map(name=>({name, ...totals[name]})).sort((a,b)=>(b.total||0)-(a.total||0));
+    const rows=Object.keys(totals).filter(k=>k.indexOf('__')!==0).map(name=>({name, ...totals[name]})).sort((a,b)=>(b.total||0)-(a.total||0));
     // marcador: goles/faltas a favor son la suma de los jugadores
     let golesFavor=0, faltasFavor=0;
     rows.forEach(r=>{ golesFavor+=(r.goals||0); faltasFavor+=(r.fouls||0); });
@@ -18053,7 +18062,7 @@ window.__initEditor = function(){
         totalFor += (rival.shotsFor != null ? rival.shotsFor : ((rival.shotsFor1||0)+(rival.shotsFor2||0)));
         totalAgainst += (rival.shotsAgainst != null ? rival.shotsAgainst : ((rival.shotsAgainst1||0)+(rival.shotsAgainst2||0)));
         Object.keys(t).forEach(name => {
-          if(name === '__rival' || name === '__manual') return;
+          if(name.indexOf('__') === 0) return;
           const sh = t[name] && t[name].shots;
           if(sh) porJugador[name] = (porJugador[name]||0) + sh;
           // Recuperaciones: como los remates, se suman de TODAS las sesiones.
@@ -18063,7 +18072,7 @@ window.__initEditor = function(){
         // Goles/tarjetas: solo si la sesión NO está vinculada a un partido.
         if(!s.match_id){
           Object.keys(t).forEach(name => {
-            if(name === '__rival' || name === '__manual') return;
+            if(name.indexOf('__') === 0) return;
             const g = t[name] && t[name].goals;
             const c = t[name] && t[name].cards;
             if(g) golesLive[name] = (golesLive[name]||0) + g;
@@ -19356,7 +19365,7 @@ window.__initEditor = function(){
       const t = s.totals || {};
       if(s.match_id){ minsPorPartido[s.match_id] = minsPorPartido[s.match_id] || {}; }
       Object.keys(t).forEach(name => {
-        if(name === '__rival' || name === '__manual') return;
+        if(name.indexOf('__') === 0) return;
         if(!stat[name]) return;   // jugador que ya no está en el plantel
         const tot = t[name].total || 0;
         if(tot > 0){ stat[name].minutos += tot; stat[name].sesiones++; }
@@ -20077,7 +20086,7 @@ window.__initEditor = function(){
   // Devuelve las filas (jugadores que jugaron) y subtotales de un partido.
   function datosPartido(s){
     const totals = s.totals || {};
-    const rows = Object.keys(totals).filter(k=>k!=='__rival'&&k!=='__manual')
+    const rows = Object.keys(totals).filter(k=>k.indexOf('__')!==0)
       .map(name=>({name, ...totals[name]}))
       .filter(r=>(r.total||0) > 0)
       .sort((a,b)=>(b.total||0)-(a.total||0));
@@ -20161,7 +20170,7 @@ window.__initEditor = function(){
         const totals = s.totals||{};
         const when = s.created_at ? new Date(s.created_at).toLocaleDateString('es-AR') : '';
         const origen = totals.__manual===true ? 'manual' : 'en vivo';
-        const rows = Object.keys(totals).filter(k=>k!=='__rival'&&k!=='__manual').map(name=>({name,...totals[name]})).filter(r=>(r.total||0)>0).sort((a,b)=>(b.total||0)-(a.total||0));
+        const rows = Object.keys(totals).filter(k=>k.indexOf('__')!==0).map(name=>({name,...totals[name]})).filter(r=>(r.total||0)>0).sort((a,b)=>(b.total||0)-(a.total||0));
         let pPT=0,pST=0,pTot=0;
         rows.forEach(r=>{
           pPT+=(r.t1||0); pST+=(r.t2||0); pTot+=(r.total||0);
