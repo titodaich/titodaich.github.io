@@ -1767,6 +1767,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .squad-card .sq-num{width:36px;height:36px;flex-shrink:0;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-size:16px;color:var(--accent-2);}
 .squad-card .sq-info{flex:1;min-width:0;}
 .squad-card .sq-name{font-weight:600;font-size:14px;}
+.sq-rep{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:rgba(224,169,59,0.16);border:1px solid #E0A93B;color:#E0A93B;font-family:'Inter',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:0;text-transform:none;vertical-align:middle;white-space:nowrap;}
 .squad-card .sq-pos{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;}
 .squad-card .sq-origen{color:var(--accent-2);text-transform:none;}
 .squad-card .sq-edit{border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:14px;}
@@ -14123,7 +14124,7 @@ window.__initEditor = function(){
       card.innerHTML = `
         <button class="sq-avatar-btn" title="Cambiar foto">${avatarHTML(p, 44)}<span class="sq-avatar-cam">📷</span></button>
         <div class="sq-num">${escapeHtml(p.number||'—')}</div>
-        <div class="sq-info"><div class="sq-name">${escapeHtml(p.name)}</div><div class="sq-pos">${escapeHtml(p.position||'')}${p.club_origen?(' · <span class="sq-origen">🏠 '+escapeHtml(p.club_origen)+'</span>'):''}</div></div>
+        <div class="sq-info"><div class="sq-name">${escapeHtml(p.name)}${gemelosDe(p).length ? ' <span class="sq-rep" title="Hay otro jugador con el mismo nombre en este plantel">repetido</span>' : ''}</div><div class="sq-pos">${escapeHtml(p.position||'')}${p.club_origen?(' · <span class="sq-origen">🏠 '+escapeHtml(p.club_origen)+'</span>'):''}</div></div>
         <button class="sq-edit" title="Editar">✎</button>
         <button class="sq-archive" title="Archivar (dejó la actividad)">📥</button>
         <button class="sq-del" title="Quitar">✕</button>
@@ -14171,10 +14172,35 @@ window.__initEditor = function(){
         });
       });
       card.querySelector('.sq-del').addEventListener('click', async () => {
-        if(!confirm('¿Quitar a '+p.name+' del plantel?')) return;
         const sb = window.__sb;
-        if(sb && !String(p.id).startsWith('tmp')){ try{ await sb.from('players').delete().eq('id', p.id); }catch(e){} }
+        const gem = gemelosDe(p);
+        let d = null;
+        try{ d = await datosDeJugadores([p.id].concat(gem.map(x => x.id))); }catch(e){ console.error('datos del jugador', e); d = null; }
+        const mio = d ? d[p.id] : null;
+        let msg;
+        if(gem.length){
+          msg = 'Hay ' + (gem.length + 1) + ' jugadores llamados "' + p.name + '" en este plantel.\n\n'
+              + 'ESTE (el que vas a quitar) tiene: ' + resumenDatosJugador(mio) + '.\n'
+              + gem.map(g => 'El otro' + (g.number ? ' (#' + g.number + ')' : '') + ' tiene: ' + resumenDatosJugador(d ? d[g.id] : null) + '.').join('\n') + '\n\n';
+          const maxOtros = Math.max.apply(null, gem.map(g => totalDatosJugador(d ? d[g.id] : null)));
+          if(!d) msg += 'No pude revisar cuál tiene los datos. Si no estás seguro, cancelá y probá de nuevo con conexión.\n\n';
+          else if(totalDatosJugador(mio) > 0 && totalDatosJugador(mio) >= maxOtros) msg += '⚠ CUIDADO: este es el que tiene los datos cargados. Si lo quitás, se pierden. Conviene cancelar y quitar la otra copia.\n\n';
+          else if(totalDatosJugador(mio) === 0) msg += 'Esta es la copia vacía: se puede quitar sin perder nada.\n\n';
+          msg += '¿Quitar este?';
+        } else {
+          msg = '¿Quitar a ' + p.name + ' del plantel?\n\n'
+              + (totalDatosJugador(mio) > 0 ? 'Tiene ' + resumenDatosJugador(mio) + '. Al quitarlo, su presentismo se borra.\n\n' : '')
+              + 'Si dejó la actividad, es mejor archivarlo (📥): se guarda todo su historial.';
+        }
+        if(!confirm(msg)) return;
+        if(sb && !String(p.id).startsWith('tmp')){
+          try{
+            const { error } = await sb.from('players').delete().eq('id', p.id);
+            if(error){ console.error('quitar jugador', error); toast('No se pudo quitar. Probá de nuevo.'); return; }
+          }catch(e){ console.error('quitar jugador', e); toast('No se pudo quitar. Revisá la conexión.'); return; }
+        }
         squad = squad.filter(x => x.id !== p.id);
+        if(window.__invalidateAttendance) window.__invalidateAttendance();
         renderSquad();
       });
       el.appendChild(card);
@@ -14258,9 +14284,50 @@ window.__initEditor = function(){
     });
   });
 
+  // ---- Jugadores repetidos ----
+  // Mismo nombre (sin mirar mayúsculas, acentos ni espacios de más) dentro del plantel activo.
+  function nombreNorm(n){ return String(n || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim(); }
+  function gemelosDe(p){
+    const k = nombreNorm(p && p.name);
+    return k ? squad.filter(x => x.id !== p.id && nombreNorm(x.name) === k) : [];
+  }
+  // Qué tiene cargado cada jugador (por id): goles, asistencias y tarjetas de los partidos + marcas de presentismo.
+  async function datosDeJugadores(ids){
+    const out = {};
+    ids.forEach(id => { out[id] = { marcas: 0, goles: 0, asist: 0, tarjetas: 0 }; });
+    (matches || []).forEach(m => {
+      (Array.isArray(m.goalsFor) ? m.goalsFor : []).forEach(g => { if(g && out[g.player_id]) out[g.player_id].goles++; });
+      (Array.isArray(m.assists) ? m.assists : []).forEach(a => { if(a && out[a.player_id]) out[a.player_id].asist++; });
+      (Array.isArray(m.cards) ? m.cards : []).forEach(c => { if(c && out[c.player_id]) out[c.player_id].tarjetas++; });
+    });
+    const sb = window.__sb;
+    const reales = ids.filter(id => !String(id).startsWith('tmp'));
+    if(sb && reales.length){
+      const { data, error } = await sb.from('attendance').select('player_id,status').in('player_id', reales);
+      if(error) throw error;
+      (data || []).forEach(r => { if(r && r.status && out[r.player_id]) out[r.player_id].marcas++; });
+    }
+    return out;
+  }
+  function resumenDatosJugador(x){
+    if(!x) return 'no pude revisar qué tiene cargado';
+    const partes = [];
+    if(x.marcas) partes.push(x.marcas + (x.marcas === 1 ? ' marca de presentismo' : ' marcas de presentismo'));
+    if(x.goles) partes.push(x.goles + (x.goles === 1 ? ' gol' : ' goles'));
+    if(x.asist) partes.push(x.asist + (x.asist === 1 ? ' asistencia' : ' asistencias'));
+    if(x.tarjetas) partes.push(x.tarjetas + (x.tarjetas === 1 ? ' tarjeta' : ' tarjetas'));
+    return partes.length ? partes.join(', ') : 'nada cargado';
+  }
+  const totalDatosJugador = (x) => x ? (x.marcas + x.goles + x.asist + x.tarjetas) : 0;
+
+  let guardandoJugador = false;   // evita guardar dos veces si se toca de nuevo mientras se está guardando
   async function guardarNuevoJugador(name, number, position, clubOrigen){
     const sb = window.__sb;
     if(!sb || !clubId){ toast(window.t('mNoConn')); return; }
+    if(guardandoJugador){ toast('Ya se está guardando ese jugador…'); return; }
+    if(squad.some(x => nombreNorm(x.name) === nombreNorm(name))
+       && !confirm('Ya hay un jugador llamado "' + name.trim() + '" en este plantel.\n\n¿Agregar otro con el mismo nombre?')) return;
+    guardandoJugador = true;
     try{
       const { data, error } = await sb.from('players').insert({ club_id:clubId, categoria:catActual(), temporada:(window.__getTemporada?window.__getTemporada():new Date().getFullYear()), name:name.trim(), number, position, club_origen:(clubOrigen||'').trim() }).select().single();
       if(error){
@@ -14273,10 +14340,11 @@ window.__initEditor = function(){
         }
         return;
       }
-      squad.push({ id:data.id, name:data.name, number:data.number||'', position:data.position||'', club_origen:data.club_origen||'' });
+      if(!squad.some(x => x.id === data.id)) squad.push({ id:data.id, name:data.name, number:data.number||'', position:data.position||'', club_origen:data.club_origen||'' });
       if(window.__touchSeen) window.__touchSeen();
       renderSquad();
-    }catch(e){ console.error(e); }
+    }catch(e){ console.error(e); toast(window.t('mAddErr')); }
+    finally{ guardandoJugador = false; }
   }
 
   // ========== PARTIDOS ==========
@@ -20357,13 +20425,23 @@ try{
         const original = qb[metodo].bind(qb);
         qb[metodo] = function(){
           const resultado = original.apply(null, arguments);
-          // resultado es "thenable": enganchamos sin romper la cadena.
-          if(resultado && typeof resultado.then === 'function'){
-            resultado.then(function(res){
-              if(res && res.error && window.__esErrorSuscripcion){
-                window.__esErrorSuscripcion(res.error);
-              }
-            }, function(){ /* errores de red: no hacemos nada acá */ });
+          // OJO: en esta librería cada ".then()" ENVÍA el pedido. Antes acá se llamaba a
+          // resultado.then(...) para mirar el error, y eso mandaba cada escritura DOS veces
+          // (una de más, y sin los filtros que se agregan después con .eq): por eso se
+          // duplicaban los jugadores, los partidos de En Vivo, etc.
+          // Ahora NO se envía nada desde acá: solo se "escucha" el resultado cuando el
+          // código que hizo la consulta la espera (await). Un solo pedido, el correcto.
+          if(resultado && typeof resultado.then === 'function' && !resultado.__vigilado){
+            resultado.__vigilado = true;
+            const thenOriginal = resultado.then;
+            resultado.then = function(alCumplir, alFallar){
+              return thenOriginal.call(this, function(res){
+                try{
+                  if(res && res.error && window.__esErrorSuscripcion) window.__esErrorSuscripcion(res.error);
+                }catch(e){}
+                return (typeof alCumplir === 'function') ? alCumplir(res) : res;
+              }, alFallar);
+            };
           }
           return resultado;
         };
