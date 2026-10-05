@@ -20528,6 +20528,78 @@ try{
           return resultado;
         };
       });
+      // ─── LECTURAS SIN TOPE ───
+      // La base entrega como máximo 1000 filas por pedido (y no avisa que cortó). Para que NINGUNA
+      // pantalla de la app muestre información incompleta, cada lectura pide además el total real
+      // de filas; si llegaron menos de las que hay, se piden las que faltan por tandas y se
+      // devuelve todo junto. Vale para todas las tablas y todas las pantallas, sin tocar cada una.
+      // No se aplica a las lecturas que piden a propósito una sola fila o un rango (.single, .limit, .range).
+      if(typeof qb.select === 'function'){
+        const selectOriginal = qb.select.bind(qb);
+        qb.select = function(){
+          const lectura = selectOriginal.apply(null, arguments);
+          if(lectura && typeof lectura.then === 'function' && !lectura.__sinTope){
+            lectura.__sinTope = true;
+            const thenLectura = lectura.then;
+            lectura.then = function(alCumplir, alFallar){
+              const self = this;
+              const pedir = () => new Promise((ok, mal) => { try{ thenLectura.call(self, ok, mal); }catch(e){ mal(e); } });
+              const todo = (async () => {
+                let paginable = false;
+                try{
+                  const sp0 = self.url && self.url.searchParams;
+                  const acepta = String((self.headers && self.headers.Accept) || '');
+                  const prefer = String((self.headers && self.headers.Prefer) || '');
+                  paginable = self.method === 'GET' && !!sp0 && !sp0.has('limit') && !sp0.has('offset')
+                           && acepta.indexOf('vnd.pgrst.object') < 0 && acepta.indexOf('csv') < 0
+                           && !self.isMaybeSingle && !/count=/.test(prefer);
+                  if(paginable) self.headers.Prefer = prefer ? (prefer + ',count=exact') : 'count=exact';
+                }catch(e){ paginable = false; }
+                const res = await pedir();
+                if(!paginable || !res || res.error || !Array.isArray(res.data) || typeof res.count !== 'number'
+                   || !res.data.length || res.data.length >= res.count) return res;
+                // Llegaron menos filas de las que hay: se leen todas, por tandas y con un orden fijo.
+                const total = res.count, tanda = res.data.length;        // tanda = el tope real de la base
+                const sp = self.url.searchParams;
+                const ordenOriginal = sp.get('order');
+                const leer = async (conId) => {
+                  if(conId) sp.set('order', (ordenOriginal ? ordenOriginal + ',' : '') + 'id.asc');
+                  else if(ordenOriginal) sp.set('order', ordenOriginal); else sp.delete('order');
+                  const filas = [];
+                  for(let v = 0; v < 5000 && filas.length < total; v++){
+                    sp.set('offset', String(filas.length));
+                    sp.set('limit', String(tanda));
+                    let r = await pedir();
+                    if(!r || r.error){ await new Promise(ok => setTimeout(ok, 700)); r = await pedir(); }   // un reintento por tanda
+                    if(!r || r.error) return null;
+                    if(!Array.isArray(r.data) || !r.data.length) break;
+                    for(let i = 0; i < r.data.length; i++) filas.push(r.data[i]);
+                  }
+                  return filas;
+                };
+                let filas = null;
+                try{
+                  filas = await leer(true);                 // orden fijo por "id" (si la tabla lo tiene)
+                  if(!filas) filas = await leer(false);     // si no tiene "id", con el orden que traía
+                }catch(e){ filas = null; }
+                try{
+                  sp.delete('offset'); sp.delete('limit');
+                  if(ordenOriginal) sp.set('order', ordenOriginal); else sp.delete('order');
+                }catch(e){}
+                if(!filas || filas.length < total){
+                  // No se pudo traer todo (se cortó la conexión): se avisa, para que nadie crea que la información está completa.
+                  console.warn('lectura incompleta de', tabla, '(' + ((filas && filas.length) || res.data.length) + ' de ' + total + ')');
+                  try{ if(window.toast) window.toast('No se pudo cargar toda la información. Revisá la conexión y volvé a entrar.'); }catch(e){}
+                  if(!filas || filas.length < res.data.length) return res;
+                }
+                return Object.assign({}, res, { data: filas });
+              })();
+              return todo.then(alCumplir, alFallar);
+            };
+          }
+          return lectura;
+        };
+      }
       return qb;
     };
   }
