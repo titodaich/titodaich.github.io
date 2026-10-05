@@ -2034,6 +2034,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .calls-cell.reason-custom{background:rgba(155,111,203,0.16);}
 .calls-legend{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.9;}
 
+/* Aviso de marcas de presentismo sin guardar */
+.att-sin-guardar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 12px;padding:10px 12px;border-radius:10px;background:rgba(240,85,63,0.12);border:1px solid var(--danger);color:var(--chalk);font-size:13px;line-height:1.4;}
+.att-sin-guardar span{flex:1 1 240px;}
+.att-sin-guardar button{min-height:38px;padding:0 12px;border-radius:8px;border:1px solid var(--danger);background:transparent;color:var(--chalk);font-family:'Inter',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
 /* ===== PRESENTISMO (planilla mensual) ===== */
 .att-toolbar{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;margin-bottom:14px;}
 
@@ -14303,9 +14307,8 @@ window.__initEditor = function(){
     const sb = window.__sb;
     const reales = ids.filter(id => !String(id).startsWith('tmp'));
     if(sb && reales.length){
-      const { data, error } = await sb.from('attendance').select('player_id,status').in('player_id', reales);
-      if(error) throw error;
-      (data || []).forEach(r => { if(r && r.status && out[r.player_id]) out[r.player_id].marcas++; });
+      const data = await leerTodasLasFilas(() => sb.from('attendance').select('player_id,status,event_key').in('player_id', reales), ['event_key', 'player_id']);
+      data.forEach(r => { if(r && r.status && out[r.player_id]) out[r.player_id].marcas++; });
     }
     return out;
   }
@@ -16556,6 +16559,25 @@ window.__initEditor = function(){
     }catch(e){ console.error('incluir jugador', e); }
   }
 
+  // Lee TODAS las filas de una consulta, pidiéndolas de a páginas hasta que no venga ninguna más.
+  // armarConsulta: función que devuelve la consulta desde cero (se llama una vez por página).
+  // orden: columnas para ordenar, así las páginas no se pisan ni se saltean filas.
+  async function leerTodasLasFilas(armarConsulta, orden){
+    const filas = [];
+    let primera = 0;
+    for(let v = 0; v < 500; v++){
+      let q = armarConsulta();
+      (orden || []).forEach(c => { q = q.order(c, { ascending: true }); });
+      const { data, error } = await q.range(filas.length, filas.length + 999);
+      if(error) throw error;
+      const n = (data || []).length;
+      if(!n) break;
+      for(let i = 0; i < n; i++) filas.push(data[i]);
+      if(v === 0) primera = n; else if(n < primera) break;   // página más corta que la primera: era la última
+    }
+    return filas;
+  }
+
   // Carga los estados guardados (de toda la temporada, para poder calcular el % anual)
   async function loadAttData(){
     const sb = window.__sb;
@@ -16564,13 +16586,19 @@ window.__initEditor = function(){
     const cat = (window.__getActiveCategory && window.__getActiveCategory()) || null;
     const temp = window.__getTemporada ? window.__getTemporada() : new Date().getFullYear();
     try{
-      let q = sb.from('attendance').select('event_key,player_id,status').eq('club_id', clubId).eq('temporada', temp);
-      q = cat ? q.eq('categoria', cat) : q.is('categoria', null);
-      const { data, error } = await q;
-      if(error){ console.error('attendance load', error); return; }
-      attData = {};
-      (data||[]).forEach(r => { if(r.status) attData[r.event_key+'|'+r.player_id] = r.status; });
-    }catch(e){ console.error('attendance load', e); }
+      // OJO: la base entrega como máximo 1000 filas por pedido. Un plantel con medio año cargado
+      // pasa ese número, y antes solo se veían las primeras 1000 marcas (el resto parecía "borrado",
+      // aunque seguía guardado). Ahora se leen TODAS, de a páginas.
+      const filas = await leerTodasLasFilas(() => {
+        let q = sb.from('attendance').select('event_key,player_id,status').eq('club_id', clubId).eq('temporada', temp);
+        return cat ? q.eq('categoria', cat) : q.is('categoria', null);
+      }, ['event_key', 'player_id']);
+      const nuevo = {};
+      filas.forEach(r => { if(r && r.status) nuevo[r.event_key+'|'+r.player_id] = r.status; });
+      // Las marcas que todavía se están guardando mandan sobre lo que vino de la base
+      Object.keys(attPendientes).forEach(k => { const st = attPendientes[k].status; if(st) nuevo[k] = st; else delete nuevo[k]; });
+      attData = nuevo;
+    }catch(e){ console.error('attendance load', e); }   // si falla, queda lo que ya estaba en pantalla
   }
 
   // Carga los partidos (para mostrar ⚽ sobre el día)
@@ -16595,29 +16623,83 @@ window.__initEditor = function(){
     }catch(e){ console.error('att matches', e); }
   }
 
-  // Guarda (upsert) el estado de una celda
+  // Guarda (upsert) el estado de una celda.
+  // Cada marca queda anotada como "pendiente" hasta que la base confirma que se guardó. Si falla
+  // (sin señal, corte, sesión vencida) se reintenta sola, se avisa en pantalla y no se pierde en silencio.
   const attSaveTimers = {};
+  const attPendientes = {};     // 'dia|jugador' -> { fila, status, v, fallos }
+  const attCola = {};           // un envío por celda a la vez, en orden
+  let attVersion = 0;
+  function attPintarPendientes(){
+    try{
+      const wrap = document.getElementById('attendanceWrap');
+      if(!wrap || !wrap.parentNode) return;
+      const sinGuardar = Object.keys(attPendientes).filter(k => attPendientes[k].fallos > 0).length;
+      let av = document.getElementById('attSinGuardar');
+      if(!sinGuardar){ if(av) av.remove(); return; }
+      if(!av){
+        av = document.createElement('div');
+        av.id = 'attSinGuardar';
+        av.className = 'att-sin-guardar';
+        wrap.parentNode.insertBefore(av, wrap);
+        av.addEventListener('click', (e) => { if(e.target && e.target.closest && e.target.closest('button')) attReintentarTodo(); });
+      }
+      av.innerHTML = '<span>⚠ ' + sinGuardar + (sinGuardar === 1 ? ' marca todavía no se guardó' : ' marcas todavía no se guardaron')
+                   + '. Revisá la conexión y no cierres la app: se reintenta sola.</span><button type="button">Reintentar ahora</button>';
+    }catch(e){}
+  }
+  async function attEnviar(tk, v, intento){
+    const p = attPendientes[tk];
+    if(!p || p.v !== v) return;                       // ya hay una marca más nueva para esa celda
+    let error = null;
+    try{
+      const sb = window.__sb;
+      const clubId = (window.__getClubId ? await window.__getClubId() : null);
+      if(!sb || !clubId) throw new Error('sin conexión');
+      const fila = Object.assign({ club_id: clubId }, p.fila, { updated_at: new Date().toISOString() });
+      const r = await sb.from('attendance').upsert(fila, { onConflict: 'club_id,categoria,temporada,player_id,event_key' });
+      error = r && r.error;
+    }catch(e){ error = e; }
+    const q = attPendientes[tk];
+    if(!q || q.v !== v) return;                       // cambió mientras se enviaba: la nueva tiene su propio envío
+    if(!error){ delete attPendientes[tk]; attPintarPendientes(); return; }
+    console.error('att save', error);
+    q.fallos = (q.fallos || 0) + 1;
+    attPintarPendientes();
+    if(intento === 0) toast('No se pudo guardar una marca. Se va a reintentar sola.');
+    const espera = [2000, 5000, 12000, 30000][Math.min(intento, 3)];
+    setTimeout(() => attEncolar(tk, v, intento + 1), espera);
+  }
+  function attEncolar(tk, v, intento){
+    attCola[tk] = (attCola[tk] || Promise.resolve()).then(() => attEnviar(tk, v, intento)).catch(() => {});
+  }
+  function attReintentarTodo(){
+    Object.keys(attPendientes).forEach(k => { if(attPendientes[k].fallos > 0) attEncolar(k, attPendientes[k].v, 1); });
+  }
+  if(!window.__attAvisosPuestos){
+    window.__attAvisosPuestos = true;
+    window.addEventListener('online', () => { try{ if(window.__attReintentar) window.__attReintentar(); }catch(e){} });
+    window.addEventListener('beforeunload', (e) => {
+      try{ if(window.__attHayPendientes && window.__attHayPendientes()){ e.preventDefault(); e.returnValue = ''; } }catch(err){}
+    });
+  }
+  window.__attReintentar = attReintentarTodo;
+  window.__attHayPendientes = () => Object.keys(attPendientes).length > 0;
   function saveAtt(dayKey, playerId, status){
-    const sb = window.__sb;
     if(window.__invalidateAttendance) window.__invalidateAttendance();  // el % cambió: refrescar en semáforo/ficha
     const tk = dayKey+'|'+playerId;
+    // La categoría y la temporada se toman AHORA (no medio segundo después): si cambiás de categoría
+    // enseguida, la marca igual se guarda donde corresponde.
+    const cat = (window.__getActiveCategory && window.__getActiveCategory()) || null;
+    const temp = window.__getTemporada ? window.__getTemporada() : new Date().getFullYear();
+    const v = ++attVersion;
+    attPendientes[tk] = {
+      v: v, status: status || '', fallos: 0,
+      fila: { categoria: cat, temporada: temp, player_id: playerId, event_key: dayKey, event_date: dayKey,
+              event_type: (attMatchDays[dayKey] ? 'match' : 'train'), status: status || '' }
+    };
     clearTimeout(attSaveTimers[tk]);
-    attSaveTimers[tk] = setTimeout(async () => {
-      try{
-        const clubId = (window.__getClubId ? await window.__getClubId() : null);
-        if(!sb || !clubId) return;
-        const cat = (window.__getActiveCategory && window.__getActiveCategory()) || null;
-        const temp = window.__getTemporada ? window.__getTemporada() : new Date().getFullYear();
-        const et = attMatchDays[dayKey] ? 'match' : 'train';
-        const fila = {
-          club_id: clubId, categoria: cat, temporada: temp,
-          player_id: playerId, event_key: dayKey, event_date: dayKey,
-          event_type: et, status: status || '', updated_at: new Date().toISOString()
-        };
-        const { error } = await sb.from('attendance').upsert(fila, { onConflict: 'club_id,categoria,temporada,player_id,event_key' });
-        if(error){ console.error('att save', error); toast('No se pudo guardar (¿corriste presentismo.sql?).'); }
-      }catch(e){ console.error('att save', e); }
-    }, 400);
+    attSaveTimers[tk] = setTimeout(() => attEncolar(tk, v, 0), 400);
   }
 
   // ¿Qué días de un mes tuvieron actividad? (al menos una marca de cualquier jugador)
