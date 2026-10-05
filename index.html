@@ -3891,7 +3891,7 @@ body.editor-active #screen-editor{ display:block; }
             <button class="notif-close" id="notifClose">✕</button>
           </div>
           <div class="notif-list" id="notifList"></div>
-          <div class="notif-version" id="notifVersion">Versión 5/10 · E</div>
+          <div class="notif-version" id="notifVersion">Versión 5/10 · F</div>
         </div>
       </div>
       <select id="langSelect" class="lang-select" title="Idioma / Language / Idioma">
@@ -7174,7 +7174,7 @@ window.__initEditor = function(){
 })();
 
 // Versión publicada: se muestra abajo de las novedades (campanita). Cambiarla en cada subida.
-window.__BO_VERSION = '5/10 · E';
+window.__BO_VERSION = '5/10 · F';
 // ---------------- NOTIFICACIONES (campanita) ----------------
 (function initNotifications(){
   const bell = document.getElementById('notifBell');
@@ -10739,6 +10739,7 @@ window.__BO_VERSION = '5/10 · E';
   let matchAuthorId = null;      // autor del partido (se fija al iniciar, sobrevive al guardado local)
   let matchCategoria = null;     // categoría del partido (se fija al iniciar; NO cambia aunque muevas la barra)
   let inSetup = true;
+  window.__liveEnCurso = () => !inSetup;   // hay un partido En Vivo abierto (para no recargar la app en el medio)
   // Marcador manual (lo que NO se deduce de los jugadores):
   let goalsAgainstManual = 0;    // goles en contra (se cargan a mano) — NO se resetean
   let foulsAgainst1 = 0;         // faltas del rival en el 1er tiempo (manual)
@@ -24144,8 +24145,9 @@ async function exportarGrupoOrdenado(nombre, clips){
     if(window.caches && caches.keys){
       caches.keys().then(function(keys){
         keys.forEach(function(k){
-          // Borramos caches de versiones viejas, no el actual (v6).
-          if(String(k).indexOf('benchone') !== -1 && k !== 'benchone-v6'){ caches.delete(k).catch(function(){}); }
+          // Borramos las copias del esquema viejo ("benchone-v1"…"benchone-v6"). La copia actual la
+          // maneja el service worker con otro nombre ("bo-app-…") y acá no se toca.
+          if(String(k).indexOf('benchone') !== -1){ caches.delete(k).catch(function(){}); }
         });
       }).catch(function(){});
     }
@@ -24173,6 +24175,55 @@ async function exportarGrupoOrdenado(nombre, clips){
           // Buscamos actualizaciones cada vez que se abre la app.
           try{ reg.update(); }catch(e){}
         }).catch(function(){ /* si falla, la app sigue online */ });
+        // ── VERSIÓN NUEVA DE LA APP ──
+        // El service worker muestra la copia guardada al instante y baja la última en segundo plano.
+        // Cuando detecta que cambió, avisa acá. Si recién abriste la app y no estás en medio de algo,
+        // se actualiza sola; si estás trabajando (partido En Vivo, marcas sin guardar), aparece un
+        // cartel para actualizar cuando quieras, así no se pierde nada.
+        var avisoVersion = false;
+        function ocupadoAhora(){
+          try{ if(window.__liveEnCurso && window.__liveEnCurso()) return true; }catch(e){}
+          try{ if(window.__attHayPendientes && window.__attHayPendientes()) return true; }catch(e){}
+          return false;
+        }
+        function actualizarAhora(){
+          try{ sessionStorage.setItem('bo_recarga_version', String(Date.now())); }catch(e){}
+          try{ location.reload(); }catch(e){}
+        }
+        function nuevaVersionDisponible(){
+          if(avisoVersion) return;
+          avisoVersion = true;
+          var hacePoco = 0;
+          try{ hacePoco = parseInt(sessionStorage.getItem('bo_recarga_version') || '0', 10) || 0; }catch(e){}
+          var recienRecargo = (Date.now() - hacePoco) < 60000;          // nunca dos recargas automáticas seguidas
+          var recienAbrio = (window.performance && performance.now) ? performance.now() < 25000 : false;
+          if(recienAbrio && !recienRecargo && !ocupadoAhora()){ actualizarAhora(); return; }
+          try{
+            if(document.getElementById('boNuevaVersion')) return;
+            var c = document.createElement('div');
+            c.id = 'boNuevaVersion';
+            c.setAttribute('style', 'position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:12px 14px;border-radius:12px;background:#152230;border:1px solid #40C8D6;color:#F2F6F8;font-family:Inter,sans-serif;font-size:14px;line-height:1.35;box-shadow:0 12px 34px rgba(0,0,0,.5);max-width:560px;margin:0 auto;');
+            var t = document.createElement('span');
+            t.setAttribute('style', 'flex:1 1 200px;');
+            t.textContent = 'Hay una versión nueva de BenchOne.';
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.textContent = 'Actualizar';
+            b.setAttribute('style', 'min-height:40px;padding:0 16px;border-radius:9px;border:0;background:#40C8D6;color:#06242B;font-family:Inter,sans-serif;font-size:14px;font-weight:700;cursor:pointer;');
+            b.addEventListener('click', actualizarAhora);
+            c.appendChild(t); c.appendChild(b);
+            document.body.appendChild(c);
+          }catch(e){}
+        }
+        navigator.serviceWorker.addEventListener('message', function(ev){
+          if(ev && ev.data && ev.data.tipo === 'benchone-nueva-version') nuevaVersionDisponible();
+        });
+        // Al abrir (y cada vez que volvés a la app) le preguntamos si ya tiene una versión más nueva guardada.
+        function preguntarVersion(){
+          try{ if(navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage({ tipo: 'benchone-hay-nueva' }); }catch(e){}
+        }
+        setTimeout(preguntarVersion, 3000);
+        document.addEventListener('visibilitychange', function(){ if(document.visibilityState === 'visible') preguntarVersion(); });
         // Cuando el SW nuevo toma control, recargamos UNA vez para mostrar lo nuevo.
         var yaRecargo = false;
         navigator.serviceWorker.addEventListener('controllerchange', function(){
