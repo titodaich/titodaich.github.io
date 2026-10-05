@@ -696,6 +696,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .ni-date{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);}
 .notif-item p{font-family:'Inter',sans-serif;font-size:12.5px;line-height:1.55;color:var(--muted);margin:0;}
 .notif-empty{font-family:'Inter',sans-serif;font-size:12.5px;color:var(--muted);padding:18px 14px;margin:0;text-align:center;}
+.notif-version{font-family:'Inter',sans-serif;font-size:11px;color:var(--muted);padding:8px 14px;border-top:1px solid var(--line);text-align:right;}
 @media (max-width:600px){ .notif-panel{width:290px;} }
 /* En celular el panel se ancla a la pantalla, no al botón (si no, queda aplastado) */
 @media (max-width:720px){
@@ -1227,6 +1228,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 /* Selector de temporada */
 .season-box{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0;}
 .season-select{background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);border-radius:8px;padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:13px;cursor:pointer;}
+.season-aviso{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:8px 0 0;padding:10px 12px;border-radius:10px;background:rgba(224,169,59,0.14);border:1px solid #E0A93B;color:var(--chalk);font-family:'Inter',sans-serif;font-size:13px;line-height:1.4;position:relative;z-index:2;}
+.season-aviso span{flex:1 1 240px;}
+.season-aviso button{min-height:36px;padding:0 12px;border-radius:8px;border:1px solid #E0A93B;background:#E0A93B;color:#241803;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
 .season-select:focus{outline:none;border-color:var(--accent-2);}
 .season-new{padding:5px 11px !important;font-size:15px !important;line-height:1;}
 @media (max-width:720px){
@@ -3887,6 +3891,7 @@ body.editor-active #screen-editor{ display:block; }
             <button class="notif-close" id="notifClose">✕</button>
           </div>
           <div class="notif-list" id="notifList"></div>
+          <div class="notif-version" id="notifVersion">Versión 5/10 · E</div>
         </div>
       </div>
       <select id="langSelect" class="lang-select" title="Idioma / Language / Idioma">
@@ -3919,6 +3924,7 @@ body.editor-active #screen-editor{ display:block; }
       <button class="btn small season-new" id="newSeasonBtn" title="Crear una temporada nueva">＋</button>
     </div>
   </div>
+  <div class="season-aviso" id="seasonAviso" style="display:none;"></div>
 
   <!-- ===== MENÚ DE NAVEGACIÓN ===== -->
   <div class="nav-wrap">
@@ -7167,6 +7173,8 @@ window.__initEditor = function(){
   document.addEventListener('visibilitychange', () => { if(document.hidden) guardar(false); });
 })();
 
+// Versión publicada: se muestra abajo de las novedades (campanita). Cambiarla en cada subida.
+window.__BO_VERSION = '5/10 · E';
 // ---------------- NOTIFICACIONES (campanita) ----------------
 (function initNotifications(){
   const bell = document.getElementById('notifBell');
@@ -7312,9 +7320,32 @@ window.__initEditor = function(){
   const sel = document.getElementById('seasonSelect');
 
   function pintarSelector(){
+    pintarAvisoTemporada();
     if(!sel) return;
     const lista = [...new Set(temporadas)].sort((a,b) => b - a);
     sel.innerHTML = lista.map(a => `<option value="${a}"${a===temporadaActiva?' selected':''}>${a}</option>`).join('');
+  }
+  // Cartel fijo cuando NO estás en la temporada del año en curso: todo lo que se carga queda en la
+  // temporada elegida, y es fácil no darse cuenta (después "faltan" jugadores o datos en la otra).
+  function pintarAvisoTemporada(){
+    try{
+      const av = document.getElementById('seasonAviso');
+      if(!av) return;
+      if(temporadaActiva === AHORA){ av.style.display = 'none'; av.innerHTML = ''; return; }
+      av.innerHTML = '<span>⚠ Estás trabajando en la <b>temporada ' + temporadaActiva + '</b>, no en la de este año (' + AHORA + '). '
+                   + 'Los jugadores, partidos y presentismo que cargues ahora quedan en ' + temporadaActiva + '.</span>'
+                   + '<button type="button" id="seasonVolver">Volver a ' + AHORA + '</button>';
+      av.style.display = 'flex';
+      const b = document.getElementById('seasonVolver');
+      if(b) b.addEventListener('click', () => {
+        temporadaActiva = AHORA;
+        if(!temporadas.includes(AHORA)) temporadas.push(AHORA);
+        guardarTemporadaActiva();
+        pintarSelector();
+        avisar();
+        toast('Temporada ' + temporadaActiva);
+      });
+    }catch(e){}
   }
 
   // Carga qué temporadas tienen datos y cuál estaba activa
@@ -7358,6 +7389,7 @@ window.__initEditor = function(){
     sel.addEventListener('change', () => {
       temporadaActiva = parseInt(sel.value, 10) || AHORA;
       guardarTemporadaActiva();
+      pintarAvisoTemporada();
       avisar();
       toast('Temporada ' + temporadaActiva);
     });
@@ -7414,6 +7446,11 @@ window.__initEditor = function(){
     const año = parseInt(document.getElementById('seasonYear').value, 10);
     if(!año || año < 2000 || año > 2100){ toast('Poné un año válido'); return; }
     if(temporadas.includes(año)){ toast('Esa temporada ya existe'); return; }
+    if(año !== AHORA && !confirm('Estamos en ' + AHORA + ' y vas a crear la temporada ' + año + '.\n\n'
+        + 'La app va a pasar a mostrar SOLO lo de ' + año + ': plantel, partidos, presentismo y En Vivo. '
+        + 'Lo de ' + temporadaActiva + ' no se borra, queda guardado en su temporada.\n\n'
+        + 'Los jugadores tildados se COPIAN a ' + año + ' (los de ' + temporadaActiva + ' siguen estando).\n\n'
+        + 'Si solo querías seguir cargando este año, tocá Cancelar.\n\n¿Crear la temporada ' + año + '?')) return;
     const sb = window.__sb;
     const clubId = (window.__getClubId ? await window.__getClubId() : null);
     if(!sb || !clubId){ toast('Sin conexión'); return; }
@@ -13560,8 +13597,11 @@ window.__initEditor = function(){
     if(!clubId) return;
     const cat = catActual();
     try{
-      // Plantel
-      let pq = sb.from('players').select('*').eq('club_id', clubId);
+      // Plantel: solo los de la temporada activa, igual que En Vivo, la pizarra y el resto de la app.
+      // (Antes acá se veían mezclados los jugadores de todas las temporadas: aparecían repetidos y
+      // después "faltaban" en En Vivo.)
+      const tempActiva = window.__getTemporada ? window.__getTemporada() : new Date().getFullYear();
+      let pq = sb.from('players').select('*').eq('club_id', clubId).eq('temporada', tempActiva);
       pq = cat ? pq.eq('categoria', cat) : pq.is('categoria', null);
       const pRes = await pq;
       const todos = (pRes.data||[]).map(p => ({ id:p.id, name:p.name, number:p.number||'', position:p.position||'', photo:p.photo||'', att_excluido: !!p.att_excluido, archivado: !!p.archivado, anio_nacimiento: p.anio_nacimiento||null, pierna: p.pierna||null, notas: p.notas||null, nacimiento: p.nacimiento||null, club_origen: p.club_origen||'' }));
@@ -13588,8 +13628,8 @@ window.__initEditor = function(){
       // Exponer los tags de origen para que el módulo En Vivo los use
       window.__origins = origins;
 
-      // Partidos
-      let mq = sb.from('stat_matches').select('*').eq('club_id', clubId);
+      // Partidos: también solo los de la temporada activa
+      let mq = sb.from('stat_matches').select('*').eq('club_id', clubId).eq('temporada', tempActiva);
       mq = cat ? mq.eq('categoria', cat) : mq.is('categoria', null);
       const mRes = await mq;
       matches = (mRes.data||[]).map(m => ({
@@ -13631,7 +13671,10 @@ window.__initEditor = function(){
       try{
         let aq = sb.from('stat_adjustments').select('*').eq('club_id', clubId);
         aq = cat ? aq.eq('categoria', cat) : aq.is('categoria', null);
-        const aRes = await aq;
+        const aRes0 = await aq;
+        const filasAj = (aRes0 && aRes0.data) || [];
+        const ajTemp = filasAj.filter(r => r && String(r.temporada) === String(tempActiva));
+        const aRes = { data: ajTemp.length ? ajTemp : filasAj.filter(r => r && r.temporada == null) };
         if(aRes.data && aRes.data.length){
           adjustment = { scorers: aRes.data[0].scorers||[], scored: aRes.data[0].scored||[], conceded: aRes.data[0].conceded||[], cards: aRes.data[0].cards||[], citados: aRes.data[0].citados||[], matchesPlayed: aRes.data[0].matches_played||0 };
           adjRowId = aRes.data[0].id;
