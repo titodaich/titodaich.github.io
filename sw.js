@@ -1,118 +1,137 @@
-/* ══════════════════════════════════════════════════════════════
-   BENCHONE — Service Worker (offline + AUTO-ACTUALIZACIÓN v6)
+/* BenchOne — service worker
+   ---------------------------------------------------------------------------
+   Qué hace:
+   - La app (index.html) se abre AL INSTANTE desde la copia guardada en el teléfono
+     y, al mismo tiempo, se baja la última versión publicada. Si cambió, se guarda
+     y se le avisa a la app para que se actualice sola.
+   - Antes esperaba la red solo 4 segundos y, si no llegaba (el archivo pesa casi
+     3 MB), mostraba la copia vieja SIN actualizarla: había teléfonos que quedaban
+     días con una versión anterior.
+   - NO hace falta tocar este archivo en cada subida. Solo se cambia si se modifica
+     esta lógica.
+   - Nunca toca los pedidos a la base de datos (Supabase): van siempre directo.
+   --------------------------------------------------------------------------- */
+const CACHE = 'bo-app-1';
+const INDEX = new URL('index.html', self.registration.scope).href;
+const RAIZ = new URL('./', self.registration.scope).href;
+const LOGO = new URL('logo.png', self.registration.scope).href;
+const CDN = ['cdn.jsdelivr.net', 'unpkg.com', 'cdnjs.cloudflare.com'];
+let hayNueva = false;   // se bajó una versión más nueva que la que tiene abierta algún teléfono
 
-   ▓▓▓ IMPORTANTE — CADA VEZ QUE PUBLIQUES CAMBIOS ▓▓▓
-   Subí el número de CACHE_VERSION (v6 → v7 ...).
-
-   NOVEDAD v6: el index.html ahora es NETWORK-FIRST. La app intenta
-   siempre traer la versión más nueva de la red al abrir; si no hay
-   internet, usa la copia guardada. Esto hace que las actualizaciones
-   aparezcan solas, sin tener que borrar caché a mano.
-   ══════════════════════════════════════════════════════════════ */
-
-const CACHE_VERSION = 'benchone-v6';
-const NET_TIMEOUT_MS = 4000;
-const LIB_CDN_HOSTS = ['cdn.jsdelivr.net', 'unpkg.com', 'cdnjs.cloudflare.com'];
-const APP_SHELL = ['./', './index.html', './logo.png', 'index.html'];
-
-self.addEventListener('install', function(event){
-  self.skipWaiting();
-  event.waitUntil(
-    caches.open(CACHE_VERSION).then(function(cache){
-      return Promise.all(APP_SHELL.map(function(url){
-        return cache.add(new Request(url, { cache: 'reload' })).catch(function(){
-          return cache.add(url).catch(function(){});
-        });
-      }));
-    })
-  );
+self.addEventListener('install', (event) => {
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE);
+    // Bajamos la app fresca (sin usar la copia del navegador) y la guardamos.
+    try{
+      const r = await fetch(new Request(INDEX, { cache: 'reload' }));
+      if(r && r.ok){ await cache.put(INDEX, r.clone()); await cache.put(RAIZ, r); }
+    }catch(e){ /* sin conexión: se guardará en la próxima apertura */ }
+    try{
+      const l = await fetch(new Request(LOGO, { cache: 'reload' }));
+      if(l && l.ok) await cache.put(LOGO, l);
+    }catch(e){}
+    await self.skipWaiting();
+  })());
 });
 
-self.addEventListener('activate', function(event){
-  event.waitUntil(
-    caches.keys().then(function(keys){
-      return Promise.all(keys.map(function(k){
-        if(k !== CACHE_VERSION) return caches.delete(k);
-      }));
-    }).then(function(){ return self.clients.claim(); })
-  );
+self.addEventListener('activate', (event) => {
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    // Borramos las copias de versiones anteriores de este service worker.
+    await Promise.all(keys.filter(k => k !== CACHE && (k.indexOf('benchone') !== -1 || k.indexOf('bo-app-') === 0)).map(k => caches.delete(k)));
+    await self.clients.claim();
+  })());
 });
 
-// Permite que la página pida activar de inmediato una versión nueva.
-self.addEventListener('message', function(event){
-  if(event.data === 'skipWaiting'){ self.skipWaiting(); }
+self.addEventListener('message', (event) => {
+  const d = event.data;
+  if(d === 'skipWaiting'){ self.skipWaiting(); return; }
+  // La app pregunta, al abrirse, si ya hay una versión más nueva guardada.
+  if(d && d.tipo === 'benchone-hay-nueva' && hayNueva && event.source){
+    try{ event.source.postMessage({ tipo: 'benchone-nueva-version' }); }catch(e){}
+  }
 });
 
-function fetchConTimeout(req){
-  return new Promise(function(resolve, reject){
-    var listo = false;
-    var timer = setTimeout(function(){
-      if(!listo){ listo = true; reject(new Error('net-timeout')); }
-    }, NET_TIMEOUT_MS);
-    fetch(req).then(function(res){
-      clearTimeout(timer);
-      try{
-        var copy = res.clone();
-        caches.open(CACHE_VERSION).then(function(cache){ cache.put(req, copy).catch(function(){}); });
-      }catch(e){}
-      if(!listo){ listo = true; resolve(res); }
-    }).catch(function(err){
-      clearTimeout(timer);
-      if(!listo){ listo = true; reject(err); }
-    });
-  });
+async function avisarNuevaVersion(){
+  hayNueva = true;
+  try{
+    const cs = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    cs.forEach(c => { try{ c.postMessage({ tipo: 'benchone-nueva-version' }); }catch(e){} });
+  }catch(e){}
 }
 
-function indexGuardado(){
-  return caches.open(CACHE_VERSION).then(function(cache){
-    return cache.match('./index.html')
-      .then(function(h){ return h || cache.match('index.html'); })
-      .then(function(h){ return h || cache.match('./'); });
-  });
+// ¿La respuesta nueva es distinta de la guardada?
+async function esDistinta(guardada, nueva){
+  try{
+    const a = guardada.headers.get('etag'), b = nueva.headers.get('etag');
+    if(a && b) return a !== b;
+    const la = guardada.headers.get('last-modified'), lb = nueva.headers.get('last-modified');
+    const ca = guardada.headers.get('content-length'), cb = nueva.headers.get('content-length');
+    if(la && lb && ca && cb) return la !== lb || ca !== cb;
+    const [ta, tb] = await Promise.all([guardada.text(), nueva.text()]);
+    return ta !== tb;
+  }catch(e){ return true; }
 }
 
-self.addEventListener('fetch', function(event){
+// La app: copia guardada al instante + actualización en segundo plano.
+async function servirApp(event){
+  const cache = await caches.open(CACHE);
+  const guardada = (await cache.match(INDEX)) || (await cache.match(RAIZ));
+  const paraComparar = guardada ? guardada.clone() : null;
+  const deRed = (async () => {
+    try{
+      const resp = await fetch(new Request(INDEX, { cache: 'no-store' }));
+      if(!resp || !resp.ok) return null;
+      const cambio = paraComparar ? await esDistinta(paraComparar, resp.clone()) : true;
+      if(cambio){
+        await cache.put(INDEX, resp.clone());
+        await cache.put(RAIZ, resp.clone());
+        if(paraComparar) await avisarNuevaVersion();
+      }
+      return resp;
+    }catch(e){ return null; }
+  })();
+  if(guardada){
+    hayNueva = false;                 // esta apertura ya usa lo último que había guardado
+    event.waitUntil(deRed);
+    return guardada;
+  }
+  const r = await deRed;
+  return r || new Response('<meta charset="utf-8"><body style="font-family:sans-serif;padding:24px">Sin conexión. Abrí BenchOne con internet la primera vez.</body>', { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+}
+
+// Librerías externas: se guardan una vez y se usan desde el teléfono.
+async function primeroGuardado(req){
+  const cache = await caches.open(CACHE);
+  const hit = await cache.match(req);
+  if(hit) return hit;
+  const r = await fetch(req);
+  if(r && (r.ok || r.type === 'opaque')){ try{ await cache.put(req, r.clone()); }catch(e){} }
+  return r;
+}
+
+// Otros archivos propios (logo, etc.): red primero; si no hay red, la copia guardada.
+async function primeroRed(req){
+  const cache = await caches.open(CACHE);
+  try{
+    const r = await fetch(req);
+    if(r && r.ok){ try{ await cache.put(req, r.clone()); }catch(e){} }
+    return r;
+  }catch(e){
+    const hit = await cache.match(req);
+    if(hit) return hit;
+    throw e;
+  }
+}
+
+self.addEventListener('fetch', (event) => {
   const req = event.request;
-  if(req.method !== 'GET'){ return; }
-  const url = new URL(req.url);
-
-  // Librerías de CDN: cache-first (no cambian, así cargan rápido y offline).
-  if(LIB_CDN_HOSTS.indexOf(url.hostname) !== -1){
-    event.respondWith(
-      caches.match(req).then(function(hit){
-        if(hit) return hit;
-        return fetch(req).then(function(res){
-          const copy = res.clone();
-          caches.open(CACHE_VERSION).then(function(cache){ cache.put(req, copy).catch(function(){}); });
-          return res;
-        });
-      })
-    );
-    return;
-  }
-
-  // Otros orígenes (Supabase, fuentes): directo a la red.
-  if(url.origin !== self.location.origin){ return; }
-
-  // NAVEGACIÓN (abrir la app): NETWORK-FIRST.
-  // Intentamos SIEMPRE traer el index fresco de la red (así aparece lo nuevo).
-  // Si la red falla o tarda, usamos la copia guardada (para que abra offline).
-  if(req.mode === 'navigate'){
-    event.respondWith(
-      fetchConTimeout(req).catch(function(){
-        return indexGuardado().then(function(g){ return g || fetch(req); });
-      })
-    );
-    return;
-  }
-
-  // Resto de recursos del mismo origen: network-first con respaldo a caché.
-  event.respondWith(
-    fetchConTimeout(req).catch(function(){
-      return caches.match(req).then(function(hit){
-        if(hit) return hit;
-        return indexGuardado().then(function(g){ return g || fetch(req); });
-      });
-    })
-  );
+  if(req.method !== 'GET') return;                       // las escrituras nunca pasan por acá
+  let url;
+  try{ url = new URL(req.url); }catch(e){ return; }
+  if(CDN.indexOf(url.hostname) !== -1){ event.respondWith(primeroGuardado(req)); return; }
+  if(url.origin !== self.location.origin) return;        // base de datos y demás: directo a la red
+  if(/\/sw\.js$/.test(url.pathname)) return;             // el propio service worker: siempre de la red
+  if(req.mode === 'navigate' || url.href.split('?')[0].split('#')[0] === INDEX){ event.respondWith(servirApp(event)); return; }
+  event.respondWith(primeroRed(req));
 });
