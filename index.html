@@ -2172,7 +2172,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .calls-empty{text-align:center;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:13px;padding:40px;border:1px dashed var(--line);border-radius:12px;}
 .annual-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 @media (max-width:820px){.annual-grid{grid-template-columns:1fr;}}
-}
 
 .calls-legend .cl-i{display:inline-block;padding:2px 8px;border-radius:6px;margin:0 3px;white-space:nowrap;}
 .calls-legend .cl-yes{background:rgba(76,175,109,0.18);color:var(--success);}
@@ -3891,7 +3890,7 @@ body.editor-active #screen-editor{ display:block; }
             <button class="notif-close" id="notifClose">✕</button>
           </div>
           <div class="notif-list" id="notifList"></div>
-          <div class="notif-version" id="notifVersion">Versión 6/10 · H</div>
+          <div class="notif-version" id="notifVersion">Versión 6/10 · I</div>
         </div>
       </div>
       <select id="langSelect" class="lang-select" title="Idioma / Language / Idioma">
@@ -4795,7 +4794,7 @@ body.editor-active #screen-editor{ display:block; }
 
         <div class="board-videos-head">
           <h3 class="board-plays-title">🎥 Biblioteca de videos</h3>
-          <button class="btn small" id="addVideoBtn" style="background:rgba(47,143,203,0.15);border:1px solid var(--accent-2);color:var(--accent-2);font-weight:600;">+ Agregar video</button>
+          <button class="btn small" id="boardAddVideoBtn" style="background:rgba(47,143,203,0.15);border:1px solid var(--accent-2);color:var(--accent-2);font-weight:600;">+ Agregar video</button>
         </div>
         <p class="board-videos-note">Guardá links de videos (YouTube, Drive) para mostrarle a los jugadores. No ocupan espacio.</p>
         <div class="board-videos-list" id="boardVideosList"></div>
@@ -6529,7 +6528,7 @@ async function guardarPerfil(userId, email, perfil){
       };
       window.__lastTouch = Date.now();
       // Latido periódico para reflejar "conectado" en el panel admin.
-      setInterval(() => { try{ sb.rpc('touch_last_seen'); }catch(e){} }, 120000);
+      setInterval(() => { try{ if(document.visibilityState === 'visible') sb.rpc('touch_last_seen').then(()=>{},()=>{}); }catch(e){} }, 120000);
       // Registrar la conexión cuando el usuario VUELVE a la app (evento confiable
       // que sí se dispara en celulares al reabrir/volver a la pestaña). El
       // setInterval de arriba se suspende con la pantalla apagada; esto no.
@@ -6949,7 +6948,21 @@ function irACrearCuenta(){
 
 <!-- LÓGICA DEL EDITOR (scope aislado; se inicializa al entrar) -->
 <script>
+// Aviso emergente disponible para TODA la página (también fuera del editor: cambio de contraseña, etc.).
+// Sin esto, "window.toast" era el cartel en sí (el elemento con id="toast") y llamarlo como función daba error.
+window.toast = function(msg){
+  try{
+    const el = document.getElementById('toast');
+    if(!el) return;
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(el._t);
+    el._t = setTimeout(() => el.classList.remove('show'), 2400);
+  }catch(e){}
+};
 window.__initEditor = function(){
+// Identificador del club que comparten Planificación y Estadísticas (cada una lo carga al abrir).
+let clubId = null;
 
 // ---------------- NAVEGACIÓN ENTRE SECCIONES ----------------
 (function initNav(){
@@ -7174,7 +7187,7 @@ window.__initEditor = function(){
 })();
 
 // Versión publicada: se muestra abajo de las novedades (campanita). Cambiarla en cada subida.
-window.__BO_VERSION = '6/10 · H';
+window.__BO_VERSION = '6/10 · I';
 // La etiqueta de la campanita siempre muestra este mismo número (así nunca quedan distintos).
 (function(){
   function ponerVersion(){ try{ var e = document.getElementById('notifVersion'); if(e) e.textContent = 'Versión ' + window.__BO_VERSION; }catch(err){} }
@@ -7935,7 +7948,7 @@ window.__BO_VERSION = '6/10 · H';
       if(error){ console.error('scouting load', error); return; }
       if(data && data.length){
         // Reconstruir todas las fechas que existan en la nube (puede haber más de 1)
-        const maxFecha = Math.max(...data.map(r => r.fecha), 1);
+        const maxFecha = Math.min(200, Math.max(...data.map(r => Number(r && r.fecha)).filter(n => Number.isFinite(n) && n >= 1), 1));
         rivals = [];
         for(let i=1;i<=maxFecha;i++) rivals.push(makeFixture(i));
         data.forEach(row => {
@@ -7953,8 +7966,9 @@ window.__BO_VERSION = '6/10 · H';
           r.sixthFoul = row.sixth_foul || '';
           r.penalties = row.penalties || '';
           extraerEmbebidos(r);
-          r.players = Array.isArray(row.players) ? row.players : [];
-          r.materials = Array.isArray(row.materials) ? row.materials : [];
+          // Solo elementos válidos: si quedó guardado alguno vacío o roto, se descarta y la ficha abre igual.
+          r.players = Array.isArray(row.players) ? row.players.filter(x => x && typeof x === 'object') : [];
+          r.materials = Array.isArray(row.materials) ? row.materials.filter(x => x && typeof x === 'object') : [];
         });
       } else {
         // Nube vacía para esta categoría: aplicar defaults SOLO en la primera categoría
@@ -10152,7 +10166,7 @@ window.__BO_VERSION = '6/10 · H';
   // Modal de agregar video
   (function initVideoLib(){
     function bind(){
-      const addBtn = document.getElementById('addVideoBtn');
+      const addBtn = document.getElementById('boardAddVideoBtn');
       const modal = document.getElementById('videoLibModal');
       if(!addBtn || !modal || addBtn.dataset.bound) return;
       addBtn.dataset.bound = '1';
@@ -12523,14 +12537,14 @@ window.__BO_VERSION = '6/10 · H';
       if(!sb || !window.__getClubId) return;
       const clubId = await window.__getClubId();
       if(!clubId) return;
-      const cat = catActual();
+      const cat = (window.__getActiveCategory && window.__getActiveCategory()) || null;
       let oq = sb.from('goal_origins').select('*').eq('club_id', clubId);
       oq = cat ? oq.eq('categoria', cat) : oq.is('categoria', null);
       const oRes = await oq;
       if(oRes && oRes.data && oRes.data.length && oRes.data[0].name){
         try{
           const parsed = JSON.parse(oRes.data[0].name);
-          if(Array.isArray(parsed) && parsed.length){ window.__origins = parsed; }
+          if(Array.isArray(parsed) && parsed.length){ window.__origins = (function(lista){ return lista.map(function(o){ if(typeof o === 'string') return { name:o, subs:[] }; if(!o || typeof o !== 'object') return null; return Object.assign({}, o, { name: String(o.name == null ? '' : o.name), subs: Array.isArray(o.subs) ? o.subs.filter(function(x){ return typeof x === 'string'; }) : [] }); }).filter(Boolean); })(parsed); }
         }catch(e){ /* si el JSON está roto, dejamos que use los por defecto */ }
       }
     }catch(e){ /* ante cualquier error, En Vivo usa los tags por defecto: no rompe nada */ }
@@ -12947,9 +12961,12 @@ window.__BO_VERSION = '6/10 · H';
     if(LIB_H2C.check()) return true;
     // Respaldo por si algo raro pasó: intentar cargarlo de un CDN.
     if(typeof loadWithFallback === 'function') return loadWithFallback(LIB_H2C);
-    for(const url of LIB_H2C.urls){ try{ await loadScript(url, 8000); if(LIB_H2C.check()) return true; }catch(e){} }
+    if(typeof loadScript === 'function'){ for(const url of LIB_H2C.urls){ try{ await loadScript(url, 8000); if(LIB_H2C.check()) return true; }catch(e){} } }
     return false;
   }
+
+  // Estas funciones de exportación también las usa Estadísticas (Minutaje): se comparten por acá.
+  window.__boExport = { png: (n, a) => exportarNodoPNG(n, a), pdf: (n, a, l) => exportarNodoPDF(n, a, l), nombre: (t, p) => limpiarNombreArchivo(t, p) };
 
   function nombreArchivoSemana(w){
     const base = (w.name || 'Semana').replace(/[^\wÀ-ÿ ]/g,'').trim().replace(/\s+/g,'-');
@@ -13611,7 +13628,8 @@ window.__BO_VERSION = '6/10 · H';
       let pq = sb.from('players').select('*').eq('club_id', clubId).eq('temporada', tempActiva);
       pq = cat ? pq.eq('categoria', cat) : pq.is('categoria', null);
       const pRes = await pq;
-      const todos = (pRes.data||[]).map(p => ({ id:p.id, name:p.name, number:p.number||'', position:p.position||'', photo:p.photo||'', att_excluido: !!p.att_excluido, archivado: !!p.archivado, anio_nacimiento: p.anio_nacimiento||null, pierna: p.pierna||null, notas: p.notas||null, nacimiento: p.nacimiento||null, club_origen: p.club_origen||'' }));
+      const txt = (v) => (v == null) ? '' : String(v);
+      const todos = (pRes.data||[]).filter(p => p && p.id != null).map(p => ({ id:p.id, name:txt(p.name), number:txt(p.number), position:txt(p.position), photo:p.photo||'', att_excluido: !!p.att_excluido, archivado: !!p.archivado, anio_nacimiento: p.anio_nacimiento||null, pierna: p.pierna||null, notas: p.notas||null, nacimiento: p.nacimiento||null, club_origen: p.club_origen||'' }));
       // squad = solo los ACTIVOS (los archivados no aparecen en ninguna lista).
       squad = todos.filter(p => !p.archivado);
       // Guardamos los archivados aparte para el panel "Archivo".
@@ -13624,7 +13642,8 @@ window.__BO_VERSION = '6/10 · H';
       if(oRes.data && oRes.data.length && oRes.data[0].name){
         try{
           const parsed = JSON.parse(oRes.data[0].name);
-          origins = Array.isArray(parsed) ? parsed : DEFAULT_ORIGINS.slice();
+          origins = Array.isArray(parsed) ? (function(lista){ return lista.map(function(o){ if(typeof o === 'string') return { name:o, subs:[] }; if(!o || typeof o !== 'object') return null; return Object.assign({}, o, { name: String(o.name == null ? '' : o.name), subs: Array.isArray(o.subs) ? o.subs.filter(function(x){ return typeof x === 'string'; }) : [] }); }).filter(Boolean); })(parsed) : DEFAULT_ORIGINS.slice();
+          if(!origins.length) origins = DEFAULT_ORIGINS.slice();
         }catch(e){ origins = DEFAULT_ORIGINS.slice(); }
         originsRowId = oRes.data[0].id;
       } else {
@@ -13639,13 +13658,18 @@ window.__BO_VERSION = '6/10 · H';
       let mq = sb.from('stat_matches').select('*').eq('club_id', clubId).eq('temporada', tempActiva);
       mq = cat ? mq.eq('categoria', cat) : mq.is('categoria', null);
       const mRes = await mq;
-      matches = (mRes.data||[]).map(m => ({
-        id:m.id, rival:m.rival||'', date:m.match_date||'', createdAt:m.created_at||'',
-        competencia:m.competencia||'',
-        condicion:m.condicion||'',
-        goalsFor:m.goals_for||[], goalsAgainst:m.goals_against||[],
-        assists:m.assists||[], cards:m.cards||[], calls:m.calls||{},
-        invitados: Array.isArray(m.invitados) ? m.invitados : []
+      // Se limpian los datos al leerlos: si en la base quedó algún registro incompleto o mal formado
+      // (un gol vacío, una lista guardada como texto), se descarta acá y ninguna pantalla se rompe.
+      const soloObjetos = (v) => Array.isArray(v) ? v.filter(x => x && typeof x === 'object' && !Array.isArray(x)) : [];
+      const soloTexto = (v) => (typeof v === 'string') ? v : '';
+      matches = (mRes.data||[]).filter(m => m && m.id != null).map(m => ({
+        id:m.id, rival:soloTexto(m.rival), date:(/^\d{4}-\d{2}-\d{2}/.test(soloTexto(m.match_date)) ? m.match_date : ''), createdAt:soloTexto(m.created_at),
+        competencia:soloTexto(m.competencia),
+        condicion:soloTexto(m.condicion),
+        goalsFor:soloObjetos(m.goals_for), goalsAgainst:soloObjetos(m.goals_against),
+        assists:soloObjetos(m.assists), cards:soloObjetos(m.cards),
+        calls:(m.calls && typeof m.calls === 'object' && !Array.isArray(m.calls)) ? m.calls : {},
+        invitados: soloObjetos(m.invitados)
       }));
       // Si el filtro activo ya no existe en estos partidos (cambió la categoría o
       // temporada), lo reseteamos para no mostrar una vista vacía sin querer.
@@ -16359,9 +16383,9 @@ window.__BO_VERSION = '6/10 · H';
     }
     detail.innerHTML=html;
     const btnExpPng = document.getElementById('minsExportPng');
-    if(btnExpPng) btnExpPng.addEventListener('click', ()=> exportarNodoPNG(construirExportMinutaje(s), limpiarNombreArchivo(s.name, 'Minutaje-')));
+    if(btnExpPng) btnExpPng.addEventListener('click', ()=> { const ex = window.__boExport; if(!ex){ toast('No se pudo exportar. Recargá la página y probá de nuevo.'); return; } ex.png(construirExportMinutaje(s), ex.nombre(s.name, 'Minutaje-')); });
     const btnExpPdf = document.getElementById('minsExportPdf');
-    if(btnExpPdf) btnExpPdf.addEventListener('click', ()=> exportarNodoPDF(construirExportMinutaje(s), limpiarNombreArchivo(s.name, 'Minutaje-'), true));
+    if(btnExpPdf) btnExpPdf.addEventListener('click', ()=> { const ex = window.__boExport; if(!ex){ toast('No se pudo exportar. Recargá la página y probá de nuevo.'); return; } ex.pdf(construirExportMinutaje(s), ex.nombre(s.name, 'Minutaje-'), true); });
     document.getElementById('minsBack').addEventListener('click',()=>{
       const detail=document.getElementById('minutesDetail'); if(detail) detail.style.display='none';
       const chP=document.getElementById('chartsPartido'); if(chP) chP.style.display='block';
@@ -17338,7 +17362,8 @@ window.__BO_VERSION = '6/10 · H';
       tbody += `<tr><td class="player-name-cell"><span class="pn-num">${escapeHtml(p.number||'')}</span> ${escapeHtml(p.name)}</td>`;
       tbody += `<td class="prev-col"><input class="prev-input" type="number" min="0" inputmode="numeric" data-pname="${escapeHtml(p.name)}" value="${prevVal||''}" placeholder="0"></td>`;
       ordered.forEach(m => {
-        const st = (m.calls && m.calls[p.id]) || '';
+        const stCrudo = (m.calls && m.calls[p.id]) || '';
+        const st = (typeof stCrudo === 'string') ? stCrudo : (stCrudo === true ? 'yes' : '');
         const esCustom = st && st.startsWith('custom:');
         const cls = st==='yes'?'yes':(st==='no'?'no':(st?(esCustom?'reason reason-custom':'reason reason-'+st):''));
         const icon = attIcon(st);
@@ -20570,6 +20595,21 @@ try{
       }catch(e){ return null; }
     };
     const tablasSinId = window.__boTablasSinId || (window.__boTablasSinId = {});
+    // ─── AVISO DE GUARDADO FALLIDO ───
+    // Tablas internas (uso de la app) y Presentismo (que tiene su propio cartel y reintentos) no avisan por acá.
+    const GUARDADO_SIN_AVISO = { section_usage: 1, app_sessions: 1, attendance: 1 };
+    let ultimoAvisoNoGuardado = 0;
+    const avisarNoGuardado = function(){
+      try{
+        const ahora = Date.now();
+        if(ahora - ultimoAvisoNoGuardado < 6000) return;      // un solo aviso aunque fallen varios guardados seguidos
+        ultimoAvisoNoGuardado = ahora;
+        if(typeof toast === 'function') toast('⚠ No se pudo guardar el último cambio. Revisá la conexión y volvé a intentarlo.');
+        // Este aviso queda más tiempo en pantalla que los comunes.
+        const el = document.getElementById('toast');
+        if(el){ clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 7000); }
+      }catch(e){}
+    };
     sb.from = function(tabla){
       const qb = fromOriginal(tabla);
       ['insert','update','upsert','delete'].forEach(function(metodo){
@@ -20591,12 +20631,26 @@ try{
               // la base lo rechazaría igual y solo sumaría un error en sus registros.
               const sinId = pedidoSinId(this, tabla);
               if(sinId) return Promise.resolve(sinId).then(alCumplir, alFallar);
-              return thenOriginal.call(this, function(res){
+              const self = this;
+              const enviar = () => new Promise((ok, mal) => { try{ thenOriginal.call(self, ok, mal); }catch(e){ mal(e); } });
+              // "No llegó a la base": se cortó la conexión o el servidor no respondió (no es un rechazo de la base).
+              const noLlego = (r) => !!(r && r.error && (r.status === 0 || r.status === 408 || r.status === 429 || r.status >= 500));
+              const todo = (async () => {
+                let res = await enviar();
+                // Un corte momentáneo de señal: se reintenta una vez. Solo en guardados que se pueden repetir sin
+                // duplicar nada (modificar, borrar, guardar-por-clave). Las altas nuevas NO se repiten.
+                if(noLlego(res) && metodo !== 'insert'){
+                  await new Promise(ok => setTimeout(ok, 1200));
+                  res = await enviar();
+                }
+                // Si igual no se pudo guardar, se avisa: antes la app seguía como si nada y el cambio se perdía en silencio.
+                if(noLlego(res) && !GUARDADO_SIN_AVISO[tabla]) avisarNoGuardado();
                 try{
                   if(res && res.error && window.__esErrorSuscripcion) window.__esErrorSuscripcion(res.error);
                 }catch(e){}
-                return (typeof alCumplir === 'function') ? alCumplir(res) : res;
-              }, alFallar);
+                return res;
+              })();
+              return todo.then(alCumplir, alFallar);
             };
           }
           return resultado;
@@ -21964,6 +22018,7 @@ function renderVideoList(){
       const input = document.createElement('input');
       input.className = 'vname-input';
       input.value = v.name;
+      if(!nameEl) return;   // ya se está renombrando (doble toque)
       chip.querySelector('.info').replaceChild(input, nameEl);
       input.focus(); input.select();
       function commit(){ v.name = input.value.trim() || v.name; renderVideoList(); renderItems(); }
@@ -22042,6 +22097,7 @@ function renderTags(){
       input.className = 'tag-name-input';
       input.value = tag.name;
       input.style.setProperty('--tag-color', tag.color);
+      if(!nameEl) return;   // ya se está renombrando (doble toque)
       chip.replaceChild(input, nameEl);
       input.focus(); input.select();
       function commit(){ tag.name = input.value.trim() || tag.name; renderTags(); renderItems(); guardarTagsEnBase(); }
@@ -22083,6 +22139,7 @@ function renderPlayerTags(){
       input.className = 'tag-name-input';
       input.value = tag.name;
       input.style.setProperty('--tag-color', tag.color);
+      if(!nameEl) return;   // ya se está renombrando (doble toque)
       chip.replaceChild(input, nameEl);
       input.focus(); input.select();
       function commit(){ tag.name = input.value.trim() || tag.name; savePlayerTags(); renderPlayerTags(); renderItems(); }
@@ -22141,6 +22198,7 @@ function renderRivalTags(){
       const input = document.createElement('input');
       input.className = 'tag-name-input'; input.value = tag.name;
       input.style.setProperty('--tag-color', tag.color);
+      if(!nameEl) return;   // ya se está renombrando (doble toque)
       chip.replaceChild(input, nameEl);
       input.focus(); input.select();
       function commit(){ tag.name = input.value.trim() || tag.name; renderRivalTags(); renderItems(); }
