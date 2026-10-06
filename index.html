@@ -3891,7 +3891,7 @@ body.editor-active #screen-editor{ display:block; }
             <button class="notif-close" id="notifClose">✕</button>
           </div>
           <div class="notif-list" id="notifList"></div>
-          <div class="notif-version" id="notifVersion">Versión 5/10 · F</div>
+          <div class="notif-version" id="notifVersion">Versión 6/10 · H</div>
         </div>
       </div>
       <select id="langSelect" class="lang-select" title="Idioma / Language / Idioma">
@@ -5993,7 +5993,7 @@ window.__cargarFundador = async function(){
     const clubId = await window.__getClubId();
     if(!clubId) return;
     const { data, error } = await sb.from('clubs')
-      .select('es_fundador, descuento_pct').eq('id', clubId).single();
+      .select('es_fundador, descuento_pct').eq('id', clubId).maybeSingle();
     if(error || !data) return;
     window.__esFundador = !!data.es_fundador;
     window.__descuentoPct = window.__esFundador ? (Number(data.descuento_pct) || 0) : 0;
@@ -6489,7 +6489,7 @@ async function guardarPerfil(userId, email, perfil){
       }catch(e){}
       // Verificar suspensión
       try{
-        const { data: prof } = await sb.from('profiles').select('is_blocked').eq('id', session.user.id).single();
+        const { data: prof } = await sb.from('profiles').select('is_blocked').eq('id', session.user.id).maybeSingle();
         if(prof && prof.is_blocked){
           window.__clubIdCache=null; window.__clubIdCacheUser=null; window.__clubNombre=null;
           await sb.auth.signOut();
@@ -6500,7 +6500,7 @@ async function guardarPerfil(userId, email, perfil){
       // aún no tienen club creado, por ejemplo si se registraron antes del fix).
       let nombreClub = 'Mi club';
       try{
-        const { data: prof2 } = await sb.from('profiles').select('club_name, full_name').eq('id', session.user.id).single();
+        const { data: prof2 } = await sb.from('profiles').select('club_name, full_name').eq('id', session.user.id).maybeSingle();
         if(prof2 && prof2.club_name) nombreClub = prof2.club_name;
         else if(prof2 && prof2.full_name) nombreClub = 'Club de ' + prof2.full_name;
         window.__clubNombre = nombreClub;
@@ -6663,7 +6663,7 @@ form.addEventListener('submit', async (e) => {
     if(error){ showError(traducirError(error)); return; }
     // Verificar si la cuenta está suspendida por un administrador.
     try{
-      const { data: prof } = await sb.from('profiles').select('is_blocked').eq('id', data.user.id).single();
+      const { data: prof } = await sb.from('profiles').select('is_blocked').eq('id', data.user.id).maybeSingle();
       if(prof && prof.is_blocked){
         window.__clubIdCache=null; window.__clubIdCacheUser=null; window.__clubNombre=null;
         await sb.auth.signOut();
@@ -7106,7 +7106,7 @@ window.__initEditor = function(){
     try{
       const sb = window.__sb; const uid = window.__currentUserId;
       if(!sb || !uid) return;
-      const { data: prof } = await sb.from('profiles').select('club_name').eq('id', uid).single();
+      const { data: prof } = await sb.from('profiles').select('club_name').eq('id', uid).maybeSingle();
       // Si ya tiene club cargado, no hacemos nada.
       if(prof && prof.club_name && prof.club_name.trim()) return;
 
@@ -7174,7 +7174,13 @@ window.__initEditor = function(){
 })();
 
 // Versión publicada: se muestra abajo de las novedades (campanita). Cambiarla en cada subida.
-window.__BO_VERSION = '5/10 · F';
+window.__BO_VERSION = '6/10 · H';
+// La etiqueta de la campanita siempre muestra este mismo número (así nunca quedan distintos).
+(function(){
+  function ponerVersion(){ try{ var e = document.getElementById('notifVersion'); if(e) e.textContent = 'Versión ' + window.__BO_VERSION; }catch(err){} }
+  ponerVersion();
+  try{ document.addEventListener('DOMContentLoaded', ponerVersion); }catch(err){}
+})();
 // ---------------- NOTIFICACIONES (campanita) ----------------
 (function initNotifications(){
   const bell = document.getElementById('notifBell');
@@ -7357,7 +7363,7 @@ window.__BO_VERSION = '5/10 · F';
 
       // Temporada guardada en el club
       try{
-        const { data: c } = await sb.from('clubs').select('temporada_activa').eq('id', clubId).single();
+        const { data: c } = await sb.from('clubs').select('temporada_activa').eq('id', clubId).maybeSingle();
         if(c && c.temporada_activa) temporadaActiva = c.temporada_activa;
       }catch(e){}
 
@@ -7513,7 +7519,7 @@ window.__BO_VERSION = '5/10 · F';
       const sb = window.__sb;
       const clubId = (window.__getClubId ? await window.__getClubId() : null);
       if(!sb || !clubId) return;
-      const { data } = await sb.from('clubs').select('promo_categorias').eq('id', clubId).single();
+      const { data } = await sb.from('clubs').select('promo_categorias').eq('id', clubId).maybeSingle();
       const temp = String(window.__getTemporada ? window.__getTemporada() : new Date().getFullYear());
       const guardadas = data && data.promo_categorias && data.promo_categorias[temp];
       if(Array.isArray(guardadas) && guardadas.length){
@@ -7531,7 +7537,7 @@ window.__BO_VERSION = '5/10 · F';
       const clubId = (window.__getClubId ? await window.__getClubId() : null);
       if(!sb || !clubId) return false;
       const temp = String(window.__getTemporada ? window.__getTemporada() : new Date().getFullYear());
-      const { data } = await sb.from('clubs').select('promo_categorias').eq('id', clubId).single();
+      const { data } = await sb.from('clubs').select('promo_categorias').eq('id', clubId).maybeSingle();
       const actual = (data && data.promo_categorias) || {};
       actual[temp] = PROMO_ANIOS;
       const { error } = await sb.from('clubs').update({ promo_categorias: actual }).eq('id', clubId);
@@ -7582,7 +7588,7 @@ window.__BO_VERSION = '5/10 · F';
       const sb = window.__sb;
       const clubId = (window.__getClubId ? await window.__getClubId() : null);
       if(!sb || !clubId) return;
-      const { data } = await sb.from('clubs').select('categoria_alias').eq('id', clubId).single();
+      const { data } = await sb.from('clubs').select('categoria_alias').eq('id', clubId).maybeSingle();
       const temp = String(window.__getTemporada ? window.__getTemporada() : new Date().getFullYear());
       const guardados = data && data.categoria_alias && data.categoria_alias[temp];
       CAT_ALIAS = (guardados && typeof guardados === 'object') ? guardados : {};
@@ -7597,7 +7603,7 @@ window.__BO_VERSION = '5/10 · F';
       const clubId = (window.__getClubId ? await window.__getClubId() : null);
       if(!sb || !clubId) return false;
       const temp = String(window.__getTemporada ? window.__getTemporada() : new Date().getFullYear());
-      const { data } = await sb.from('clubs').select('categoria_alias').eq('id', clubId).single();
+      const { data } = await sb.from('clubs').select('categoria_alias').eq('id', clubId).maybeSingle();
       const actual = (data && data.categoria_alias) || {};
       actual[temp] = CAT_ALIAS;
       const { error } = await sb.from('clubs').update({ categoria_alias: actual }).eq('id', clubId);
@@ -7855,13 +7861,13 @@ window.__BO_VERSION = '5/10 · F';
         const uid = window.__currentUserId;
         if(uid){
           try{
-            const { data: prof } = await sb.from('profiles').select('pack').eq('id', uid).single();
+            const { data: prof } = await sb.from('profiles').select('pack').eq('id', uid).maybeSingle();
             if(prof){ clubPack = prof.pack || null; window.__catState.pack = clubPack; }
           }catch(e){ /* sin pack: queda en null → default */ }
         }
         // Categorías ya ocupadas: siguen siendo del club (son del equipo)
         if(clubId){
-          const { data } = await sb.from('clubs').select('active_categories').eq('id', clubId).single();
+          const { data } = await sb.from('clubs').select('active_categories').eq('id', clubId).maybeSingle();
           if(data){
             if(Array.isArray(data.active_categories) && data.active_categories.length){
               ocupadas = data.active_categories.slice();
@@ -11871,7 +11877,7 @@ window.__BO_VERSION = '5/10 · F';
         }));
         if(golesEnVivo.length){
           // Traer el partido actual para no pisar goles ya cargados a mano
-          const { data: mData } = await sb.from('stat_matches').select('goals_for').eq('id', matchId).single();
+          const { data: mData } = await sb.from('stat_matches').select('goals_for').eq('id', matchId).maybeSingle();
           const existentes = (mData && Array.isArray(mData.goals_for)) ? mData.goals_for : [];
           // Solo agregamos si el partido no tenía goles cargados (para no duplicar)
           if(existentes.length === 0){
@@ -11881,7 +11887,7 @@ window.__BO_VERSION = '5/10 · F';
         }
         if(golesRival.length){
           try{
-            const { data: mData2 } = await sb.from('stat_matches').select('goals_against').eq('id', matchId).single();
+            const { data: mData2 } = await sb.from('stat_matches').select('goals_against').eq('id', matchId).maybeSingle();
             const existentes2 = (mData2 && Array.isArray(mData2.goals_against)) ? mData2.goals_against : [];
             if(existentes2.length === 0){
               await sb.from('stat_matches').update({ goals_against: golesRival, updated_at: new Date().toISOString() }).eq('id', matchId);
@@ -11897,7 +11903,7 @@ window.__BO_VERSION = '5/10 · F';
         }));
         if(tarjetasEnVivo.length){
           try{
-            const { data: mData3 } = await sb.from('stat_matches').select('cards').eq('id', matchId).single();
+            const { data: mData3 } = await sb.from('stat_matches').select('cards').eq('id', matchId).maybeSingle();
             const existentes3 = (mData3 && Array.isArray(mData3.cards)) ? mData3.cards : [];
             // Solo agregamos si el partido no tenía tarjetas cargadas (para no duplicar).
             if(existentes3.length === 0){
@@ -12038,7 +12044,7 @@ window.__BO_VERSION = '5/10 · F';
               const calls = {};
               // 1) Invitados y citados del partido ELEGIDO (si tiene id)
               if(m.id){
-                const { data: mData } = await sb.from('stat_matches').select('calls,invitados').eq('id', m.id).single();
+                const { data: mData } = await sb.from('stat_matches').select('calls,invitados').eq('id', m.id).maybeSingle();
                 const callsPartido = (mData && mData.calls) || {};
                 Object.assign(calls, callsPartido);
                 const invPartido = (mData && Array.isArray(mData.invitados)) ? mData.invitados : [];
@@ -14039,7 +14045,7 @@ window.__BO_VERSION = '5/10 · F';
     try{
       const sb = window.__sb; const clubId = await window.__getClubId();
       if(!sb || !clubId) return;
-      const { data } = await sb.from('clubs').select('escudo').eq('id', clubId).single();
+      const { data } = await sb.from('clubs').select('escudo').eq('id', clubId).maybeSingle();
       if(data && data.escudo){ window.__clubEscudo = data.escudo; pintarEscudo(data.escudo); }
     }catch(e){ /* silencioso: si no hay columna o conexión, queda el placeholder */ }
   }
@@ -14692,7 +14698,7 @@ window.__BO_VERSION = '5/10 · F';
       const sb = window.__sb;
       const clubId = (window.__getClubId ? await window.__getClubId() : null);
       if(!sb || !clubId){ TORNEOS_CREADOS = []; return; }
-      const { data } = await sb.from('clubs').select('torneos').eq('id', clubId).single();
+      const { data } = await sb.from('clubs').select('torneos').eq('id', clubId).maybeSingle();
       const guardados = data && data.torneos;
       TORNEOS_CREADOS = Array.isArray(guardados) ? guardados.filter(x => typeof x === 'string' && x.trim()) : [];
     }catch(e){ /* si la columna no existe todavía, seguimos con los usados por los partidos */ TORNEOS_CREADOS = []; }
@@ -20544,6 +20550,26 @@ try{
   if(sb && !sb.__interceptorSuscripcion){
     sb.__interceptorSuscripcion = true;
     const fromOriginal = sb.from.bind(sb);
+    // ─── PEDIDOS SIN IDENTIFICADOR ───
+    // Un filtro por "id", "club_id", "player_id", "match_id"... o por temporada que llega vacío
+    // (null / undefined) no puede traer nada: la base lo rechaza con un error. Lo detectamos acá,
+    // para toda la app, y devolvemos el mismo tipo de respuesta de error SIN mandar el pedido.
+    const pedidoSinId = function(consulta, tabla){
+      try{
+        const sp = consulta && consulta.url && consulta.url.searchParams;
+        if(!sp) return null;
+        let col = null;
+        sp.forEach(function(valor, clave){
+          if(col) return;
+          if(clave !== 'id' && clave !== 'temporada' && !/_id$/.test(clave)) return;
+          if(/^(eq|neq)\.(null|undefined|NaN)?$/.test(String(valor))) col = clave;
+        });
+        if(!col) return null;
+        return { data: null, count: null, status: 400, statusText: 'Bad Request',
+                 error: { message: 'Pedido sin identificador (' + tabla + '.' + col + '): no se envió.', details: '', hint: '', code: 'BO_SIN_ID' } };
+      }catch(e){ return null; }
+    };
+    const tablasSinId = window.__boTablasSinId || (window.__boTablasSinId = {});
     sb.from = function(tabla){
       const qb = fromOriginal(tabla);
       ['insert','update','upsert','delete'].forEach(function(metodo){
@@ -20561,6 +20587,10 @@ try{
             resultado.__vigilado = true;
             const thenOriginal = resultado.then;
             resultado.then = function(alCumplir, alFallar){
+              // Si el pedido va sin identificador (club, jugador, partido...), no se envía:
+              // la base lo rechazaría igual y solo sumaría un error en sus registros.
+              const sinId = pedidoSinId(this, tabla);
+              if(sinId) return Promise.resolve(sinId).then(alCumplir, alFallar);
               return thenOriginal.call(this, function(res){
                 try{
                   if(res && res.error && window.__esErrorSuscripcion) window.__esErrorSuscripcion(res.error);
@@ -20587,6 +20617,8 @@ try{
             const thenLectura = lectura.then;
             lectura.then = function(alCumplir, alFallar){
               const self = this;
+              const sinId = pedidoSinId(self, tabla);
+              if(sinId) return Promise.resolve(sinId).then(alCumplir, alFallar);
               const pedir = () => new Promise((ok, mal) => { try{ thenLectura.call(self, ok, mal); }catch(e){ mal(e); } });
               const todo = (async () => {
                 let paginable = false;
@@ -20614,6 +20646,8 @@ try{
                     sp.set('offset', String(filas.length));
                     sp.set('limit', String(tanda));
                     let r = await pedir();
+                    // La tabla no tiene columna "id": se anota y no se vuelve a intentar (evita un error en la base cada vez).
+                    if(conId && r && r.error && (r.error.code === '42703' || /column .* does not exist/i.test(r.error.message || ''))){ tablasSinId[tabla] = true; return null; }
                     if(!r || r.error){ await new Promise(ok => setTimeout(ok, 700)); r = await pedir(); }   // un reintento por tanda
                     if(!r || r.error) return null;
                     if(!Array.isArray(r.data) || !r.data.length) break;
@@ -20623,8 +20657,11 @@ try{
                 };
                 let filas = null;
                 try{
-                  filas = await leer(true);                 // orden fijo por "id" (si la tabla lo tiene)
-                  if(!filas) filas = await leer(false);     // si no tiene "id", con el orden que traía
+                  // ¿La tabla tiene "id"? Si las filas que llegaron traen todas las columnas y no hay "id", no lo tiene.
+                  const sel = String(sp.get('select') || '*');
+                  if(sel === '*' && res.data[0] && typeof res.data[0] === 'object' && !('id' in res.data[0])) tablasSinId[tabla] = true;
+                  if(!tablasSinId[tabla]) filas = await leer(true);   // orden fijo por "id" (si la tabla lo tiene)
+                  if(!filas) filas = await leer(false);               // si no tiene "id", con el orden que traía
                 }catch(e){ filas = null; }
                 try{
                   sp.delete('offset'); sp.delete('limit');
@@ -20684,7 +20721,7 @@ try{
       clubActualId = await window.__getClubId();
       if(clubActualId){
         // Tiene club, pero ¿tiene un nombre real o uno genérico ("Club de...")?
-        const { data: cl } = await sb.from('clubs').select('name').eq('id', clubActualId).single();
+        const { data: cl } = await sb.from('clubs').select('name').eq('id', clubActualId).maybeSingle();
         clubActualNombre = (cl && cl.name) || '';
         // Si el nombre ya es real (lo eligió el usuario), no molestamos.
         if(!esNombreClubGenerico(clubActualNombre)) return;
@@ -20697,7 +20734,7 @@ try{
     try{
       const { data:{ session } } = await sb.auth.getSession();
       if(session){
-        const { data: prof } = await sb.from('profiles').select('club_name, full_name').eq('id', session.user.id).single();
+        const { data: prof } = await sb.from('profiles').select('club_name, full_name').eq('id', session.user.id).maybeSingle();
         if(prof && prof.club_name) sugerido = prof.club_name;
         else if(prof && prof.full_name) sugerido = 'Club de ' + prof.full_name;
       }
@@ -20843,7 +20880,7 @@ try{
   // Si la tabla no existe todavía, se queda con el valor local de __PAY.enabled.
   window.__syncBillingState = async function(){
     try{
-      const { data, error } = await sb.from('app_config').select('billing_enabled').eq('id', 1).single();
+      const { data, error } = await sb.from('app_config').select('billing_enabled').eq('id', 1).maybeSingle();
       if(!error && data && typeof data.billing_enabled === 'boolean'){
         window.__PAY.enabled = data.billing_enabled;
         window.__billingFromServer = true;
@@ -20858,7 +20895,7 @@ try{
       if(sessionStorage.getItem('waAsked') === '1') return;   // no insistir en la misma sesión
       const { data: { session } } = await sb.auth.getSession();
       if(!session) return;
-      const { data, error } = await sb.from('profiles').select('whatsapp, full_name').eq('id', session.user.id).single();
+      const { data, error } = await sb.from('profiles').select('whatsapp, full_name').eq('id', session.user.id).maybeSingle();
       if(error || !data) return;
       const wa = (data.whatsapp || '').replace(/[^\d]/g, '');
       if(wa.length >= 8) return;   // ya tiene WhatsApp válido: nada que pedir
@@ -20912,7 +20949,7 @@ try{
     try{
       const { data: { session } } = await sb.auth.getSession();
       if(!session) return true;
-      const { data } = await sb.from('profiles').select('whatsapp').eq('id', session.user.id).single();
+      const { data } = await sb.from('profiles').select('whatsapp').eq('id', session.user.id).maybeSingle();
       const wa = (data && data.whatsapp || '').replace(/[^\d]/g, '');
       if(wa.length >= 8) return true;
       return await new Promise((resolve)=>{
@@ -20933,7 +20970,7 @@ try{
       if(clubIdRescate){
         const { data: cRes } = await sb.from('clubs')
           .select('subscription_status, trial_ends_at')
-          .eq('id', clubIdRescate).single();
+          .eq('id', clubIdRescate).maybeSingle();
         if(cRes && cRes.subscription_status === 'trial' && cRes.trial_ends_at){
           const fechaVieja = new Date(cRes.trial_ends_at).getTime();
           const marca = new Date('2026-08-01T00:00:00+00:00').getTime();
@@ -20959,7 +20996,7 @@ try{
         if(uid){
           const { data: prof } = await sb.from('profiles')
             .select('cobro_activado, sub_status, sub_until, pack')
-            .eq('id', uid).single();
+            .eq('id', uid).maybeSingle();
           if(prof && prof.cobro_activado && prof.sub_until){
             // Este usuario está en cuenta regresiva individual.
             window.__cobroSelectivo = true;
@@ -20996,14 +21033,14 @@ try{
       if(!clubId) return;
       const { data, error } = await sb.from('clubs')
         .select('subscription_status, trial_ends_at, subscription_ends_at, pack, es_fundador, descuento_pct')
-        .eq('id', clubId).single();
+        .eq('id', clubId).maybeSingle();
       if(error || !data) return;
       window.__myPlanData = data;
       // El PACK lo elige el usuario (profiles.pack), no el club. Lo sobrescribimos.
       try{
         const uid = window.__currentUserId;
         if(uid){
-          const { data: prof } = await sb.from('profiles').select('pack').eq('id', uid).single();
+          const { data: prof } = await sb.from('profiles').select('pack').eq('id', uid).maybeSingle();
           if(prof && prof.pack){ window.__myPlanData.pack = prof.pack; }
         }
       }catch(e){ /* si falla, queda el del club como respaldo */ }
@@ -21539,7 +21576,7 @@ async function cargarTagsGuardados(){
   try{
     const sb = window.__sb; const clubId = window.__getClubId ? await window.__getClubId() : null;
     if(!sb || !clubId) return;
-    const { data, error } = await sb.from('clubs').select('video_tags').eq('id', clubId).single();
+    const { data, error } = await sb.from('clubs').select('video_tags').eq('id', clubId).maybeSingle();
     if(error || !data || !Array.isArray(data.video_tags) || data.video_tags.length === 0) return;
     tags = data.video_tags.map((t, i) => ({
       id: t.id || ('tag' + i),
@@ -22499,8 +22536,8 @@ async function loadCloudProject(id){
   const sb = window.__sb;
   if(!sb) return;
   try{
-    const { data, error } = await sb.from('video_projects').select('*').eq('id', id).single();
-    if(error){ toast(window.t('mLoadMatchErr')); return; }
+    const { data, error } = await sb.from('video_projects').select('*').eq('id', id).maybeSingle();
+    if(error || !data){ toast(window.t('mLoadMatchErr')); return; }
     tags = data.tags || tags;
     activeTagId = (tags[0] && tags[0].id) || activeTagId;
     videos = (data.videos || []).map(v => ({ id:v.id, name:v.name, file:null, url:null, duration:null, missing:true }));
