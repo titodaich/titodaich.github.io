@@ -132,6 +132,11 @@ self.addEventListener('fetch', (event) => {
   if(CDN.indexOf(url.hostname) !== -1){ event.respondWith(primeroGuardado(req)); return; }
   if(url.origin !== self.location.origin) return;        // base de datos y demás: directo a la red
   if(/\/sw\.js$/.test(url.pathname)) return;             // el propio service worker: siempre de la red
-  if(req.mode === 'navigate' || url.href.split('?')[0].split('#')[0] === INDEX){ event.respondWith(servirApp(event)); return; }
+  // SOLO la app (la raíz del sitio o index.html) se sirve desde la copia guardada.
+  // Cualquier otra página del sitio (por ejemplo el panel de administrador) va siempre directo a la red:
+  // antes, por error, toda página abierta en el navegador recibía la app en lugar de su propio contenido.
+  const limpia = url.href.split('?')[0].split('#')[0];
+  if(limpia === INDEX || limpia === RAIZ){ event.respondWith(servirApp(event)); return; }
+  if(req.mode === 'navigate' || /\.html?$/i.test(url.pathname)) return;
   event.respondWith(primeroRed(req));
 });
