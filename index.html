@@ -3890,7 +3890,7 @@ body.editor-active #screen-editor{ display:block; }
             <button class="notif-close" id="notifClose">✕</button>
           </div>
           <div class="notif-list" id="notifList"></div>
-          <div class="notif-version" id="notifVersion">Versión 6/10 · I</div>
+          <div class="notif-version" id="notifVersion">Versión 6/10 · J</div>
         </div>
       </div>
       <select id="langSelect" class="lang-select" title="Idioma / Language / Idioma">
@@ -7187,7 +7187,7 @@ let clubId = null;
 })();
 
 // Versión publicada: se muestra abajo de las novedades (campanita). Cambiarla en cada subida.
-window.__BO_VERSION = '6/10 · I';
+window.__BO_VERSION = '6/10 · J';
 // La etiqueta de la campanita siempre muestra este mismo número (así nunca quedan distintos).
 (function(){
   function ponerVersion(){ try{ var e = document.getElementById('notifVersion'); if(e) e.textContent = 'Versión ' + window.__BO_VERSION; }catch(err){} }
@@ -15117,7 +15117,7 @@ window.__BO_VERSION = '6/10 · I';
           if(prev.__rival) totals.__rival = prev.__rival;
 
           if(esManual && s && s.id){
-            const { error } = await sb.from('live_sessions').update({ totals, name:rivalName, updated_at:new Date().toISOString() }).eq('id', s.id);
+            const { error } = await sb.from('live_sessions').update({ totals, name:rivalName }).eq('id', s.id);   // (la tabla no tiene columna updated_at: con ella este guardado fallaba siempre)
             if(error) throw error;
           } else {
             const { error } = await sb.from('live_sessions').insert({
