@@ -616,6 +616,32 @@ body.admin-active #adminApp{display:block;}
     </table>
   </div>
 
+  <!-- ============ ERRORES DE LA APP ============ -->
+  <div class="section-head" style="margin-top:40px;">
+    <h2>🐞 Errores de la app</h2>
+    <div class="toolbar">
+      <select id="errDias" class="search" style="cursor:pointer;">
+        <option value="1">Últimas 24 horas</option>
+        <option value="7" selected>Últimos 7 días</option>
+        <option value="30">Últimos 30 días</option>
+      </select>
+      <button class="btn-mini" id="errRefresh" type="button">↻ Actualizar</button>
+    </div>
+  </div>
+  <p class="metrics-note" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin:-8px 0 14px;">Lo que falló en la app de cada usuario: errores de pantalla y guardados que no llegaron a la base. Arriba, agrupado por error; abajo, uno por uno.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Error</th><th>Veces</th><th>Usuarios</th><th>Última vez</th><th>Versión</th></tr></thead>
+      <tbody id="errGrupoRows"><tr><td colspan="5" class="empty">Cargando…</td></tr></tbody>
+    </table>
+  </div>
+  <div class="table-wrap" style="margin-top:12px;">
+    <table>
+      <thead><tr><th>Cuándo</th><th>Usuario</th><th>Dónde</th><th>Tipo</th><th>Qué pasó</th><th>Dispositivo</th></tr></thead>
+      <tbody id="errRows"><tr><td colspan="6" class="empty">Cargando…</td></tr></tbody>
+    </table>
+  </div>
+
   <div class="section-head" style="margin-top:34px;" id="expiringSection">
     <h2>⏳ Por vencer (próximos 7 días)</h2>
   </div>
@@ -1422,6 +1448,56 @@ async function loadSecciones(){
   }
 }
 
+// ============ ERRORES DE LA APP ============
+// Lee lo que la app de cada usuario fue registrando (errores de pantalla y guardados fallidos).
+async function loadErrores(){
+  const gRows = document.getElementById('errGrupoRows');
+  const rows = document.getElementById('errRows');
+  if(!gRows || !rows) return;
+  const dias = parseInt(document.getElementById('errDias')?.value || '7', 10);
+  const TIPOS = { error:'Error de pantalla', promesa:'Error de pantalla', consola:'Aviso interno', guardado:'No se guardó', lectura:'No se pudo leer', pedido:'Pedido incompleto' };
+  const SECC = { video:'Video', stats:'Estadísticas', training:'Planificación', scouting:'Scouting', board:'Pizarra', live:'En Vivo', guide:'Guía', login:'Ingreso' };
+  const donde = (s) => { s = String(s||''); const p = s.split('/'); return (SECC[p[0]] || p[0] || '—') + (p[1] ? ' · ' + p[1] : ''); };
+  const cuando = (d) => { try{ return new Date(d).toLocaleString('es-AR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }); }catch(e){ return ''; } };
+  try{
+    const { data, error } = await sb.rpc('admin_errores', { p_dias: dias, p_limite: 500 });
+    if(error) throw error;
+    const list = data || [];
+    if(list.length === 0){
+      gRows.innerHTML = '<tr><td colspan="5"><div class="loading-note">Sin errores registrados en este período. 🎉</div></td></tr>';
+      rows.innerHTML = '<tr><td colspan="6"><div class="loading-note">Nada para mostrar.</div></td></tr>';
+      return;
+    }
+    // Agrupado por error
+    const grupos = {};
+    list.forEach(e => {
+      const k = (e.tipo||'') + '|' + (e.mensaje||'');
+      const g = grupos[k] || (grupos[k] = { tipo:e.tipo, mensaje:e.mensaje, n:0, usuarios:{}, ultima:e.created_at, version:e.version });
+      g.n++; g.usuarios[e.email || '—'] = 1;
+      if(new Date(e.created_at) > new Date(g.ultima)){ g.ultima = e.created_at; g.version = e.version; }
+    });
+    gRows.innerHTML = Object.values(grupos).sort((a,b) => b.n - a.n).slice(0, 40).map(g => `<tr>
+        <td><b>${escapeHtmlA(TIPOS[g.tipo] || g.tipo || '')}</b><br><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);word-break:break-word;">${escapeHtmlA(g.mensaje||'')}</span></td>
+        <td>${g.n}</td><td>${Object.keys(g.usuarios).length}</td><td>${cuando(g.ultima)}</td><td>${escapeHtmlA(g.version||'')}</td>
+      </tr>`).join('');
+    // Uno por uno
+    rows.innerHTML = list.slice(0, 200).map(e => `<tr>
+        <td style="white-space:nowrap;">${cuando(e.created_at)}</td>
+        <td>${escapeHtmlA(e.email||'—')}${e.club ? `<br><span style="font-size:11px;color:var(--muted);">${escapeHtmlA(e.club)}</span>` : ''}</td>
+        <td>${escapeHtmlA(donde(e.seccion))}<br><span style="font-size:11px;color:var(--muted);">v ${escapeHtmlA(e.version||'?')}</span></td>
+        <td>${escapeHtmlA(TIPOS[e.tipo] || e.tipo || '')}</td>
+        <td style="max-width:420px;word-break:break-word;"><span title="${escapeHtmlA(e.detalle||'')}">${escapeHtmlA(e.mensaje||'')}</span></td>
+        <td style="font-size:11px;color:var(--muted);">${escapeHtmlA(e.dispositivo||'')}</td>
+      </tr>`).join('');
+  }catch(err){
+    console.error('errores', err);
+    const falta = faltaSQL(err) || /admin_errores|app_errors/i.test((err && err.message) || '');
+    const msg = falta ? 'Falta correr el SQL del registro de errores en Supabase.' : 'No se pudieron cargar los errores.';
+    gRows.innerHTML = '<tr><td colspan="5"><div class="loading-note">' + msg + '</div></td></tr>';
+    rows.innerHTML = '';
+  }
+}
+
 // Guarda el tiempo por usuario (email -> datos) para mostrarlo en la lista de usuarios
 window.__tiempoPorEmail = {};
 async function loadTiempoUsuarios(){
@@ -1506,6 +1582,7 @@ async function loadEspacio(){
 
 function loadUso(){
   loadSecciones();
+  loadErrores();
   loadTiempoUsuarios();
   loadEspacio();
   loadNotificaciones();
@@ -3180,6 +3257,8 @@ document.getElementById('rpApply')?.addEventListener('click', async () => {
 
 document.getElementById('clubSearch')?.addEventListener('input', renderClubs);
 document.getElementById('usoDias')?.addEventListener('change', () => { loadSecciones(); loadTiempoUsuarios(); });
+document.getElementById('errDias')?.addEventListener('change', () => loadErrores());
+document.getElementById('errRefresh')?.addEventListener('click', () => loadErrores());
 filter.addEventListener('change', render);
 
 // Tarjetas de métricas clickeables: al tocar una, filtra la lista de usuarios
@@ -3219,7 +3298,7 @@ function organizarSolapas(){
     const t = (titulo||'').toLowerCase();
     // Las métricas del negocio quedan FIJAS en el inicio (devolvemos null).
     if(t.includes('métricas del negocio')) return null;
-    if(t.includes('actividad por club') || t.includes('secciones más usadas') || t.includes('tiempo por usuario')) return cEst;
+    if(t.includes('actividad por club') || t.includes('secciones más usadas') || t.includes('tiempo por usuario') || t.includes('errores de la app')) return cEst;
     if(t.includes('novedades')) return cNov;
     if(t.includes('ingresos reales') || t.includes('ingreso estimado') ||
        t.includes('por vencer') || t.includes('cuenta regresiva') || t.includes('suscripciones') || t.includes('clubes') ||

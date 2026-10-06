@@ -3890,7 +3890,7 @@ body.editor-active #screen-editor{ display:block; }
             <button class="notif-close" id="notifClose">✕</button>
           </div>
           <div class="notif-list" id="notifList"></div>
-          <div class="notif-version" id="notifVersion">Versión 6/10 · J</div>
+          <div class="notif-version" id="notifVersion">Versión 6/10 · K</div>
         </div>
       </div>
       <select id="langSelect" class="lang-select" title="Idioma / Language / Idioma">
@@ -6948,6 +6948,105 @@ function irACrearCuenta(){
 
 <!-- LÓGICA DEL EDITOR (scope aislado; se inicializa al entrar) -->
 <script>
+// ===== REGISTRO DE ERRORES =====
+// Cuando algo falla en la app de un usuario (un error de pantalla o un guardado que no llegó a la base),
+// queda anotado en la base para verlo en el panel de administrador. No guarda nada de lo que el usuario
+// carga: solo el mensaje del error, la pantalla, la versión y el tipo de dispositivo.
+// Si no hay conexión, se guarda en el teléfono y se envía cuando vuelve.
+(function(){
+  const MAX_POR_SESION = 25, CLAVE = 'bo_err_cola';
+  let cuenta = 0, enviando = false, apagado = false;
+  const vistos = {};
+  let cola = [];
+  try{ cola = JSON.parse(localStorage.getItem(CLAVE) || '[]'); if(!Array.isArray(cola)) cola = []; }catch(e){ cola = []; }
+  const guardarCola = function(){ try{ localStorage.setItem(CLAVE, JSON.stringify(cola.slice(-30))); }catch(e){} };
+  const texto = function(v, n){ try{ v = (v == null) ? '' : String(v); }catch(e){ v = ''; } return v.length > n ? v.slice(0, n) : v; };
+  const pantalla = function(){
+    try{
+      if(!document.body.classList.contains('editor-active')) return 'login';
+      const t = document.querySelector('.nav-tab.active'); const sec = t ? (t.dataset.section || '') : '';
+      const st = document.querySelector('.stats-subtab.active');
+      return (sec === 'stats' && st) ? ('stats/' + (st.dataset.sub || '')) : sec;
+    }catch(e){ return ''; }
+  };
+  const dispositivo = function(){
+    try{
+      const ua = navigator.userAgent || '';
+      const so = /Android/.test(ua) ? 'Android' : (/iPhone|iPad|iPod/.test(ua) ? 'iPhone/iPad' : (/Windows/.test(ua) ? 'Windows' : (/Mac OS/.test(ua) ? 'Mac' : 'Otro')));
+      const nav = /Edg\//.test(ua) ? 'Edge' : (/Chrome\//.test(ua) ? 'Chrome' : (/Firefox\//.test(ua) ? 'Firefox' : (/Safari\//.test(ua) ? 'Safari' : 'Otro')));
+      return so + ' · ' + nav + ' · ' + (window.innerWidth || 0) + 'px' + (navigator.onLine === false ? ' · sin conexión' : '');
+    }catch(e){ return ''; }
+  };
+  const version = function(){
+    try{ return window.__BO_VERSION || ((document.getElementById('notifVersion') || {}).textContent || '').replace('Versión ', ''); }catch(e){ return ''; }
+  };
+  async function enviar(){
+    if(enviando || apagado || !cola.length) return;
+    const sb = window.__sbClient || window.__sb;
+    if(!sb || !sb.auth) return;
+    enviando = true;
+    try{
+      const ses = await sb.auth.getSession();
+      if(ses && ses.data && ses.data.session){
+        const lote = cola.slice(0, 10);
+        const from = sb.__fromOriginal || sb.from.bind(sb);      // sin pasar por el vigilante de guardados
+        const r = await from('app_errors').insert(lote);
+        if(!r || !r.error){ cola = cola.slice(lote.length); guardarCola(); }
+        else if(r.status >= 400 && r.status < 500){ apagado = true; cola = []; guardarCola(); }   // la tabla no existe o no acepta: no se insiste
+      }
+    }catch(e){}
+    enviando = false;
+    if(cola.length && !apagado) setTimeout(enviar, 5000);
+  }
+  window.__boRegistrarError = function(tipo, mensaje, detalle){
+    try{
+      if(apagado) return;
+      const m = texto(mensaje, 300).trim();
+      if(!m || /^Script error\.?$|ResizeObserver loop/i.test(m)) return;
+      const k = tipo + '|' + m;
+      if(vistos[k]) return;                     // el mismo error, una sola vez por sesión
+      vistos[k] = 1;
+      if(cuenta >= MAX_POR_SESION) return;      // tope por sesión: nunca inunda la base
+      cuenta++;
+      cola.push({ club_id: (/^[0-9a-f-]{36}$/i.test(String(window.__clubIdCache || '')) ? window.__clubIdCache : null),
+                  version: texto(version(), 20), seccion: texto(pantalla(), 40), tipo: texto(tipo, 20),
+                  mensaje: m, detalle: texto(detalle, 1500), dispositivo: texto(dispositivo(), 80) });
+      guardarCola();
+      setTimeout(enviar, 1500);
+    }catch(e){}
+  };
+  try{
+    window.addEventListener('error', function(ev){
+      try{
+        if(!ev || !ev.message) return;          // (las imágenes/archivos que no cargan no pasan por acá)
+        window.__boRegistrarError('error', ev.message, String(ev.filename || '').split('/').pop() + ':' + (ev.lineno || 0) + ':' + (ev.colno || 0) + ' ' + ((ev.error && ev.error.stack) || ''));
+      }catch(e){}
+    });
+    window.addEventListener('unhandledrejection', function(ev){
+      try{
+        const r = ev && ev.reason;
+        window.__boRegistrarError('promesa', (r && (r.message || String(r))) || 'Promesa rechazada', (r && r.stack) || '');
+      }catch(e){}
+    });
+    // Los errores que la app atrapa y solo anota en la consola también cuentan.
+    const consolaOriginal = console.error;
+    console.error = function(){
+      try{
+        const partes = Array.prototype.slice.call(arguments).map(function(a){
+          if(a && a.message) return a.message + (a.code ? ' [' + a.code + ']' : '');
+          if(typeof a === 'object'){ try{ return JSON.stringify(a); }catch(e){ return String(a); } }
+          return String(a);
+        });
+        const pila = Array.prototype.slice.call(arguments).map(function(a){ return (a && a.stack) || ''; }).join(' ');
+        window.__boRegistrarError('consola', partes.join(' | '), pila);
+      }catch(e){}
+      return consolaOriginal.apply(console, arguments);
+    };
+    window.addEventListener('online', function(){ setTimeout(enviar, 2000); });
+    setTimeout(enviar, 9000);
+  }catch(e){}
+})();
+
 // Aviso emergente disponible para TODA la página (también fuera del editor: cambio de contraseña, etc.).
 // Sin esto, "window.toast" era el cartel en sí (el elemento con id="toast") y llamarlo como función daba error.
 window.toast = function(msg){
@@ -7187,7 +7286,7 @@ let clubId = null;
 })();
 
 // Versión publicada: se muestra abajo de las novedades (campanita). Cambiarla en cada subida.
-window.__BO_VERSION = '6/10 · J';
+window.__BO_VERSION = '6/10 · K';
 // La etiqueta de la campanita siempre muestra este mismo número (así nunca quedan distintos).
 (function(){
   function ponerVersion(){ try{ var e = document.getElementById('notifVersion'); if(e) e.textContent = 'Versión ' + window.__BO_VERSION; }catch(err){} }
@@ -20575,6 +20674,15 @@ try{
   if(sb && !sb.__interceptorSuscripcion){
     sb.__interceptorSuscripcion = true;
     const fromOriginal = sb.from.bind(sb);
+    sb.__fromOriginal = fromOriginal;     // lo usa el registro de errores para no vigilarse a sí mismo
+    const anotar = function(tipo, tabla, metodo, r){
+      try{
+        if(!r || !r.error || tabla === 'app_errors' || !window.__boRegistrarError) return;
+        const e = r.error;
+        window.__boRegistrarError(e.code === 'BO_SIN_ID' ? 'pedido' : tipo, tabla + (metodo ? ' (' + metodo + ')' : '') + ': ' + (e.message || 'error'),
+          'estado ' + (r.status || 0) + (e.code ? ' · código ' + e.code : '') + (e.details ? ' · ' + e.details : '') + (e.hint ? ' · ' + e.hint : ''));
+      }catch(_){}
+    };
     // ─── PEDIDOS SIN IDENTIFICADOR ───
     // Un filtro por "id", "club_id", "player_id", "match_id"... o por temporada que llega vacío
     // (null / undefined) no puede traer nada: la base lo rechaza con un error. Lo detectamos acá,
@@ -20630,7 +20738,7 @@ try{
               // Si el pedido va sin identificador (club, jugador, partido...), no se envía:
               // la base lo rechazaría igual y solo sumaría un error en sus registros.
               const sinId = pedidoSinId(this, tabla);
-              if(sinId) return Promise.resolve(sinId).then(alCumplir, alFallar);
+              if(sinId){ anotar('guardado', tabla, metodo, sinId); return Promise.resolve(sinId).then(alCumplir, alFallar); }
               const self = this;
               const enviar = () => new Promise((ok, mal) => { try{ thenOriginal.call(self, ok, mal); }catch(e){ mal(e); } });
               // "No llegó a la base": se cortó la conexión o el servidor no respondió (no es un rechazo de la base).
@@ -20645,6 +20753,7 @@ try{
                 }
                 // Si igual no se pudo guardar, se avisa: antes la app seguía como si nada y el cambio se perdía en silencio.
                 if(noLlego(res) && !GUARDADO_SIN_AVISO[tabla]) avisarNoGuardado();
+                if(tabla !== 'section_usage' && tabla !== 'app_sessions') anotar('guardado', tabla, metodo, res);
                 try{
                   if(res && res.error && window.__esErrorSuscripcion) window.__esErrorSuscripcion(res.error);
                 }catch(e){}
@@ -20672,7 +20781,7 @@ try{
             lectura.then = function(alCumplir, alFallar){
               const self = this;
               const sinId = pedidoSinId(self, tabla);
-              if(sinId) return Promise.resolve(sinId).then(alCumplir, alFallar);
+              if(sinId){ anotar('lectura', tabla, '', sinId); return Promise.resolve(sinId).then(alCumplir, alFallar); }
               const pedir = () => new Promise((ok, mal) => { try{ thenLectura.call(self, ok, mal); }catch(e){ mal(e); } });
               const todo = (async () => {
                 let paginable = false;
@@ -20686,6 +20795,7 @@ try{
                   if(paginable) self.headers.Prefer = prefer ? (prefer + ',count=exact') : 'count=exact';
                 }catch(e){ paginable = false; }
                 const res = await pedir();
+                anotar('lectura', tabla, '', res);
                 if(!paginable || !res || res.error || !Array.isArray(res.data) || typeof res.count !== 'number'
                    || !res.data.length || res.data.length >= res.count) return res;
                 // Llegaron menos filas de las que hay: se leen todas, por tandas y con un orden fijo.
