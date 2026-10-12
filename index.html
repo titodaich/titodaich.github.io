@@ -3890,7 +3890,7 @@ body.editor-active #screen-editor{ display:block; }
             <button class="notif-close" id="notifClose">✕</button>
           </div>
           <div class="notif-list" id="notifList"></div>
-          <div class="notif-version" id="notifVersion">Versión 6/10 · K</div>
+          <div class="notif-version" id="notifVersion">Versión 12/10 · L</div>
         </div>
       </div>
       <select id="langSelect" class="lang-select" title="Idioma / Language / Idioma">
@@ -6955,8 +6955,15 @@ function irACrearCuenta(){
 // Si no hay conexión, se guarda en el teléfono y se envía cuando vuelve.
 (function(){
   const MAX_POR_SESION = 25, CLAVE = 'bo_err_cola';
-  let cuenta = 0, enviando = false, apagado = false;
+  let cuenta = 0, enviando = false, apagado = false, saliendo = false;
   const vistos = {};
+  // Cuando la página se está cerrando o recargando, los pedidos en curso se cortan solos:
+  // eso no es una falla de la app y no se anota.
+  const CORTE = /Failed to fetch|NetworkError|Load failed|AbortError|aborted|cancelled/i;
+  try{
+    window.addEventListener('pagehide', function(){ saliendo = true; });
+    window.addEventListener('beforeunload', function(){ saliendo = true; setTimeout(function(){ saliendo = false; }, 4000); });
+  }catch(e){}
   let cola = [];
   try{ cola = JSON.parse(localStorage.getItem(CLAVE) || '[]'); if(!Array.isArray(cola)) cola = []; }catch(e){ cola = []; }
   const guardarCola = function(){ try{ localStorage.setItem(CLAVE, JSON.stringify(cola.slice(-30))); }catch(e){} };
@@ -7003,6 +7010,9 @@ function irACrearCuenta(){
       if(apagado) return;
       const m = texto(mensaje, 300).trim();
       if(!m || /^Script error\.?$|ResizeObserver loop/i.test(m)) return;
+      if(saliendo && CORTE.test(m)) return;
+      // La sesión guardada venció (pasa sola con el tiempo): la app pide ingresar de nuevo. Se anota aparte.
+      if(/Invalid Refresh Token|Refresh Token Not Found|refresh_token_not_found|Auth session missing/i.test(m)) tipo = 'sesion';
       const k = tipo + '|' + m;
       if(vistos[k]) return;                     // el mismo error, una sola vez por sesión
       vistos[k] = 1;
@@ -7286,7 +7296,9 @@ let clubId = null;
 })();
 
 // Versión publicada: se muestra abajo de las novedades (campanita). Cambiarla en cada subida.
-window.__BO_VERSION = '6/10 · K';
+window.__BO_VERSION = '12/10 · L';
+// Si la app se abrió desde la dirección de prueba (prueba.html), se nota en el número de versión.
+try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PRUEBA'; }catch(e){}
 // La etiqueta de la campanita siempre muestra este mismo número (así nunca quedan distintos).
 (function(){
   function ponerVersion(){ try{ var e = document.getElementById('notifVersion'); if(e) e.textContent = 'Versión ' + window.__BO_VERSION; }catch(err){} }
@@ -11837,12 +11849,78 @@ window.__BO_VERSION = '6/10 · K';
   }
   function queuePending(payload){
     const arr = readPending();
-    arr.push({ ...payload, __localId: 'lp_' + Date.now() + '_' + Math.random().toString(36).slice(2,7) });
+    const idLocal = 'lp_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+    arr.push({ ...payload, __localId: idLocal });
     writePending(arr);
+    return idLocal;
+  }
+
+  // Vuelca al partido vinculado (Estadísticas) los goles y tarjetas registrados en vivo.
+  // Devuelve true si quedó todo guardado (o no había nada para volcar) y false si no llegó a la base
+  // (sin señal), para volver a intentarlo después. Nunca pisa lo que ya estaba cargado a mano.
+  async function volcarAEstadisticas(matchId, evs, categoriaTxt){
+    const sb = window.__sb;
+    if(!matchId || !sb) return true;
+    evs = Array.isArray(evs) ? evs.filter(e => e && typeof e === 'object') : [];
+    // El minuto del gol se guarda SOLO en inferiores (4ta a promocionales). En 3era y 1era no se registra.
+    const catPartido = String(categoriaTxt || '').toUpperCase();
+    const esInferior = !(catPartido === '1ERA' || catPartido === '3ERA');
+    // Minuto del gol con su tiempo, listo para mostrar en la ficha. Ej: "13' PT" o "8' ST".
+    const minDeGol = (ev)=>{
+      if(!esInferior) return '';
+      let m = ev.min;
+      if(m == null || m === ''){
+        const seg = (typeof ev.t === 'number') ? ev.t : 0;
+        m = Math.floor(seg / 60) + 1;   // minuto 1 = primeros 60s
+      }
+      const tiempo = (Number(ev.half) === 2) ? 'ST' : 'PT';
+      return m + "' " + tiempo;
+    };
+    const golesEnVivo = evs.filter(e => e.type === 'goal').map(e => ({
+      player_id: e.pid || '', player_name: e.inName || '', origin: e.origen || '', detail: e.detail || '',
+      min: minDeGol(e), half: e.half || '', fromLive: true
+    }));
+    const golesRival = evs.filter(e => e.type === 'goalAgainst').map(e => ({
+      keeper_id: e.keeper_id || '', keeper_name: e.keeper_name || '', gk_mode: e.gk_mode || '', origin: e.origen || '', detail: e.detail || '',
+      min: minDeGol(e), half: e.half || '', fromLive: true
+    }));
+    // Cada evento 'card' del vivo es una tarjeta amarilla de un jugador.
+    const tarjetasEnVivo = evs.filter(e => e.type === 'card').map(e => ({ player_id: e.pid || '', player_name: e.inName || '', type: 'amarilla' }));
+    // "No llegó": se cortó la conexión o el servidor no respondió. Solo eso se reintenta; un rechazo de la base, no.
+    const noLlego = (r) => !!(r && r.error && (!r.status || r.status === 408 || r.status === 429 || r.status >= 500));
+    let ok = true;
+    const volcar = async (columna, lista) => {
+      if(!lista.length) return;
+      const r = await sb.from('stat_matches').select(columna).eq('id', matchId).maybeSingle();
+      if(r.error){ if(noLlego(r)) ok = false; return; }
+      if(!r.data) return;                                   // el partido ya no existe
+      const existentes = Array.isArray(r.data[columna]) ? r.data[columna] : [];
+      if(existentes.length) return;                         // ya tenía datos cargados: no se pisan (ni se duplican)
+      const cambio = { updated_at: new Date().toISOString() };
+      cambio[columna] = lista;
+      const w = await sb.from('stat_matches').update(cambio).eq('id', matchId);
+      if(noLlego(w)) ok = false;
+    };
+    try{
+      await volcar('goals_for', golesEnVivo);
+      await volcar('goals_against', golesRival);
+      await volcar('cards', tarjetasEnVivo);
+    }catch(e){ ok = false; }
+    try{ if(typeof window.__refreshMinutes === 'function') window.__refreshMinutes(); }catch(e){}
+    return ok;
   }
 
   // Intenta subir todas las sesiones pendientes. Devuelve cuántas subió.
+  // Solo corre de a una por vez: dos subidas a la vez podían duplicar un partido o perder uno recién encolado.
+  let subiendoPendientes = false;
   async function flushPending(silent){
+    if(subiendoPendientes) return 0;
+    subiendoPendientes = true;
+    try{ return await subirPendientes(silent); }
+    catch(e){ return 0; }
+    finally{ subiendoPendientes = false; }
+  }
+  async function subirPendientes(silent){
     const sb = window.__sb;
     if(!sb) return 0;
     let arr = readPending();
@@ -11858,26 +11936,45 @@ window.__BO_VERSION = '6/10 · K';
     }catch(e){}
     if(!uidSesion) uidSesion = window.__currentUserId || null;
     for(const item of arr){
-      const { __localId, ...payload } = item;
+      // __cat y __subida son anotaciones locales: no se mandan a la base.
+      const { __localId, __cat, __subida, ...payload } = item;
       if(!payload.created_by && uidSesion) payload.created_by = uidSesion;
-      try{
-        // Anti-duplicado: si este partido ya se subió en un intento anterior
-        // (la señal se cortó justo después de insertar), su __uid ya está en la
-        // base. En ese caso lo damos por subido y NO lo insertamos de nuevo.
-        const uid = payload && payload.totals && payload.totals.__uid;
-        if(uid && payload.club_id){
-          try{
-            const { data: yaExiste } = await sb.from('live_sessions')
-              .select('id').eq('club_id', payload.club_id).eq('totals->>__uid', uid).limit(1);
-            if(yaExiste && yaExiste.length){ subidas++; if(window.__touchSeen) window.__touchSeen(); continue; }
-          }catch(eChk){ /* si la comprobación falla, seguimos e intentamos insertar igual */ }
-        }
-        const res = await sb.from('live_sessions').insert(payload).select('id').single();
-        if(res && res.error){ quedan.push(item); }   // no se pudo: la dejamos para el próximo intento
-        else { subidas++; if(window.__touchSeen) window.__touchSeen(); }
-      }catch(e){ quedan.push(item); }                 // sin señal: la dejamos
+      let yaArriba = !!__subida;       // el partido ya se subió en un intento anterior; solo falta volcar goles/tarjetas
+      if(!yaArriba){
+        try{
+          // Anti-duplicado: si este partido ya se subió en un intento anterior
+          // (la señal se cortó justo después de insertar), su __uid ya está en la
+          // base. En ese caso lo damos por subido y NO lo insertamos de nuevo.
+          const uid = payload && payload.totals && payload.totals.__uid;
+          if(uid && payload.club_id){
+            try{
+              const { data: yaExiste } = await sb.from('live_sessions')
+                .select('id').eq('club_id', payload.club_id).eq('totals->>__uid', uid).limit(1);
+              if(yaExiste && yaExiste.length) yaArriba = true;
+            }catch(eChk){ /* si la comprobación falla, seguimos e intentamos insertar igual */ }
+          }
+          if(!yaArriba){
+            const res = await sb.from('live_sessions').insert(payload).select('id').single();
+            if(res && res.error){ quedan.push(item); continue; }   // no se pudo: queda para el próximo intento
+            yaArriba = true;
+          }
+          subidas++; if(window.__touchSeen) window.__touchSeen();
+        }catch(e){ quedan.push(item); continue; }                  // sin señal: queda
+      }
+      // El partido ya está en la nube. Falta que sus goles y tarjetas lleguen a Estadísticas:
+      // si no hay señal, queda anotado y se reintenta (antes, un partido finalizado sin señal
+      // subía los minutos más tarde pero los goles y tarjetas no llegaban nunca al partido).
+      if(payload.match_id){
+        let volcado = false;
+        try{ volcado = await volcarAEstadisticas(payload.match_id, payload.events, __cat || payload.categoria); }catch(eV){ volcado = false; }
+        if(!volcado) quedan.push({ ...item, __subida: true });
+      }
     }
-    writePending(quedan);
+    // Se conservan los partidos que se hayan encolado mientras corría esta subida.
+    const procesados = {};
+    arr.forEach(x => { if(x && x.__localId) procesados[x.__localId] = 1; });
+    const nuevos = readPending().filter(x => x && x.__localId && !procesados[x.__localId]);
+    writePending(quedan.concat(nuevos));
     if(subidas > 0 && !silent){
       const msg = subidas === 1 ? window.t('mSyncedPending') : window.t('mSyncedPendingN').replace('{n}', subidas);
       toast(msg);
@@ -11891,6 +11988,19 @@ window.__BO_VERSION = '6/10 · K';
 
   async function finishAndArchive(matchId, rivalName){
     const clubId = await window.__getClubId();
+    // Red de seguridad: el partido de Estadísticas al que se vincula tiene que ser de la misma categoría
+    // que el partido jugado. Si no lo es, se guarda sin vincular (como amistoso) en vez de mezclar categorías.
+    let vinculoDeOtraCategoria = '';
+    if(matchId && window.__sb){
+      try{
+        const catJugado = String(matchCategoria || (window.__getActiveCategory && window.__getActiveCategory()) || '');
+        const r = await window.__sb.from('stat_matches').select('categoria').eq('id', matchId).maybeSingle();
+        if(!r.error && r.data && catJugado && String(r.data.categoria || '') !== catJugado){
+          vinculoDeOtraCategoria = String(r.data.categoria || 'otra categoría');
+          matchId = null;
+        }
+      }catch(e){ /* sin señal: no se puede comprobar */ }
+    }
     // Red de seguridad: si por lo que sea no tenemos autor, lo recuperamos de la sesión.
     if(!matchAuthorId){
       try{
@@ -11925,7 +12035,7 @@ window.__BO_VERSION = '6/10 · K';
     };
 
     // PASO 1: guardar SIEMPRE en el teléfono primero. Pase lo que pase, no se pierde.
-    queuePending(payload);
+    const idLocal = queuePending({ ...payload, __cat: String(matchCategoria || cat || '') });
 
     // PASO 2: intentar subir ya mismo lo pendiente (incluye este partido).
     const sb = window.__sb;
@@ -11933,100 +12043,25 @@ window.__BO_VERSION = '6/10 · K';
     if(sb && navigator.onLine !== false){
       try{
         // subimos toda la cola; si este partido entra, genial
-        const antes = readPending().length;
         await flushPending(true);
-        const despues = readPending().length;
-        subioEste = despues < antes;
+        const mio = readPending().find(x => x && x.__localId === idLocal);
+        subioEste = !mio || !!mio.__subida;     // ya no está en la cola, o ya subió y solo le falta volcar goles
       }catch(e){ subioEste = false; }
     }
 
-    if(subioEste && readPending().length === 0){
+    if(subioEste && !readPending().some(x => x && x.__localId === idLocal)){
       toast(window.t('mArchived'));
     } else {
       // quedó guardado en el teléfono; se subirá solo cuando vuelva internet
       toast(window.t('mSavedLocal'));
     }
 
-    // Si se asoció a un partido, volcar los goles CON SU TAG DE ORIGEN a estadísticas.
-    if(matchId && sb){
-      try{
-        // El minuto del gol se guarda SOLO en inferiores (4ta a promocionales).
-        // En 3era y 1era no se registra el minuto.
-        const catPartido = String(matchCategoria || (window.__getActiveCategory ? window.__getActiveCategory() : '') || '').toUpperCase();
-        const esInferior = !(catPartido === '1ERA' || catPartido === '3ERA');
-        // Helper: minuto del gol con su tiempo, listo para mostrar en la ficha.
-        // Ej: "13' PT" (primer tiempo) o "8' ST" (segundo tiempo).
-        // Solo devuelve valor si es categoría inferior; si no, queda vacío.
-        const minDeGol = (ev)=>{
-          if(!esInferior) return '';
-          let m = ev.min;
-          if(m == null || m === ''){
-            const seg = (typeof ev.t === 'number') ? ev.t : 0;
-            m = Math.floor(seg / 60) + 1;   // minuto 1 = primeros 60s
-          }
-          const tiempo = (Number(ev.half) === 2) ? 'ST' : 'PT';
-          return m + "' " + tiempo;
-        };
-        // Goles NUESTROS registrados en vivo (con su minuto y origen)
-        const golesEnVivo = events.filter(e => e.type === 'goal').map(e => ({
-          player_id: e.pid || '',
-          player_name: e.inName || '',
-          origin: e.origen || '',
-          detail: e.detail || '',
-          min: minDeGol(e),
-          half: e.half || '',
-          fromLive: true
-        }));
-        // Goles del RIVAL registrados en vivo (con su minuto)
-        const golesRival = events.filter(e => e.type === 'goalAgainst').map(e => ({
-          keeper_id: e.keeper_id || '',
-          keeper_name: e.keeper_name || '',
-          gk_mode: e.gk_mode || '',
-          origin: e.origen || '',
-          detail: e.detail || '',
-          min: minDeGol(e),
-          half: e.half || '',
-          fromLive: true
-        }));
-        if(golesEnVivo.length){
-          // Traer el partido actual para no pisar goles ya cargados a mano
-          const { data: mData } = await sb.from('stat_matches').select('goals_for').eq('id', matchId).maybeSingle();
-          const existentes = (mData && Array.isArray(mData.goals_for)) ? mData.goals_for : [];
-          // Solo agregamos si el partido no tenía goles cargados (para no duplicar)
-          if(existentes.length === 0){
-            await sb.from('stat_matches').update({ goals_for: golesEnVivo, updated_at: new Date().toISOString() }).eq('id', matchId);
-            if(typeof window.__refreshMinutes === 'function') window.__refreshMinutes();
-          }
-        }
-        if(golesRival.length){
-          try{
-            const { data: mData2 } = await sb.from('stat_matches').select('goals_against').eq('id', matchId).maybeSingle();
-            const existentes2 = (mData2 && Array.isArray(mData2.goals_against)) ? mData2.goals_against : [];
-            if(existentes2.length === 0){
-              await sb.from('stat_matches').update({ goals_against: golesRival, updated_at: new Date().toISOString() }).eq('id', matchId);
-            }
-          }catch(eRival){ /* si la columna no existe o falla, no rompemos el volcado de los nuestros */ }
-        }
-        // Tarjetas registradas en vivo → estadística del partido (stat_matches.cards).
-        // Cada evento 'card' del vivo es una tarjeta amarilla de un jugador.
-        const tarjetasEnVivo = events.filter(e => e.type === 'card').map(e => ({
-          player_id: e.pid || '',
-          player_name: e.inName || '',
-          type: 'amarilla'
-        }));
-        if(tarjetasEnVivo.length){
-          try{
-            const { data: mData3 } = await sb.from('stat_matches').select('cards').eq('id', matchId).maybeSingle();
-            const existentes3 = (mData3 && Array.isArray(mData3.cards)) ? mData3.cards : [];
-            // Solo agregamos si el partido no tenía tarjetas cargadas (para no duplicar).
-            if(existentes3.length === 0){
-              await sb.from('stat_matches').update({ cards: tarjetasEnVivo, updated_at: new Date().toISOString() }).eq('id', matchId);
-            }
-          }catch(eCard){ /* si falla, no rompemos el resto del volcado */ }
-        }
-      }catch(e){ console.error('volcar goles con origen', e); }
-    }
+    // (Los goles y tarjetas del partido llegan a Estadísticas desde la subida de pendientes: así también
+    //  llegan cuando el partido se finalizó sin señal.)
 
+    if(vinculoDeOtraCategoria){
+      try{ alert('Atención: el rival elegido era un partido de ' + vinculoDeOtraCategoria + '. Para no mezclar categorías, este partido se guardó sin vincular (como amistoso). Los minutos están en Minutaje.'); }catch(e){}
+    }
     // En ambos casos volvemos al setup: el partido está a salvo (local o nube)
     setupCalled = {}; matchRival = ''; matchLinkId = null;
     // El partido terminó y ya quedó guardado (en la nube o en la cola de pendientes),
@@ -12094,6 +12129,10 @@ window.__BO_VERSION = '6/10 · K';
 
   // Reintentar subir pendientes cuando vuelve la conexión o al iniciar
   window.addEventListener('online', () => { flushPending(false); });
+  // Con señal floja el navegador no siempre avisa que "volvió" la conexión: mientras haya un partido
+  // sin subir, se reintenta solo cada 30 segundos y cada vez que se vuelve a la app.
+  setInterval(() => { try{ if(readPending().length && navigator.onLine !== false) flushPending(false); }catch(e){} }, 30000);
+  document.addEventListener('visibilitychange', () => { try{ if(!document.hidden && readPending().length) flushPending(false); }catch(e){} });
   // Cuando la app vuelve del segundo plano (fin de una llamada, desbloqueo del teléfono),
   // recalculamos el reloj al toque, así no queda atrasado por la pausa del navegador.
   document.addEventListener('visibilitychange', () => {
@@ -12127,10 +12166,12 @@ window.__BO_VERSION = '6/10 · K';
     }catch(e){ console.error('live squad',e); }
   }
 
+  let __rivalesSeq = 0;
   async function renderSetup(){
     // rivales (partidos de la categoría)
     const sb=window.__sb; const cont=document.getElementById('liveSetupRivals');
     if(cont){
+      const seqRivales = ++__rivalesSeq;
       cont.innerHTML='<p class="rd-empty">Cargando partidos…</p>';
       try{
         const clubId=await window.__getClubId();
@@ -12138,7 +12179,15 @@ window.__BO_VERSION = '6/10 · K';
         let q=sb.from('stat_matches').select('id,rival,match_date').eq('club_id',clubId);
         q=cat?q.eq('categoria',cat):q.is('categoria',null); if(window.__getTemporada) q=q.eq('temporada',window.__getTemporada());
         const {data}=await q;
+        // Si mientras tanto se pidió otra lista (se cambió la categoría), esta ya no vale.
+        if(seqRivales !== __rivalesSeq) return;
         const list=(data||[]).sort((a,b)=>(a.match_date||'').localeCompare(b.match_date||''));
+        // El rival elegido tiene que ser un partido de ESTA categoría. Si se eligió en otra categoría y después
+        // se cambió la de arriba, la elección se descarta (antes quedaba enganchado al partido de la otra categoría).
+        if(matchLinkId && !list.some(m => m.id === matchLinkId)){
+          matchLinkId = null; matchRival = '';
+          try{ updateStartHint(); }catch(eH){}
+        }
         cont.innerHTML='';
         if(list.length===0){ cont.innerHTML='<p class="rd-empty">No hay partidos cargados en Estadísticas → Partidos. Podés igual jugar sin linkear (elegí "Amistoso").</p>'; }
         const opts=list.concat([{id:null,rival:'Amistoso / sin linkear',match_date:''}]);
@@ -12243,10 +12292,24 @@ window.__BO_VERSION = '6/10 · K';
   document.getElementById('liveCallAll').addEventListener('click',()=>{ allSquad.forEach(p=>setupCalled[p.id]=true); renderCallGrid(); updateStartHint(); });
   document.getElementById('liveCallNone').addEventListener('click',()=>{ setupCalled={}; renderCallGrid(); updateStartHint(); });
 
-  document.getElementById('liveStartBtn').addEventListener('click',()=>{
+  document.getElementById('liveStartBtn').addEventListener('click',async ()=>{
     if(!matchRival){ toast(window.t('mPickRival')); return; }
     const conv=allSquad.filter(p=>setupCalled[p.id]);
     if(conv.length<5){ toast(window.t('mPick5')); return; }
+    // El rival elegido tiene que ser un partido de la categoría en la que se juega.
+    if(matchLinkId && window.__sb){
+      try{
+        const catAhora = (window.__getActiveCategory && window.__getActiveCategory()) || '';
+        const r = await window.__sb.from('stat_matches').select('categoria').eq('id', matchLinkId).maybeSingle();
+        if(!r.error && r.data && catAhora && String(r.data.categoria || '') !== String(catAhora)){
+          matchLinkId = null; matchRival = '';
+          renderSetup(); updateStartHint();
+          alert('El rival que habías elegido es un partido de ' + (r.data.categoria || 'otra categoría') + ', no de ' + catAhora + '. Elegí el rival de nuevo.');
+          return;
+        }
+      }catch(e){ /* sin señal: no se puede comprobar, se sigue */ }
+    }
+    if(!inSetup) return;   // (doble toque mientras se comprobaba)
     // fijar el plantel del partido = convocados
     squad=conv.map(p=>({...p}));
     state={}; squad.forEach(p=>{ state[p.id]={onCourt:false,acc1:0,acc2:0,lastInAt:null,goals:0,fouls1:0,fouls2:0,cards:0,shots:0,recup:0}; });
@@ -16464,9 +16527,11 @@ window.__BO_VERSION = '6/10 · K';
     });
     html+='</div></div>';
     // eventos
-    if(s.events && s.events.length){
+    // Solo eventos válidos: si quedó guardado alguno vacío o roto, se saltea y el detalle abre igual.
+    const evsDetalle = Array.isArray(s.events) ? s.events.filter(ev => ev && typeof ev === 'object') : [];
+    if(evsDetalle.length){
       html+='<div class="annual-card" style="margin-top:14px;"><div class="rd-card-head"><h3>Cambios y eventos</h3></div><div class="live-log" style="max-height:none;">';
-      s.events.slice().reverse().forEach(ev=>{
+      evsDetalle.slice().reverse().forEach(ev=>{
         let desc='',cls='',label='';
         if(ev.type==='in'){desc='Entra '+escapeHtml(ev.inName);cls='in';label='Ingreso';}
         else if(ev.type==='out'){desc='Sale '+escapeHtml(ev.outName);cls='out';label='Salida';}
@@ -24429,6 +24494,35 @@ async function exportarGrupoOrdenado(nombre, clips){
         }
         setTimeout(preguntarVersion, 3000);
         document.addEventListener('visibilitychange', function(){ if(document.visibilityState === 'visible') preguntarVersion(); });
+        // ── La app queda abierta horas o días (sobre todo instalada en el teléfono) ──
+        // Hasta ahora solo se enteraba de una versión nueva al volver a abrirse. Ahora, cada vez que se vuelve
+        // a la app y como mucho cada 10 minutos, consulta si lo publicado cambió (es una consulta mínima, no baja
+        // la app). Si cambió, la baja en segundo plano y aparece el cartel "Hay una versión nueva".
+        var marcaPublicada = null, ultimaRevision = 0;
+        function revisarVersion(forzar){
+          try{
+            if(!forzar && (document.visibilityState !== 'visible' || navigator.onLine === false)) return;
+            var ahora = Date.now();
+            if(!forzar && ahora - ultimaRevision < 10 * 60 * 1000) return;
+            ultimaRevision = ahora;
+            var urlApp = new URL('index.html', window.location.href).href;
+            fetch(urlApp, { method: 'HEAD', cache: 'no-store' }).then(function(r){
+              if(!r || !r.ok) return;
+              var marca = r.headers.get('etag') || r.headers.get('last-modified');
+              if(!marca) return;
+              if(marcaPublicada === null){ marcaPublicada = marca; return; }   // primera vez: se toma como referencia
+              if(marca === marcaPublicada) return;
+              marcaPublicada = marca;
+              // Cambió lo publicado: se le pide al service worker que la baje y avise.
+              fetch(urlApp, { cache: 'no-store' }).then(function(x){ try{ return x.text(); }catch(e){} })
+                .then(function(){ preguntarVersion(); setTimeout(preguntarVersion, 4000); }).catch(function(){});
+            }).catch(function(){});
+          }catch(e){}
+        }
+        window.__boRevisarVersion = revisarVersion;
+        setTimeout(revisarVersion, 20000);
+        setInterval(revisarVersion, 60000);
+        document.addEventListener('visibilitychange', function(){ if(document.visibilityState === 'visible') revisarVersion(); });
         // Cuando el SW nuevo toma control, recargamos UNA vez para mostrar lo nuevo.
         var yaRecargo = false;
         navigator.serviceWorker.addEventListener('controllerchange', function(){
