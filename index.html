@@ -1029,6 +1029,45 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .llr-origen-add:hover{border-color:var(--accent-2);color:var(--accent-2);}
 .llr-origen-against{background:rgba(240,85,63,0.15);border-color:var(--danger);color:var(--danger);}
 .gol-origen-overlay.go-contra .gol-origen-box{border-color:var(--danger);}
+/* ===== Mapa de remates (cancha en 9 sectores) ===== */
+.zc{position:relative;width:100%;max-width:300px;margin:0 auto;}
+.zc::before{content:'';display:block;padding-top:100%;}
+.zc.zc-chica{max-width:190px;}
+.zc.zc-fija::before{display:none;}
+.zc svg{position:absolute;left:0;top:0;width:100%;height:100%;}
+.zc-grid{position:absolute;left:0;top:0;right:0;bottom:0;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:30% 20% 50%;}
+.zc-cel{border:1px dashed rgba(255,255,255,0.22);background:transparent;color:var(--chalk);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:'Inter',sans-serif;padding:2px;min-width:0;min-height:0;-webkit-tap-highlight-color:transparent;}
+button.zc-cel{cursor:pointer;font-size:11px;color:var(--muted);}
+button.zc-cel:hover,button.zc-cel:active{background:rgba(47,143,203,0.22);color:var(--chalk);}
+.zc-cel.on{background:rgba(47,143,203,0.45);border:2px solid var(--accent-2);color:#fff;font-weight:700;}
+.go-contra .zc-cel.on{background:rgba(240,85,63,0.40);border-color:var(--danger);}
+.zc-n{font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;line-height:1;color:var(--chalk);}
+.zc-s{font-size:10px;color:var(--chalk);opacity:.85;white-space:nowrap;}
+.zc-vacia .zc-n{color:var(--muted);opacity:.6;}
+.gol-origen-box{max-height:calc(100vh - 36px);overflow-y:auto;}
+.zr-res{display:flex;gap:8px;margin-bottom:12px;}
+.zr-res .go-btn{padding:11px 8px;}
+.zr-res .go-btn.on{background:var(--accent-2);border-color:var(--accent-2);color:#fff;}
+.go-contra .zr-res .go-btn.on{background:var(--danger);border-color:var(--danger);}
+.zr-hint{text-align:center;color:var(--muted);font-size:12px;margin:0 0 8px;font-family:'Inter',sans-serif;}
+.go-zona{margin:0 0 14px;padding:10px 12px;background:var(--bg-2);border:1px solid var(--line-soft);border-radius:10px;}
+.llr-zona{display:inline-block;background:rgba(76,175,109,0.14);border:1px solid var(--success);color:var(--success);border-radius:5px;padding:1px 7px;font-size:11px;margin-left:6px;cursor:pointer;font-family:'JetBrains Mono',monospace;}
+.llr-zona-add{background:transparent;border:1px dashed var(--muted);color:var(--muted);}
+.lsb-zonas{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:'JetBrains Mono',monospace;}
+.lsb-zonas.on{border-color:var(--success);color:var(--success);}
+.mr-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px;}
+.mr-tab{background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);border-radius:999px;padding:7px 14px;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;}
+.mr-tab.on{background:var(--accent-2);border-color:var(--accent-2);color:#fff;}
+.mr-tab.on.mr-contra{background:var(--danger);border-color:var(--danger);}
+.mr-filtros{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
+.mr-filtros select{background:var(--panel-2);border:1px solid var(--line);color:var(--chalk);border-radius:8px;padding:7px 9px;font-size:13px;max-width:100%;}
+.mr-cuerpo{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;}
+.mr-cuerpo .zc{flex:1 1 240px;max-width:320px;margin:0;}
+.mr-datos{flex:1 1 200px;display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--chalk);}
+.mr-dato{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding:5px 0;}
+.mr-dato b{font-family:'JetBrains Mono',monospace;}
+.mr-nota{color:var(--muted);font-size:11px;margin-top:6px;}
+
 .gol-origen-overlay.go-contra .go-btn:hover,.gol-origen-overlay.go-contra .go-btn:active{border-color:var(--danger);background:rgba(240,85,63,0.15);color:var(--danger);}
 .live-scoreboard .lsb-result{display:flex;align-items:center;gap:14px;}
 .live-scoreboard .lsb-col{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:70px;}
@@ -3890,7 +3929,7 @@ body.editor-active #screen-editor{ display:block; }
             <button class="notif-close" id="notifClose">✕</button>
           </div>
           <div class="notif-list" id="notifList"></div>
-          <div class="notif-version" id="notifVersion">Versión 12/10 · N</div>
+          <div class="notif-version" id="notifVersion">Versión 12/10 · P</div>
         </div>
       </div>
       <select id="langSelect" class="lang-select" title="Idioma / Language / Idioma">
@@ -4905,6 +4944,9 @@ body.editor-active #screen-editor{ display:block; }
               <span><span data-i18n="sbShots">Remates</span> <b id="sbShotsAgainst">0</b></span>
               <button class="lsb-mini" id="sbSAplus" aria-label="+">+</button>
             </div>
+          </div>
+          <div class="lsb-fouls-row">
+            <button type="button" class="lsb-zonas" id="liveZonasToggle" title="Al marcar un remate o un gol, elegir desde qué sector de la cancha fue">📍 Zona de remates: SÍ</button>
           </div>
         </div>
 
@@ -7296,7 +7338,7 @@ let clubId = null;
 })();
 
 // Versión publicada: se muestra abajo de las novedades (campanita). Cambiarla en cada subida.
-window.__BO_VERSION = '12/10 · N';
+window.__BO_VERSION = '12/10 · P';
 // Si la app se abrió desde la dirección de prueba (prueba.html), se nota en el número de versión.
 try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PRUEBA'; }catch(e){}
 // La etiqueta de la campanita siempre muestra este mismo número (así nunca quedan distintos).
@@ -10661,6 +10703,190 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
 })();
 
 // ---------------- EN VIVO (control de minutos) ----------------
+// ===== Zonas de remate: media cancha dividida en 9 sectores (lo usan En Vivo y Estadísticas) =====
+// Zona 1-9: fila (1-3 cerca, 4-6 media, 7-9 lejos) x columna (izquierda, centro, derecha), mirando hacia el arco.
+(function(){
+  const FILAS = ['Cerca', 'Media', 'Lejos'];
+  const FILAS_LARGO = ['Cerca (hasta 6 m)', 'Media distancia (6 a 10 m)', 'Lejos (más de 10 m)'];
+  const COLS = ['Izq.', 'Centro', 'Der.'];
+  function zonaValida(z){ z = Number(z); return (z >= 1 && z <= 9 && Math.floor(z) === z) ? z : 0; }
+  function nombreZona(z){ z = zonaValida(z); if(!z) return ''; return FILAS[Math.floor((z - 1) / 3)] + ' · ' + COLS[(z - 1) % 3]; }
+  function nombreLargo(z){ z = zonaValida(z); if(!z) return ''; return FILAS_LARGO[Math.floor((z - 1) / 3)] + ' · ' + ['izquierda', 'centro', 'derecha'][(z - 1) % 3]; }
+  // Media cancha de futsal (20 x 20 m) con el arco arriba. 10 unidades = 1 metro.
+  const SVG = '<svg viewBox="0 0 200 200" preserveAspectRatio="none" aria-hidden="true">'
+    + '<rect x="1" y="1" width="198" height="198" rx="3" fill="rgba(76,175,109,0.10)" stroke="rgba(255,255,255,0.40)" stroke-width="2"/>'
+    + '<path d="M25 1 A60 60 0 0 0 85 60 L115 60 A60 60 0 0 0 175 1" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.40)" stroke-width="1.6"/>'
+    + '<rect x="85" y="1" width="30" height="6" fill="rgba(255,255,255,0.25)" stroke="rgba(255,255,255,0.6)" stroke-width="1.2"/>'
+    + '<circle cx="100" cy="60" r="1.8" fill="rgba(255,255,255,0.6)"/><circle cx="100" cy="100" r="1.8" fill="rgba(255,255,255,0.6)"/>'
+    + '<path d="M70 199 A30 30 0 0 1 130 199" fill="none" stroke="rgba(255,255,255,0.40)" stroke-width="1.6"/>'
+    + '</svg>';
+  // celda(z) -> { html, clase, titulo } ; si opts.botones, cada sector es un botón con data-zona
+  function canchaHTML(celda, opts){
+    opts = opts || {};
+    let h = '<div class="zc' + (opts.chica ? ' zc-chica' : '') + '">' + SVG + '<div class="zc-grid">';
+    for(let z = 1; z <= 9; z++){
+      const c = (typeof celda === 'function' ? celda(z) : null) || {};
+      const tag = opts.botones ? 'button' : 'div';
+      h += '<' + tag + (opts.botones ? ' type="button"' : '') + ' class="zc-cel' + (c.clase ? ' ' + c.clase : '') + '" data-zona="' + z + '" title="' + nombreLargo(z) + '"'
+        + (c.estilo ? ' style="' + c.estilo + '"' : '') + '>' + (c.html || '') + '</' + tag + '>';
+    }
+    return h + '</div></div>';
+  }
+  const RES = { arco: 'Al arco', afuera: 'Afuera', gol: 'Gol' };
+  const esc = (t) => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+
+  // Pasa los eventos de un partido de En Vivo a una lista de remates (con o sin zona marcada).
+  function remates(evs, partido){
+    const out = [];
+    (Array.isArray(evs) ? evs : []).forEach(e => {
+      if(!e || typeof e !== 'object') return;
+      const base = { zona: zonaValida(e.zona), partido: partido || null };
+      if(e.type === 'goal') out.push(Object.assign(base, { lado: 'favor', res: 'gol', pid: e.pid || '', pname: e.inName || '' }));
+      else if(e.type === 'shot') out.push(Object.assign(base, { lado: 'favor', res: RES[e.res] && e.res !== 'gol' ? e.res : '', pid: e.pid || '', pname: e.inName || '' }));
+      else if(e.type === 'shotTeam') out.push(Object.assign(base, { lado: 'favor', res: RES[e.res] && e.res !== 'gol' ? e.res : '', pid: '', pname: '' }));
+      else if(e.type === 'goalAgainst') out.push(Object.assign(base, { lado: 'contra', res: 'gol', kid: e.keeper_id || '', kname: e.keeper_name || '' }));
+      else if(e.type === 'shotRival') out.push(Object.assign(base, { lado: 'contra', res: RES[e.res] && e.res !== 'gol' ? e.res : '', kid: e.keeper_id || '', kname: e.keeper_name || '' }));
+    });
+    return out;
+  }
+
+  // ---- Cálculos del mapa ----
+  function calcular(items){
+    const porZona = {}; for(let z = 1; z <= 9; z++) porZona[z] = { n: 0, arco: 0, gol: 0, afuera: 0 };
+    const c = { porZona, total: items.length, arco: 0, gol: 0, afuera: 0, sinZona: 0, sinRes: 0, max: 0 };
+    items.forEach(x => {
+      if(x.res === 'gol') c.gol++; else if(x.res === 'arco') c.arco++; else if(x.res === 'afuera') c.afuera++; else c.sinRes++;
+      if(!x.zona){ c.sinZona++; return; }
+      const z = porZona[x.zona]; z.n++; if(x.res) z[x.res]++;
+    });
+    for(let z = 1; z <= 9; z++) c.max = Math.max(c.max, porZona[z].n);
+    return c;
+  }
+  const pct = (a, b) => b ? Math.round(100 * a / b) + '%' : '—';
+  function canchaDe(c, lado, chicaPx){
+    const color = lado === 'contra' ? '240,85,63' : '47,143,203';
+    let h = canchaHTML(z => {
+      const k = c.porZona[z];
+      if(!k.n) return { clase: 'zc-vacia', html: '<span class="zc-n">0</span>' };
+      const a = 0.12 + 0.6 * (k.n / (c.max || 1));
+      return { estilo: 'background:rgba(' + color + ',' + a.toFixed(2) + ')',
+               html: '<span class="zc-n">' + k.n + '</span><span class="zc-s">🎯' + (k.arco + k.gol) + ' · ⚽' + k.gol + '</span>' };
+    });
+    if(chicaPx) h = h.replace('<div class="zc">', '<div class="zc zc-fija" style="width:' + chicaPx + 'px;height:' + chicaPx + 'px;max-width:none;">');
+    return h;
+  }
+  function topZona(c, k){ let mz = 0, mv = 0; for(let z = 1; z <= 9; z++){ if(c.porZona[z][k] > mv){ mv = c.porZona[z][k]; mz = z; } } return mz ? nombreZona(mz) + ' (' + mv + ')' : '—'; }
+  function datosDe(c, lado){
+    const dato = (t, v) => '<div class="mr-dato"><span>' + t + '</span><b>' + v + '</b></div>';
+    let h = dato('Remates', c.total) + dato('Al arco', (c.arco + c.gol) + ' <span style="color:var(--muted);font-weight:400;">(' + pct(c.arco + c.gol, c.total) + ')</span>') + dato('Afuera', c.afuera) + dato('Goles', c.gol);
+    if(lado === 'contra'){
+      h += dato('Atajadas', c.arco) + dato('% de atajadas', pct(c.arco, c.arco + c.gol));
+      h += dato('Desde donde más nos patean', topZona(c, 'n')) + dato('Desde donde más nos convierten', topZona(c, 'gol'));
+    } else {
+      h += dato('Goles por remate', pct(c.gol, c.total)) + dato('Goles por remate al arco', pct(c.gol, c.arco + c.gol));
+      h += dato('Desde donde más pateamos', topZona(c, 'n')) + dato('Desde donde más convertimos', topZona(c, 'gol'));
+    }
+    return h;
+  }
+  // Tabla por jugador (pateamos) o por arquero (nos patean)
+  function tablaDe(items, lado){
+    const g = {};
+    items.forEach(x => {
+      const id = (lado === 'contra' ? x.kid : x.pid) || '_';
+      const nm = (lado === 'contra' ? x.kname : x.pname) || (lado === 'contra' ? 'Sin arquero marcado' : 'Sin jugador marcado');
+      const r = g[id] || (g[id] = { nm, n: 0, arco: 0, gol: 0, afuera: 0, zonas: {} });
+      r.n++; if(x.res === 'gol') r.gol++; else if(x.res === 'arco') r.arco++; else if(x.res === 'afuera') r.afuera++;
+      if(x.zona) r.zonas[x.zona] = (r.zonas[x.zona] || 0) + 1;
+    });
+    const filas = Object.keys(g).map(k => g[k]).sort((a, b) => (b.n - a.n) || a.nm.localeCompare(b.nm));
+    if(!filas.length) return '';
+    const zonaTop = (r) => { let mz = 0, mv = 0; Object.keys(r.zonas).forEach(z => { if(r.zonas[z] > mv){ mv = r.zonas[z]; mz = Number(z); } }); return mz ? nombreZona(mz) : '—'; };
+    const th = (t) => '<th style="text-align:center;padding:6px 6px;border-bottom:1px solid var(--line);color:var(--muted);font-weight:600;font-size:11px;">' + t + '</th>';
+    const td = (t, al) => '<td style="text-align:' + (al || 'center') + ';padding:6px 6px;border-bottom:1px solid var(--line);">' + t + '</td>';
+    let h = '<table class="mr-tabla" style="width:100%;border-collapse:collapse;font-size:12px;color:var(--chalk);margin-top:10px;"><thead><tr>'
+      + '<th style="text-align:left;padding:6px 6px;border-bottom:1px solid var(--line);color:var(--muted);font-weight:600;font-size:11px;">' + (lado === 'contra' ? 'Arquero' : 'Jugador') + '</th>'
+      + th('Remates') + th('Al arco') + th('Afuera') + th('Goles') + th(lado === 'contra' ? '% atajadas' : 'Gol/remate') + th('Zona más usada') + '</tr></thead><tbody>';
+    filas.forEach(r => {
+      h += '<tr>' + td(esc(r.nm), 'left') + td(r.n) + td(r.arco + r.gol) + td(r.afuera) + td(r.gol)
+        + td(lado === 'contra' ? pct(r.arco, r.arco + r.gol) : pct(r.gol, r.n)) + td(zonaTop(r)) + '</tr>';
+    });
+    return h + '</tbody></table>';
+  }
+
+  // Hoja para exportar (imagen o PDF): los dos lados, con su tabla.
+  function hojaExport(items, info){
+    const cont = document.createElement('div');
+    cont.style.cssText = 'position:fixed;left:-9999px;top:0;width:1000px;background:#10161C;color:#F2F6F8;font-family:Inter,system-ui,sans-serif;padding:36px;box-sizing:border-box;';
+    const lado = (l, tit) => {
+      const it = items.filter(x => x.lado === l); const c = calcular(it);
+      return '<div style="flex:1;min-width:0;background:#152230;border:1px solid #33495E;border-radius:14px;padding:18px;">'
+        + '<div style="font-family:Oswald,sans-serif;font-size:20px;font-weight:700;margin-bottom:12px;color:' + (l === 'contra' ? '#F0553F' : '#2F8FCB') + ';">' + tit + '</div>'
+        + (it.length ? canchaDe(c, l, 400) + '<div class="mr-datos" style="margin-top:14px;">' + datosDe(c, l) + '</div>' + tablaDe(it, l)
+                     : '<p style="color:#8CA2B3;">Sin remates cargados.</p>')
+        + '</div>';
+    };
+    cont.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #33495E;">'
+      + '<div><div style="font-family:Oswald,sans-serif;font-size:30px;font-weight:700;">🎯 Mapa de remates</div>'
+      + '<div style="font-size:15px;color:#8CA2B3;margin-top:5px;">' + esc(info.subtitulo || '') + '</div></div>'
+      + '<div style="text-align:right;font-family:Oswald,sans-serif;font-size:18px;font-weight:600;color:#2F8FCB;letter-spacing:1px;">BENCHONE<span style="color:#E5342A;">·</span></div></div>'
+      + '<div style="display:flex;gap:18px;align-items:flex-start;">' + lado('contra', '🥅 Nos patean') + lado('favor', '⚽ Pateamos') + '</div>'
+      + '<div style="margin-top:14px;font-size:12px;color:#8CA2B3;">Cada sector: remates · 🎯 al arco (incluye goles) · ⚽ goles. Arco arriba; izquierda y derecha mirando hacia el arco.</div>'
+      + '<div style="margin-top:18px;text-align:center;font-family:JetBrains Mono,monospace;font-size:12px;color:#5c7186;letter-spacing:1px;">Generado con Benchone · benchone.app</div>';
+    return cont;
+  }
+
+  // Dibuja el mapa de remates con sus filtros dentro de "cont". lista = salida de remates() (de uno o varios partidos).
+  // opts.unPartido: no muestra el filtro de partido. opts.subtitulo: texto para la hoja exportada.
+  function mapa(cont, lista, opts){
+    if(!cont) return;
+    opts = opts || {};
+    lista = Array.isArray(lista) ? lista : [];
+    const st = cont.__mr || (cont.__mr = { lado: 'contra', partido: '', arquero: '', jugador: '' });
+    const pintar = () => {
+      const partidos = []; const vistos = {};
+      lista.forEach(x => { const pt = x.partido; if(pt && pt.id != null && !vistos[pt.id]){ vistos[pt.id] = 1; partidos.push(pt); } });
+      if(st.partido && !vistos[st.partido]) st.partido = '';
+      const delPartido = lista.filter(x => !st.partido || (x.partido && String(x.partido.id) === String(st.partido)));
+      const delLado = delPartido.filter(x => x.lado === st.lado);
+      const personas = {}; delLado.forEach(x => { const id = st.lado === 'contra' ? x.kid : x.pid; const nm = st.lado === 'contra' ? x.kname : x.pname; if(id && nm) personas[id] = nm; });
+      const filtroPersona = st.lado === 'contra' ? st.arquero : st.jugador;
+      const sel = delLado.filter(x => !filtroPersona || (st.lado === 'contra' ? x.kid : x.pid) === filtroPersona);
+      const c = calcular(sel);
+      const notas = [];
+      if(c.sinZona) notas.push(c.sinZona + ' sin zona marcada (no están en la cancha, sí en los totales)');
+      if(c.sinRes) notas.push(c.sinRes + ' sin saber si fueron al arco o afuera');
+      const optsHTML = (arr, actual, todos) => '<option value="">' + todos + '</option>' + arr.map(o => '<option value="' + esc(o.v) + '"' + (String(o.v) === String(actual) ? ' selected' : '') + '>' + esc(o.t) + '</option>').join('');
+      const listaPersonas = Object.keys(personas).map(id => ({ v: id, t: personas[id] })).sort((a, b) => a.t.localeCompare(b.t));
+      let h = '<div class="mr-tabs"><button type="button" class="mr-tab mr-contra' + (st.lado === 'contra' ? ' on' : '') + '" data-lado="contra">🥅 Nos patean</button><button type="button" class="mr-tab' + (st.lado === 'favor' ? ' on' : '') + '" data-lado="favor">⚽ Pateamos</button></div>';
+      h += '<div class="mr-filtros">';
+      if(!opts.unPartido && partidos.length > 1) h += '<select data-f="partido">' + optsHTML(partidos.map(pt => ({ v: pt.id, t: pt.nombre })), st.partido, 'Todos los partidos') + '</select>';
+      if(listaPersonas.length) h += '<select data-f="' + (st.lado === 'contra' ? 'arquero' : 'jugador') + '">' + optsHTML(listaPersonas, filtroPersona, st.lado === 'contra' ? 'Todos los arqueros' : 'Todos los jugadores') + '</select>';
+      if(lista.length && window.__boExport) h += '<button type="button" class="btn small" data-exp="png">🖼 Imagen</button><button type="button" class="btn small" data-exp="pdf">📄 PDF</button>';
+      h += '</div>';
+      if(!lista.length){
+        h += '<p class="rd-empty">Todavía no hay remates cargados en En Vivo. Al marcar un remate o un gol en En Vivo, elegí desde qué sector fue.</p>';
+      } else {
+        h += '<div class="mr-cuerpo">' + canchaDe(c, st.lado) + '<div class="mr-datos">' + datosDe(c, st.lado) + '</div></div>';
+        h += tablaDe(delLado, st.lado);
+        h += '<p class="mr-nota">Cada sector: remates · 🎯 al arco (incluye goles) · ⚽ goles. Arco arriba; izquierda y derecha mirando hacia el arco.' + (notas.length ? '<br>' + notas.join(' · ') + '.' : '') + '</p>';
+      }
+      cont.innerHTML = h;
+      cont.querySelectorAll('.mr-tab').forEach(b => b.addEventListener('click', () => { st.lado = b.dataset.lado; pintar(); }));
+      cont.querySelectorAll('select[data-f]').forEach(sl => sl.addEventListener('change', () => { st[sl.dataset.f] = sl.value; pintar(); }));
+      cont.querySelectorAll('[data-exp]').forEach(b => b.addEventListener('click', () => {
+        const ex = window.__boExport; if(!ex) return;
+        const pt = st.partido ? partidos.find(x => String(x.id) === String(st.partido)) : null;
+        const sub = [opts.subtitulo || '', pt ? pt.nombre : (opts.unPartido ? '' : 'Todos los partidos')].filter(Boolean).join('  ·  ');
+        const hoja = hojaExport(delPartido, { subtitulo: sub });
+        const nombre = ex.nombre(pt ? pt.nombre : (opts.nombreArchivo || 'Temporada'), 'Remates-');
+        if(b.dataset.exp === 'png') ex.png(hoja, nombre); else ex.pdf(hoja, nombre, true);
+      }));
+    };
+    try{ pintar(); }catch(e){ console.error('mapa de remates', e); cont.innerHTML = ''; }
+  }
+  window.__boZonas = { zonaValida, nombreZona, nombreLargo, canchaHTML, RES, FILAS, COLS, remates, mapa };
+})();
+
 (function initLive(){
   let clockSeconds = 0;
   let clockRunning = false;
@@ -11408,7 +11634,7 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
       d.style.top = slot.y + '%';
       const roleLabel = role==='otro' ? '' : role.charAt(0).toUpperCase()+role.slice(1);
       const st=ensure(p.id);
-      d.innerHTML=`<div class="lt-avatar">${(window.__avatarHTML?window.__avatarHTML(p,44):"")}</div><div class="lt-num">${escapeHtml(p.number?'#'+p.number:'')}${roleLabel?' · '+roleLabel:''}</div><div class="lt-name">${escapeHtml(p.name)}</div><div class="lt-time" data-t="${p.id}">${displayTimeEnCancha(p.id)}</div><div class="lt-actions"><div class="lt-act-wrap"><button class="lt-act lt-goal" title="Gol">⚽<span class="lt-cnt">${st.goals||0}</span></button><button class="lt-minus lt-goal-minus" title="Restar gol">−</button></div><div class="lt-act-wrap"><button class="lt-act lt-shot" title="Remate al arco">🎯<span class="lt-cnt">${st.shots||0}</span></button><button class="lt-minus lt-shot-minus" title="Restar remate">−</button></div><div class="lt-act-wrap"><button class="lt-act lt-foul" title="Falta (del tiempo actual)">⚠️<span class="lt-cnt">${foulsNow(p.id)}</span></button><button class="lt-minus lt-foul-minus" title="Restar falta">−</button></div><div class="lt-act-wrap"><button class="lt-act lt-card" title="Tarjeta amarilla">🟨<span class="lt-cnt">${st.cards||0}</span></button><button class="lt-minus lt-card-minus" title="Restar tarjeta">−</button></div><div class="lt-act-wrap"><button class="lt-act lt-recup" title="Recuperación">⚔️<span class="lt-cnt">${st.recup||0}</span></button><button class="lt-minus lt-recup-minus" title="Restar recuperación">−</button></div></div>`;
+      d.innerHTML=`<div class="lt-avatar">${(window.__avatarHTML?window.__avatarHTML(p,44):"")}</div><div class="lt-num">${escapeHtml(p.number?'#'+p.number:'')}${roleLabel?' · '+roleLabel:''}</div><div class="lt-name">${escapeHtml(p.name)}</div><div class="lt-time" data-t="${p.id}">${displayTimeEnCancha(p.id)}</div><div class="lt-actions"><div class="lt-act-wrap"><button class="lt-act lt-goal" title="Gol">⚽<span class="lt-cnt">${st.goals||0}</span></button><button class="lt-minus lt-goal-minus" title="Restar gol">−</button></div><div class="lt-act-wrap"><button class="lt-act lt-shot" title="Remate">🎯<span class="lt-cnt">${st.shots||0}</span></button><button class="lt-minus lt-shot-minus" title="Restar remate">−</button></div><div class="lt-act-wrap"><button class="lt-act lt-foul" title="Falta (del tiempo actual)">⚠️<span class="lt-cnt">${foulsNow(p.id)}</span></button><button class="lt-minus lt-foul-minus" title="Restar falta">−</button></div><div class="lt-act-wrap"><button class="lt-act lt-card" title="Tarjeta amarilla">🟨<span class="lt-cnt">${st.cards||0}</span></button><button class="lt-minus lt-card-minus" title="Restar tarjeta">−</button></div><div class="lt-act-wrap"><button class="lt-act lt-recup" title="Recuperación">⚔️<span class="lt-cnt">${st.recup||0}</span></button><button class="lt-minus lt-recup-minus" title="Restar recuperación">−</button></div></div>`;
       // click en la ficha (fuera de los botones) = cambio
       d.addEventListener('click',(e)=>{ if(e.target.closest('.lt-act')||e.target.closest('.lt-minus')) return; tapOnCourt(p.id); });
       d.querySelector('.lt-goal').addEventListener('click',(e)=>{ e.stopPropagation(); addGoal(p.id); });
@@ -11707,6 +11933,8 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
         cls='out'; label='Gol -';
       }
       else if(ev.type==='shot'){ desc='🎯 Remate de '+escapeHtml(ev.inName); cls='swap'; label='Remate'; }
+      else if(ev.type==='shotTeam'){ desc='🎯 Remate nuestro'; cls='swap'; label='Remate'; }
+      else if(ev.type==='shotRival'){ desc='🥅 Remate del rival'+(ev.keeper_name?' <span class="llr-keeper">🧤 '+escapeHtml(ev.keeper_name)+'</span>':''); cls='out'; label='Remate -'; }
       else if(ev.type==='foul'){ desc='⚠️ Falta de '+escapeHtml(ev.inName); cls='out'; label='Falta'; }
       else if(ev.type==='card'){ desc='🟨 Tarjeta a '+escapeHtml(ev.inName); cls='half'; label='Tarjeta'; }
       else if(ev.type==='recup'){ desc='⚔️ Recuperación de '+escapeHtml(ev.inName); cls='in'; label='Recup.'; }
@@ -11717,7 +11945,21 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
       } else if(ev.type==='goalAgainst'){
         accionesGol = `<span class="llr-acciones"><button class="llr-del" title="Borrar gol">🗑</button></span>`;
       }
+      // Zona del remate/gol (se toca para marcarla o cambiarla)
+      const conZona = (ev.type==='shot' || ev.type==='shotTeam' || ev.type==='shotRival' || ev.type==='goal' || ev.type==='goalAgainst');
+      if(conZona){
+        const et = etiquetaZona(ev);
+        if(et) desc += ' <span class="llr-zona">📍 '+escapeHtml(et)+'</span>';
+        else if(zonasActivas()) desc += ' <span class="llr-zona llr-zona-add">📍 + zona</span>';
+      }
       row.innerHTML=`<span class="llr-time">${fmtClock(ev.t)}</span><span class="llr-type ${cls}">${label}</span><span class="llr-desc">${desc}</span>${accionesGol}`;
+      const zonaEl = row.querySelector('.llr-zona');
+      if(zonaEl) zonaEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const esGol = (ev.type==='goal' || ev.type==='goalAgainst');
+        const tit = ev.type==='goal' ? '⚽ Gol de <b>'+escapeHtml(ev.inName)+'</b>' : ev.type==='goalAgainst' ? '🥅 Gol en contra' : ev.type==='shotRival' ? '🥅 Remate del rival' : ev.type==='shotTeam' ? '🎯 Remate nuestro' : '🎯 Remate de <b>'+escapeHtml(ev.inName)+'</b>';
+        abrirZonaRemate(ev, tit, !esGol);
+      });
       // Permitir editar/agregar el tag del gol tocándolo (modo manual)
       const origenEl = row.querySelector('.llr-origen');
       if(origenEl){
@@ -11834,10 +12076,43 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
   });
   bindMini('sbFAplus', ()=>{ if(currentHalf===1) foulsAgainst1++; else foulsAgainst2++; renderScoreboard(); guardarPartidoLocal(); });
   bindMini('sbFAminus',()=>{ if(currentHalf===1) foulsAgainst1=Math.max(0,foulsAgainst1-1); else foulsAgainst2=Math.max(0,foulsAgainst2-1); renderScoreboard(); guardarPartidoLocal(); });
-  bindMini('sbSFplus', ()=>{ if(currentHalf===1) shotsFor1++; else shotsFor2++; renderScoreboard(); guardarPartidoLocal(); });
-  bindMini('sbSFminus',()=>{ if(currentHalf===1) shotsFor1=Math.max(0,shotsFor1-1); else shotsFor2=Math.max(0,shotsFor2-1); renderScoreboard(); guardarPartidoLocal(); });
-  bindMini('sbSAplus', ()=>{ if(currentHalf===1) shotsAgainst1++; else shotsAgainst2++; renderScoreboard(); guardarPartidoLocal(); });
-  bindMini('sbSAminus',()=>{ if(currentHalf===1) shotsAgainst1=Math.max(0,shotsAgainst1-1); else shotsAgainst2=Math.max(0,shotsAgainst2-1); renderScoreboard(); guardarPartidoLocal(); });
+  // Quita el registro más reciente de ese tipo en el tiempo actual (si lo hay)
+  function quitarUltimoDeTipo(tipo){
+    const idx = events.findIndex(e => e && (Number(e.half) === 2 ? 2 : 1) === currentHalf
+      && (e.type === tipo || (tipo === 'shotTeam' && e.type === 'shot' && e.marcador)));
+    if(idx < 0) return;
+    const e = events[idx];
+    if(e.type === 'shot' && e.pid){ const st = ensure(e.pid); if(st) st.shots = Math.max(0, (st.shots || 0) - 1); renderField(); renderTotals(); }
+    events.splice(idx, 1);
+  }
+  bindMini('sbSFplus', ()=>{
+    if(currentHalf===1) shotsFor1++; else shotsFor2++;
+    const ev = { t:nowSeconds(), type:'shotTeam', pid:null, inName:'', outName:'', half:currentHalf };
+    events.unshift(ev);
+    renderScoreboard(); renderLog(); guardarPartidoLocal();
+    if(zonasActivas()) abrirZonaRemate(ev, '🎯 Remate nuestro', true);
+  });
+  bindMini('sbSFminus',()=>{
+    const antes = currentHalf===1 ? shotsFor1 : shotsFor2;
+    if(currentHalf===1) shotsFor1=Math.max(0,shotsFor1-1); else shotsFor2=Math.max(0,shotsFor2-1);
+    if(antes > 0) quitarUltimoDeTipo('shotTeam');
+    renderScoreboard(); renderLog(); guardarPartidoLocal();
+  });
+  bindMini('sbSAplus', ()=>{
+    if(currentHalf===1) shotsAgainst1++; else shotsAgainst2++;
+    const ev = { t:nowSeconds(), type:'shotRival', pid:null, inName:'Rival', outName:'', half:currentHalf };
+    // A qué arquero le patearon (para las estadísticas del entrenador de arqueros)
+    try{ const a = arqueroDelMomento(); ev.gk_mode = a.modo; ev.keeper_id = a.p ? a.p.id : null; ev.keeper_name = a.p ? a.p.name : ''; }catch(e){}
+    events.unshift(ev);
+    renderScoreboard(); renderLog(); guardarPartidoLocal();
+    if(zonasActivas()) abrirZonaRemate(ev, '🥅 Remate del rival' + (ev.keeper_name ? ' <span style="color:var(--muted);font-size:13px;">— 🧤 ' + escapeHtml(ev.keeper_name) + '</span>' : ''), true);
+  });
+  bindMini('sbSAminus',()=>{
+    const antes = currentHalf===1 ? shotsAgainst1 : shotsAgainst2;
+    if(currentHalf===1) shotsAgainst1=Math.max(0,shotsAgainst1-1); else shotsAgainst2=Math.max(0,shotsAgainst2-1);
+    if(antes > 0) quitarUltimoDeTipo('shotRival');
+    renderScoreboard(); renderLog(); guardarPartidoLocal();
+  });
 
   // ===== Cola local de sesiones pendientes (a prueba de cortes de señal) =====
   const PENDING_KEY = 'ce_live_pending';
@@ -11862,6 +12137,15 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
     const sb = window.__sb;
     if(!matchId || !sb) return true;
     evs = Array.isArray(evs) ? evs.filter(e => e && typeof e === 'object') : [];
+    // En Vivo guarda los eventos del más nuevo al más viejo. En Estadísticas van en orden del partido
+    // (1er gol primero): se dan vuelta y se ordenan por tiempo y segundo de juego.
+    evs = evs.slice().reverse().map((e, i) => ({ e, i })).sort((x, y) => {
+      const hx = Number(x.e.half) === 2 ? 2 : 1, hy = Number(y.e.half) === 2 ? 2 : 1;
+      if(hx !== hy) return hx - hy;
+      const tx = (typeof x.e.t === 'number') ? x.e.t : null, ty = (typeof y.e.t === 'number') ? y.e.t : null;
+      if(tx != null && ty != null && tx !== ty) return tx - ty;
+      return x.i - y.i;
+    }).map(x => x.e);
     // El minuto del gol se guarda SOLO en inferiores (4ta a promocionales). En 3era y 1era no se registra.
     const catPartido = String(categoriaTxt || '').toUpperCase();
     const esInferior = !(catPartido === '1ERA' || catPartido === '3ERA');
@@ -12361,6 +12645,114 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
   }
 
   // ===== Gol / Falta =====
+  // ===== Zona de los remates (mapa de 9 sectores) =====
+  // Se puede apagar (queda guardado en este celular). Prendido por defecto.
+  function zonasActivas(){ try{ return localStorage.getItem('bo_live_zonas') !== '0'; }catch(e){ return true; } }
+  function pintarBotonZonas(){
+    const b = document.getElementById('liveZonasToggle'); if(!b) return;
+    const on = zonasActivas();
+    b.textContent = '📍 Zona de remates: ' + (on ? 'SÍ' : 'NO');
+    b.classList.toggle('on', on);
+  }
+  (function(){
+    const b = document.getElementById('liveZonasToggle');
+    if(b) b.addEventListener('click', () => {
+      const on = !zonasActivas();
+      try{ localStorage.setItem('bo_live_zonas', on ? '1' : '0'); }catch(e){}
+      pintarBotonZonas();
+      toast(on ? '📍 Al marcar remates y goles vas a elegir la zona' : 'Zona de remates apagada');
+    });
+    pintarBotonZonas();
+  })();
+  // Cartel para marcar desde dónde fue un remate (y si fue al arco o afuera).
+  // conResultado = false para los goles (el resultado ya es "gol").
+  function abrirZonaRemate(evento, tituloHTML, conResultado){
+    const Z = window.__boZonas; if(!Z || !evento) return;
+    const prev = document.getElementById('zonaRemateOverlay'); if(prev) prev.remove();
+    const ov = document.createElement('div');
+    ov.className = 'gol-origen-overlay'; ov.id = 'zonaRemateOverlay';
+    const esRival = (evento.type === 'shotRival' || evento.type === 'goalAgainst');
+    if(esRival) ov.classList.add('go-contra');
+    let res = evento.res || 'arco';
+    let tocoRes = false;
+    const esNuestro = (evento.type === 'shot' || evento.type === 'shotTeam');
+    const enCancha = (id) => { const st = state[id]; return !!(st && st.onCourt); };
+    // Jugadores para elegir: los que están en cancha (y el ya elegido). Arqueros: los del plantel.
+    const quienHTML = () => {
+      if(!conResultado) return '';
+      let lista = [], titulo = '', actual = '';
+      if(esNuestro){
+        lista = squad.filter(p => enCancha(p.id) || p.id === evento.pid);
+        titulo = '👟 ¿Quién pateó?'; actual = evento.pid || '';
+      } else if(evento.type === 'shotRival'){
+        lista = squad.filter(p => roleOf(p) === 'arquero' || p.id === evento.keeper_id);
+        titulo = '🧤 ¿Quién atajaba?'; actual = evento.keeper_id || '';
+      }
+      if(!lista.length) return '';
+      return '<div class="go-arco"><div class="go-arco-tit">' + titulo + '</div><div class="go-arco-chips">'
+        + lista.map(pl => '<button type="button" class="go-arq' + (String(pl.id) === String(actual) ? ' on' : '') + '" data-quien="' + escapeHtml(String(pl.id)) + '"><span class="go-arq-n">' + (pl.number ? escapeHtml(String(pl.number)) : '–') + '</span>' + escapeHtml(pl.name) + '</button>').join('')
+        + '</div></div>';
+    };
+    const elegirQuien = (id) => {
+      const pl = squad.find(x => String(x.id) === String(id)); if(!pl) return;
+      if(evento.type === 'shotRival'){
+        evento.keeper_id = pl.id; evento.keeper_name = pl.name; evento.gk_mode = 'arquero';
+      } else if(evento.type === 'shotTeam'){
+        // el remate del marcador pasa a ser de ese jugador
+        evento.type = 'shot'; evento.marcador = true; evento.pid = pl.id; evento.inName = pl.name;
+        const st = ensure(pl.id); st.shots = (st.shots || 0) + 1;
+      } else if(evento.type === 'shot'){
+        if(String(evento.pid) === String(pl.id)){
+          if(evento.marcador){   // tocar de nuevo al mismo lo desmarca (vuelve a ser remate sin jugador)
+            const st = ensure(pl.id); if(st) st.shots = Math.max(0, (st.shots || 0) - 1);
+            evento.type = 'shotTeam'; evento.pid = null; evento.inName = '';
+          }
+        } else {
+          const viejo = ensure(evento.pid); if(viejo) viejo.shots = Math.max(0, (viejo.shots || 0) - 1);
+          const st = ensure(pl.id); st.shots = (st.shots || 0) + 1;
+          evento.pid = pl.id; evento.inName = pl.name;
+        }
+      }
+      renderField(); renderTotals(); renderLog(); guardarPartidoLocal();
+    };
+    const pintar = () => {
+      ov.innerHTML = '<div class="gol-origen-box">'
+        + '<div class="go-head">' + tituloHTML + '</div>'
+        + (conResultado ? '<div class="zr-res"><button type="button" class="go-btn' + (res === 'arco' ? ' on' : '') + '" data-res="arco">🎯 Al arco</button><button type="button" class="go-btn' + (res === 'afuera' ? ' on' : '') + '" data-res="afuera">↗ Afuera</button></div>' : '')
+        + quienHTML()
+        + '<p class="zr-hint">Tocá desde dónde fue el remate</p>'
+        + Z.canchaHTML(z => ({ clase: (Number(evento.zona) === z ? 'on' : ''), html: (Number(evento.zona) === z ? '📍' : '') }), { botones: true })
+        + '<button class="go-skip" id="zrSkip">' + (evento.zona ? 'Cerrar ✕' : 'Sin marcar zona ✕') + '</button>'
+        + '</div>';
+      ov.querySelectorAll('.zr-res .go-btn').forEach(b => b.addEventListener('click', () => { res = b.dataset.res; tocoRes = true; pintar(); }));
+      ov.querySelectorAll('.go-arq[data-quien]').forEach(b => b.addEventListener('click', () => { elegirQuien(b.dataset.quien); pintar(); }));
+      ov.querySelectorAll('.zc-cel[data-zona]').forEach(b => b.addEventListener('click', () => {
+        evento.zona = Number(b.dataset.zona);
+        if(conResultado) evento.res = res;
+        renderLog(); guardarPartidoLocal();
+        toast('📍 ' + Z.nombreZona(evento.zona) + (conResultado ? ' · ' + Z.RES[res] : ''));
+        ov.remove();
+      }));
+      const sk = ov.querySelector('#zrSkip');
+      if(sk) sk.addEventListener('click', cerrarSinZona);
+    };
+    const cerrarSinZona = () => {
+      if(conResultado && (tocoRes || evento.res)) evento.res = res;
+      renderLog(); guardarPartidoLocal(); ov.remove();
+    };
+    ov.addEventListener('click', e => { if(e.target === ov) cerrarSinZona(); });
+    pintar();
+    document.body.appendChild(ov);
+  }
+  // Texto corto de la zona para el registro del partido
+  function etiquetaZona(ev){
+    const Z = window.__boZonas; if(!Z) return '';
+    const z = Z.nombreZona(ev.zona);
+    const r = (ev.type === 'goal' || ev.type === 'goalAgainst') ? '' : (ev.res ? Z.RES[ev.res] || '' : '');
+    if(!z && !r) return '';
+    return [z, r].filter(Boolean).join(' · ');
+  }
+
   function addGoal(pid){
     const st=ensure(pid); st.goals++;
     // Un gol es, por definición, un remate que entró: sumamos el remate
@@ -12428,6 +12820,7 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
         <input type="text" class="go-min-input" id="goMinInput" value="${minActual}" placeholder="ej: 12' ${periodo}" inputmode="numeric">
       </div>
       ${esContra ? '<div class="go-arco" id="goArco"></div>' : ''}
+      ${(zonasActivas() && window.__boZonas) ? '<div class="go-zona"><div class="go-arco-tit">📍 ¿Desde dónde fue? <span style="color:var(--muted);font-size:11px;">(opcional)</span></div><div id="goZonaCancha"></div></div>' : ''}
       <div class="go-btns">${botones}</div>
       <div class="go-detail-row">
         <label class="go-min-label">✎ Detalle <span>(opcional)</span></label>
@@ -12471,6 +12864,20 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
         });
       };
       try{ pintar(); }catch(e){ console.error('quién atajaba', e); arcoBox.style.display = 'none'; }
+    }
+
+    // ---- Zona del gol (mini cancha) ----
+    const zonaBox = ov.querySelector('#goZonaCancha');
+    if(zonaBox){
+      const pintarZona = () => {
+        zonaBox.innerHTML = window.__boZonas.canchaHTML(z => ({ clase: (Number(evento.zona) === z ? 'on' : ''), html: (Number(evento.zona) === z ? '📍' : '') }), { botones: true, chica: true });
+        zonaBox.querySelectorAll('.zc-cel[data-zona]').forEach(b => b.addEventListener('click', () => {
+          const z = Number(b.dataset.zona);
+          evento.zona = (Number(evento.zona) === z) ? null : z;   // tocar de nuevo la misma la desmarca
+          pintarZona(); renderLog(); guardarPartidoLocal();
+        }));
+      };
+      try{ pintarZona(); }catch(e){ console.error('zona del gol', e); }
     }
 
     const minInput = ov.querySelector('#goMinInput');
@@ -12520,10 +12927,12 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
     const st=ensure(pid); st.shots=(st.shots||0)+1;
     // suma también al total de remates del equipo, en el tiempo actual
     if(currentHalf===1) shotsFor1++; else shotsFor2++;
-    events.unshift({ t:nowSeconds(), type:'shot', pid, inName:(squad.find(p=>p.id===pid)||{}).name||'', outName:'', half:currentHalf });
+    const evRemate = { t:nowSeconds(), type:'shot', pid, inName:(squad.find(p=>p.id===pid)||{}).name||'', outName:'', half:currentHalf };
+    events.unshift(evRemate);
     renderField(); renderTotals(); renderLog(); renderScoreboard();
     guardarPartidoLocal();
-    toast('🎯 Remate de '+((squad.find(p=>p.id===pid)||{}).name||''));
+    if(zonasActivas()) abrirZonaRemate(evRemate, '🎯 Remate de <b>' + escapeHtml(evRemate.inName) + '</b>', true);
+    else toast('🎯 Remate de '+evRemate.inName);
   }
   function addCard(pid){
     const st=ensure(pid); st.cards++;
@@ -12674,6 +13083,8 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
     else if(ev.type==='foul'){ const st=ensure(ev.pid); if(st){ if(ev.half===2){ st.fouls2=Math.max(0,(st.fouls2||0)-1); } else { st.fouls1=Math.max(0,(st.fouls1||0)-1); } } msg='Falta deshecha'; }
     else if(ev.type==='card'){ const st=ensure(ev.pid); if(st) st.cards=Math.max(0,(st.cards||0)-1); msg='Tarjeta deshecha'; }
     else if(ev.type==='recup'){ const st=ensure(ev.pid); if(st) st.recup=Math.max(0,(st.recup||0)-1); msg='Recuperación deshecha'; }
+    else if(ev.type==='shotTeam'){ if(ev.half===2){ shotsFor2=Math.max(0,shotsFor2-1); } else { shotsFor1=Math.max(0,shotsFor1-1); } msg='Remate deshecho'; }
+    else if(ev.type==='shotRival'){ if(ev.half===2){ shotsAgainst2=Math.max(0,shotsAgainst2-1); } else { shotsAgainst1=Math.max(0,shotsAgainst1-1); } msg='Remate del rival deshecho'; }
     else if(ev.type==='in' || ev.type==='swap' || ev.type==='out' || ev.type==='half'){
       toast(window.t('mUndoOnlyLast')); return;
     }
@@ -16538,6 +16949,11 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
     // eventos
     // Solo eventos válidos: si quedó guardado alguno vacío o roto, se saltea y el detalle abre igual.
     const evsDetalle = Array.isArray(s.events) ? s.events.filter(ev => ev && typeof ev === 'object') : [];
+    // Mapa de remates del partido (si se marcaron remates o goles en En Vivo)
+    const rematesPartido = (window.__boZonas && window.__boZonas.remates(evsDetalle, { id: s.id, nombre: s.name || 'Partido' })) || [];
+    if(rematesPartido.some(x => x.zona)){
+      html+='<div class="annual-card" style="margin-top:14px;"><div class="rd-card-head"><h3>🎯 Mapa de remates</h3></div><div id="minsMapaRemates"></div></div>';
+    }
     if(evsDetalle.length){
       html+='<div class="annual-card" style="margin-top:14px;"><div class="rd-card-head"><h3>Cambios y eventos</h3></div><div class="live-log" style="max-height:none;">';
       evsDetalle.slice().reverse().forEach(ev=>{
@@ -16547,14 +16963,24 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
         else if(ev.type==='swap'){desc='Sale '+escapeHtml(ev.outName)+', entra '+escapeHtml(ev.inName);cls='swap';label='Cambio';}
         else if(ev.type==='half'){desc='— Fin del 1er tiempo —';cls='half';label='Tiempo';}
         else if(ev.type==='goal'){desc='⚽ Gol de '+escapeHtml(ev.inName);cls='in';label='Gol';}
+        else if(ev.type==='goalAgainst'){desc='🥅 Gol en contra'+(ev.keeper_name?' · 🧤 '+escapeHtml(ev.keeper_name):'');cls='out';label='Gol -';}
+        else if(ev.type==='shot'){desc='🎯 Remate de '+escapeHtml(ev.inName);cls='swap';label='Remate';}
+        else if(ev.type==='shotTeam'){desc='🎯 Remate nuestro';cls='swap';label='Remate';}
+        else if(ev.type==='shotRival'){desc='🥅 Remate del rival'+(ev.keeper_name?' · 🧤 '+escapeHtml(ev.keeper_name):'');cls='out';label='Remate -';}
         else if(ev.type==='foul'){desc='⚠️ Falta de '+escapeHtml(ev.inName);cls='out';label='Falta';}
         else if(ev.type==='card'){desc='🟨 Tarjeta a '+escapeHtml(ev.inName);cls='half';label='Tarjeta';}
         else if(ev.type==='recup'){desc='⚔️ Recuperación de '+escapeHtml(ev.inName);cls='in';label='Recup.';}
+        if(window.__boZonas && (ev.zona || (ev.res && ev.type!=='goal' && ev.type!=='goalAgainst'))){
+          const Zd = window.__boZonas; const zt = [Zd.nombreZona(ev.zona), (ev.type==='goal'||ev.type==='goalAgainst') ? '' : (Zd.RES[ev.res]||'')].filter(Boolean).join(' · ');
+          if(zt) desc += ' <span class="llr-zona" style="cursor:default;">📍 '+escapeHtml(zt)+'</span>';
+        }
         html+=`<div class="live-log-row"><span class="llr-time">${fmtMin(ev.t)}</span><span class="llr-type ${cls}">${label}</span><span class="llr-desc">${desc}</span></div>`;
       });
       html+='</div></div>';
     }
     detail.innerHTML=html;
+    const contMapa = document.getElementById('minsMapaRemates');
+    if(contMapa && window.__boZonas) window.__boZonas.mapa(contMapa, rematesPartido, { unPartido: true, nombreArchivo: s.name || 'Partido', subtitulo: [s.name || 'Partido', window.__clubNombre || '', (window.__getActiveCategory && window.__catLabel) ? 'Categoría ' + window.__catLabel(window.__getActiveCategory()) : ''].filter(Boolean).join('  ·  ') });
     const btnExpPng = document.getElementById('minsExportPng');
     if(btnExpPng) btnExpPng.addEventListener('click', ()=> { const ex = window.__boExport; if(!ex){ toast('No se pudo exportar. Recargá la página y probá de nuevo.'); return; } ex.png(construirExportMinutaje(s), ex.nombre(s.name, 'Minutaje-')); });
     const btnExpPdf = document.getElementById('minsExportPdf');
@@ -18059,6 +18485,7 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
         </div>
       </div>
       ${(() => { try{ return arquerosHTML(annualMatches); }catch(e){ console.error('cuadro de arqueros', e); return ''; } })()}
+      <div class="annual-card" style="margin-top:14px;"><h3>🎯 Mapa de remates</h3><p class="record-note" style="margin:0 0 4px;">Desde dónde nos patean y desde dónde pateamos. Sale de lo que se marca en En Vivo.</p><div id="annualMapaRemates"></div></div>
       <details class="annual-more">
         <summary>Ver más estadísticas (goleadores, asistencias, detalle, tarjetas)</summary>
         <div class="annual-grid" style="margin-top:14px;">
@@ -18097,6 +18524,15 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
       </details>
       <div id="momentosGolAnual" style="margin-top:16px;"></div>
     `;
+    // Mapa de remates (de En Vivo), respetando el filtro de competencia
+    try{
+      const contMR = document.getElementById('annualMapaRemates');
+      if(contMR && window.__boZonas){
+        contMR.__mr = window.__mrAnual || (window.__mrAnual = { lado: 'contra', partido: '', arquero: '', jugador: '' });
+        const listaMR = ((window.__annualShots && window.__annualShots.zonasRem) || []).filter(x => sesionPasaFiltro(x.partido && x.partido.match_id));
+        window.__boZonas.mapa(contMR, listaMR, { nombreArchivo: 'Temporada', subtitulo: ['Temporada' + (window.__getTemporada ? ' ' + window.__getTemporada() : ''), filtroCompetencia || '', window.__clubNombre || '', (window.__getActiveCategory && window.__catLabel) ? 'Categoría ' + window.__catLabel(window.__getActiveCategory()) : ''].filter(Boolean).join('  ·  ') });
+      }
+    }catch(eMR){ console.error('mapa de remates anual', eMR); }
     // Barra de filtro por competencia (si hay competencias cargadas)
     const contFiltro = document.getElementById('annualCompFilter');
     if(contFiltro){
@@ -18439,11 +18875,19 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
       const sb = window.__sb; const clubId = await window.__getClubId();
       if(!sb || !clubId) return;
       const cat = catActual();
-      let q = sb.from('live_sessions').select('totals, match_id').eq('club_id', clubId);
+      let q = sb.from('live_sessions').select('totals, match_id, events, name, created_at').eq('club_id', clubId);
       q = cat ? q.eq('categoria', cat) : q.is('categoria', null);
       if(window.__getTemporada) q = q.eq('temporada', window.__getTemporada());
       const { data } = await q;
       let totalFor = 0, totalAgainst = 0; const porJugador = {};
+      // Remates con zona (mapa de remates): de todas las sesiones de En Vivo
+      const zonasRem = [];
+      (data||[]).forEach((s, i) => {
+        if(!window.__boZonas) return;
+        const f = s.created_at ? new Date(s.created_at).toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit' }) : '';
+        const nombre = (s.name || 'Partido') + (f ? ' · ' + f : '');
+        window.__boZonas.remates(s.events, { id: 'ses' + i, nombre: nombre, match_id: s.match_id || null }).forEach(x => zonasRem.push(x));
+      });
       const recupPorJugador = {};   // recuperaciones por jugador (de todas las sesiones)
       // Goles y tarjetas de En Vivo, SOLO de sesiones independientes (sin match_id):
       // si la sesión está vinculada a un partido, ese partido ya cuenta en la
@@ -18478,7 +18922,7 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
           });
         }
       });
-      const nueva = { totalFor, totalAgainst, porJugador, recupPorJugador, golesLive, tarjetasLive, sesMin };
+      const nueva = { totalFor, totalAgainst, porJugador, recupPorJugador, golesLive, tarjetasLive, sesMin, zonasRem };
       const firma = cat + '|' + JSON.stringify(nueva);
       if(window.__annualShotsSig === firma) return;   // sin cambios: no redibujar
       window.__annualShotsSig = firma;
