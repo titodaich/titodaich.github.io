@@ -3890,7 +3890,7 @@ body.editor-active #screen-editor{ display:block; }
             <button class="notif-close" id="notifClose">✕</button>
           </div>
           <div class="notif-list" id="notifList"></div>
-          <div class="notif-version" id="notifVersion">Versión 12/10 · L</div>
+          <div class="notif-version" id="notifVersion">Versión 12/10 · N</div>
         </div>
       </div>
       <select id="langSelect" class="lang-select" title="Idioma / Language / Idioma">
@@ -7296,7 +7296,7 @@ let clubId = null;
 })();
 
 // Versión publicada: se muestra abajo de las novedades (campanita). Cambiarla en cada subida.
-window.__BO_VERSION = '12/10 · L';
+window.__BO_VERSION = '12/10 · N';
 // Si la app se abrió desde la dirección de prueba (prueba.html), se nota en el número de versión.
 try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PRUEBA'; }catch(e){}
 // La etiqueta de la campanita siempre muestra este mismo número (así nunca quedan distintos).
@@ -11858,7 +11858,7 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
   // Vuelca al partido vinculado (Estadísticas) los goles y tarjetas registrados en vivo.
   // Devuelve true si quedó todo guardado (o no había nada para volcar) y false si no llegó a la base
   // (sin señal), para volver a intentarlo después. Nunca pisa lo que ya estaba cargado a mano.
-  async function volcarAEstadisticas(matchId, evs, categoriaTxt){
+  async function volcarAEstadisticas(matchId, evs, categoriaTxt, catSesion){
     const sb = window.__sb;
     if(!matchId || !sb) return true;
     evs = Array.isArray(evs) ? evs.filter(e => e && typeof e === 'object') : [];
@@ -11891,7 +11891,10 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
     let ok = true;
     const volcar = async (columna, lista) => {
       if(!lista.length) return;
-      const r = await sb.from('stat_matches').select(columna).eq('id', matchId).maybeSingle();
+      // Solo se vuelca en un partido de la MISMA categoría que el En Vivo: si es de otra, no aparece y no se toca nada.
+      let qv = sb.from('stat_matches').select(columna).eq('id', matchId);
+      if(catSesion) qv = qv.eq('categoria', catSesion);
+      const r = await qv.maybeSingle();
       if(r.error){ if(noLlego(r)) ok = false; return; }
       if(!r.data) return;                                   // el partido ya no existe
       const existentes = Array.isArray(r.data[columna]) ? r.data[columna] : [];
@@ -11966,7 +11969,7 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
       // subía los minutos más tarde pero los goles y tarjetas no llegaban nunca al partido).
       if(payload.match_id){
         let volcado = false;
-        try{ volcado = await volcarAEstadisticas(payload.match_id, payload.events, __cat || payload.categoria); }catch(eV){ volcado = false; }
+        try{ volcado = await volcarAEstadisticas(payload.match_id, payload.events, __cat || payload.categoria, payload.categoria); }catch(eV){ volcado = false; }
         if(!volcado) quedan.push({ ...item, __subida: true });
       }
     }
@@ -12748,6 +12751,7 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
     } else if(inSetup){
       document.getElementById('liveSetup').style.display='block'; document.getElementById('liveActive').style.display='none';
       allSquad = [];       // limpiar plantel anterior para no mostrar el de otra categoría
+      try{ renderSetup(); }catch(eR){}   // rivales de la categoría activa ya mismo (sin esperar al plantel)
       loadSquad();         // cargar el plantel de la categoría activa AHORA
     }
     // por si quedó algún partido sin subir de una vez anterior, intentamos ahora
@@ -12770,6 +12774,11 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
         setupCalled = {}; matchRival = ''; matchLinkId = null;
         allSquad = [];               // vaciar el plantel viejo para que no se muestre por error
         updateClockType();
+        // La lista de rivales de la categoría anterior se saca YA y se recarga ya mismo, sin esperar
+        // al plantel: si no, con señal lenta quedaba en pantalla y se podía tocar un rival de otra
+        // categoría (así un partido de 5ta quedó enganchado al de 4ta con el mismo rival).
+        try{ updateStartHint(); }catch(eH){}
+        try{ renderSetup(); }catch(eR){}
         loadSquad();                 // recargar plantel de la categoría nueva
         window.__origins = null; cargarOriginsSiFaltan();
       }
