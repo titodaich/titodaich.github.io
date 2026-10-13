@@ -1818,6 +1818,29 @@ button.zc-cel:hover,button.zc-cel:active{background:rgba(47,143,203,0.22);color:
 .mt-date-short{display:none;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--chalk);padding:6px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;white-space:nowrap;}
 .mt-date-short:hover{border-color:var(--accent-2);}
 .match-table .mt-open-btn{padding:5px 10px;font-size:11px;}
+/* Partidos en celular: cada partido es una tarjeta con todo a la vista (sin deslizar de costado) */
+@media (max-width:720px){
+  .match-table.mt-partidos{min-width:0 !important;width:100%;max-width:100%;border-collapse:separate;}
+  .match-table.mt-partidos thead{display:none;}
+  .match-table.mt-partidos tbody{display:block;}
+  .match-table.mt-partidos tbody tr{display:grid;grid-template-columns:auto 1fr auto auto;grid-template-areas:"num rival gf gc" "cond fecha open del";gap:8px 8px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;margin:0 0 8px;}
+  .match-table.mt-partidos tbody td{border:none !important;padding:0 !important;min-width:0 !important;}
+  .match-table.mt-partidos td.mt-num{grid-area:num;}
+  .match-table.mt-partidos td:nth-child(2){grid-area:rival;}
+  .match-table.mt-partidos td.mt-gf{grid-area:gf;text-align:center;}
+  .match-table.mt-partidos td.mt-gc{grid-area:gc;text-align:center;}
+  .match-table.mt-partidos td.mt-cond{grid-area:cond;}
+  .match-table.mt-partidos td.mt-fecha-cell{grid-area:fecha;}
+  .match-table.mt-partidos td.mt-open{grid-area:open;}
+  .match-table.mt-partidos td.mt-del{grid-area:del;text-align:right;}
+  .match-table.mt-partidos .mt-rival-in{width:100%;font-size:14px !important;padding:8px 8px !important;}
+  .match-table.mt-partidos .mt-open-btn{padding:9px 12px;font-size:13px;}
+  .match-table.mt-partidos .btn-del-match{min-width:40px;min-height:40px;}
+  .match-table.mt-partidos .mt-date-in{display:none !important;}
+  .match-table.mt-partidos .mt-date-short{display:inline-block !important;font-size:13px;padding:9px 10px;}
+  .match-table.mt-partidos .btn-del-match{color:var(--danger);border-color:rgba(240,85,63,0.45);font-size:15px;}
+}
+
 .mt-open-btn{white-space:nowrap;}
 .match-table th.mt-del{width:38px;}
 .mt-del-btn{background:transparent;border:1px solid transparent;cursor:pointer;font-size:15px;padding:8px 10px;border-radius:7px;opacity:0.75;transition:all .12s ease;min-width:38px;min-height:38px;display:inline-flex;align-items:center;justify-content:center;}
@@ -3949,7 +3972,7 @@ body.editor-active #screen-editor{ display:block; }
             <button class="notif-close" id="notifClose">✕</button>
           </div>
           <div class="notif-list" id="notifList"></div>
-          <div class="notif-version" id="notifVersion">Versión 12/10 · U</div>
+          <div class="notif-version" id="notifVersion">Versión 12/10 · V</div>
         </div>
       </div>
       <select id="langSelect" class="lang-select" title="Idioma / Language / Idioma">
@@ -7378,7 +7401,7 @@ let clubId = null;
 })();
 
 // Versión publicada: se muestra abajo de las novedades (campanita). Cambiarla en cada subida.
-window.__BO_VERSION = '12/10 · U';
+window.__BO_VERSION = '12/10 · V';
 // Si la app se abrió desde la dirección de prueba (prueba.html), se nota en el número de versión.
 try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PRUEBA'; }catch(e){}
 // La etiqueta de la campanita siempre muestra este mismo número (así nunca quedan distintos).
@@ -15480,7 +15503,7 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
       }
       const tabla = document.createElement('div');
       tabla.innerHTML = `
-        <table class="match-table">
+        <table class="match-table mt-partidos">
           <thead>
             <tr>
               <th class="mt-num">Fecha</th>
