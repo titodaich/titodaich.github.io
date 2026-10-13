@@ -3972,7 +3972,7 @@ body.editor-active #screen-editor{ display:block; }
             <button class="notif-close" id="notifClose">✕</button>
           </div>
           <div class="notif-list" id="notifList"></div>
-          <div class="notif-version" id="notifVersion">Versión 12/10 · V</div>
+          <div class="notif-version" id="notifVersion">Versión 13/10 · W</div>
         </div>
       </div>
       <select id="langSelect" class="lang-select" title="Idioma / Language / Idioma">
@@ -7401,7 +7401,7 @@ let clubId = null;
 })();
 
 // Versión publicada: se muestra abajo de las novedades (campanita). Cambiarla en cada subida.
-window.__BO_VERSION = '12/10 · V';
+window.__BO_VERSION = '13/10 · W';
 // Si la app se abrió desde la dirección de prueba (prueba.html), se nota en el número de versión.
 try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PRUEBA'; }catch(e){}
 // La etiqueta de la campanita siempre muestra este mismo número (así nunca quedan distintos).
@@ -25254,9 +25254,27 @@ async function exportarGrupoOrdenado(nombre, clips){
           try{ if(window.__attHayPendientes && window.__attHayPendientes()) return true; }catch(e){}
           return false;
         }
-        function actualizarAhora(){
+        function recargar(){
           try{ sessionStorage.setItem('bo_recarga_version', String(Date.now())); }catch(e){}
           try{ location.reload(); }catch(e){}
+        }
+        function actualizarAhora(){
+          // Antes de recargar nos aseguramos de que el teléfono ya tenga guardada la versión nueva
+          // (si no, el service worker mostraría otra vez la anterior). Como mucho se espera 20 segundos.
+          var btn = document.querySelector('#boNuevaVersion button');
+          if(btn){ btn.disabled = true; btn.textContent = 'Actualizando…'; }
+          if(!navigator.serviceWorker || !navigator.serviceWorker.controller || !window.caches){ recargar(); return; }
+          var inicio = Date.now();
+          try{ fetch(new URL('index.html', window.location.href).href, { cache: 'no-store' }).catch(function(){}); }catch(e){}
+          (function esperar(){
+            Promise.all([
+              caches.open('bo-app-1').then(function(c){ return c.match(new URL('index.html', window.location.href).href); }).then(function(r){ return r ? (r.headers.get('etag') || r.headers.get('last-modified')) : null; }).catch(function(){ return null; }),
+              fetch(new URL('index.html', window.location.href).href, { method: 'HEAD', cache: 'no-store' }).then(function(r){ return r && r.ok ? (r.headers.get('etag') || r.headers.get('last-modified')) : null; }).catch(function(){ return null; })
+            ]).then(function(v){
+              if((v[0] && v[1] && v[0] === v[1]) || Date.now() - inicio > 20000) recargar();
+              else setTimeout(esperar, 800);
+            });
+          })();
         }
         function nuevaVersionDisponible(){
           if(avisoVersion) return;
@@ -25270,7 +25288,7 @@ async function exportarGrupoOrdenado(nombre, clips){
             if(document.getElementById('boNuevaVersion')) return;
             var c = document.createElement('div');
             c.id = 'boNuevaVersion';
-            c.setAttribute('style', 'position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:12px 14px;border-radius:12px;background:#152230;border:1px solid #40C8D6;color:#F2F6F8;font-family:Inter,sans-serif;font-size:14px;line-height:1.35;box-shadow:0 12px 34px rgba(0,0,0,.5);max-width:560px;margin:0 auto;');
+            c.setAttribute('style', 'position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom, 0px));z-index:2147483000;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:12px 14px;border-radius:12px;background:#152230;border:1px solid #40C8D6;color:#F2F6F8;font-family:Inter,sans-serif;font-size:14px;line-height:1.35;box-shadow:0 12px 34px rgba(0,0,0,.5);max-width:560px;margin:0 auto;');
             var t = document.createElement('span');
             t.setAttribute('style', 'flex:1 1 200px;');
             t.textContent = 'Hay una versión nueva de BenchOne.';
@@ -25296,25 +25314,41 @@ async function exportarGrupoOrdenado(nombre, clips){
         // Hasta ahora solo se enteraba de una versión nueva al volver a abrirse. Ahora, cada vez que se vuelve
         // a la app y como mucho cada 10 minutos, consulta si lo publicado cambió (es una consulta mínima, no baja
         // la app). Si cambió, la baja en segundo plano y aparece el cartel "Hay una versión nueva".
-        var marcaPublicada = null, ultimaRevision = 0;
+        // Referencia = la versión que está abierta AHORA (no la primera consulta): así, si el celular
+        // recargó la app vieja desde su copia guardada, igual se da cuenta de que hay una más nueva.
+        var URL_APP = new URL('index.html', window.location.href).href;
+        var marcaAbierta = null, marcaUltima = null, ultimaRevision = 0;
+        function marcaDe(r){ return r ? (r.headers.get('etag') || r.headers.get('last-modified')) : null; }
+        function marcaGuardada(){
+          try{
+            if(!window.caches) return Promise.resolve(null);
+            return caches.open('bo-app-1').then(function(c){ return c.match(URL_APP); }).then(marcaDe).catch(function(){ return null; });
+          }catch(e){ return Promise.resolve(null); }
+        }
+        function marcaPublicadaAhora(){
+          return fetch(URL_APP, { method: 'HEAD', cache: 'no-store' }).then(function(r){ return (r && r.ok) ? marcaDe(r) : null; }).catch(function(){ return null; });
+        }
+        // Al abrir: si la app vino de la copia guardada, esa es la referencia; si vino de internet, lo publicado.
+        (navigator.serviceWorker.controller ? marcaGuardada() : Promise.resolve(null)).then(function(m){
+          if(m){ marcaAbierta = m; return; }
+          return marcaPublicadaAhora().then(function(p){ if(p && !marcaAbierta) marcaAbierta = p; });
+        });
         function revisarVersion(forzar){
           try{
             if(!forzar && (document.visibilityState !== 'visible' || navigator.onLine === false)) return;
             var ahora = Date.now();
-            if(!forzar && ahora - ultimaRevision < 10 * 60 * 1000) return;
+            if(!forzar && ahora - ultimaRevision < 3 * 60 * 1000) return;
             ultimaRevision = ahora;
-            var urlApp = new URL('index.html', window.location.href).href;
-            fetch(urlApp, { method: 'HEAD', cache: 'no-store' }).then(function(r){
-              if(!r || !r.ok) return;
-              var marca = r.headers.get('etag') || r.headers.get('last-modified');
-              if(!marca) return;
-              if(marcaPublicada === null){ marcaPublicada = marca; return; }   // primera vez: se toma como referencia
-              if(marca === marcaPublicada) return;
-              marcaPublicada = marca;
-              // Cambió lo publicado: se le pide al service worker que la baje y avise.
-              fetch(urlApp, { cache: 'no-store' }).then(function(x){ try{ return x.text(); }catch(e){} })
-                .then(function(){ preguntarVersion(); setTimeout(preguntarVersion, 4000); }).catch(function(){});
-            }).catch(function(){});
+            marcaPublicadaAhora().then(function(m){
+              if(!m) return;
+              marcaUltima = m;
+              if(!marcaAbierta){ marcaAbierta = m; return; }
+              if(m === marcaAbierta) return;
+              // Lo publicado es distinto de lo que está abierto: aviso (en compu, celular y tablet por igual)
+              // y le pedimos al service worker que vaya bajando la nueva.
+              try{ fetch(URL_APP, { cache: 'no-store' }).catch(function(){}); }catch(e){}
+              nuevaVersionDisponible();
+            });
           }catch(e){}
         }
         window.__boRevisarVersion = revisarVersion;
