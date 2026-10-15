@@ -1087,6 +1087,10 @@ button.zc-cel:hover,button.zc-cel:active{background:rgba(47,143,203,0.22);color:
 .mapas-fila .mf-dato{font-family:'JetBrains Mono',monospace;font-size:13px;}
 .mapas-fila .mf-dato small{color:var(--muted);}
 .mapas-fila .mf-ver{color:var(--accent-2);font-size:13px;font-weight:600;}
+.informe-bar{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;background:linear-gradient(90deg,rgba(60,196,216,.16),rgba(76,201,127,.10));border:1px solid #3CC4D8;border-radius:12px;padding:10px 14px;margin:0 0 14px;}
+.informe-bar .ib-tit{font-family:'Oswald',sans-serif;font-weight:700;font-size:16px;letter-spacing:.5px;color:var(--chalk);}
+.informe-bar .ib-sub{font-size:12px;color:var(--muted);flex:1 1 auto;}
+.informe-bar [data-inf=wa]{background:#25D366;border-color:#25D366;color:#06210f;font-weight:700;}
 
 .gol-origen-overlay.go-contra .go-btn:hover,.gol-origen-overlay.go-contra .go-btn:active{border-color:var(--danger);background:rgba(240,85,63,0.15);color:var(--danger);}
 .live-scoreboard .lsb-result{display:flex;align-items:center;gap:14px;}
@@ -3972,7 +3976,7 @@ body.editor-active #screen-editor{ display:block; }
             <button class="notif-close" id="notifClose">✕</button>
           </div>
           <div class="notif-list" id="notifList"></div>
-          <div class="notif-version" id="notifVersion">Versión 13/10 · W</div>
+          <div class="notif-version" id="notifVersion">Versión 15/10 · X</div>
         </div>
       </div>
       <select id="langSelect" class="lang-select" title="Idioma / Language / Idioma">
@@ -7401,7 +7405,7 @@ let clubId = null;
 })();
 
 // Versión publicada: se muestra abajo de las novedades (campanita). Cambiarla en cada subida.
-window.__BO_VERSION = '13/10 · W';
+window.__BO_VERSION = '15/10 · X';
 // Si la app se abrió desde la dirección de prueba (prueba.html), se nota en el número de versión.
 try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PRUEBA'; }catch(e){}
 // La etiqueta de la campanita siempre muestra este mismo número (así nunca quedan distintos).
@@ -11091,7 +11095,30 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
     };
     try{ pintar(); }catch(e){ console.error('mapa de faltas', e); cont.innerHTML = ''; }
   }
-  window.__boZonas = { zonaValida, nombreZona, nombreLargo, canchaHTML, RES, FILAS, COLS, remates, mapa, zonaCanchaValida, nombreZonaCancha, canchaCompletaHTML, faltas, mapaFaltas, hojaExport, hojaFaltas };
+  // Bloque compacto (para el Informe de partido): mapas de remates de los dos lados y el de faltas.
+  function bloqueInforme(rem, fal){
+    rem = Array.isArray(rem) ? rem : []; fal = Array.isArray(fal) ? fal : [];
+    const conZ = (arr) => arr.some(x => x.zona);
+    if(!conZ(rem) && !conZ(fal)) return '';
+    const lado = (l, tit, color) => {
+      const it = rem.filter(x => x.lado === l); const c = calcular(it);
+      if(!it.length) return '';
+      const ext = l === 'contra'
+        ? 'Atajadas: <b>' + c.arco + '</b> · % atajadas: <b>' + pct(c.arco, c.arco + c.gol) + '</b>'
+        : 'Al arco: <b>' + (c.arco + c.gol) + '</b> · Afuera: <b>' + c.afuera + '</b>';
+      return '<div style="flex:1;min-width:0;"><div style="font:700 22px Oswald,sans-serif;color:' + color + ';margin-bottom:8px;">' + tit + ' (' + it.length + ')</div>'
+        + canchaDe(c, l, 300) + '<div style="font-size:15px;color:#B9C7D2;margin-top:8px;">' + ext + '</div></div>';
+    };
+    let h = '';
+    if(conZ(rem)) h += '<div style="display:flex;gap:24px;align-items:flex-start;">' + lado('favor', '⚽ Finalizamos', '#2F8FCB') + lado('contra', '🥅 Nos finalizan', '#F0553F') + '</div>';
+    if(conZ(fal)){
+      const c = calcularFaltas(fal);
+      h += '<div style="display:flex;gap:24px;align-items:flex-start;margin-top:22px;"><div style="flex:0 0 190px;">' + canchaFaltasDe(c, 190) + '</div>'
+        + '<div style="flex:1;min-width:0;"><div style="font:700 22px Oswald,sans-serif;color:#E3AE3F;margin-bottom:8px;">⚠️ Faltas · 1er T: ' + fal.filter(x => x.half !== 2).length + ' · 2do T: ' + fal.filter(x => x.half === 2).length + '</div><div class="mr-datos">' + datosFaltasDe(c).replace(/^<div class="mr-dato">.*?<\/div>/, '') + '</div></div></div>';
+    }
+    return h;
+  }
+  window.__boZonas = { zonaValida, nombreZona, nombreLargo, canchaHTML, RES, FILAS, COLS, remates, mapa, zonaCanchaValida, nombreZonaCancha, canchaCompletaHTML, faltas, mapaFaltas, hojaExport, hojaFaltas, bloqueInforme };
 })();
 
 (function initLive(){
@@ -13788,7 +13815,17 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
   }
 
   // Estas funciones de exportación también las usa Estadísticas (Minutaje): se comparten por acá.
-  window.__boExport = { png: (n, a) => exportarNodoPNG(n, a), pdf: (n, a, l) => exportarNodoPDF(n, a, l), nombre: (t, p) => limpiarNombreArchivo(t, p) };
+  async function nodoABlob(nodo){
+    const ok = await asegurarH2C();
+    if(!ok || !window.html2canvas) return null;
+    document.body.appendChild(nodo);
+    try{
+      const canvas = await window.html2canvas(nodo, { backgroundColor:'#10161C', scale:2, logging:false, useCORS:true });
+      return await new Promise(res => canvas.toBlob(b => res(b), 'image/png'));
+    }catch(e){ console.error('export blob', e); return null; }
+    finally{ nodo.remove(); }
+  }
+  window.__boExport = { png: (n, a) => exportarNodoPNG(n, a), pdf: (n, a, l) => exportarNodoPDF(n, a, l), nombre: (t, p) => limpiarNombreArchivo(t, p), blob: (n) => nodoABlob(n) };
 
   function nombreArchivoSemana(w){
     const base = (w.name || 'Semana').replace(/[^\wÀ-ÿ ]/g,'').trim().replace(/\s+/g,'-');
@@ -14508,6 +14545,13 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
       el.innerHTML = '<button type="button" class="btn small" id="mapasVolver">← Volver a la lista</button><h3 style="margin:12px 0 10px;color:var(--chalk);">' + escapeHtml(abierto.nombre) + ' <span style="color:var(--muted);font-size:13px;font-weight:400;">' + escapeHtml(abierto.fecha) + '</span></h3><div id="mapasUno"></div>';
       document.getElementById('mapasVolver').addEventListener('click', () => { mapasEstado.abierto = null; renderMapas(); });
       tarjetasMapas(document.getElementById('mapasUno'), abierto.rem, abierto.fal, { unPartido: true, subtitulo: subtituloMapas(abierto.nombre + ' · ' + abierto.fecha), nombreArchivo: abierto.nombre });
+      document.getElementById('mapasUno').before(barraInforme(async a => {
+        try{
+          const { data } = await window.__sb.from('live_sessions').select('*').eq('id', abierto.id).maybeSingle();
+          const ses = data || null; const mInf = ses && ses.match_id ? matches.find(x => x.id === ses.match_id) : null;
+          informePartido(a, ses, mInf);
+        }catch(e){ toast('No se pudo generar el informe'); }
+      }));
       return;
     }
     const cuenta = (arr, lado, res) => arr.filter(x => x.lado === lado && (!res || x.res === res)).length;
@@ -15850,6 +15894,16 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
     const m = matches.find(x => x.id === id);
     if(!m) return;
     currentMatch = m;
+    try{
+      const det = document.getElementById('matchDetail');
+      const prev = det && det.querySelector('.informe-bar'); if(prev) prev.remove();
+      const back = document.getElementById('backToMatchesBtn');
+      if(back) back.after(barraInforme(async a => {
+        let ses = null;
+        try{ const { data } = await window.__sb.from('live_sessions').select('*').eq('match_id', m.id).order('created_at', { ascending:false }).limit(1); ses = (data && data[0]) || null; }catch(e){}
+        informePartido(a, ses, currentMatch && currentMatch.id === m.id ? currentMatch : m);
+      }));
+    }catch(eI){ console.error('barra informe', eI); }
     document.getElementById('mtRival').value = m.rival||'';
     document.getElementById('mtDate').value = m.date||'';
     // Selector de torneo dentro del partido (solo elegir entre los creados)
@@ -17193,6 +17247,134 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
   }
 
   // Arma un nodo con SOLO la tabla de minutaje por jugador de un partido (para exportar).
+  // ===== INFORME DE PARTIDO: todo lo del partido en una sola hoja (imagen / PDF / WhatsApp) =====
+  // s = registro de En Vivo (puede faltar), m = partido de Estadísticas (puede faltar).
+  function datosInforme(s, m){
+    const totals = (s && s.totals) || {};
+    const rival = totals.__rival || {};
+    const evs = (s && Array.isArray(s.events)) ? s.events.filter(e => e && typeof e === 'object') : [];
+    const crono = evs.slice().reverse();
+    const minDe = (e) => {
+      if(e.min) return String(e.min);
+      if(typeof e.t !== 'number') return '';
+      return (Math.floor(e.t / 60) + 1) + "' " + (Number(e.half) === 2 ? 'ST' : 'PT');
+    };
+    const nombreDe = (id, resp) => { const pl = (squad||[]).find(x => x.id === id) || (squadArchivados||[]).find(x => x.id === id); return pl ? pl.name : (resp || ''); };
+    let gf = [], gc = [];
+    if(m && ((m.goalsFor||[]).length || (m.goalsAgainst||[]).length)){
+      gf = (m.goalsFor||[]).map(g => ({ min: g.min || '', quien: nombreDe(g.player_id, g.player_name) || 'Sin asignar', origen: g.origin || '', detalle: g.detail || '' }));
+      gc = (m.goalsAgainst||[]).map(g => ({ min: g.min || '', quien: g.keeper_name || nombreDe(g.keeper_id, '') || '', origen: g.origin || '', detalle: g.detail || '' }));
+      // Si al gol le falta el minuto (en 1era y 3era no se guarda en Estadísticas), se toma del reloj de En Vivo.
+      const evG = crono.filter(e => e.type === 'goal'), evC = crono.filter(e => e.type === 'goalAgainst');
+      gf.forEach((g, i) => { if(!g.min && evG[i]) g.min = minDe(evG[i]); });
+      gc.forEach((g, i) => { if(!g.min && evC[i]) g.min = minDe(evC[i]); });
+    } else {
+      gf = crono.filter(e => e.type === 'goal').map(e => ({ min: minDe(e), quien: e.inName || '', origen: e.origen || '', detalle: e.detail || '' }));
+      gc = crono.filter(e => e.type === 'goalAgainst').map(e => ({ min: minDe(e), quien: e.keeper_name || '', origen: e.origen || '', detalle: e.detail || '' }));
+      if(!gc.length && rival.goalsAgainst) for(let i = 0; i < rival.goalsAgainst; i++) gc.push({ min:'', quien:'', origen:'', detalle:'' });
+    }
+    const filas = Object.keys(totals).filter(k => k.indexOf('__') !== 0).map(n => ({ name: n, ...totals[n] })).filter(r => (r.total||0) > 0 || r.goals || r.shots || r.fouls || r.cards).sort((a, b) => (b.total||0) - (a.total||0));
+    let faltasF = 0, tarjF = 0, f1 = 0, f2 = 0; filas.forEach(r => { faltasF += (r.fouls||0); tarjF += (r.cards||0); f1 += (r.fouls1||0); f2 += (r.fouls2||0); });
+    if(!f1 && !f2 && faltasF) f1 = faltasF;   // partidos viejos sin separar por tiempo
+    if(m && (m.cards||[]).length) tarjF = m.cards.length;
+    const sf = rival.shotsFor != null ? rival.shotsFor : ((rival.shotsFor1||0) + (rival.shotsFor2||0));
+    const sa = rival.shotsAgainst != null ? rival.shotsAgainst : ((rival.shotsAgainst1||0) + (rival.shotsAgainst2||0));
+    const fechaTxt = (m && m.date) ? new Date(m.date + 'T00:00:00').toLocaleDateString('es-AR') : ((s && s.created_at) ? new Date(s.created_at).toLocaleDateString('es-AR') : '');
+    const Z = window.__boZonas;
+    const pt = { id: (s && s.id) || 'x', nombre: '' };
+    return {
+      rival: (m && m.rival) || (s && s.name) || 'Rival', fecha: fechaTxt, competencia: (m && m.competencia) || '',
+      gf, gc, filas, faltasF, faltasC: rival.foulsAgainst || 0, f1, f2, fc1: rival.foulsAgainst1 || 0, fc2: rival.foulsAgainst2 || 0, sf, sa, tarjF,
+      rem: (Z && s) ? Z.remates(evs, pt) : [], fal: (Z && s) ? Z.faltas(evs, pt) : []
+    };
+  }
+  function textoInforme(d){
+    const club = window.__clubNombre || 'Nosotros';
+    const cat = (window.__getActiveCategory && window.__catLabel) ? window.__catLabel(window.__getActiveCategory()) : '';
+    let t = '📋 *INFORME DE PARTIDO*\n' + [cat ? 'Categoría ' + cat : '', d.fecha, d.competencia].filter(Boolean).join(' · ') + '\n\n';
+    t += '⚽ *' + club + ' ' + d.gf.length + ' - ' + d.gc.length + ' ' + d.rival + '*\n';
+    t += d.gf.length > d.gc.length ? '✅ Victoria\n' : (d.gf.length < d.gc.length ? '❌ Derrota\n' : '🤝 Empate\n');
+    if(d.gf.length){ t += '\n🥅 *Goles*\n'; d.gf.forEach(g => { t += '• ' + (g.min ? g.min + ' ' : '') + (g.quien || 'Sin asignar') + (g.origen ? ' (' + g.origen + ')' : '') + '\n'; }); }
+    if(d.sf || d.sa) t += '\n🎯 Remates: ' + d.sf + ' - ' + d.sa;
+    if(d.faltasF || d.faltasC) t += '\n⚠️ Faltas 1er tiempo: ' + d.f1 + ' - ' + d.fc1 + ' · 2do tiempo: ' + d.f2 + ' - ' + d.fc2;
+    if(d.filas.length){ const top = d.filas[0]; t += '\n⏱ Más minutos: ' + top.name + ' (' + fmtMin(top.total) + ')'; }
+    return t + '\n\n— Informe generado con BenchOne · benchone.app';
+  }
+  function construirInformePartido(s, m){
+    const d = datosInforme(s, m);
+    const club = window.__clubNombre || 'Nosotros';
+    const cat = (window.__getActiveCategory && window.__catLabel) ? window.__catLabel(window.__getActiveCategory()) : '';
+    const res = d.gf.length > d.gc.length ? ['VICTORIA', '#4CAF6D'] : (d.gf.length < d.gc.length ? ['DERROTA', '#F0553F'] : ['EMPATE', '#E3AE3F']);
+    const cont = document.createElement('div');
+    cont.style.cssText = 'position:fixed;left:-9999px;top:0;width:1000px;background:#10161C;color:#F2F6F8;font-family:Inter,system-ui,sans-serif;padding:40px;box-sizing:border-box;';
+    const card = (tit, cuerpo) => '<div style="background:#152230;border:1px solid #33495E;border-radius:16px;padding:20px 22px;margin-top:18px;"><div style="font:700 22px Oswald,sans-serif;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">' + tit + '</div>' + cuerpo + '</div>';
+    const num = (et, a, b) => '<div style="flex:1;background:#1B2C3D;border-radius:12px;padding:12px 8px;text-align:center;"><div style="font:600 13px JetBrains Mono,monospace;color:#8CA2B3;text-transform:uppercase;letter-spacing:1px;">' + et + '</div><div style="font:700 34px Oswald,sans-serif;margin-top:4px;">' + a + ' <span style="color:#5c7186;">-</span> ' + b + '</div></div>';
+    const listaGoles = (arr, contra) => arr.length ? arr.map(g => '<div style="display:flex;gap:12px;align-items:baseline;padding:7px 0;border-bottom:1px solid #24384a;font-size:17px;">'
+        + '<span style="font:600 15px JetBrains Mono,monospace;color:#8CA2B3;min-width:70px;">' + escapeHtml(g.min || '—') + '</span>'
+        + '<b style="flex:1;">' + escapeHtml(contra ? (g.quien ? '🧤 ' + g.quien : 'Gol del rival') : (g.quien || 'Sin asignar')) + '</b>'
+        + (g.origen ? '<span style="font-size:14px;color:' + (contra ? '#F0553F' : '#2F8FCB') + ';">' + escapeHtml(g.origen) + (g.detalle ? ' → ' + escapeHtml(g.detalle) : '') + '</span>' : '') + '</div>').join('')
+      : '<div style="color:#8CA2B3;font-size:15px;">' + (contra ? 'Valla invicta 🧤' : 'Sin goles') + '</div>';
+    let h = '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:18px;border-bottom:2px solid #33495E;">'
+      + '<div><div style="font:700 15px JetBrains Mono,monospace;letter-spacing:3px;color:#3CC4D8;">INFORME DE PARTIDO</div>'
+      + '<div style="font:700 34px Oswald,sans-serif;margin-top:4px;">' + escapeHtml(club) + ' vs ' + escapeHtml(d.rival) + '</div>'
+      + '<div style="font-size:16px;color:#8CA2B3;margin-top:4px;">' + [cat ? 'Categoría ' + escapeHtml(cat) : '', escapeHtml(d.fecha), escapeHtml(d.competencia)].filter(Boolean).join('  ·  ') + '</div></div>'
+      + '<div style="font:600 18px Oswald,sans-serif;color:#2F8FCB;letter-spacing:1px;">BENCHONE<span style="color:#E5342A;">·</span></div></div>';
+    h += '<div style="display:flex;align-items:center;justify-content:center;gap:34px;margin:26px 0 8px;">'
+      + '<div style="text-align:right;flex:1;font:700 26px Oswald,sans-serif;">' + escapeHtml(club) + '</div>'
+      + '<div style="font:700 86px/1 Oswald,sans-serif;">' + d.gf.length + '<span style="color:#5c7186;"> - </span>' + d.gc.length + '</div>'
+      + '<div style="flex:1;font:700 26px Oswald,sans-serif;">' + escapeHtml(d.rival) + '</div></div>'
+      + '<div style="text-align:center;"><span style="display:inline-block;background:' + res[1] + ';color:#0b1218;font:700 18px Oswald,sans-serif;letter-spacing:3px;padding:6px 18px;border-radius:30px;">' + res[0] + '</span></div>';
+    h += '<div style="display:flex;gap:12px;margin-top:22px;">' + num('Remates', d.sf, d.sa) + num('Faltas 1er T', d.f1, d.fc1) + num('Faltas 2do T', d.f2, d.fc2) + '</div>';
+    h += '<div style="display:flex;gap:18px;">'
+      + '<div style="flex:1;min-width:0;">' + card('⚽ Goles a favor', listaGoles(d.gf, false)) + '</div>'
+      + '<div style="flex:1;min-width:0;">' + card('🥅 Goles en contra', listaGoles(d.gc, true)) + '</div></div>';
+    if(d.filas.length){
+      const th = (t, al) => '<th style="text-align:' + (al||'center') + ';padding:8px 6px;font:600 12px JetBrains Mono,monospace;color:#8CA2B3;text-transform:uppercase;border-bottom:1px solid #33495E;">' + t + '</th>';
+      const td = (t, al, st) => '<td style="text-align:' + (al||'center') + ';padding:8px 6px;border-bottom:1px solid #24384a;font-size:16px;' + (st||'') + '">' + t + '</td>';
+      let tb = '<table style="width:100%;border-collapse:collapse;"><thead><tr>' + th('Jugador','left') + th('1er T') + th('2do T') + th('Total') + th('⚽') + th('🎯') + th('⚠️ 1T') + th('⚠️ 2T') + th('🟨') + '</tr></thead><tbody>';
+      d.filas.forEach(r => { tb += '<tr>' + td('<b>' + escapeHtml(r.name) + '</b>','left') + td(fmtMin(r.t1),'','color:#8CA2B3;') + td(fmtMin(r.t2),'','color:#8CA2B3;') + td('<b>' + fmtMin(r.total) + '</b>','','color:#4CAF6D;') + td(r.goals||0) + td(r.shots||0) + td((r.fouls1!=null||r.fouls2!=null) ? (r.fouls1||0) : (r.fouls||0)) + td(r.fouls2||0) + td(r.cards||0) + '</tr>'; });
+      h += card('⏱ Minutos y acciones', tb + '</tbody></table>');
+    }
+    const mapas = window.__boZonas ? window.__boZonas.bloqueInforme(d.rem, d.fal) : '';
+    if(mapas) h += card('📍 Mapas del partido', mapas);
+    h += '<div style="margin-top:22px;text-align:center;font:500 13px JetBrains Mono,monospace;color:#5c7186;letter-spacing:1px;">Informe generado con BenchOne · benchone.app</div>';
+    cont.innerHTML = h;
+    return { nodo: cont, texto: textoInforme(d), nombre: 'Informe ' + d.rival + (d.fecha ? ' ' + d.fecha.replace(/\//g, '-') : '') };
+  }
+  async function informePartido(accion, s, m){
+    try{
+      const ex = window.__boExport; if(!ex){ toast('No se pudo generar el informe. Recargá la página.'); return; }
+      const inf = construirInformePartido(s, m);
+      const archivo = ex.nombre(inf.nombre, '');
+      if(accion === 'png') return ex.png(inf.nodo, archivo);
+      if(accion === 'pdf') return ex.pdf(inf.nodo, archivo, false);
+      // WhatsApp: en el celular se comparte la imagen directo; en la compu se descarga y se abre WhatsApp con el resumen.
+      toast('Preparando el informe…');
+      const blob = await ex.blob(inf.nodo);
+      const file = blob ? new File([blob], archivo + '.png', { type: 'image/png' }) : null;
+      if(file && navigator.canShare && navigator.canShare({ files: [file] })){
+        try{ await navigator.share({ files: [file], text: inf.texto, title: 'Informe de partido' }); return; }
+        catch(e){ if(e && e.name === 'AbortError') return; }
+      }
+      if(blob){
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = archivo + '.png';
+        document.body.appendChild(a); a.click(); a.remove();
+      }
+      window.open('https://wa.me/?text=' + encodeURIComponent(inf.texto), '_blank');
+      toast(blob ? 'Se descargó la imagen del informe: adjuntala en el chat de WhatsApp' : 'Se abrió WhatsApp con el resumen');
+    }catch(e){ console.error('informe de partido', e); toast('No se pudo generar el informe'); }
+  }
+  // Barra con los 3 botones del informe (se usa en Minutaje, Mapas y Partidos)
+  function barraInforme(onAccion){
+    const b = document.createElement('div');
+    b.className = 'informe-bar';
+    b.innerHTML = '<span class="ib-tit">📋 Informe de partido</span><span class="ib-sub">Todo el partido en una hoja</span>'
+      + '<button type="button" class="btn small" data-inf="wa">💬 WhatsApp</button><button type="button" class="btn small" data-inf="png">🖼 Imagen</button><button type="button" class="btn small" data-inf="pdf">📄 PDF</button>';
+    b.querySelectorAll('[data-inf]').forEach(x => x.addEventListener('click', () => onAccion(x.dataset.inf)));
+    return b;
+  }
+  window.__boInforme = { construir: construirInformePartido, accion: informePartido };
+
   function construirExportMinutaje(s){
     const totals = s.totals || {};
     const rows = Object.keys(totals).filter(k=>k.indexOf('__')!==0).map(name=>({name, ...totals[name]})).sort((a,b)=>(b.total||0)-(a.total||0));
@@ -17314,6 +17496,11 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
       html+='</div></div>';
     }
     detail.innerHTML=html;
+    try{
+      const mInf = s.match_id ? matches.find(x => x.id === s.match_id) : null;
+      const acc = detail.querySelector('.mins-detail-actions');
+      if(acc) acc.after(barraInforme(a => informePartido(a, s, mInf)));
+    }catch(eI){ console.error('barra informe', eI); }
     const contMapa = document.getElementById('minsMapaRemates');
     if(contMapa && window.__boZonas) window.__boZonas.mapa(contMapa, rematesPartido, { unPartido: true, nombreArchivo: s.name || 'Partido', subtitulo: [s.name || 'Partido', window.__clubNombre || '', (window.__getActiveCategory && window.__catLabel) ? 'Categoría ' + window.__catLabel(window.__getActiveCategory()) : ''].filter(Boolean).join('  ·  ') });
     const contMapaF = document.getElementById('minsMapaFaltas');
