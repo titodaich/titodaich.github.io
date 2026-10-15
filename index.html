@@ -1087,6 +1087,33 @@ button.zc-cel:hover,button.zc-cel:active{background:rgba(47,143,203,0.22);color:
 .mapas-fila .mf-dato{font-family:'JetBrains Mono',monospace;font-size:13px;}
 .mapas-fila .mf-dato small{color:var(--muted);}
 .mapas-fila .mf-ver{color:var(--accent-2);font-size:13px;font-weight:600;}
+.informes-box{background:linear-gradient(90deg,rgba(60,196,216,.16),rgba(76,201,127,.10));border:1px solid #3CC4D8;border-radius:14px;margin:0 0 16px;overflow:hidden;}
+.informes-box > summary{list-style:none;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 16px;cursor:pointer;}
+.informes-box > summary::-webkit-details-marker{display:none;}
+.informes-box .ibx-ico{font-size:22px;}
+.informes-box .ibx-tit{font-family:'Oswald',sans-serif;font-weight:700;font-size:20px;letter-spacing:.5px;color:var(--chalk);text-transform:uppercase;}
+.informes-box .ibx-sub{flex:1 1 220px;font-size:12px;color:var(--muted);}
+.informes-box .ibx-flecha{font-size:18px;color:#3CC4D8;transition:transform .15s;}
+.informes-box[open] .ibx-flecha{transform:rotate(180deg);}
+#informesLista{display:flex;flex-direction:column;gap:8px;padding:0 12px 14px;}
+.ibx-fila{display:flex;align-items:center;gap:10px 12px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;}
+.ibx-res{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;color:#0b1218;}
+.ibx-res.win{background:var(--success);} .ibx-res.loss{background:var(--danger);} .ibx-res.draw{background:#E3AE3F;}
+.ibx-nom{flex:1 1 140px;display:flex;flex-direction:column;min-width:0;color:var(--chalk);font-size:14px;}
+.ibx-nom small{color:var(--muted);font-size:12px;}
+.ibx-score{font-family:'Oswald',sans-serif;font-weight:700;font-size:20px;color:var(--chalk);}
+.ibx-btns{display:flex;gap:6px;flex-wrap:wrap;}
+.ibx-fila.win{border-left:5px solid var(--success);} .ibx-fila.loss{border-left:5px solid var(--danger);} .ibx-fila.draw{border-left:5px solid #E3AE3F;}
+.ibx-score.win{color:var(--success);} .ibx-score.loss{color:var(--danger);} .ibx-score.draw{color:#E3AE3F;}
+.ibx-btns [data-inf=ver],.informe-bar [data-inf=ver]{background:#3CC4D8;border-color:#3CC4D8;color:#06242B;font-weight:700;}
+.inf-modal{position:fixed;inset:0;z-index:9500;background:rgba(6,10,14,.88);display:flex;flex-direction:column;}
+.inf-modal-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:10px 12px;padding-top:calc(10px + env(safe-area-inset-top,0px));background:#152230;border-bottom:1px solid #3CC4D8;color:var(--chalk);font-family:'Oswald',sans-serif;font-size:18px;}
+.inf-modal-btns{display:flex;gap:6px;flex-wrap:wrap;}
+.inf-modal-btns [data-inf=wa]{background:#25D366;border-color:#25D366;color:#06210f;font-weight:700;}
+.inf-modal-body{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px 8px 40px;display:flex;justify-content:center;}
+.inf-modal-wrap{overflow:hidden;flex-shrink:0;}
+.ibx-btns [data-inf=wa]{background:#25D366;border-color:#25D366;color:#06210f;font-weight:700;}
+@media (max-width:720px){ .ibx-btns{width:100%;display:grid;grid-template-columns:1fr 1fr;} }
 .informe-bar{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;background:linear-gradient(90deg,rgba(60,196,216,.16),rgba(76,201,127,.10));border:1px solid #3CC4D8;border-radius:12px;padding:10px 14px;margin:0 0 14px;}
 .informe-bar .ib-tit{font-family:'Oswald',sans-serif;font-weight:700;font-size:16px;letter-spacing:.5px;color:var(--chalk);}
 .informe-bar .ib-sub{font-size:12px;color:var(--muted);flex:1 1 auto;}
@@ -3976,7 +4003,7 @@ body.editor-active #screen-editor{ display:block; }
             <button class="notif-close" id="notifClose">✕</button>
           </div>
           <div class="notif-list" id="notifList"></div>
-          <div class="notif-version" id="notifVersion">Versión 15/10 · X</div>
+          <div class="notif-version" id="notifVersion">Versión 15/10 · Z</div>
         </div>
       </div>
       <select id="langSelect" class="lang-select" title="Idioma / Language / Idioma">
@@ -4254,6 +4281,10 @@ body.editor-active #screen-editor{ display:block; }
     <div class="stats-sub active" id="stats-matches">
       <!-- Lista de partidos -->
       <div id="matchList">
+        <details class="informes-box" id="informesBox">
+          <summary><span class="ibx-ico">📋</span><span class="ibx-tit">Informe de partido</span><span class="ibx-sub">Tocá para ver los partidos y mandar el informe por WhatsApp, imagen o PDF</span><span class="ibx-flecha">▾</span></summary>
+          <div id="informesLista"></div>
+        </details>
         <div class="scout-head">
           <div>
             <h2 class="scout-title" data-i18n="stMatchesTitle">Partidos</h2>
@@ -7405,7 +7436,7 @@ let clubId = null;
 })();
 
 // Versión publicada: se muestra abajo de las novedades (campanita). Cambiarla en cada subida.
-window.__BO_VERSION = '15/10 · X';
+window.__BO_VERSION = '15/10 · Z';
 // Si la app se abrió desde la dirección de prueba (prueba.html), se nota en el número de versión.
 try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PRUEBA'; }catch(e){}
 // La etiqueta de la campanita siempre muestra este mismo número (así nunca quedan distintos).
@@ -15506,7 +15537,36 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
     return wrap;
   }
 
+  // Sección "📋 Informe de partido" arriba de la lista: cerrada; al abrirla, un partido por fila con sus botones.
+  function renderInformesBox(){
+    const box = document.getElementById('informesBox'), cont = document.getElementById('informesLista');
+    if(!box || !cont) return;
+    if(!box.__enganchado){ box.__enganchado = true; box.addEventListener('toggle', () => { if(box.open) renderInformesBox(); }); }
+    if(!box.open) return;
+    const lista = matchesFiltrados().slice().sort((a, b) => (b.date || b.createdAt || '').localeCompare(a.date || a.createdAt || ''));
+    if(!lista.length){ cont.innerHTML = '<p class="rd-empty">Todavía no hay partidos cargados.</p>'; return; }
+    cont.innerHTML = '';
+    lista.forEach(m => {
+      const sc = matchScore(m);
+      const r = sc.f > sc.a ? ['G','win'] : (sc.f < sc.a ? ['P','loss'] : ['E','draw']);
+      const f = m.date ? new Date(m.date + 'T00:00:00').toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit' }) : '';
+      const fila = document.createElement('div');
+      fila.className = 'ibx-fila ' + r[1];
+      fila.innerHTML = '<span class="ibx-res ' + r[1] + '">' + r[0] + '</span>'
+        + '<span class="ibx-nom"><b>vs ' + escapeHtml(m.rival || 'Sin rival') + '</b><small>' + [f, escapeHtml(m.competencia || '')].filter(Boolean).join(' · ') + '</small></span>'
+        + '<span class="ibx-score ' + r[1] + '">' + sc.f + ' - ' + sc.a + '</span>'
+        + '<span class="ibx-btns"><button type="button" class="btn small" data-inf="ver">👁 Ver</button><button type="button" class="btn small" data-inf="wa">💬 WhatsApp</button><button type="button" class="btn small" data-inf="png">🖼 Imagen</button><button type="button" class="btn small" data-inf="pdf">📄 PDF</button></span>';
+      fila.querySelectorAll('[data-inf]').forEach(b => b.addEventListener('click', async () => {
+        let ses = null;
+        try{ const { data } = await window.__sb.from('live_sessions').select('*').eq('match_id', m.id).order('created_at', { ascending:false }).limit(1); ses = (data && data[0]) || null; }catch(e){}
+        informePartido(b.dataset.inf, ses, m);
+      }));
+      cont.appendChild(fila);
+    });
+  }
+
   function renderMatchList(){
+    try{ renderInformesBox(); }catch(eI){ console.error('informes', eI); }
     const el = document.getElementById('matchListRows');
     // Enganchamos el botón "🏆 Crear torneo" (una sola vez).
     const ctBtn = document.getElementById('crearTorneoBtn');
@@ -17341,8 +17401,37 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
     cont.innerHTML = h;
     return { nodo: cont, texto: textoInforme(d), nombre: 'Informe ' + d.rival + (d.fecha ? ' ' + d.fecha.replace(/\//g, '-') : '') };
   }
+  // Ver el informe dentro de la app (ventana con scroll, ajustada al ancho del celular)
+  function verInforme(s, m){
+    const prev = document.getElementById('informeModal'); if(prev) prev.remove();
+    const inf = construirInformePartido(s, m);
+    const ov = document.createElement('div');
+    ov.id = 'informeModal';
+    ov.className = 'inf-modal';
+    ov.innerHTML = '<div class="inf-modal-bar"><b>📋 Informe de partido</b><span class="inf-modal-btns">'
+      + '<button type="button" class="btn small" data-inf="wa">💬 WhatsApp</button><button type="button" class="btn small" data-inf="png">🖼 Imagen</button><button type="button" class="btn small" data-inf="pdf">📄 PDF</button>'
+      + '<button type="button" class="btn small inf-cerrar" aria-label="Cerrar">✕</button></span></div><div class="inf-modal-body"><div class="inf-modal-wrap"></div></div>';
+    document.body.appendChild(ov);
+    const wrap = ov.querySelector('.inf-modal-wrap'), nodo = inf.nodo;
+    nodo.style.position = 'static'; nodo.style.left = 'auto'; nodo.style.top = 'auto';
+    nodo.style.borderRadius = '14px';
+    wrap.appendChild(nodo);
+    const ajustar = () => {
+      const disp = Math.min(1000, ov.querySelector('.inf-modal-body').clientWidth - 16);
+      const f = disp / 1000;
+      nodo.style.transformOrigin = '0 0'; nodo.style.transform = 'scale(' + f + ')';
+      wrap.style.width = disp + 'px'; wrap.style.height = (nodo.offsetHeight * f) + 'px';
+    };
+    ajustar(); setTimeout(ajustar, 60);
+    window.addEventListener('resize', ajustar);
+    const cerrar = () => { window.removeEventListener('resize', ajustar); ov.remove(); };
+    ov.querySelector('.inf-cerrar').addEventListener('click', cerrar);
+    ov.addEventListener('click', e => { if(e.target === ov) cerrar(); });
+    ov.querySelectorAll('[data-inf]').forEach(b => b.addEventListener('click', () => informePartido(b.dataset.inf, s, m)));
+  }
   async function informePartido(accion, s, m){
     try{
+      if(accion === 'ver') return verInforme(s, m);
       const ex = window.__boExport; if(!ex){ toast('No se pudo generar el informe. Recargá la página.'); return; }
       const inf = construirInformePartido(s, m);
       const archivo = ex.nombre(inf.nombre, '');
@@ -17369,7 +17458,7 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
     const b = document.createElement('div');
     b.className = 'informe-bar';
     b.innerHTML = '<span class="ib-tit">📋 Informe de partido</span><span class="ib-sub">Todo el partido en una hoja</span>'
-      + '<button type="button" class="btn small" data-inf="wa">💬 WhatsApp</button><button type="button" class="btn small" data-inf="png">🖼 Imagen</button><button type="button" class="btn small" data-inf="pdf">📄 PDF</button>';
+      + '<button type="button" class="btn small" data-inf="ver">👁 Ver</button><button type="button" class="btn small" data-inf="wa">💬 WhatsApp</button><button type="button" class="btn small" data-inf="png">🖼 Imagen</button><button type="button" class="btn small" data-inf="pdf">📄 PDF</button>';
     b.querySelectorAll('[data-inf]').forEach(x => x.addEventListener('click', () => onAccion(x.dataset.inf)));
     return b;
   }
@@ -24494,10 +24583,11 @@ function renderItems(){
       card.querySelector('[data-action="title"]').addEventListener('click', (e) => {
         e.stopPropagation();
         const viewEl = card.querySelector('.sep-title-view');
+        if(!viewEl){ const ya = card.querySelector('.sep-title-input'); if(ya) ya.focus(); return; }
         const input = document.createElement('input');
         input.className = 'sep-title-input';
         input.value = item.title || '';
-        card.replaceChild(input, viewEl);
+        viewEl.replaceWith(input);
         input.focus(); input.select();
         function commit(){ item.title = input.value.trim() || 'Sin título'; renderItems(); }
         input.addEventListener('blur', commit);
