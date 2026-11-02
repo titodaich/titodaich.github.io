@@ -3869,6 +3869,198 @@ body.editor-active #screen-editor{ display:block; }
 @media (min-width:861px){ #screen-login{padding-top:76px;} }
 @media (prefers-reduced-motion:reduce){ .bo-led-track{animation:none;} }
 body.bo-en-informes .export-bar{display:none !important;}
+/* ═══ Planificación: solapas Entrenador / Profe ═══ */
+.plan-tabs{display:flex;gap:8px;margin:0 0 18px;padding:5px;background:var(--panel);border:1px solid var(--line);border-radius:12px;width:max-content;max-width:100%;}
+.plan-tab{border:none;background:transparent;color:var(--muted);font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:0.6px;text-transform:uppercase;padding:9px 18px;border-radius:8px;cursor:pointer;transition:all .12s ease;}
+.plan-tab:hover{color:var(--chalk);}
+.plan-tab.active{background:var(--accent-2);color:#fff;}
+@media print{ .plan-tabs{display:none !important;} }
+.pf-cargando{padding:40px 0;text-align:center;color:var(--muted);font-family:'Inter',sans-serif;}
+.pf-falta{background:rgba(224,169,59,0.12);border:1px solid rgba(224,169,59,0.5);color:#F2D08A;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-family:'Inter',sans-serif;font-size:13px;line-height:1.5;}
+.pf-head{margin-bottom:14px;}
+.pf-vistas{display:flex;gap:8px;margin-bottom:12px;}
+.pf-vista{flex:0 0 auto;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-family:'Oswald',sans-serif;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;padding:9px 16px;border-radius:9px;cursor:pointer;}
+.pf-vista.on{border-color:var(--accent-2);color:var(--chalk);background:rgba(47,143,203,0.16);}
+.pf-nav{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.pf-nav-txt{flex:1;min-width:0;text-align:center;font-family:'Inter',sans-serif;font-size:14px;color:var(--chalk);display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;}
+.pf-hoy{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--success);border:1px solid var(--success);border-radius:20px;padding:2px 8px;}
+/* Semana: 7 columnas en compu, filas en tablet/celular */
+.pf-semana{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin-bottom:14px;}
+.pf-dia{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:10px;display:flex;flex-direction:column;gap:8px;min-height:170px;}
+.pf-dia.hoy{border-color:var(--accent-2);box-shadow:0 0 0 1px var(--accent-2) inset;}
+.pf-dia.partido{background:linear-gradient(180deg,rgba(229,52,42,0.14),var(--panel) 60%);border-color:rgba(229,52,42,0.55);}
+.pf-dia-cab{display:flex;flex-direction:column;gap:5px;}
+.pf-dia-nom{font-family:'Inter',sans-serif;font-size:13px;color:var(--muted);}
+.pf-dia-nom b{color:var(--chalk);font-family:'Oswald',sans-serif;font-size:15px;text-transform:uppercase;letter-spacing:0.5px;margin-right:2px;}
+.pf-md{align-self:flex-start;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.5px;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:2px 6px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pf-md.md-cerca{color:#E0A93B;border-color:rgba(224,169,59,0.6);}
+.pf-md.md-partido{color:#fff;background:var(--accent);border-color:var(--accent);font-weight:700;}
+.pf-md.md-post{color:var(--success);border-color:rgba(76,175,109,0.6);}
+.pf-dia-ses{display:flex;flex-direction:column;gap:6px;flex:1;}
+.pf-ses{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:var(--bg);border:1px solid var(--line);border-left:4px solid var(--tc);border-radius:8px;padding:7px 8px;cursor:pointer;color:var(--chalk);width:100%;}
+.pf-ses:hover{border-color:var(--tc);}
+.pf-ses-tipo{font-family:'Oswald',sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:0.4px;color:var(--tc);}
+.pf-ses-meta{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);}
+.pf-ses-notas{font-family:'Inter',sans-serif;font-size:11.5px;color:var(--muted);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.pf-add{border:1px dashed var(--line);background:transparent;color:var(--muted);border-radius:8px;padding:7px;font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;}
+.pf-add:hover{border-color:var(--accent-2);color:var(--accent-2);}
+.pf-dia-pie{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);border-top:1px solid var(--line);padding-top:6px;}
+.pf-dia-pie b{color:var(--chalk);}
+/* Resumen */
+.pf-resumen{margin-bottom:14px;}
+.pf-res-cab{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+.pf-res-cab h3{font-family:'Oswald',sans-serif;font-size:16px;text-transform:uppercase;letter-spacing:0.5px;margin:0;}
+.pf-res-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:end;}
+.pf-res-nums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
+.pf-num{background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:10px 6px;text-align:center;display:flex;flex-direction:column;gap:3px;}
+.pf-num b{font-family:'Oswald',sans-serif;font-size:22px;color:var(--chalk);}
+.pf-num span{font-family:'JetBrains Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:0.4px;color:var(--muted);}
+.pf-barras{display:flex;align-items:flex-end;gap:6px;height:110px;}
+.pf-bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;}
+.pf-bar-col{flex:1;width:100%;max-width:36px;display:flex;align-items:flex-end;background:rgba(51,73,94,0.25);border-radius:5px;overflow:hidden;}
+.pf-bar-fill{width:100%;background:var(--accent-2);border-radius:5px 5px 0 0;}
+.pf-bar-fill.baja{background:#4CAF6D;} .pf-bar-fill.media{background:#2F8FCB;} .pf-bar-fill.alta{background:#E5342A;} .pf-bar-fill.act{background:#E0A93B;}
+.pf-bar span{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);}
+.pf-bar b{font-family:'Oswald',sans-serif;font-size:11px;color:var(--chalk);min-height:13px;}
+.pf-tipos{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;}
+.pf-tipo-pill{font-family:'Inter',sans-serif;font-size:12px;color:var(--chalk);border:1px solid var(--tc);border-radius:20px;padding:3px 10px;background:color-mix(in srgb, var(--tc) 14%, transparent);}
+.pf-ayuda{font-family:'Inter',sans-serif;font-size:12px;line-height:1.55;color:var(--muted);margin:12px 0 0;}
+.pf-ayuda b{color:var(--chalk);}
+/* Modal de sesión */
+.pf-modal{max-width:520px !important;}
+.pf-tipo-sel{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;}
+.pf-tsel{border:1px solid var(--line);border-left:4px solid var(--tc);background:var(--bg);color:var(--chalk);border-radius:8px;padding:9px 6px;font-family:'Inter',sans-serif;font-size:12.5px;cursor:pointer;}
+.pf-tsel.on{background:color-mix(in srgb, var(--tc) 22%, var(--bg));border-color:var(--tc);font-weight:700;}
+.pf-min-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.pf-min-row input{width:80px;background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--chalk);padding:9px 10px;font-size:15px;font-family:'Oswald',sans-serif;}
+.pf-min-chip{border:1px solid var(--line);background:var(--bg);color:var(--muted);border-radius:7px;padding:8px 10px;font-family:'JetBrains Mono',monospace;font-size:12px;cursor:pointer;}
+.pf-min-chip:hover{border-color:var(--accent-2);color:var(--chalk);}
+.pf-lbl-sub{font-family:'Inter',sans-serif;text-transform:none;letter-spacing:0;color:var(--accent-2);margin-left:6px;}
+/* Carga */
+.pf-cargar{margin-bottom:14px;}
+.pf-schips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;}
+.pf-schip{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-start;gap:2px;border:1px solid var(--line);border-top:3px solid var(--tc);background:var(--bg);color:var(--chalk);border-radius:9px;padding:8px 12px;cursor:pointer;min-width:120px;text-align:left;}
+.pf-schip.on{border-color:var(--accent-2);border-top-color:var(--tc);background:rgba(47,143,203,0.14);}
+.pf-schip b{font-family:'Oswald',sans-serif;font-size:14px;text-transform:uppercase;}
+.pf-schip span{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);}
+.pf-schip i{font-style:normal;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--success);}
+.pf-escala{display:flex;flex-wrap:wrap;gap:6px 14px;margin:10px 0 4px;font-family:'Inter',sans-serif;font-size:11.5px;color:var(--muted);}
+.pf-escala b{color:var(--accent-2);font-family:'Oswald',sans-serif;}
+.pf-grupo-lbl{font-family:'JetBrains Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:0.6px;color:var(--success);margin:16px 0 8px;}
+.pf-jugs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 18px;}
+.pf-jug{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 10px;}
+.pf-jug.con{border-color:rgba(47,143,203,0.6);}
+.pf-jug-cab{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.pf-jug-nom{flex:1;min-width:0;font-family:'Inter',sans-serif;font-size:13.5px;color:var(--chalk);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pf-jug-nom i{font-style:normal;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.pf-jug-nom em{font-style:normal;font-size:11px;color:var(--danger);}
+.pf-jug-txt{font-family:'Inter',sans-serif;font-size:11px;color:var(--accent-2);white-space:nowrap;}
+.pf-jug-min{display:flex;align-items:center;gap:2px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.pf-jug-min input{width:46px;background:var(--panel);border:1px solid var(--line);border-radius:6px;color:var(--chalk);padding:4px 5px;font-size:12px;text-align:center;}
+.pf-rpe-bt .nota-btn{min-height:32px;padding:6px 0;}
+.pf-novin{margin-top:14px;}
+.pf-novin summary{cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:0.6px;color:var(--danger);margin-bottom:8px;}
+.pf-guardar-bar{position:sticky;bottom:0;display:flex;align-items:center;justify-content:flex-end;gap:12px;background:var(--panel);border-top:1px solid var(--line);margin-top:14px;padding:12px 0 2px;z-index:3;}
+.pf-guardar-bar span{font-family:'Inter',sans-serif;font-size:12.5px;color:var(--muted);flex:1;}
+.pf-estado{margin-bottom:14px;}
+.pf-alerta{background:rgba(240,85,63,0.12);border:1px solid rgba(240,85,63,0.5);border-radius:10px;padding:11px 14px;font-family:'Inter',sans-serif;font-size:13px;line-height:1.5;color:var(--chalk);margin-bottom:14px;}
+.pf-alerta span{color:#F2D08A;}
+.pf-encurso{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);background:rgba(47,143,203,0.08);border:1px dashed rgba(47,143,203,0.4);border-radius:8px;padding:8px 12px;margin-bottom:12px;}
+.pf-equipo{margin-bottom:14px;}
+.pf-eq-tit{font-family:'JetBrains Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:8px;}
+.pf-barras-eq{height:120px;max-width:520px;}
+.pf-est-lista{display:flex;flex-direction:column;gap:6px;max-width:980px;}
+.pf-est-fila{display:grid;grid-template-columns:minmax(150px,1fr) 84px 96px 130px 150px;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:9px;padding:8px 12px;}
+.pf-est-fila.rojo{border-left-color:#F0553F;} .pf-est-fila.amar{border-left-color:#E0A93B;} .pf-est-fila.verde{border-left-color:#4CAF6D;} .pf-est-fila.azul{border-left-color:#2F8FCB;}
+.pf-est-nom{font-family:'Inter',sans-serif;font-size:13.5px;color:var(--chalk);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pf-est-nom i{font-style:normal;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.pf-est-n{display:flex;flex-direction:column;align-items:flex-end;}
+.pf-est-n b{font-family:'Oswald',sans-serif;font-size:16px;color:var(--chalk);}
+.pf-est-n small{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;}
+.pf-est-spark{display:flex;align-items:flex-end;gap:3px;height:30px;}
+.pf-est-spark i{flex:1;background:rgba(140,162,179,0.45);border-radius:2px;min-height:2px;}
+.pf-est-spark i.act{background:var(--accent-2);}
+.pf-est-chip{display:inline-flex;align-items:center;gap:4px;justify-content:center;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;border-radius:20px;padding:4px 10px;border:1px solid var(--line);color:var(--muted);white-space:nowrap;}
+.pf-est-chip small{font-weight:400;opacity:0.8;}
+.pf-est-chip.rojo{color:#fff;background:#F0553F;border-color:#F0553F;}
+.pf-est-chip.amar{color:#1a1205;background:#E0A93B;border-color:#E0A93B;}
+.pf-est-chip.verde{color:#06150b;background:#4CAF6D;border-color:#4CAF6D;}
+.pf-est-chip.azul{color:#fff;background:#2F8FCB;border-color:#2F8FCB;}
+.pf-ayuda .pf-est-chip{padding:1px 8px;font-size:11px;}
+/* Franja dentro de la semana del entrenador */
+.pf-franja{background:rgba(47,143,203,0.07);border:1px solid rgba(47,143,203,0.35);border-radius:12px;padding:12px 14px;margin-bottom:16px;}
+.pf-franja-cab{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.pf-franja-cab b{font-family:'Oswald',sans-serif;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;color:var(--chalk);}
+.pf-franja-cab span{font-family:'Inter',sans-serif;font-size:11.5px;color:var(--muted);flex:1;}
+.pf-franja-dias{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.pf-fchip{font-family:'Inter',sans-serif;font-size:12px;color:var(--chalk);background:var(--bg);border:1px solid var(--line);border-left:3px solid var(--tc);border-radius:7px;padding:4px 9px;}
+.pf-fchip b{font-family:'Oswald',sans-serif;text-transform:uppercase;font-weight:600;margin-right:3px;}
+.pf-franja-vacia{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);margin-top:8px;}
+
+/* Cierre de mes (Profe) */
+.pf-mes-auto-tag{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.6px;color:var(--success);border:1px solid rgba(76,175,109,0.6);border-radius:20px;padding:2px 8px;}
+.pf-mes-auto,.pf-mes-eval,.pf-mes-inf{margin-bottom:14px;}
+.pf-mes-nums{margin-bottom:16px;}
+.pf-num em{font-style:normal;font-family:'Inter',sans-serif;font-size:11px;}
+.pf-num em.sube{color:#E0A93B;} .pf-num em.baja{color:var(--success);}
+.pf-mes-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;}
+.pf-mt{display:grid;grid-template-columns:120px minmax(0,1fr) 40px 40px;align-items:center;gap:8px;margin:6px 0;font-family:'Inter',sans-serif;font-size:13px;color:var(--chalk);}
+.pf-mt-bar{height:10px;background:rgba(51,73,94,0.4);border-radius:6px;overflow:hidden;}
+.pf-mt-bar i{display:block;height:100%;border-radius:6px;}
+.pf-mt b{font-family:'Oswald',sans-serif;text-align:right;} .pf-mt small{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);}
+.pf-mlist{display:flex;flex-wrap:wrap;gap:6px;}
+.pf-mlist span{font-family:'Inter',sans-serif;font-size:12.5px;color:var(--chalk);background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:4px 9px;}
+.pf-mlist b{font-family:'Oswald',sans-serif;color:var(--accent-2);margin-left:4px;}
+.pf-ok{margin-top:14px;font-family:'Inter',sans-serif;font-size:13px;color:var(--success);background:rgba(76,175,109,0.1);border:1px solid rgba(76,175,109,0.4);border-radius:10px;padding:10px 14px;}
+.pf-mes-guardado{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);text-transform:uppercase;}
+.pf-mes-jugs{margin-top:14px;}
+.pf-mes-jugs summary{cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;color:var(--accent-2);margin-bottom:10px;}
+.pf-mjs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 18px;}
+.pf-mj{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;}
+.pf-mj-cab{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.pf-mj-dat{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);white-space:nowrap;}
+.pf-mj-nota{width:100%;box-sizing:border-box;background:var(--panel);border:1px solid var(--line);border-radius:7px;color:var(--chalk);font-family:'Inter',sans-serif;font-size:13px;padding:7px 9px;resize:vertical;min-height:36px;}
+.pf-mj-nota:focus{outline:none;border-color:var(--accent-2);}
+.pf-mes-btns{display:flex;gap:8px;flex-wrap:wrap;}
+@media (max-width:999px){ .pf-mes-grid{grid-template-columns:1fr;gap:14px;} }
+@media (max-width:640px){
+  .pf-mjs{grid-template-columns:1fr;}
+  .pf-mt{grid-template-columns:96px minmax(0,1fr) 36px;}
+  .pf-mt small{display:none;}
+  .pf-mes-btns{display:grid;grid-template-columns:1fr 1fr;}
+  .pf-mj-nota{font-size:14px;}
+}
+/* Tablet y celular */
+@media (max-width:999px){
+  .pf-semana{grid-template-columns:1fr;gap:6px;}
+  .pf-dia{min-height:0;display:grid;grid-template-columns:130px minmax(0,1fr);gap:8px 10px;align-items:start;}
+  .pf-md{white-space:normal;}
+  .pf-ses{max-width:340px;}
+  .pf-dia-pie{grid-column:2;}
+  .pf-dia-ses{flex-direction:row;flex-wrap:wrap;}
+  .pf-ses{width:auto;min-width:140px;flex:1 1 160px;}
+  .pf-add{flex:0 0 auto;align-self:stretch;}
+  .pf-res-grid{grid-template-columns:1fr;}
+  .pf-est-fila{grid-template-columns:minmax(0,1fr) 70px 80px 110px;}
+  .pf-est-fila .pf-est-chip{grid-column:1 / -1;justify-self:start;}
+}
+@media (max-width:640px){
+  .plan-tabs{width:100%;}
+  .plan-tab{flex:1;padding:9px 8px;}
+  .pf-vista{flex:1;}
+  .pf-dia{grid-template-columns:1fr;}
+  .pf-dia-cab{flex-direction:row;align-items:center;justify-content:space-between;}
+  .pf-dia-pie{grid-column:auto;}
+  .pf-ses{flex:1 1 100%;}
+  .pf-add{flex:1 1 100%;}
+  .pf-res-nums{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .pf-tipo-sel{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .pf-jugs{grid-template-columns:1fr;}
+  .pf-est-fila{grid-template-columns:minmax(0,1fr) 62px 72px;gap:6px 8px;padding:8px 10px;}
+  .pf-est-spark{grid-column:1 / 2;grid-row:2;height:22px;}
+  .pf-est-fila .pf-est-chip{grid-column:2 / -1;grid-row:2;justify-self:end;}
+  .pf-guardar-bar .btn{flex:0 0 auto;}
+}
 </style>
 </head>
 <body>
@@ -4042,7 +4234,7 @@ body.bo-en-informes .export-bar{display:none !important;}
             <button class="notif-close" id="notifClose">✕</button>
           </div>
           <div class="notif-list" id="notifList"></div>
-          <div class="notif-version" id="notifVersion">Versión 19/10 · AJ</div>
+          <div class="notif-version" id="notifVersion">Versión 02/11 · AL</div>
         </div>
       </div>
       <select id="langSelect" class="lang-select" title="Idioma / Language / Idioma">
@@ -4688,6 +4880,7 @@ body.bo-en-informes .export-bar{display:none !important;}
         </div>
       </div>
 
+      <div id="pfFranjaDT"></div>
       <div class="rd-card">
         <div class="rd-card-head wk-load-head" id="wkLoadToggle">
           <div class="wk-load-title"><span class="wk-load-arrow" id="wkLoadArrow">▸</span> <h3>Carga de la semana</h3></div>
@@ -7490,7 +7683,7 @@ let clubId = null;
 })();
 
 // Versión publicada: se muestra abajo de las novedades (campanita). Cambiarla en cada subida.
-window.__BO_VERSION = '19/10 · AJ';
+window.__BO_VERSION = '02/11 · AL';
   // Logo de BenchOne embebido (así sale siempre en imágenes y PDF, aunque no haya internet).
   window.__BO_LOGO_ICO = 'data:image/jpeg;base64,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';
   window.__boMarca = function(px){ px = px || 18; return '<span style="display:inline-flex;align-items:center;gap:' + Math.round(px*0.45) + 'px;white-space:nowrap;"><img src="' + window.__BO_LOGO_ICO + '" alt="" style="height:' + Math.round(px*2.8) + 'px;width:auto;border-radius:' + Math.round(px*0.3) + 'px;display:block;border:1px solid #33495E;">BENCHONE<span style="color:#E5342A;">·</span></span>'; };
@@ -13734,6 +13927,7 @@ try{ if(/prueba\.html$/i.test(location.pathname)) window.__BO_VERSION += ' · PR
     renderExercises();
     renderIntensity();
     setupLoadToggle();
+    try{ if(window.__pfFranjaDT) window.__pfFranjaDT(w.from, w.to, w.semana); }catch(e){}
     // arranca plegada cada vez que se abre una semana
     const loadBody = document.getElementById('wkLoadBody');
     const loadArrow = document.getElementById('wkLoadArrow');
@@ -26508,5 +26702,733 @@ async function exportarGrupoOrdenado(nombre, clips){
   });
 })();
 </script>
+
+<!-- ═══════════ PLANIFICACIÓN · SOLAPA PROFE (preparación física) ═══════════ -->
+<script>
+(function initProfe(){
+  // Sesiones físicas por día + esfuerzo (RPE) de cada jugador. Tabla: pf_sesiones.
+  // rpe = { idJugador: { rpe: 1..10, min: minutos (opcional, si no usa los de la sesión) } }
+  const TIPOS = [
+    { id:'fuerza',       nom:'Fuerza',        col:'#E5342A' },
+    { id:'resistencia',  nom:'Resistencia',   col:'#2F8FCB' },
+    { id:'velocidad',    nom:'Velocidad',     col:'#E0A93B' },
+    { id:'potencia',     nom:'Potencia',      col:'#B46BE0' },
+    { id:'prevencion',   nom:'Prevención',    col:'#3CC4D8' },
+    { id:'recuperacion', nom:'Recuperación',  col:'#4CAF6D' },
+    { id:'cancha',       nom:'Técnico-táctico', col:'#8CA2B3' },
+    { id:'partido',      nom:'Partido',       col:'#F2F6F8' }
+  ];
+  const RPE_TXT = ['', 'Muy, muy fácil', 'Fácil', 'Moderado', 'Algo duro', 'Duro', 'Duro', 'Muy duro', 'Muy duro', 'Casi máximo', 'Máximo'];
+  const DIAS = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+  const DIAS_L = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+  const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+  let sesiones = [];          // de la categoría y temporada actuales
+  let jugadores = [];
+  let partidos = [];          // 'YYYY-MM-DD' ordenados
+  let rivalDe = {};
+  let asistencia = {};        // 'fecha|idJugador' -> estado
+  let lunes = lunesDe(new Date());
+  let vista = 'semana';       // 'semana' | 'carga'
+  let sesionRPE = null;       // id de la sesión que se está cargando
+  let cargado = false, cargando = null, faltaBase = false;
+  let dtVisible = null;       // qué vista del entrenador estaba abierta
+
+  // ───────── fechas (siempre en hora local) ─────────
+  function lunesDe(d){ const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); const w = (x.getDay() + 6) % 7; x.setDate(x.getDate() - w); return x; }
+  function clave(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+  function deClave(k){ const p = String(k||'').slice(0,10).split('-').map(Number); return new Date(p[0], (p[1]||1)-1, p[2]||1); }
+  function sumar(d, n){ const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+  function diasEntre(a, b){ return Math.round((deClave(b) - deClave(a)) / 86400000); }
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function tipo(id){ return TIPOS.find(t => t.id === id) || TIPOS[6]; }
+  function cat(){ return (window.__getActiveCategory && window.__getActiveCategory()) || null; }
+  function temp(){ return parseInt(window.__getTemporada ? window.__getTemporada() : new Date().getFullYear(), 10); }
+  function aviso(m){ try{ (window.toast || alert)(m); }catch(e){} }
+  function rangoSemana(l){ const d = sumar(l, 6); return l.getDate() + (l.getMonth() !== d.getMonth() ? ' ' + MESES[l.getMonth()] : '') + ' al ' + d.getDate() + ' ' + MESES[d.getMonth()]; }
+
+  // Partido / MD-x de un día (respecto del partido más cercano)
+  function md(k){
+    if(partidos.includes(k)) return { txt:'PARTIDO', cls:'md-partido', rival: rivalDe[k] || '' };
+    const prox = partidos.find(p => p > k);
+    if(prox){ const n = diasEntre(k, prox); if(n <= 6) return { txt:'MD-' + n, cls: n <= 1 ? 'md-cerca' : '' }; }
+    const prev = partidos.filter(p => p < k).pop();
+    if(prev){ const n = diasEntre(prev, k); if(n <= 2) return { txt:'MD+' + n, cls:'md-post' }; }
+    return null;
+  }
+
+  // ───────── carga de esfuerzo ─────────
+  function minDe(s, pid){ const r = s.rpe && s.rpe[pid]; return (r && r.min != null && r.min !== '') ? Number(r.min) : Number(s.minutos || 0); }
+  function cargaJugadorSesion(s, pid){ const r = s.rpe && s.rpe[pid]; return (r && r.rpe) ? Number(r.rpe) * minDe(s, pid) : 0; }
+  function sesionesSemana(l){ const a = clave(l), b = clave(sumar(l, 6)); return sesiones.filter(s => s.fecha >= a && s.fecha <= b); }
+  function cargaSemana(l, pid){ return sesionesSemana(l).reduce((t, s) => t + cargaJugadorSesion(s, pid), 0); }
+  function semanaTieneRPE(l){ return sesionesSemana(l).some(s => s.rpe && Object.keys(s.rpe).length); }
+  function promedioEquipo(l){
+    const ss = sesionesSemana(l); const ids = new Set();
+    ss.forEach(s => Object.keys(s.rpe || {}).forEach(id => { if(s.rpe[id] && s.rpe[id].rpe) ids.add(id); }));
+    if(!ids.size) return 0;
+    let t = 0; ids.forEach(id => { t += cargaSemana(l, id); });
+    return t / ids.size;
+  }
+  // Relación carga de esta semana / promedio de las 4 semanas anteriores con datos
+  function estadoJugador(pid, ref){
+    const base = ref || lunes;
+    const actual = cargaSemana(base, pid);
+    const prev = [];
+    for(let i = 1; i <= 12 && prev.length < 4; i++){ const l = sumar(base, -7 * i); if(semanaTieneRPE(l)) prev.push(cargaSemana(l, pid)); }
+    const cron = prev.length ? prev.reduce((a, b) => a + b, 0) / prev.length : 0;
+    let est;
+    if(!actual) est = { cls:'sd', txt:'Sin datos' };
+    else if(prev.length < 2 || !cron) est = { cls:'sh', txt:'Sin historial' };
+    else {
+      const r = actual / cron;
+      if(r > 1.5) est = { cls:'rojo', txt:'⚠️ Riesgo', r };
+      else if(r > 1.3) est = { cls:'amar', txt:'Alta', r };
+      else if(r >= 0.8) est = { cls:'verde', txt:'Óptima', r };
+      else est = { cls:'azul', txt:'Baja', r };
+    }
+    return Object.assign({ actual, cron, semanas: prev.length }, est);
+  }
+
+  // ───────── base de datos ─────────
+  function errorBase(e){
+    const m = String((e && (e.message || e.details)) || '');
+    if(e && (e.code === '42P01' || e.code === 'PGRST205' || /pf_sesiones|pf_meses|does not exist|schema cache/i.test(m))){ if(/pf_meses/i.test(m)) faltaMeses = true; else faltaBase = true; return true; }
+    return false;
+  }
+  async function cargarTodo(){
+    const sb = window.__sb; const clubId = window.__getClubId ? await window.__getClubId() : null;
+    if(!sb || !clubId){ return; }
+    const c = cat(), t = temp();
+    const conCat = q => c ? q.eq('categoria', c) : q.is('categoria', null);
+    faltaBase = false;
+    const [rs, rp, rm, ra] = await Promise.all([
+      conCat(sb.from('pf_sesiones').select('*').eq('club_id', clubId).eq('temporada', t)).order('fecha'),
+      conCat(sb.from('players').select('id,name,number,position,archivado').eq('club_id', clubId).eq('temporada', t)),
+      conCat(sb.from('stat_matches').select('rival,match_date').eq('club_id', clubId).eq('temporada', t)),
+      conCat(sb.from('attendance').select('event_key,player_id,status').eq('club_id', clubId).eq('temporada', t))
+    ]);
+    if(rs.error){ if(!errorBase(rs.error)) console.error('pf sesiones', rs.error); sesiones = []; }
+    else sesiones = (rs.data || []).map(s => Object.assign({}, s, { fecha: String(s.fecha).slice(0,10), rpe: s.rpe || {} }));
+    jugadores = (rp.data || []).filter(p => p && !p.archivado).sort((a, b) => (parseInt(a.number,10)||99) - (parseInt(b.number,10)||99) || String(a.name).localeCompare(String(b.name)));
+    partidos = []; rivalDe = {};
+    (rm.data || []).forEach(m => { if(!m.match_date) return; const k = String(m.match_date).slice(0,10); if(!partidos.includes(k)) partidos.push(k); rivalDe[k] = (m.rival || '').trim(); });
+    partidos.sort();
+    asistencia = {};
+    (ra.data || []).forEach(r => { if(r && r.status) asistencia[r.event_key + '|' + r.player_id] = r.status; });
+    meses = {}; faltaMeses = false;
+    try{
+      const rmes = await conCat(sb.from('pf_meses').select('*').eq('club_id', clubId).eq('temporada', t));
+      if(rmes.error){ const m = String(rmes.error.message || ''); if(rmes.error.code === '42P01' || rmes.error.code === 'PGRST205' || /pf_meses|does not exist|schema cache/i.test(m)) faltaMeses = true; else console.error('pf meses', rmes.error); }
+      else (rmes.data || []).forEach(f => { meses[f.mes] = f; });
+    }catch(e){ console.error('pf meses', e); }
+    cargado = true;
+  }
+  async function asegurar(forzar){
+    if(cargando) return cargando;
+    if(cargado && !forzar) return;
+    cargando = cargarTodo().catch(e => console.error('profe', e)).finally(() => { cargando = null; });
+    return cargando;
+  }
+  async function guardarSesion(s){
+    const sb = window.__sb; const clubId = await window.__getClubId();
+    const fila = { club_id: clubId, categoria: cat(), temporada: temp(), fecha: s.fecha, tipo: s.tipo, minutos: s.minutos || 0,
+                   intensidad: s.intensidad || null, notas: s.notas || null, rpe: s.rpe || {}, updated_at: new Date().toISOString() };
+    let r;
+    if(s.id) r = await sb.from('pf_sesiones').update(fila).eq('id', s.id).select().single();
+    else r = await sb.from('pf_sesiones').insert(fila).select().single();
+    if(r.error){
+      if(window.__esErrorSuscripcion && window.__esErrorSuscripcion(r.error)) return null;
+      if(errorBase(r.error)){ aviso('Falta preparar la base: corré el SQL de la solapa Profe'); render(); return null; }
+      console.error('guardar sesión física', r.error); aviso('No se pudo guardar. Probá de nuevo.'); return null;
+    }
+    const n = Object.assign({}, r.data, { fecha: String(r.data.fecha).slice(0,10), rpe: r.data.rpe || {} });
+    const i = sesiones.findIndex(x => x.id === n.id);
+    if(i >= 0) sesiones[i] = n; else sesiones.push(n);
+    sesiones.sort((a, b) => a.fecha < b.fecha ? -1 : (a.fecha > b.fecha ? 1 : 0));
+    return n;
+  }
+  async function borrarSesion(id){
+    const r = await window.__sb.from('pf_sesiones').delete().eq('id', id);
+    if(r.error){ if(!(window.__esErrorSuscripcion && window.__esErrorSuscripcion(r.error))) aviso('No se pudo borrar'); return false; }
+    sesiones = sesiones.filter(s => s.id !== id);
+    return true;
+  }
+
+  // ───────── solapas Entrenador / Profe ─────────
+  function montarSolapas(){
+    const sec = document.getElementById('section-training');
+    if(!sec || document.getElementById('planTabs')) return;
+    const bar = document.createElement('div');
+    bar.className = 'plan-tabs'; bar.id = 'planTabs';
+    bar.innerHTML = '<button type="button" class="plan-tab active" data-plan="dt">📅 Entrenador</button><button type="button" class="plan-tab" data-plan="pf">🏋️ Profe</button>';
+    const page = document.createElement('div');
+    page.id = 'pfPage'; page.style.display = 'none';
+    sec.insertBefore(page, sec.firstChild);
+    sec.insertBefore(bar, sec.firstChild);
+    bar.querySelectorAll('.plan-tab').forEach(b => b.addEventListener('click', () => irA(b.dataset.plan)));
+  }
+  function irA(cual, semana){
+    const list = document.getElementById('trainList'), det = document.getElementById('trainDetail'), page = document.getElementById('pfPage');
+    document.querySelectorAll('#planTabs .plan-tab').forEach(b => b.classList.toggle('active', b.dataset.plan === cual));
+    if(cual === 'pf'){
+      if(page.style.display !== 'none' && !semana) return;
+      if(page.style.display === 'none') dtVisible = (det && det.style.display !== 'none') ? 'det' : 'list';
+      if(list) list.style.display = 'none'; if(det) det.style.display = 'none';
+      page.style.display = 'block';
+      document.body.classList.add('bo-en-profe');
+      if(semana) lunes = lunesDe(semana);
+      page.innerHTML = '<div class="pf-cargando">Cargando…</div>';
+      asegurar().then(render);
+    } else {
+      page.style.display = 'none';
+      document.body.classList.remove('bo-en-profe');
+      if(dtVisible === 'det' && det){ det.style.display = 'block'; } else if(list){ list.style.display = 'block'; }
+      if(window.__pfRefrescarFranja) window.__pfRefrescarFranja();
+    }
+  }
+  window.__pfIrA = irA;
+
+  // ───────── pantalla ─────────
+  function render(){
+    const page = document.getElementById('pfPage');
+    if(!page || page.style.display === 'none') return;
+    const cabeza = `
+      <div class="scout-head pf-head">
+        <div>
+          <h2 class="scout-title">🏋️ Preparación física</h2>
+          <p class="scout-sub">El espacio del profe: qué se trabaja cada día y cuánto esfuerzo le costó a cada jugador.</p>
+        </div>
+      </div>
+      ${faltaBase ? '<div class="pf-falta">⚠️ Falta preparar la base de datos para esta solapa. Corré una vez el SQL <b>solapa_profe.sql</b> en Supabase y recargá.</div>' : ''}
+      <div class="pf-vistas">
+        <button type="button" class="pf-vista${vista === 'semana' ? ' on' : ''}" data-v="semana">📅 Semana</button>
+        <button type="button" class="pf-vista${vista === 'carga' ? ' on' : ''}" data-v="carga">📊 Carga</button>
+        <button type="button" class="pf-vista${vista === 'mes' ? ' on' : ''}" data-v="mes">📋 Mes</button>
+      </div>
+      ${vista === 'mes' ? `<div class="pf-nav">
+        <button type="button" class="btn small" id="pfMPrev" aria-label="Mes anterior">◀</button>
+        <div class="pf-nav-txt"><b>${nombreMes(mesSel)}</b>${claveMes(mesSel) === claveMes(new Date()) ? '<span class="pf-hoy">Este mes</span>' : ''}</div>
+        <button type="button" class="btn small" id="pfMNext" aria-label="Mes siguiente">▶</button>
+      </div>
+      ${faltaMeses ? '<div class="pf-falta">⚠️ Para guardar la evaluación del mes falta correr una vez el SQL <b>cierre_de_mes.sql</b> en Supabase. El resumen automático ya funciona.</div>' : ''}` : `<div class="pf-nav">
+        <button type="button" class="btn small" id="pfPrev" aria-label="Semana anterior">◀</button>
+        <div class="pf-nav-txt"><b>Semana del ${rangoSemana(lunes)}</b>${clave(lunesDe(new Date())) === clave(lunes) ? '<span class="pf-hoy">Esta semana</span>' : ''}</div>
+        <button type="button" class="btn small" id="pfNext" aria-label="Semana siguiente">▶</button>
+        ${clave(lunesDe(new Date())) !== clave(lunes) ? '<button type="button" class="btn small" id="pfHoy">Hoy</button>' : ''}
+      </div>`}`;
+    page.innerHTML = cabeza + '<div id="pfCuerpo"></div>';
+    page.querySelectorAll('.pf-vista').forEach(b => b.addEventListener('click', () => { vista = b.dataset.v; render(); }));
+    if(vista === 'mes'){
+      page.querySelector('#pfMPrev').addEventListener('click', () => { mesSel = new Date(mesSel.getFullYear(), mesSel.getMonth() - 1, 1); render(); });
+      page.querySelector('#pfMNext').addEventListener('click', () => { mesSel = new Date(mesSel.getFullYear(), mesSel.getMonth() + 1, 1); render(); });
+      return renderMes();
+    }
+    page.querySelector('#pfPrev').addEventListener('click', () => { lunes = sumar(lunes, -7); sesionRPE = null; render(); });
+    page.querySelector('#pfNext').addEventListener('click', () => { lunes = sumar(lunes, 7); sesionRPE = null; render(); });
+    const h = page.querySelector('#pfHoy'); if(h) h.addEventListener('click', () => { lunes = lunesDe(new Date()); sesionRPE = null; render(); });
+    if(vista === 'semana') renderSemana(); else renderCarga();
+  }
+
+  // ───── SEMANA ─────
+  function renderSemana(){
+    const cuerpo = document.getElementById('pfCuerpo');
+    const ss = sesionesSemana(lunes);
+    let dias = '';
+    for(let i = 0; i < 7; i++){
+      const d = sumar(lunes, i), k = clave(d), m = md(k);
+      const delDia = ss.filter(s => s.fecha === k);
+      const hoy = k === clave(new Date());
+      const prev = delDia.reduce((t, s) => t + (Number(s.minutos)||0) * (Number(s.intensidad)||0), 0);
+      dias += `<div class="pf-dia${hoy ? ' hoy' : ''}${m && m.cls === 'md-partido' ? ' partido' : ''}">
+        <div class="pf-dia-cab">
+          <span class="pf-dia-nom"><b>${DIAS[i]}</b> ${d.getDate()}</span>
+          ${m ? `<span class="pf-md ${m.cls}" title="${m.rival ? 'vs ' + esc(m.rival) : 'Días respecto del partido'}">${m.txt}${m.rival ? ' · ' + esc(m.rival) : ''}</span>` : ''}
+        </div>
+        <div class="pf-dia-ses">
+          ${delDia.map(s => chipSesion(s)).join('')}
+          <button type="button" class="pf-add" data-dia="${k}">+ Sesión</button>
+        </div>
+        ${prev ? `<div class="pf-dia-pie" title="Minutos × intensidad prevista">Carga prevista <b>${prev}</b></div>` : ''}
+      </div>`;
+    }
+    const totMin = ss.reduce((t, s) => t + (Number(s.minutos)||0), 0);
+    const totPrev = ss.reduce((t, s) => t + (Number(s.minutos)||0) * (Number(s.intensidad)||0), 0);
+    const porTipo = {};
+    ss.forEach(s => { porTipo[s.tipo] = (porTipo[s.tipo] || 0) + (Number(s.minutos)||0); });
+    const real = promedioEquipo(lunes);
+    const maxDia = Math.max(1, ...[0,1,2,3,4,5,6].map(i => ss.filter(s => s.fecha === clave(sumar(lunes, i))).reduce((t, s) => t + (Number(s.minutos)||0) * (Number(s.intensidad)||0), 0)));
+    const barras = [0,1,2,3,4,5,6].map(i => {
+      const k = clave(sumar(lunes, i));
+      const v = ss.filter(s => s.fecha === k).reduce((t, s) => t + (Number(s.minutos)||0) * (Number(s.intensidad)||0), 0);
+      const h = Math.round(v / maxDia * 100);
+      const nivel = v === 0 ? '' : (h >= 70 ? 'alta' : (h >= 40 ? 'media' : 'baja'));
+      return `<div class="pf-bar"><div class="pf-bar-col"><div class="pf-bar-fill ${nivel}" style="height:${Math.max(v ? 6 : 0, h)}%"></div></div><span>${DIAS[i]}</span></div>`;
+    }).join('');
+    cuerpo.innerHTML = `
+      <div class="pf-semana">${dias}</div>
+      <div class="pf-resumen rd-card">
+        <div class="pf-res-cab">
+          <h3>Resumen de la semana</h3>
+          <button type="button" class="btn small" id="pfCopiar" title="Trae las sesiones de la semana anterior (sin el esfuerzo cargado)">⧉ Copiar semana anterior</button>
+        </div>
+        <div class="pf-res-grid">
+          <div class="pf-res-nums">
+            <div class="pf-num"><b>${ss.length}</b><span>sesiones</span></div>
+            <div class="pf-num"><b>${totMin}'</b><span>minutos</span></div>
+            <div class="pf-num"><b>${totPrev || '—'}</b><span>carga prevista</span></div>
+            <div class="pf-num"><b>${real ? Math.round(real) : '—'}</b><span>carga real promedio</span></div>
+          </div>
+          <div class="pf-barras" title="Carga prevista de cada día">${barras}</div>
+        </div>
+        ${Object.keys(porTipo).length ? `<div class="pf-tipos">${Object.keys(porTipo).map(t => `<span class="pf-tipo-pill" style="--tc:${tipo(t).col}">${esc(tipo(t).nom)} · ${porTipo[t]}'</span>`).join('')}</div>` : ''}
+        <p class="pf-ayuda">💡 <b>Carga prevista</b> = minutos × intensidad que planificaste (1 a 10). <b>Carga real</b> sale de lo que cada jugador dice que le costó, en la pestaña 📊 Carga.</p>
+      </div>`;
+    cuerpo.querySelectorAll('.pf-add').forEach(b => b.addEventListener('click', () => abrirSesion({ fecha: b.dataset.dia, tipo: '', minutos: 60, intensidad: null, notas: '' })));
+    cuerpo.querySelectorAll('.pf-ses').forEach(b => b.addEventListener('click', () => { const s = sesiones.find(x => x.id === b.dataset.id); if(s) abrirSesion(Object.assign({}, s)); }));
+    cuerpo.querySelector('#pfCopiar').addEventListener('click', copiarSemanaAnterior);
+  }
+  function chipSesion(s){
+    const t = tipo(s.tipo);
+    const nRPE = Object.keys(s.rpe || {}).filter(k => s.rpe[k] && s.rpe[k].rpe).length;
+    return `<button type="button" class="pf-ses" data-id="${s.id}" style="--tc:${t.col}">
+      <span class="pf-ses-tipo">${esc(t.nom)}</span>
+      <span class="pf-ses-meta">${Number(s.minutos)||0}'${s.intensidad ? ' · int. ' + s.intensidad : ''}${nRPE ? ' · 📊' + nRPE : ''}</span>
+      ${s.notas ? `<span class="pf-ses-notas">${esc(s.notas)}</span>` : ''}
+    </button>`;
+  }
+  async function copiarSemanaAnterior(){
+    const ant = sesionesSemana(sumar(lunes, -7));
+    if(!ant.length){ aviso('La semana anterior no tiene sesiones para copiar'); return; }
+    const ya = sesionesSemana(lunes);
+    if(ya.length && !confirm('Esta semana ya tiene ' + ya.length + ' sesión(es). ¿Agregar igual las ' + ant.length + ' de la semana anterior?')) return;
+    let ok = 0;
+    for(const s of ant){
+      const n = await guardarSesion({ fecha: clave(sumar(deClave(s.fecha), 7)), tipo: s.tipo, minutos: s.minutos, intensidad: s.intensidad, notas: s.notas, rpe: {} });
+      if(n) ok++; else break;
+    }
+    if(ok) aviso(ok + ' sesión(es) copiadas ✓');
+    render();
+  }
+
+  function abrirSesion(s){
+    let m = document.getElementById('pfSesModal'); if(m) m.remove();
+    m = document.createElement('div'); m.id = 'pfSesModal'; m.className = 'cloud-modal-overlay'; m.style.display = 'flex';
+    const d = deClave(s.fecha), di = (d.getDay() + 6) % 7, mdx = md(s.fecha);
+    let ints = ''; for(let i = 1; i <= 10; i++) ints += `<button type="button" class="nota-btn${Number(s.intensidad) === i ? ' on' : ''}" data-int="${i}">${i}</button>`;
+    m.innerHTML = `
+      <div class="cloud-modal pf-modal">
+        <div class="cloud-modal-head"><h3>${s.id ? '✎ Sesión' : '+ Nueva sesión'} · ${DIAS_L[di]} ${d.getDate()} ${MESES[d.getMonth()]}${mdx ? ' · ' + mdx.txt : ''}</h3><button class="cloud-close" id="pfSesX">✕</button></div>
+        <div style="padding:4px 2px;">
+          <label class="cal-field-lbl">Qué se trabaja</label>
+          <div class="pf-tipo-sel">${TIPOS.map(t => `<button type="button" class="pf-tsel${s.tipo === t.id ? ' on' : ''}" data-t="${t.id}" style="--tc:${t.col}">${esc(t.nom)}</button>`).join('')}</div>
+          <label class="cal-field-lbl" style="margin-top:14px;">Minutos</label>
+          <div class="pf-min-row">
+            <input type="number" id="pfMin" min="0" max="300" inputmode="numeric" value="${Number(s.minutos) || ''}" placeholder="60">
+            ${[20,30,45,60,75,90].map(v => `<button type="button" class="pf-min-chip" data-min="${v}">${v}'</button>`).join('')}
+          </div>
+          <label class="cal-field-lbl" style="margin-top:14px;">Intensidad prevista <span class="pf-lbl-sub" id="pfIntTxt">${s.intensidad ? RPE_TXT[s.intensidad] : '(1 = muy suave · 10 = máxima)'}</span></label>
+          <div class="nota-botones" id="pfInt">${ints}</div>
+          <label class="cal-field-lbl" style="margin-top:14px;">Notas</label>
+          <textarea id="pfNotas" class="cuarteto-input" rows="3" maxlength="600" style="width:100%;resize:vertical;" placeholder="Ej: circuito de fuerza 4×8, saltos, sprints de 10 m…">${esc(s.notas || '')}</textarea>
+          <div class="summary-actions" style="margin-top:14px;">
+            ${s.id ? '<button type="button" class="btn small" id="pfSesDel">Borrar</button><button type="button" class="btn small" id="pfSesRPE">📊 Cargar esfuerzo</button>' : ''}
+            <button type="button" class="btn small primary" id="pfSesOk">Guardar</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(m);
+    let sel = { tipo: s.tipo || '', intensidad: s.intensidad ? Number(s.intensidad) : null };
+    const cerrar = () => m.remove();
+    m.querySelector('#pfSesX').addEventListener('click', cerrar);
+    m.addEventListener('click', e => { if(e.target === m) cerrar(); });
+    m.querySelectorAll('.pf-tsel').forEach(b => b.addEventListener('click', () => {
+      sel.tipo = b.dataset.t; m.querySelectorAll('.pf-tsel').forEach(x => x.classList.toggle('on', x === b));
+      if(sel.tipo === 'partido' && !m.querySelector('#pfMin').value) m.querySelector('#pfMin').value = 50;
+    }));
+    m.querySelectorAll('.pf-min-chip').forEach(b => b.addEventListener('click', () => { m.querySelector('#pfMin').value = b.dataset.min; }));
+    m.querySelectorAll('#pfInt .nota-btn').forEach(b => b.addEventListener('click', () => {
+      const v = Number(b.dataset.int); sel.intensidad = sel.intensidad === v ? null : v;
+      m.querySelectorAll('#pfInt .nota-btn').forEach(x => x.classList.toggle('on', Number(x.dataset.int) === sel.intensidad));
+      m.querySelector('#pfIntTxt').textContent = sel.intensidad ? RPE_TXT[sel.intensidad] : '(1 = muy suave · 10 = máxima)';
+    }));
+    const guardar = async () => {
+      if(!sel.tipo){ aviso('Elegí qué se trabaja en la sesión'); return null; }
+      const minutos = parseInt(m.querySelector('#pfMin').value, 10) || 0;
+      if(minutos <= 0){ aviso('Poné los minutos de la sesión'); return null; }
+      const btn = m.querySelector('#pfSesOk'); btn.disabled = true; btn.textContent = 'Guardando…';
+      const n = await guardarSesion(Object.assign({}, s, { tipo: sel.tipo, minutos, intensidad: sel.intensidad, notas: m.querySelector('#pfNotas').value.trim() }));
+      btn.disabled = false; btn.textContent = 'Guardar';
+      return n;
+    };
+    m.querySelector('#pfSesOk').addEventListener('click', async () => { const n = await guardar(); if(n){ cerrar(); aviso('Sesión guardada ✓'); render(); } });
+    const del = m.querySelector('#pfSesDel');
+    if(del) del.addEventListener('click', async () => {
+      const conRPE = Object.keys(s.rpe || {}).length;
+      if(!confirm(conRPE ? '¿Borrar esta sesión? Se borra también el esfuerzo cargado de ' + conRPE + ' jugador(es).' : '¿Borrar esta sesión?')) return;
+      if(await borrarSesion(s.id)){ cerrar(); render(); }
+    });
+    const ir = m.querySelector('#pfSesRPE');
+    if(ir) ir.addEventListener('click', async () => { const n = await guardar(); if(n){ cerrar(); sesionRPE = n.id; vista = 'carga'; render(); } });
+  }
+
+  // ───── CARGA ─────
+  function renderCarga(){
+    const cuerpo = document.getElementById('pfCuerpo');
+    const ss = sesionesSemana(lunes);
+    if(sesionRPE && !ss.some(s => s.id === sesionRPE)) sesionRPE = null;
+    if(!sesionRPE && ss.length){
+      // la primera sesión de la semana sin esfuerzo cargado, o la última
+      const hoyK = clave(new Date());
+      const pend = ss.filter(s => s.fecha <= hoyK && !Object.keys(s.rpe || {}).length);
+      sesionRPE = (pend[0] || ss[ss.length - 1]).id;
+    }
+    const s = ss.find(x => x.id === sesionRPE);
+    const chips = ss.map(x => {
+      const d = deClave(x.fecha), n = Object.keys(x.rpe || {}).filter(k => x.rpe[k] && x.rpe[k].rpe).length;
+      return `<button type="button" class="pf-schip${x.id === sesionRPE ? ' on' : ''}" data-id="${x.id}" style="--tc:${tipo(x.tipo).col}">
+        <b>${DIAS[(d.getDay() + 6) % 7]} ${d.getDate()}</b><span>${esc(tipo(x.tipo).nom)} · ${Number(x.minutos)||0}'</span><i>${n ? '✓ ' + n + ' cargados' : 'sin cargar'}</i></button>`;
+    }).join('');
+    let lista = '';
+    if(s){
+      const vinieron = [], noVinieron = [], resto = [];
+      jugadores.forEach(p => { const st = asistencia[s.fecha + '|' + p.id]; if(st === 'yes') vinieron.push(p); else if(st) noVinieron.push(p); else resto.push(p); });
+      const fila = (p, extra) => {
+        const r = (s.rpe && s.rpe[p.id]) || {};
+        let bt = ''; for(let i = 1; i <= 10; i++) bt += `<button type="button" class="nota-btn${Number(r.rpe) === i ? ' on' : ''}" data-rpe="${i}">${i}</button>`;
+        return `<div class="pf-jug${r.rpe ? ' con' : ''}" data-pid="${esc(p.id)}" data-rpe="${r.rpe || ''}">
+          <div class="pf-jug-cab"><span class="pf-jug-nom">${p.number ? '<i>#' + esc(p.number) + '</i> ' : ''}${esc(p.name)}${extra || ''}</span>
+            <span class="pf-jug-txt">${r.rpe ? RPE_TXT[r.rpe] : ''}</span>
+            <label class="pf-jug-min" title="Minutos que hizo (si no hizo la sesión completa)"><input type="number" min="0" max="300" inputmode="numeric" value="${r.min != null && r.min !== '' ? r.min : ''}" placeholder="${Number(s.minutos)||0}">'</label></div>
+          <div class="nota-botones pf-rpe-bt">${bt}</div>
+        </div>`;
+      };
+      lista = (vinieron.length ? `<div class="pf-grupo-lbl">✓ Vinieron según presentismo (${vinieron.length})</div><div class="pf-jugs">${vinieron.map(p => fila(p)).join('')}</div>` : '')
+        + (resto.length ? `${vinieron.length ? `<div class="pf-grupo-lbl">Sin marcar en presentismo (${resto.length})</div>` : ''}<div class="pf-jugs">${resto.map(p => fila(p)).join('')}</div>` : '')
+        + (noVinieron.length ? `<details class="pf-novin"><summary>No vinieron según presentismo (${noVinieron.length})</summary><div class="pf-jugs">${noVinieron.map(p => fila(p, ' <em>· no vino</em>')).join('')}</div></details>` : '');
+      if(!jugadores.length) lista = '<p class="rd-empty">No hay jugadores en esta categoría. Cargalos en Estadísticas → Plantel.</p>';
+    }
+    // tabla de estado de cada jugador
+    const filasEst = jugadores.map(p => ({ p, e: estadoJugador(p.id) }))
+      .sort((a, b) => (b.e.r || 0) - (a.e.r || 0) || b.e.actual - a.e.actual);
+    const semanas6 = [5,4,3,2,1,0].map(i => sumar(lunes, -7 * i));
+    const maxJ = Math.max(1, ...jugadores.map(p => Math.max(...semanas6.map(l => cargaSemana(l, p.id)))));
+    const tabla = filasEst.map(({ p, e }) => {
+      const spark = semanas6.map((l, i) => { const v = cargaSemana(l, p.id); return `<i style="height:${v ? Math.max(8, Math.round(v / maxJ * 100)) : 2}%"${i === 5 ? ' class="act"' : ''} title="${rangoSemana(l)}: ${v}"></i>`; }).join('');
+      return `<div class="pf-est-fila ${e.cls}">
+        <span class="pf-est-nom">${p.number ? '<i>#' + esc(p.number) + '</i> ' : ''}${esc(p.name)}</span>
+        <span class="pf-est-n"><b>${e.actual || '—'}</b><small>esta sem.</small></span>
+        <span class="pf-est-n"><b>${e.cron ? Math.round(e.cron) : '—'}</b><small>prom. ${e.semanas || 4} sem.</small></span>
+        <span class="pf-est-spark">${spark}</span>
+        <span class="pf-est-chip ${e.cls}">${e.txt}${e.r ? ' <small>×' + e.r.toFixed(2) + '</small>' : ''}</span>
+      </div>`;
+    }).join('');
+    const riesgo = filasEst.filter(x => x.e.cls === 'rojo'), alta = filasEst.filter(x => x.e.cls === 'amar');
+    // gráfico del equipo (6 semanas)
+    const prom = semanas6.map(l => promedioEquipo(l)); const maxP = Math.max(1, ...prom);
+    const graf = semanas6.map((l, i) => `<div class="pf-bar"><div class="pf-bar-col"><div class="pf-bar-fill ${i === 5 ? 'act' : 'media'}" style="height:${prom[i] ? Math.max(6, Math.round(prom[i] / maxP * 100)) : 0}%"></div></div><b>${prom[i] ? Math.round(prom[i]) : ''}</b><span>${l.getDate()}/${l.getMonth()+1}</span></div>`).join('');
+
+    cuerpo.innerHTML = `
+      <div class="rd-card pf-cargar">
+        <div class="pf-res-cab"><h3>1 · Cargar esfuerzo de la sesión</h3></div>
+        ${ss.length ? `<div class="pf-schips">${chips}</div>` : `<p class="rd-empty">Esta semana no tiene sesiones. Creálas en 📅 Semana (también podés cargar el partido como sesión).</p><button type="button" class="btn small" id="pfIrSemana">📅 Ir a Semana</button>`}
+        ${s ? `<p class="pf-ayuda">Después de la sesión, cada jugador dice <b>qué tan duro le resultó del 1 al 10</b>. Tocá el número. Si hizo menos tiempo, cambiá los minutos.</p>
+          <div class="pf-escala">${[1,3,5,7,9,10].map(v => `<span><b>${v}</b> ${RPE_TXT[v]}</span>`).join('')}</div>
+          ${lista}
+          <div class="pf-guardar-bar"><span id="pfCont"></span><button type="button" class="btn primary" id="pfRPEOk">Guardar esfuerzo</button></div>` : ''}
+      </div>
+      <div class="rd-card pf-estado">
+        <div class="pf-res-cab"><h3>2 · Carga semanal por jugador</h3></div>
+        ${(riesgo.length || alta.length) ? `<div class="pf-alerta">${riesgo.length ? `⚠️ <b>${riesgo.map(x => esc(x.p.name)).join(', ')}</b> ${riesgo.length > 1 ? 'vienen' : 'viene'} con mucha más carga que su promedio: conviene bajarle${riesgo.length > 1 ? 's' : ''} la intensidad. ` : ''}${alta.length ? `<span>Atentos con: ${alta.map(x => esc(x.p.name)).join(', ')}.</span>` : ''}</div>` : ''}
+        ${clave(lunesDe(new Date())) === clave(lunes) ? '<div class="pf-encurso">📅 Semana en curso: la carga de esta semana va a ir subiendo a medida que cargues las sesiones que faltan.</div>' : ''}
+        <div class="pf-equipo"><div class="pf-eq-tit">Carga promedio del plantel · últimas 6 semanas</div><div class="pf-barras pf-barras-eq">${graf}</div></div>
+        ${jugadores.length ? `<div class="pf-est-lista">${tabla}</div>` : ''}
+        <p class="pf-ayuda">💡 <b>Carga</b> = esfuerzo (1-10) × minutos. Se compara la semana con el promedio de las 4 anteriores:
+          <span class="pf-est-chip azul">Baja</span> menos de 0,8 · <span class="pf-est-chip verde">Óptima</span> 0,8 a 1,3 · <span class="pf-est-chip amar">Alta</span> 1,3 a 1,5 · <span class="pf-est-chip rojo">⚠️ Riesgo</span> más de 1,5 (subir la carga de golpe es lo que más lesiones produce).</p>
+      </div>`;
+    const ir = cuerpo.querySelector('#pfIrSemana'); if(ir) ir.addEventListener('click', () => { vista = 'semana'; render(); });
+    cuerpo.querySelectorAll('.pf-schip').forEach(b => b.addEventListener('click', () => { sesionRPE = b.dataset.id; render(); }));
+    if(!s) return;
+    const contar = () => { const n = cuerpo.querySelectorAll('.pf-jug[data-rpe]:not([data-rpe=""])').length; const c = cuerpo.querySelector('#pfCont'); if(c) c.textContent = n + ' de ' + jugadores.length + ' con esfuerzo'; };
+    contar();
+    cuerpo.querySelectorAll('.pf-jug').forEach(f => {
+      f.querySelectorAll('.nota-btn').forEach(b => b.addEventListener('click', () => {
+        const v = b.dataset.rpe; const nuevo = f.dataset.rpe === v ? '' : v;
+        f.dataset.rpe = nuevo; f.classList.toggle('con', !!nuevo);
+        f.querySelectorAll('.nota-btn').forEach(x => x.classList.toggle('on', x.dataset.rpe === nuevo));
+        f.querySelector('.pf-jug-txt').textContent = nuevo ? RPE_TXT[nuevo] : '';
+        contar();
+      }));
+    });
+    cuerpo.querySelector('#pfRPEOk').addEventListener('click', async () => {
+      const rpe = {};
+      cuerpo.querySelectorAll('.pf-jug').forEach(f => {
+        const v = parseInt(f.dataset.rpe, 10); if(!v) return;
+        const mi = f.querySelector('.pf-jug-min input').value;
+        rpe[f.dataset.pid] = mi !== '' ? { rpe: v, min: parseInt(mi, 10) || 0 } : { rpe: v };
+      });
+      const btn = cuerpo.querySelector('#pfRPEOk'); btn.disabled = true; btn.textContent = 'Guardando…';
+      const n = await guardarSesion(Object.assign({}, s, { rpe }));
+      btn.disabled = false; btn.textContent = 'Guardar esfuerzo';
+      if(n){ aviso('Esfuerzo guardado ✓ (' + Object.keys(rpe).length + ' jugadores)'); render(); }
+    });
+  }
+
+
+  // ═════════ CIERRE DE MES (resumen automático + evaluación del profe) ═════════
+  const MESES_L = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  let mesSel = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  let meses = {};            // 'YYYY-MM' -> fila de pf_meses
+  let faltaMeses = false;
+  function claveMes(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'); }
+  function nombreMes(d){ return MESES_L[d.getMonth()] + ' ' + d.getFullYear(); }
+  function sesionesMes(d){ const k = claveMes(d); return sesiones.filter(s => s.fecha.slice(0,7) === k); }
+  function cargaMes(d, pid){ return sesionesMes(d).reduce((t, s) => t + cargaJugadorSesion(s, pid), 0); }
+  function conDatosMes(d){ const ids = new Set(); sesionesMes(d).forEach(s => Object.keys(s.rpe || {}).forEach(id => { if(s.rpe[id] && s.rpe[id].rpe) ids.add(id); })); return ids; }
+  function promMes(d){ const ids = conDatosMes(d); if(!ids.size) return 0; let t = 0; ids.forEach(id => { t += cargaMes(d, id); }); return t / ids.size; }
+  // Semanas (por su lunes) que tienen al menos un día dentro del mes
+  function lunesDelMes(d){
+    const out = []; let l = lunesDe(new Date(d.getFullYear(), d.getMonth(), 1));
+    const fin = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+    while(l <= fin){ out.push(new Date(l)); l = sumar(l, 7); }
+    return out;
+  }
+  function asistenciaMes(d){
+    const k = claveMes(d), por = {};
+    let si = 0, tot = 0;
+    Object.keys(asistencia).forEach(key => {
+      const [f, pid] = key.split('|'); if(f.slice(0,7) !== k) return;
+      if(!jugadores.some(p => String(p.id) === pid)) return;
+      const st = asistencia[key]; tot++; if(st === 'yes') si++;
+      por[pid] = por[pid] || { si:0, tot:0 }; por[pid].tot++; if(st === 'yes') por[pid].si++;
+    });
+    return { pct: tot ? Math.round(si / tot * 100) : null, por };
+  }
+  function resumenMes(d){
+    const ss = sesionesMes(d);
+    const min = ss.reduce((t, s) => t + (Number(s.minutos)||0), 0);
+    const porTipo = {}; ss.forEach(s => { porTipo[s.tipo] = (porTipo[s.tipo] || 0) + (Number(s.minutos)||0); });
+    const tipos = Object.keys(porTipo).sort((a, b) => porTipo[b] - porTipo[a]).map(t => ({ t, min: porTipo[t], pct: min ? Math.round(porTipo[t] / min * 100) : 0 }));
+    const prom = promMes(d), promAnt = promMes(new Date(d.getFullYear(), d.getMonth() - 1, 1));
+    const ranking = jugadores.map(p => ({ p, c: cargaMes(d, p.id) })).filter(x => x.c > 0).sort((a, b) => b.c - a.c);
+    const riesgos = [];
+    lunesDelMes(d).forEach(l => {
+      if(!semanaTieneRPE(l)) return;
+      jugadores.forEach(p => { const e = estadoJugador(p.id, l); if(e.cls === 'rojo' || e.cls === 'amar') riesgos.push({ p, l, e }); });
+    });
+    return { ss, min, tipos, prom, promAnt, ranking, riesgos, asis: asistenciaMes(d) };
+  }
+
+  function renderMes(){
+    const cuerpo = document.getElementById('pfCuerpo');
+    const r = resumenMes(mesSel);
+    const fila = meses[claveMes(mesSel)] || {};
+    const notas = fila.notas || {};
+    const enCurso = claveMes(mesSel) === claveMes(new Date());
+    const delta = (!enCurso && r.prom && r.promAnt) ? Math.round((r.prom - r.promAnt) / r.promAnt * 100) : null;
+    const top = r.ranking.slice(0, 3), bajo = r.ranking.length > 3 ? r.ranking.slice(-3).reverse() : [];
+    const riesgoTxt = r.riesgos.filter(x => x.e.cls === 'rojo');
+    const altaTxt = r.riesgos.filter(x => x.e.cls === 'amar');
+    const asisBaja = jugadores.map(p => { const a = r.asis.por[p.id]; return a && a.tot ? { p, pct: Math.round(a.si / a.tot * 100) } : null; })
+      .filter(Boolean).sort((a, b) => a.pct - b.pct).filter(x => x.pct < 75).slice(0, 4);
+    const filasJug = jugadores.map(p => {
+      const c = cargaMes(mesSel, p.id), a = r.asis.por[p.id];
+      return `<div class="pf-mj">
+        <div class="pf-mj-cab"><span class="pf-jug-nom">${p.number ? '<i>#' + esc(p.number) + '</i> ' : ''}${esc(p.name)}</span>
+          <span class="pf-mj-dat">${c ? 'Carga ' + c : 'sin carga'}${a && a.tot ? ' · asist. ' + Math.round(a.si / a.tot * 100) + '%' : ''}</span></div>
+        <textarea class="pf-mj-nota" data-pid="${esc(p.id)}" rows="1" maxlength="300" placeholder="Nota corta (opcional)">${esc(notas[p.id] || '')}</textarea>
+      </div>`;
+    }).join('');
+    cuerpo.innerHTML = `
+      <div class="rd-card pf-mes-auto">
+        <div class="pf-res-cab"><h3>📊 Resumen de ${nombreMes(mesSel)}</h3><span class="pf-mes-auto-tag">se arma solo</span></div>
+        ${r.ss.length ? `
+        <div class="pf-res-nums pf-mes-nums">
+          <div class="pf-num"><b>${r.ss.length}</b><span>sesiones</span></div>
+          <div class="pf-num"><b>${r.min}'</b><span>minutos</span></div>
+          <div class="pf-num"><b>${r.prom ? Math.round(r.prom) : '—'}</b><span>carga prom. por jugador</span>${enCurso && r.prom ? '<em>mes en curso</em>' : ''}${delta != null ? `<em class="${delta > 0 ? 'sube' : 'baja'}">${delta > 0 ? '▲' : '▼'} ${Math.abs(delta)}% vs ${MESES_L[(mesSel.getMonth() + 11) % 12].toLowerCase()}</em>` : ''}</div>
+          <div class="pf-num"><b>${r.asis.pct != null ? r.asis.pct + '%' : '—'}</b><span>asistencia</span></div>
+        </div>
+        <div class="pf-mes-grid">
+          <div>
+            <div class="pf-eq-tit">En qué se trabajó</div>
+            ${r.tipos.map(x => `<div class="pf-mt"><span>${esc(tipo(x.t).nom)}</span><div class="pf-mt-bar"><i style="width:${x.pct}%;background:${tipo(x.t).col}"></i></div><b>${x.pct}%</b><small>${x.min}'</small></div>`).join('')}
+          </div>
+          <div>
+            ${top.length ? `<div class="pf-eq-tit">Más carga</div><div class="pf-mlist">${top.map(x => `<span>${esc(x.p.name)} <b>${x.c}</b></span>`).join('')}</div>` : ''}
+            ${bajo.length ? `<div class="pf-eq-tit" style="margin-top:10px;">Menos carga</div><div class="pf-mlist">${bajo.map(x => `<span>${esc(x.p.name)} <b>${x.c}</b></span>`).join('')}</div>` : ''}
+            ${asisBaja.length ? `<div class="pf-eq-tit" style="margin-top:10px;">Asistencia más baja</div><div class="pf-mlist">${asisBaja.map(x => `<span>${esc(x.p.name)} <b>${x.pct}%</b></span>`).join('')}</div>` : ''}
+          </div>
+        </div>
+        ${riesgoTxt.length || altaTxt.length ? `<div class="pf-alerta" style="margin-top:14px;">${riesgoTxt.length ? `⚠️ <b>Semanas en riesgo:</b> ${riesgoTxt.map(x => esc(x.p.name) + ' (sem. ' + x.l.getDate() + '/' + (x.l.getMonth()+1) + ')').join(', ')}. ` : ''}${altaTxt.length ? `<span>Carga alta: ${altaTxt.map(x => esc(x.p.name) + ' (sem. ' + x.l.getDate() + '/' + (x.l.getMonth()+1) + ')').join(', ')}.</span>` : ''}</div>` : (r.ranking.length ? '<div class="pf-ok">✓ Ningún jugador pasó por riesgo de sobrecarga este mes.</div>' : '')}
+        ` : '<p class="rd-empty">Este mes no tiene sesiones cargadas. El resumen se arma solo a medida que el profe carga las sesiones en 📅 Semana y el esfuerzo en 📊 Carga.</p>'}
+      </div>
+      <div class="rd-card pf-mes-eval">
+        <div class="pf-res-cab"><h3>✍️ Evaluación del profe</h3><span class="pf-mes-guardado" id="pfMesEst">${fila.updated_at ? 'Guardado' : ''}</span></div>
+        <label class="cal-field-lbl">Evaluación general del mes</label>
+        <textarea id="pfMesEval" class="cuarteto-input" rows="4" maxlength="2000" style="width:100%;resize:vertical;" placeholder="Qué se logró, cómo respondió el plantel, qué falta…">${esc(fila.evaluacion || '')}</textarea>
+        <label class="cal-field-lbl" style="margin-top:12px;">Objetivo para el mes que viene</label>
+        <textarea id="pfMesObj" class="cuarteto-input" rows="2" maxlength="800" style="width:100%;resize:vertical;" placeholder="Ej: subir el volumen de fuerza, bajar carga antes de los playoffs…">${esc(fila.objetivo || '')}</textarea>
+        ${jugadores.length ? `<details class="pf-mes-jugs"${Object.keys(notas).length ? ' open' : ''}><summary>📝 Nota por jugador (opcional) · ${Object.keys(notas).filter(k => notas[k]).length} de ${jugadores.length}</summary><div class="pf-mjs">${filasJug}</div></details>` : ''}
+        <div class="pf-guardar-bar"><span></span><button type="button" class="btn primary" id="pfMesOk">Guardar evaluación</button></div>
+      </div>
+      <div class="rd-card pf-mes-inf">
+        <div class="pf-res-cab"><h3>📋 Informe del mes</h3></div>
+        <p class="pf-ayuda" style="margin:0 0 12px;">Todo en una hoja: el resumen, la evaluación y las notas. Para mandarle al DT o al cuerpo técnico.</p>
+        <div class="pf-mes-btns">
+          <button type="button" class="btn small" data-mi="ver">👁 Ver</button>
+          <button type="button" class="btn small" data-mi="wa">💬 WhatsApp</button>
+          <button type="button" class="btn small" data-mi="png">🖼 Imagen</button>
+          <button type="button" class="btn small" data-mi="pdf">📄 PDF</button>
+        </div>
+      </div>`;
+    cuerpo.querySelector('#pfMesOk').addEventListener('click', guardarMes);
+    cuerpo.querySelectorAll('[data-mi]').forEach(b => b.addEventListener('click', () => informeMes(b.dataset.mi)));
+    cuerpo.querySelectorAll('textarea').forEach(t => t.addEventListener('input', () => { const e = document.getElementById('pfMesEst'); if(e) e.textContent = 'Sin guardar'; }));
+  }
+  function leerFormMes(){
+    const notas = {};
+    document.querySelectorAll('.pf-mj-nota').forEach(t => { const v = t.value.trim(); if(v) notas[t.dataset.pid] = v; });
+    return { evaluacion: (document.getElementById('pfMesEval') || {}).value || '', objetivo: (document.getElementById('pfMesObj') || {}).value || '', notas };
+  }
+  async function guardarMes(){
+    const f = leerFormMes();
+    const btn = document.getElementById('pfMesOk'); if(btn){ btn.disabled = true; btn.textContent = 'Guardando…'; }
+    const ok = await guardarFilaMes(f);
+    if(btn){ btn.disabled = false; btn.textContent = 'Guardar evaluación'; }
+    if(ok){ aviso('Evaluación de ' + nombreMes(mesSel).toLowerCase() + ' guardada ✓'); render(); }
+  }
+  async function guardarFilaMes(f){
+    const sb = window.__sb; const clubId = await window.__getClubId();
+    const fila = { club_id: clubId, categoria: cat(), temporada: temp(), mes: claveMes(mesSel), evaluacion: f.evaluacion.trim() || null,
+                   objetivo: f.objetivo.trim() || null, notas: f.notas || {}, updated_at: new Date().toISOString() };
+    const prev = meses[fila.mes];
+    let r;
+    if(prev && prev.id) r = await sb.from('pf_meses').update(fila).eq('id', prev.id).select().single();
+    else r = await sb.from('pf_meses').insert(fila).select().single();
+    if(r.error && r.error.code === '23505'){
+      // Otro dispositivo ya creó este mes: se busca y se actualiza
+      let q = sb.from('pf_meses').select('id').eq('club_id', clubId).eq('temporada', fila.temporada).eq('mes', fila.mes);
+      q = fila.categoria ? q.eq('categoria', fila.categoria) : q.is('categoria', null);
+      const ex = await q.maybeSingle();
+      if(ex.data && ex.data.id) r = await sb.from('pf_meses').update(fila).eq('id', ex.data.id).select().single();
+    }
+    if(r.error){
+      if(window.__esErrorSuscripcion && window.__esErrorSuscripcion(r.error)) return false;
+      if(errorBase(r.error)){ faltaMeses = true; aviso('Falta preparar la base: corré el SQL de la solapa Profe'); return false; }
+      console.error('guardar mes', r.error); aviso('No se pudo guardar. Probá de nuevo.'); return false;
+    }
+    meses[fila.mes] = r.data;
+    return true;
+  }
+
+  // ───── informe del mes (misma idea que el informe de partido) ─────
+  function construirInformeMes(){
+    const r = resumenMes(mesSel);
+    const fila = Object.assign({}, meses[claveMes(mesSel)] || {}, document.getElementById('pfMesEval') ? leerFormMes() : {});
+    const notas = fila.notas || {};
+    const club = window.__clubNombre || '';
+    const c = cat(); const catTxt = (window.__catLabel && c) ? window.__catLabel(c) : (c || '');
+    const delta = (claveMes(mesSel) !== claveMes(new Date()) && r.prom && r.promAnt) ? Math.round((r.prom - r.promAnt) / r.promAnt * 100) : null;
+    const nodo = document.createElement('div');
+    nodo.style.cssText = 'position:fixed;left:-9999px;top:0;width:1000px;background:#10161C;color:#F2F6F8;font-family:Inter,system-ui,sans-serif;padding:44px;box-sizing:border-box;';
+    const caja = (t, v, sub) => `<div style="flex:1;background:#1B2836;border:1px solid #33495E;border-radius:12px;padding:14px;text-align:center;"><div style="font:600 12px JetBrains Mono,monospace;letter-spacing:1.5px;color:#8CA2B3;text-transform:uppercase;">${t}</div><div style="font:700 34px Oswald,sans-serif;margin-top:4px;">${v}</div>${sub ? `<div style="font-size:13px;color:${sub.col};margin-top:2px;">${sub.txt}</div>` : ''}</div>`;
+    const tit = t => `<div style="font:700 17px Oswald,sans-serif;text-transform:uppercase;letter-spacing:1px;margin:26px 0 10px;color:#F2F6F8;">${t}</div>`;
+    let h = `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:18px;border-bottom:2px solid #33495E;">
+      <div><div style="font:700 15px JetBrains Mono,monospace;letter-spacing:3px;color:#3CC4D8;">INFORME MENSUAL · PREPARACIÓN FÍSICA</div>
+      <div style="font:700 36px Oswald,sans-serif;margin-top:4px;">${esc(nombreMes(mesSel))}</div>
+      <div style="font-size:16px;color:#8CA2B3;margin-top:4px;">${[esc(club), catTxt ? 'Categoría ' + esc(catTxt) : ''].filter(Boolean).join('  ·  ')}</div></div>
+      <div style="font:600 18px Oswald,sans-serif;color:#2F8FCB;letter-spacing:1px;">${window.__boMarca ? window.__boMarca(18) : 'BENCHONE'}</div></div>`;
+    h += `<div style="display:flex;gap:12px;margin-top:22px;">${caja('Sesiones', r.ss.length)}${caja('Minutos', r.min + "'")}${caja('Carga prom.', r.prom ? Math.round(r.prom) : '—', delta != null ? { txt: (delta > 0 ? '▲ ' : '▼ ') + Math.abs(delta) + '% vs mes anterior', col: delta > 0 ? '#E0A93B' : '#4CAF6D' } : null)}${caja('Asistencia', r.asis.pct != null ? r.asis.pct + '%' : '—')}</div>`;
+    if(r.tipos.length){
+      h += tit('En qué se trabajó') + r.tipos.map(x => `<div style="display:flex;align-items:center;gap:12px;margin:7px 0;font-size:16px;"><span style="width:170px;">${esc(tipo(x.t).nom)}</span><div style="flex:1;height:14px;background:#24384a;border-radius:7px;overflow:hidden;"><div style="height:100%;width:${x.pct}%;background:${tipo(x.t).col};"></div></div><b style="width:52px;text-align:right;font-family:Oswald,sans-serif;">${x.pct}%</b><span style="width:56px;color:#8CA2B3;font-size:14px;">${x.min}'</span></div>`).join('');
+    }
+    if(r.ranking.length){
+      const top = r.ranking.slice(0, 3), bajo = r.ranking.length > 3 ? r.ranking.slice(-3).reverse() : [];
+      h += `<div style="display:flex;gap:16px;">
+        <div style="flex:1;">${tit('Más carga')}${top.map(x => `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #24384a;font-size:16px;"><span>${esc(x.p.name)}</span><b style="font-family:Oswald,sans-serif;">${x.c}</b></div>`).join('')}</div>
+        <div style="flex:1;">${bajo.length ? tit('Menos carga') + bajo.map(x => `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #24384a;font-size:16px;"><span>${esc(x.p.name)}</span><b style="font-family:Oswald,sans-serif;">${x.c}</b></div>`).join('') : ''}</div></div>`;
+      const rr = r.riesgos.filter(x => x.e.cls === 'rojo');
+      h += `<div style="margin-top:18px;padding:12px 16px;border-radius:10px;font-size:15px;line-height:1.5;${rr.length ? 'background:rgba(240,85,63,0.14);border:1px solid rgba(240,85,63,0.5);">⚠️ <b>Semanas en riesgo de sobrecarga:</b> ' + rr.map(x => esc(x.p.name) + ' (sem. ' + x.l.getDate() + '/' + (x.l.getMonth()+1) + ')').join(', ') : 'background:rgba(76,175,109,0.12);border:1px solid rgba(76,175,109,0.5);">✓ Ningún jugador pasó por riesgo de sobrecarga este mes.'}</div>`;
+    }
+    if((fila.evaluacion || '').trim()) h += tit('Evaluación del profe') + `<div style="font-size:16px;line-height:1.6;white-space:pre-wrap;background:#1B2836;border:1px solid #33495E;border-radius:12px;padding:14px 16px;">${esc(fila.evaluacion.trim())}</div>`;
+    if((fila.objetivo || '').trim()) h += tit('Objetivo para el mes que viene') + `<div style="font-size:16px;line-height:1.6;white-space:pre-wrap;background:rgba(47,143,203,0.12);border:1px solid rgba(47,143,203,0.45);border-radius:12px;padding:14px 16px;">${esc(fila.objetivo.trim())}</div>`;
+    const conNota = jugadores.filter(p => notas[p.id]);
+    if(conNota.length) h += tit('Notas por jugador') + conNota.map(p => `<div style="display:flex;gap:14px;padding:8px 0;border-bottom:1px solid #24384a;font-size:15px;"><b style="min-width:190px;">${esc(p.name)}</b><span style="color:#C9D6E0;line-height:1.5;">${esc(notas[p.id])}</span></div>`).join('');
+    h += `<div style="margin-top:26px;text-align:center;font:11px JetBrains Mono,monospace;color:#5c7186;">Informe generado con BenchOne · benchone.app</div>`;
+    nodo.innerHTML = h;
+    const texto = '📋 *Informe mensual de preparación física* — ' + nombreMes(mesSel) + (catTxt ? ' · ' + catTxt : '') + '\n'
+      + r.ss.length + ' sesiones · ' + r.min + "' · carga promedio " + (r.prom ? Math.round(r.prom) : '—') + (delta != null ? ' (' + (delta > 0 ? '▲' : '▼') + Math.abs(delta) + '%)' : '') + (r.asis.pct != null ? ' · asistencia ' + r.asis.pct + '%' : '')
+      + ((fila.evaluacion || '').trim() ? '\n\n' + fila.evaluacion.trim() : '') + ((fila.objetivo || '').trim() ? '\n\n🎯 ' + fila.objetivo.trim() : '');
+    return { nodo, texto, nombre: 'Fisico ' + nombreMes(mesSel) + (catTxt ? ' ' + catTxt : '') };
+  }
+  async function informeMes(accion){
+    try{
+      const ex = window.__boExport; if(!ex){ aviso('No se pudo generar el informe. Recargá la página.'); return; }
+      const inf = construirInformeMes();
+      const archivo = ex.nombre(inf.nombre, '');
+      if(accion === 'ver') return verInformeMes(inf);
+      if(accion === 'png') return ex.png(inf.nodo, archivo);
+      if(accion === 'pdf') return ex.pdf(inf.nodo, archivo, false);
+      aviso('Preparando el informe…');
+      const blob = await ex.blob(inf.nodo);
+      const file = blob ? new File([blob], archivo + '.png', { type: 'image/png' }) : null;
+      if(file && navigator.canShare && navigator.canShare({ files: [file] })){
+        try{ await navigator.share({ files: [file], text: inf.texto, title: 'Informe mensual' }); return; }
+        catch(e){ if(e && e.name === 'AbortError') return; }
+      }
+      if(blob){ const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = archivo + '.png'; document.body.appendChild(a); a.click(); a.remove(); }
+      window.open('https://wa.me/?text=' + encodeURIComponent(inf.texto), '_blank');
+      aviso(blob ? 'Se descargó la imagen del informe: adjuntala en el chat de WhatsApp' : 'Se abrió WhatsApp con el resumen');
+    }catch(e){ console.error('informe mensual', e); aviso('No se pudo generar el informe'); }
+  }
+  function verInformeMes(inf){
+    let m = document.getElementById('pfMesModal'); if(m) m.remove();
+    m = document.createElement('div'); m.id = 'pfMesModal'; m.className = 'cloud-modal-overlay'; m.style.display = 'flex';
+    m.innerHTML = `<div class="cloud-modal" style="max-width:1040px;max-height:92vh;"><div class="cloud-modal-head"><h3>📋 Informe · ${esc(nombreMes(mesSel))}</h3><button class="cloud-close" id="pfMesX">✕</button></div><div class="pf-mes-vista" style="padding:12px;overflow:auto;"></div></div>`;
+    document.body.appendChild(m);
+    const cont = m.querySelector('.pf-mes-vista');
+    inf.nodo.style.position = 'static'; inf.nodo.style.left = '0';
+    const esc2 = Math.min(1, (cont.clientWidth - 4) / 1000);
+    const wrap = document.createElement('div'); wrap.style.cssText = 'transform-origin:top left;transform:scale(' + esc2 + ');width:1000px;';
+    wrap.appendChild(inf.nodo); cont.appendChild(wrap);
+    requestAnimationFrame(() => { cont.style.height = Math.ceil(inf.nodo.offsetHeight * esc2 + 8) + 'px'; });
+    const cerrar = () => m.remove();
+    m.querySelector('#pfMesX').addEventListener('click', cerrar);
+    m.addEventListener('click', e => { if(e.target === m) cerrar(); });
+  }
+
+  // ───────── franja en la semana del entrenador ─────────
+  async function franjaDT(desde, hasta, semana){
+    const cont = document.getElementById('pfFranjaDT'); if(!cont) return;
+    let ini = desde ? deClave(desde) : null;
+    if(!ini && semana){ const y = temp(); const s1 = lunesDe(new Date(y, 0, 4)); ini = sumar(s1, (Number(semana) - 1) * 7); }
+    if(!ini){ cont.innerHTML = ''; return; }
+    const l = lunesDe(ini);
+    const fin = hasta ? deClave(hasta) : sumar(l, 6);
+    await asegurar(true);
+    const ss = sesiones.filter(s => s.fecha >= clave(l) && s.fecha <= clave(fin < sumar(l, 6) ? sumar(l, 6) : fin));
+    cont.innerHTML = `<div class="pf-franja">
+      <div class="pf-franja-cab"><b>🏋️ Lo físico de esta semana</b><span>lo carga el profe</span><button type="button" class="btn small" id="pfFranjaIr">${ss.length ? 'Ver en Profe ›' : '+ Planificar en Profe'}</button></div>
+      ${ss.length ? `<div class="pf-franja-dias">${ss.map(s => { const d = deClave(s.fecha); return `<span class="pf-fchip" style="--tc:${tipo(s.tipo).col}"><b>${DIAS[(d.getDay()+6)%7]} ${d.getDate()}</b> ${esc(tipo(s.tipo).nom)} ${Number(s.minutos)||0}'</span>`; }).join('')}</div>` : '<div class="pf-franja-vacia">Todavía no hay sesiones físicas cargadas para esta semana.</div>'}
+    </div>`;
+    cont.querySelector('#pfFranjaIr').addEventListener('click', () => { vista = 'semana'; irA('pf', l); window.scrollTo(0, 0); });
+  }
+  let ultimaFranja = null;
+  window.__pfFranjaDT = function(desde, hasta, semana){ ultimaFranja = [desde, hasta, semana]; franjaDT(desde, hasta, semana).catch(e => console.error('franja físico', e)); };
+  window.__pfRefrescarFranja = function(){ const det = document.getElementById('trainDetail'); if(ultimaFranja && det && det.style.display !== 'none') window.__pfFranjaDT.apply(null, ultimaFranja); };
+
+  // ───────── arranque ─────────
+  montarSolapas();
+  if(window.__onCategorySubscribe){
+    window.__onCategorySubscribe(() => {
+      cargado = false; sesionRPE = null;
+      const page = document.getElementById('pfPage');
+      if(page && page.style.display !== 'none'){ page.innerHTML = '<div class="pf-cargando">Cargando…</div>'; asegurar(true).then(render); }
+    }, 'training');
+  }
+})();
+</script>
+
 </body>
 </html>
